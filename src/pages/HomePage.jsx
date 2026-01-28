@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { geoMercator, geoPath, geoGraticule10 } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
-import Dither from "./Dither.jsx";
+import Dither from "../components/Dither.jsx";
 
 
 /* -------------------------------------------
@@ -165,7 +165,7 @@ async function reverseGeocode({ lat, lon }) {
         if (city || cc) return `${city || best.name}${cc ? `, ${cc}` : ""}`;
       }
     }
-  } catch {}
+  } catch { }
 
   // 2) Fallback: BigDataCloud (no key)
   try {
@@ -178,7 +178,7 @@ async function reverseGeocode({ lat, lon }) {
       const cc = d.countryCode || "";
       if (city || cc) return `${city}${cc ? `, ${cc}` : ""}`;
     }
-  } catch {}
+  } catch { }
 
   return null; // last resort
 }
@@ -223,7 +223,7 @@ function WorldMiniMap({ width = 540, height = 210, coords }) {
 
   // Your position
   const dotXY = coords ? projection([coords.lon, coords.lat]) : null;
-const PULSE_MS = 1800; // ← tweak this for faster/slower pulsing
+  const PULSE_MS = 1800; // ← tweak this for faster/slower pulsing
 
   return (
     <svg
@@ -262,18 +262,18 @@ const PULSE_MS = 1800; // ← tweak this for faster/slower pulsing
         />
 
         {dotXY && (
-  <g>
-    {/* solid dot that breathes */}
-    <circle cx={dotXY[0]} cy={dotXY[1]} r="5" fill="#fff">
-      <animate
-        attributeName="opacity"
-        values="0;1;0"   // fade in, fade out
-        dur={`${PULSE_MS}ms`}  // speed control
-        repeatCount="indefinite"
-      />
-    </circle>
-  </g>
-)}
+          <g>
+            {/* solid dot that breathes */}
+            <circle cx={dotXY[0]} cy={dotXY[1]} r="5" fill="#fff">
+              <animate
+                attributeName="opacity"
+                values="0;1;0"   // fade in, fade out
+                dur={`${PULSE_MS}ms`}  // speed control
+                repeatCount="indefinite"
+              />
+            </circle>
+          </g>
+        )}
 
       </g>
     </svg>
@@ -293,14 +293,14 @@ function WeatherTimeCard({ snapshot }) {
   }, []);
 
   // precipitation message
-//   const precip = snapshot?.next2hProb ?? [];
-//   const maxP = precip.length ? Math.max(...precip) : 0;
-//   const message =
-//     maxP >= 60
-//       ? "High chance of rain in the next 2 hours"
-//       : maxP >= 30
-//       ? "Possible light rain in the next 2 hours"
-//       : "No rain is expected in the next 2 hours";
+  //   const precip = snapshot?.next2hProb ?? [];
+  //   const maxP = precip.length ? Math.max(...precip) : 0;
+  //   const message =
+  //     maxP >= 60
+  //       ? "High chance of rain in the next 2 hours"
+  //       : maxP >= 30
+  //       ? "Possible light rain in the next 2 hours"
+  //       : "No rain is expected in the next 2 hours";
 
   return (
     <div className="rounded-2xl border border-zinc-800/70 bg-black/60 p-3 w-[540px]">
@@ -315,8 +315,8 @@ function WeatherTimeCard({ snapshot }) {
 
       {/* World mini map */}
       <div className="w-full h-[210px] rounded-xl bg-black/50 border border-zinc-800/60 overflow-hidden">
-  <WorldMiniMap width={540} height={210} coords={snapshot?.coords} />
-</div>
+        <WorldMiniMap width={540} height={210} coords={snapshot?.coords} />
+      </div>
 
       {/* status + clock */}
       {/* <div className="text-xs text-zinc-400 mt-2">{message}</div> */}
@@ -362,7 +362,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   const [now, setNow] = useState(new Date());
   const [quote, setQuote] = useState(quoteForToday());
   const [weatherSnap, setWeatherSnap] = useState(null);
-const openPulse = () => onOpenPulse?.(); 
+  const openPulse = () => onOpenPulse?.();
   // live clock & greeting update
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -409,7 +409,7 @@ const openPulse = () => onOpenPulse?.();
         try {
           const p = await reverseGeocode(coords);
           if (p) place = p;
-        } catch (_) {}
+        } catch (_) { }
 
         if (!cancelled) {
           setWeatherSnap({
@@ -439,85 +439,85 @@ const openPulse = () => onOpenPulse?.();
     (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
   );
 
-return (
-  <div className="relative h-full w-full">
-    {/* Background: dithered waves (behind everything) */}
-    {/* Background: dithered waves (behind everything) */}
-<div className="absolute inset-0 z-0">
-  <Dither
-    waveColor={BG.waveColor}
-    waveAmplitude={BG.waveAmplitude}
-    waveFrequency={BG.waveFrequency}
-    waveSpeed={BG.waveSpeed}
-    colorNum={BG.colorNum}
-    pixelSize={BG.pixelSize}
-    enableMouseInteraction={true}
-    mouseRadius={0.5}
-  />
-  {/* Final readability layer */}
-  <div className={`absolute inset-0 pointer-events-none ${BG.overlayClass}`} />
-</div>
+  return (
+    <div className="relative h-full w-full">
+      {/* Background: dithered waves (behind everything) */}
+      {/* Background: dithered waves (behind everything) */}
+      <div className="absolute inset-0 z-0">
+        <Dither
+          waveColor={BG.waveColor}
+          waveAmplitude={BG.waveAmplitude}
+          waveFrequency={BG.waveFrequency}
+          waveSpeed={BG.waveSpeed}
+          colorNum={BG.colorNum}
+          pixelSize={BG.pixelSize}
+          enableMouseInteraction={true}
+          mouseRadius={0.5}
+        />
+        {/* Final readability layer */}
+        <div className={`absolute inset-0 pointer-events-none ${BG.overlayClass}`} />
+      </div>
 
 
-    {/* Foreground content */}
-    <div
-      className="relative z-10 h-full w-full grid"
-      style={{ gridTemplateColumns: "1fr auto" }}
-    >
-      {/* LEFT — greeting */}
-      <div className="relative">
-        <div className="absolute left-[6vw] top-1/2 -translate-y-1/2">
-          <h1 className="font-mono text-white/95 leading-tight text-2xl md:text-4xl">
-            {greeting}
-          </h1>
-          <p className="mt-3 text-zinc-400 text-sm md:text-base">{quote}</p>
+      {/* Foreground content */}
+      <div
+        className="relative z-10 h-full w-full grid"
+        style={{ gridTemplateColumns: "1fr auto" }}
+      >
+        {/* LEFT — greeting */}
+        <div className="relative">
+          <div className="absolute left-[6vw] top-1/2 -translate-y-1/2">
+            <h1 className="font-mono text-white/95 leading-tight text-2xl md:text-4xl">
+              {greeting}
+            </h1>
+            <p className="mt-3 text-zinc-400 text-sm md:text-base">{quote}</p>
+          </div>
+        </div>
+
+        {/* RIGHT — stacked widgets */}
+        <div className="h-full overflow-auto px-6 py-6 flex flex-col gap-4 items-end">
+          <WeatherTimeCard snapshot={weatherSnap} />
+
+          <TodayCard
+            title="Today's Tasks"
+            empty="No tasks scheduled for today."
+            onClick={() => onOpenPulse?.()}
+          >
+            {todayTasks.length === 0 ? (
+              <div className="text-sm text-zinc-400">No tasks scheduled for today.</div>
+            ) : (
+              <ul className="text-sm text-zinc-300 space-y-1">
+                {todayTasks.map((t) => (
+                  <li key={t.id}>• {t.title}</li>
+                ))}
+              </ul>
+            )}
+          </TodayCard>
+
+          <TodayCard
+            title="Today's Reminders"
+            empty="No reminders for today."
+            onClick={() => onOpenPulse?.()}
+          >
+            {todayReminders.length === 0 ? (
+              <div className="text-sm text-zinc-400">No reminders for today.</div>
+            ) : (
+              <ul className="text-sm text-zinc-300 space-y-1">
+                {todayReminders.map((r) => (
+                  <li key={r.id}>
+                    • {r.title} —{" "}
+                    {new Date(r.scheduledAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </TodayCard>
         </div>
       </div>
-
-      {/* RIGHT — stacked widgets */}
-      <div className="h-full overflow-auto px-6 py-6 flex flex-col gap-4 items-end">
-        <WeatherTimeCard snapshot={weatherSnap} />
-
-        <TodayCard
-          title="Today's Tasks"
-          empty="No tasks scheduled for today."
-          onClick={() => onOpenPulse?.()}
-        >
-          {todayTasks.length === 0 ? (
-            <div className="text-sm text-zinc-400">No tasks scheduled for today.</div>
-          ) : (
-            <ul className="text-sm text-zinc-300 space-y-1">
-              {todayTasks.map((t) => (
-                <li key={t.id}>• {t.title}</li>
-              ))}
-            </ul>
-          )}
-        </TodayCard>
-
-        <TodayCard
-          title="Today's Reminders"
-          empty="No reminders for today."
-          onClick={() => onOpenPulse?.()}
-        >
-          {todayReminders.length === 0 ? (
-            <div className="text-sm text-zinc-400">No reminders for today.</div>
-          ) : (
-            <ul className="text-sm text-zinc-300 space-y-1">
-              {todayReminders.map((r) => (
-                <li key={r.id}>
-                  • {r.title} —{" "}
-                  {new Date(r.scheduledAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </li>
-              ))}
-            </ul>
-          )}
-        </TodayCard>
-      </div>
     </div>
-  </div>
-);
+  );
 
 }

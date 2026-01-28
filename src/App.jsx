@@ -1,130 +1,58 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+// Context
+import { DataProvider, useData } from "./context/DataContext.jsx";
+
 // Components
 import Navbar from "./components/Navbar.jsx";
-import Sidebar from "./components/Sidebar.jsx";
-import Home from "./components/Home.jsx";
-import NotesOverview from "./components/NotesOverview.jsx";
-import PulsePage from "./components/PulsePage.jsx";
-import Editor from "./components/Editor.jsx";
-import Projects from "./components/Projects.jsx";
-import GraphView from "./components/GraphView.jsx";
-import CanvasBoard from "./components/CanvasBoard.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
-import Journal from "./components/Journal.jsx";
-import DecisionLedger from "./components/DecisionLedger.jsx";
-import { parseContentMeta } from "./lib/parseContentMeta.js";
 
-/* -----------------------------------------
-   Small utilities (local to App)
------------------------------------------ */
-const uid = () => Math.random().toString(36).slice(2, 9);
-const isoNow = () => new Date().toISOString();
+// Pages
+import HomePage from "./pages/HomePage.jsx";
+import NotesPage from "./pages/NotesPage.jsx";
+import PulsePage from "./pages/PulsePage.jsx";
+import EditorPage from "./pages/EditorPage.jsx";
+import ProjectsPage from "./pages/ProjectsPage.jsx";
+import GraphPage from "./pages/GraphPage.jsx";
+import CanvasPage from "./pages/CanvasPage.jsx";
+import JournalPage from "./pages/JournalPage.jsx";
+import LedgerPage from "./pages/LedgerPage.jsx";
 
-function useLocalStorage(key, initial) {
-  const [state, setState] = useState(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) return JSON.parse(raw);
-    } catch { }
-    return typeof initial === "function" ? initial() : initial;
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch { }
-  }, [key, state]);
-  return [state, setState];
-}
-
-// const parseContentMeta = (content) => {
-//   const stripped = (content || "").replace(/%%[\s\S]*?%%/g, "");
-//   const tags = Array.from(
-//     new Set((stripped.match(/(^|\s)#([\w-]+)/g) || []).map((t) => t.trim().slice(1)))
-//   );
-//   const links = Array.from(
-//     new Set((stripped.match(/\[\[(.+?)\]\]/g) || []).map((m) => m.slice(2, -2).trim()))
-//   );
-//   return { tags, links };
-// };
-
-const seedNotes = () => {
-  const n1c =
-    "# Intro\nThis is the first note. Link to [[Tagging System]].\n\n---\n\n- [ ] task\n- [x] done";
-  const n2c =
-    "**Bold** _italic_ ==highlight==\n\n> [!info] Callout box.\n\n#tags How I use #meta and #projects.";
-  const n3c = "## Goals\n\nSketching ideas.";
-  const n1 = {
-    id: uid(),
-    title: "Introduction to My Notes",
-    content: n1c,
-    ...parseContentMeta(n1c),
-    createdAt: isoNow(),
-    project: null,
-  };
-  const n2 = {
-    id: uid(),
-    title: "Tagging System",
-    content: n2c,
-    ...parseContentMeta(n2c),
-    createdAt: isoNow(),
-    project: null,
-  };
-  const n3 = {
-    id: uid(),
-    title: "Long-Term Goals",
-    content: n3c,
-    ...parseContentMeta(n3c),
-    createdAt: isoNow(),
-    project: null,
-  };
-  return [n1, n2, n3];
-};
-
-/* -----------------------------------------
-   App
------------------------------------------ */
-export default function App() {
+function AppContent() {
   // Pages
-  const [currentPage, setCurrentPage] = useState("home"); // home | overview | projects | editor | canvas | graph | pulse
+  const [currentPage, setCurrentPage] = useState("home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger
 
-  // Notes & Projects
-  const [notes, setNotes] = useLocalStorage("maia.notes", seedNotes);
-  const [projects, setProjects] = useLocalStorage("maia.projects", []);
-  const [currentNoteId, setCurrentNoteId] = useLocalStorage("maia.currentNoteId", null);
+  // Data from Context
+  const {
+    notes, setNotes,
+    projects, setProjects,
+    journal, setJournal,
+    ledger, setLedger,
+    tasks, setTasks,
+    reminders, setReminders,
+    // Actions
+    createNote, updateNote, deleteNote, renameNote,
+    moveNoteToProject, updateProject, createProject, deleteProject,
+    addTask, addReminder
+  } = useData();
 
-  // Strategic Journal (New)
-  const [journal, setJournal] = useLocalStorage("maia.journal", []);
-
-  // Decision Ledger (New)
-  const [ledger, setLedger] = useLocalStorage("maia.ledger", []);
-
-  // Tasks & Reminders (for Pulse)
-  const [tasks, setTasks] = useLocalStorage("maia.tasks", []);
-  const [reminders, setReminders] = useLocalStorage("maia.reminders", []);
-
-  // Search
+  // Local state for navigation/selection that doesn't need persistence yet
+  // or could be moved to context if we want deep linking later.
+  const [currentNoteId, setCurrentNoteId] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Sidebar resize (kept for future use)
-  const [sidebarWidth, setSidebarWidth] = useState(256);
-  const resizing = useRef(false);
-  useEffect(() => {
-    const onMove = (e) => {
-      if (!resizing.current) return;
-      const next = Math.min(480, Math.max(180, sidebarWidth + e.movementX));
-      setSidebarWidth(next);
-    };
-    const onUp = () => (resizing.current = false);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, [sidebarWidth]);
+  // NOTE: Simple Toast was local to App. 
+  // Ideally this moves to a UI Context, but for now we keep it here and pass down.
+  const [toast, setToast] = useState(null);
+  const pushToast = (msg) => {
+    setToast(msg);
+    window.clearTimeout(pushToast._t);
+    pushToast._t = window.setTimeout(() => setToast(null), 2200);
+  };
 
-  // Filtered notes
+  /* -----------------------------------------
+     Derived State
+  ----------------------------------------- */
   const filteredNotes = useMemo(() => {
     if (!search) return notes;
     const q = search.toLowerCase();
@@ -141,45 +69,9 @@ export default function App() {
     [notes, currentNoteId]
   );
 
-  // Note ops
-  const createNote = () => {
-    const n = {
-      id: uid(),
-      title: "Untitled",
-      content: "",
-      tags: [],
-      links: [],
-      createdAt: isoNow(),
-      project: null,
-    };
-    setNotes([n, ...notes]);
-    setCurrentNoteId(n.id);
-    setCurrentPage("editor");
-  };
-
-  // 👇 Preserve meta (tags/links) provided by the editor; do not recompute here.
-  const updateNote = (updated) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === updated.id ? { ...n, ...updated } : n))
-    );
-  };
-
-  const deleteNote = (id) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
-    if (currentNoteId === id) setCurrentNoteId(null);
-  };
-
-  const renameNote = (id, title) => {
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, title: title || "" } : n)));
-  };
-
-  const moveNoteToProject = (id, name) => {
-    if (name && !projects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      setProjects([...projects, { id: uid(), name: name.trim() }]);
-    }
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, project: name || null } : n)));
-  };
-
+  /* -----------------------------------------
+     Navigation Helpers
+  ----------------------------------------- */
   const selectNote = (id) => {
     setCurrentNoteId(id);
     setCurrentPage("editor");
@@ -194,16 +86,28 @@ export default function App() {
     }
   };
 
-  // Simple toast
-  const [toast, setToast] = useState(null);
-  const pushToast = (msg) => {
-    setToast(msg);
-    window.clearTimeout(pushToast._t);
-    pushToast._t = window.setTimeout(() => setToast(null), 2200);
+  const go = (page) => setCurrentPage(page);
+
+  // Command Palette Helpers
+  const quickAddTask = (title) => {
+    addTask(title);
+    pushToast("Task added");
+  };
+
+  const quickAddReminder = (title) => {
+    const when = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    addReminder(title, when);
+    pushToast("Reminder set for +15 min");
+  };
+
+  const handleCreateNote = () => {
+    const id = createNote();
+    setCurrentNoteId(id);
+    setCurrentPage("editor");
   };
 
   /* -----------------------------------------
-     Command Palette (⌘K / Ctrl+K)
+     Keyboard Listener
   ----------------------------------------- */
   const [cmdOpen, setCmdOpen] = useState(false);
   useEffect(() => {
@@ -217,30 +121,13 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const go = (page) => setCurrentPage(page);
-
-  const quickAddTask = (title) => {
-    const t = (title || "").trim();
-    if (!t) return;
-    setTasks((prev) => [{ id: uid(), title: t, done: false, createdAt: isoNow(), due: null }, ...prev]);
-    pushToast?.("Task added");
-  };
-
-  const quickAddReminder = (title) => {
-    const t = (title || "").trim();
-    if (!t) return;
-    const when = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    setReminders((prev) => [{ id: uid(), title: t, scheduledAt: when, createdAt: isoNow(), delivered: false }, ...prev]);
-    pushToast?.("Reminder set for +15 min");
-  };
-
   /* -----------------------------------------
      Layout
   ----------------------------------------- */
   return (
     <div
       className="h-screen w-full bg-black text-zinc-200 grid min-h-0"
-      style={{ gridTemplateRows: "3rem minmax(0,1fr)" }}   // was "3rem 1fr"
+      style={{ gridTemplateRows: "3rem minmax(0,1fr)" }}
     >
       <Navbar
         search={search}
@@ -249,22 +136,19 @@ export default function App() {
         setCurrentPage={setCurrentPage}
       />
 
-      {/* Columns wrapper */}
+      {/* Main Content */}
       <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
-        {/* Sidebar (kept commented) */}
-
-        {/* Main content area must allow shrink for inner scroller */}
         <main className="h-full overflow-hidden min-h-0">
           {currentPage === "journal" && (
-            <Journal journal={journal} setJournal={setJournal} />
+            <JournalPage journal={journal} setJournal={setJournal} />
           )}
 
           {currentPage === "ledger" && (
-            <DecisionLedger ledger={ledger} setLedger={setLedger} />
+            <LedgerPage ledger={ledger} setLedger={setLedger} />
           )}
 
           {currentPage === "home" && (
-            <Home
+            <HomePage
               tasks={tasks}
               reminders={reminders}
               onOpenPulse={() => setCurrentPage("pulse")}
@@ -272,35 +156,35 @@ export default function App() {
           )}
 
           {currentPage === "overview" && (
-            <NotesOverview
+            <NotesPage
               notes={filteredNotes}
               selectNote={selectNote}
               onDelete={deleteNote}
               onRename={renameNote}
               onMove={moveNoteToProject}
               projects={projects}
-              onCreateNote={createNote}
+              onCreateNote={handleCreateNote}
               onBack={() => setCurrentPage("home")}
             />
           )}
 
           {currentPage === "canvas" && (
-            <CanvasBoard goHome={() => setCurrentPage("home")} />
+            <CanvasPage goHome={() => setCurrentPage("home")} />
           )}
 
           {currentPage === "projects" && (
-            <Projects
+            <ProjectsPage
               notes={notes}
               projects={projects}
               setProjects={setProjects}
-              setNotes={setNotes}          // ← add this
+              setNotes={setNotes}
               selectNote={selectNote}
-              pushToast={pushToast}        // ← optional (for toasts)
+              pushToast={pushToast}
             />
           )}
 
           {currentPage === "editor" && (
-            <Editor
+            <EditorPage
               note={currentNote}
               updateNote={updateNote}
               onOpenInternalLink={openInternalByTitle}
@@ -309,7 +193,7 @@ export default function App() {
           )}
 
           {currentPage === "graph" && (
-            <GraphView notes={notes} onOpenNote={selectNote} />
+            <GraphPage notes={notes} onOpenNote={selectNote} />
           )}
 
           {currentPage === "pulse" && (
@@ -340,11 +224,19 @@ export default function App() {
         onClose={() => setCmdOpen(false)}
         notes={notes}
         onOpenNote={(id) => selectNote(id)}
-        onCreateNote={createNote}
+        onCreateNote={handleCreateNote}
         go={go}
         quickAddTask={quickAddTask}
         quickAddReminder={quickAddReminder}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <DataProvider>
+      <AppContent />
+    </DataProvider>
   );
 }

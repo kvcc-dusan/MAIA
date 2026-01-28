@@ -1,17 +1,19 @@
-// @maia:useLocalStorage
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export function useLocalStorage(key, initial) {
   const [state, setState] = useState(() => {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : typeof initial === "function" ? initial() : initial;
-    } catch {
-      return typeof initial === "function" ? initial() : initial;
-    }
+      if (raw) return JSON.parse(raw);
+    } catch { }
+    return typeof initial === "function" ? initial() : initial;
   });
+
   useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(state));
+    try {
+      localStorage.setItem(key, JSON.stringify(state));
+    } catch { }
   }, [key, state]);
+
   return [state, setState];
 }

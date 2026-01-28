@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react";
-import EditorRich from "./EditorRich.jsx";
+import EditorRich from "../components/EditorRich.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
@@ -20,8 +20,8 @@ export default function Editor({ note, updateNote, projects = [] }) {
 
   // Persist title, content, meta (tags/links) AND counts (words/chars)
   useDebounced(() => {
-  if (local) updateNote(local);
-}, [local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project], 250);
+    if (local) updateNote(local);
+  }, [local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project], 250);
 
 
   if (!note) {
@@ -67,9 +67,8 @@ export default function Editor({ note, updateNote, projects = [] }) {
           className="w-5 h-5 rounded-full grid place-items-center"
         >
           <span
-            className={`inline-block w-3.5 h-3.5 rounded-full ${
-              editable ? "border border-zinc-400" : "bg-zinc-100"
-            }`}
+            className={`inline-block w-3.5 h-3.5 rounded-full ${editable ? "border border-zinc-400" : "bg-zinc-100"
+              }`}
           />
         </button>
       </div>

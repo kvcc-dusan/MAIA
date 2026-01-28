@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { uid, isoNow } from "../lib/ids.js";
-import EditorRich from "./EditorRich.jsx";
+import EditorRich from "../components/EditorRich.jsx";
 
 export default function Journal({ journal = [], setJournal }) {
     const [content, setContent] = useState("");
