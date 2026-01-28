@@ -11,6 +11,8 @@ import Projects from "./components/Projects.jsx";
 import GraphView from "./components/GraphView.jsx";
 import CanvasBoard from "./components/CanvasBoard.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
+import Journal from "./components/Journal.jsx";
+import DecisionLedger from "./components/DecisionLedger.jsx";
 import { parseContentMeta } from "./lib/parseContentMeta.js";
 
 /* -----------------------------------------
@@ -24,13 +26,13 @@ function useLocalStorage(key, initial) {
     try {
       const raw = localStorage.getItem(key);
       if (raw) return JSON.parse(raw);
-    } catch {}
+    } catch { }
     return typeof initial === "function" ? initial() : initial;
   });
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(state));
-    } catch {}
+    } catch { }
   }, [key, state]);
   return [state, setState];
 }
@@ -90,6 +92,12 @@ export default function App() {
   const [notes, setNotes] = useLocalStorage("maia.notes", seedNotes);
   const [projects, setProjects] = useLocalStorage("maia.projects", []);
   const [currentNoteId, setCurrentNoteId] = useLocalStorage("maia.currentNoteId", null);
+
+  // Strategic Journal (New)
+  const [journal, setJournal] = useLocalStorage("maia.journal", []);
+
+  // Decision Ledger (New)
+  const [ledger, setLedger] = useLocalStorage("maia.ledger", []);
 
   // Tasks & Reminders (for Pulse)
   const [tasks, setTasks] = useLocalStorage("maia.tasks", []);
@@ -247,6 +255,14 @@ export default function App() {
 
         {/* Main content area must allow shrink for inner scroller */}
         <main className="h-full overflow-hidden min-h-0">
+          {currentPage === "journal" && (
+            <Journal journal={journal} setJournal={setJournal} />
+          )}
+
+          {currentPage === "ledger" && (
+            <DecisionLedger ledger={ledger} setLedger={setLedger} />
+          )}
+
           {currentPage === "home" && (
             <Home
               tasks={tasks}
@@ -273,22 +289,22 @@ export default function App() {
           )}
 
           {currentPage === "projects" && (
-  <Projects
-    notes={notes}
-    projects={projects}
-    setProjects={setProjects}
-    setNotes={setNotes}          // ← add this
-    selectNote={selectNote}
-    pushToast={pushToast}        // ← optional (for toasts)
-  />
-)}
+            <Projects
+              notes={notes}
+              projects={projects}
+              setProjects={setProjects}
+              setNotes={setNotes}          // ← add this
+              selectNote={selectNote}
+              pushToast={pushToast}        // ← optional (for toasts)
+            />
+          )}
 
           {currentPage === "editor" && (
             <Editor
               note={currentNote}
               updateNote={updateNote}
               onOpenInternalLink={openInternalByTitle}
-              projects={projects} 
+              projects={projects}
             />
           )}
 

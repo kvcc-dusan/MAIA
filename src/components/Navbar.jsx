@@ -53,6 +53,8 @@ export default function Navbar({ search, setSearch, currentPage, setCurrentPage 
       <div className="h-full flex items-center justify-end px-4 gap-6">
         <nav className="h-full flex items-center">
           {/* Keep IDs as your internal route keys; labels are the new names */}
+          <Tab id="journal" label="Journal" />
+          <Tab id="ledger" label="Decisions" />
           <Tab id="pulse" label="Chronos" />
           <Tab id="projects" label="Opus" />
           <Tab id="overview" label="Codex" />
@@ -87,6 +89,6 @@ export default function Navbar({ search, setSearch, currentPage, setCurrentPage 
           />
         </div>
       </div>
-    </header>
+    </header >
   );
 }
