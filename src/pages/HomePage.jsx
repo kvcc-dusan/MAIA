@@ -292,42 +292,30 @@ function WeatherTimeCard({ snapshot }) {
     return () => clearInterval(t);
   }, []);
 
-  // precipitation message
-  //   const precip = snapshot?.next2hProb ?? [];
-  //   const maxP = precip.length ? Math.max(...precip) : 0;
-  //   const message =
-  //     maxP >= 60
-  //       ? "High chance of rain in the next 2 hours"
-  //       : maxP >= 30
-  //       ? "Possible light rain in the next 2 hours"
-  //       : "No rain is expected in the next 2 hours";
-
   return (
-    <div className="rounded-2xl border border-zinc-800/70 bg-black/60 p-3 w-[540px]">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm text-zinc-300">
+    <div className="glass-panel rounded-2xl p-5 w-full">
+      <div className="flex items-end justify-between mb-4">
+        <div className="text-4xl font-light text-white tracking-tight">
           {snapshot?.temp != null ? Math.round(snapshot.temp) + "°" : "--"}
         </div>
-        <div className="text-[11px] text-zinc-400 truncate">
-          {snapshot?.place || "—"} &nbsp;•&nbsp; {tz}
+        <div className="text-right">
+          <div className="text-[10px] text-zinc-500 font-mono mb-1 uppercase tracking-wider">{snapshot?.place || "—"}</div>
+          <div className="text-[10px] text-zinc-600 font-mono uppercase tracking-wider">{tz}</div>
         </div>
       </div>
 
       {/* World mini map */}
-      <div className="w-full h-[210px] rounded-xl bg-black/50 border border-zinc-800/60 overflow-hidden">
+      <div className="w-full h-[180px] rounded-xl bg-black/20 border border-white/5 overflow-hidden relative grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-700">
         <WorldMiniMap width={540} height={210} coords={snapshot?.coords} />
       </div>
 
-      {/* status + clock */}
-      {/* <div className="text-xs text-zinc-400 mt-2">{message}</div> */}
-      <div className="mt-2 text-xs text-zinc-500 tabular-nums">
-        {now.toLocaleDateString(undefined, {
-          weekday: "short",
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}{" "}
-        — {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+      <div className="mt-4 flex justify-between items-center border-t border-white/5 pt-3">
+        <div className="text-xs text-zinc-400 font-mono">
+          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+        </div>
+        <div className="text-xs text-zinc-500 font-mono tracking-widest">
+          {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+        </div>
       </div>
     </div>
   );
@@ -343,12 +331,12 @@ function TodayCard({ title, empty, children, onClick }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className="rounded-2xl border border-zinc-800/70 bg-black/60 p-3 w-[540px] cursor-pointer hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-600/40"
+      className="glass-panel rounded-2xl p-5 w-full cursor-pointer hover:bg-white/5 transition-all duration-300 group"
     >
-      <div className="text-[11px] tracking-widest uppercase text-zinc-500 mb-2">
+      <div className="text-[10px] tracking-[0.2em] font-bold text-zinc-600 mb-3 group-hover:text-zinc-400 transition-colors uppercase">
         {title}
       </div>
-      {children ?? <div className="text-sm text-zinc-400">{empty}</div>}
+      {children ?? <div className="text-sm text-zinc-500 italic">{empty}</div>}
     </div>
   );
 }
@@ -460,22 +448,19 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
 
       {/* Foreground content */}
-      <div
-        className="relative z-10 h-full w-full grid"
-        style={{ gridTemplateColumns: "1fr auto" }}
-      >
+      <div className="relative z-10 h-full w-full flex flex-col md:flex-row">
         {/* LEFT — greeting */}
-        <div className="relative">
-          <div className="absolute left-[6vw] top-1/2 -translate-y-1/2">
-            <h1 className="font-mono text-white/95 leading-tight text-2xl md:text-4xl">
+        <div className="flex-1 flex flex-col justify-center px-8 md:px-16 pointer-events-none">
+          <div className="pointer-events-auto">
+            <h1 className="font-mono text-white leading-tight text-3xl md:text-5xl opacity-90">
               {greeting}
             </h1>
-            <p className="mt-3 text-zinc-400 text-sm md:text-base">{quote}</p>
+            <p className="mt-4 text-zinc-500 text-sm md:text-base max-w-md leading-relaxed">{quote}</p>
           </div>
         </div>
 
         {/* RIGHT — stacked widgets */}
-        <div className="h-full overflow-auto px-6 py-6 flex flex-col gap-4 items-end">
+        <div className="w-full md:w-[480px] h-full overflow-y-auto px-6 py-6 flex flex-col gap-6 bg-gradient-to-l from-black/20 to-transparent">
           <WeatherTimeCard snapshot={weatherSnap} />
 
           <TodayCard
@@ -484,11 +469,14 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
             onClick={() => onOpenPulse?.()}
           >
             {todayTasks.length === 0 ? (
-              <div className="text-sm text-zinc-400">No tasks scheduled for today.</div>
+              <div className="text-sm text-zinc-500 italic">No tasks scheduled for today.</div>
             ) : (
-              <ul className="text-sm text-zinc-300 space-y-1">
+              <ul className="text-sm text-zinc-300 space-y-2">
                 {todayTasks.map((t) => (
-                  <li key={t.id}>• {t.title}</li>
+                  <li key={t.id} className="flex items-start gap-2">
+                    <span className="text-zinc-600 mt-1">●</span>
+                    <span>{t.title}</span>
+                  </li>
                 ))}
               </ul>
             )}
@@ -500,16 +488,18 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
             onClick={() => onOpenPulse?.()}
           >
             {todayReminders.length === 0 ? (
-              <div className="text-sm text-zinc-400">No reminders for today.</div>
+              <div className="text-sm text-zinc-500 italic">No reminders for today.</div>
             ) : (
-              <ul className="text-sm text-zinc-300 space-y-1">
+              <ul className="text-sm text-zinc-300 space-y-2">
                 {todayReminders.map((r) => (
-                  <li key={r.id}>
-                    • {r.title} —{" "}
-                    {new Date(r.scheduledAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <li key={r.id} className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-600">●</span>
+                      <span>{r.title}</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-600 ml-4 font-mono">
+                      {new Date(r.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                   </li>
                 ))}
               </ul>

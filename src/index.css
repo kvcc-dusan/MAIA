@@ -6,46 +6,121 @@
 /* 🌑 BASE (Global styles)                                                    */
 /* ========================================================================== */
 @layer base {
-  html, body {
+
+  html,
+  body {
     height: 100%;
-    background: #000; /* pitch black */
+    background: #000;
+    /* pitch black */
+    color: #e4e4e7;
     font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
-body { overflow: hidden; } /* Only panels should scroll */
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-zinc-900/40 backdrop-blur-xl border border-white/5 shadow-2xl;
+  }
+}
+
+body {
+  overflow: hidden;
+}
+
+/* Only panels should scroll */
 
 /* Text selection */
-::selection { background: #14532d; color: #e5fde8; }
+::selection {
+  background: #14532d;
+  color: #e5fde8;
+}
 
 /* ========================================================================== */
 /* 📌 CALLOUTS (Markdown-it callouts)                                         */
 /* ========================================================================== */
-.callout { border-left: 3px solid #3f3f46; padding-left: 0.75rem; }
-.callout-info    { border-color: #38bdf8; }
-.callout-note    { border-color: #a78bfa; }
-.callout-tip     { border-color: #34d399; }
-.callout-warning { border-color: #f59e0b; }
-.callout-danger  { border-color: #ef4444; }
+.callout {
+  border-left: 3px solid #3f3f46;
+  padding-left: 0.75rem;
+}
+
+.callout-info {
+  border-color: #38bdf8;
+}
+
+.callout-note {
+  border-color: #a78bfa;
+}
+
+.callout-tip {
+  border-color: #34d399;
+}
+
+.callout-warning {
+  border-color: #f59e0b;
+}
+
+.callout-danger {
+  border-color: #ef4444;
+}
 
 /* ========================================================================== */
 /* ✍️ RICH TEXT (TipTap editor + read view)                                   */
 /* ========================================================================== */
-.tiptap, .prose { color: #e4e4e7; }
+.tiptap,
+.prose {
+  color: #e4e4e7;
+}
 
 /* Headings */
-.tiptap h1, .prose h1 { font-size: 2rem; font-weight: 600;  line-height: 2rem; margin: 1.25rem 0 .75rem; }
-.tiptap h2, .prose h2 { font-size: 1.60rem; font-weight: 600;  line-height: 1.8rem; margin: 1.10rem 0 .60rem; }
-.tiptap h3, .prose h3 { font-size: 1.30rem; font-weight: 600;  line-height: 1.6rem; margin: 1.00rem 0 .50rem; }
-.tiptap h4, .prose h4 { font-size: 1.15rem; font-weight: 600;   line-height: 1.4rem; margin:  .90rem 0 .40rem; }
+.tiptap h1,
+.prose h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 2rem;
+  margin: 1.25rem 0 .75rem;
+}
+
+.tiptap h2,
+.prose h2 {
+  font-size: 1.60rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  margin: 1.10rem 0 .60rem;
+}
+
+.tiptap h3,
+.prose h3 {
+  font-size: 1.30rem;
+  font-weight: 600;
+  line-height: 1.6rem;
+  margin: 1.00rem 0 .50rem;
+}
+
+.tiptap h4,
+.prose h4 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4rem;
+  margin: .90rem 0 .40rem;
+}
 
 /* Body rhythm */
-.tiptap p, .prose p { margin: .5rem 0; }
+.tiptap p,
+.prose p {
+  margin: .5rem 0;
+}
 
 /* Horizontal rules & code blocks */
-.tiptap hr, .prose hr { border-color: #27272a; margin: 1rem 0; }
-.tiptap pre, .prose pre {
+.tiptap hr,
+.prose hr {
+  border-color: #27272a;
+  margin: 1rem 0;
+}
+
+.tiptap pre,
+.prose pre {
   background: #0a0a0a;
   border: 1px solid #27272a;
   padding: .75rem .9rem;
@@ -54,14 +129,28 @@ body { overflow: hidden; } /* Only panels should scroll */
 }
 
 /* Inline code */
-.tiptap code, .prose code { background: #0a0a0a; padding: .1rem .3rem; border-radius: .25rem; }
+.tiptap code,
+.prose code {
+  background: #0a0a0a;
+  padding: .1rem .3rem;
+  border-radius: .25rem;
+}
 
 /* Links */
-.tiptap a, .prose a { color: #a7f3d0; text-decoration: none; }
-.tiptap a:hover, .prose a:hover { text-decoration: underline; }
+.tiptap a,
+.prose a {
+  color: #a7f3d0;
+  text-decoration: none;
+}
+
+.tiptap a:hover,
+.prose a:hover {
+  text-decoration: underline;
+}
 
 /* Highlight ==text== */
-.tiptap mark, .prose mark {
+.tiptap mark,
+.prose mark {
   background: #064e3b;
   color: #dcfce7;
   padding: .05rem .25rem;
@@ -69,7 +158,8 @@ body { overflow: hidden; } /* Only panels should scroll */
 }
 
 /* Blockquotes */
-.tiptap blockquote, .prose blockquote {
+.tiptap blockquote,
+.prose blockquote {
   border-left: 3px solid #3f3f46;
   margin: .75rem 0;
   padding-left: .75rem;
@@ -77,13 +167,22 @@ body { overflow: hidden; } /* Only panels should scroll */
 }
 
 /* Images */
-.tiptap img, .prose img { display: inline-block; max-width: 100%; }
+.tiptap img,
+.prose img {
+  display: inline-block;
+  max-width: 100%;
+}
 
 /* ========================================================================== */
 /* 🏷️ COMPONENTS                                                             */
 /* ========================================================================== */
 @layer components {
-  .prose ul, .prose ol { margin: .5rem 0; padding-left: 1.1rem; }
+
+  .prose ul,
+  .prose ol {
+    margin: .5rem 0;
+    padding-left: 1.1rem;
+  }
 
   .maia-tag {
     @apply inline-flex items-center h-6 px-2 rounded-full;
@@ -97,26 +196,39 @@ body { overflow: hidden; } /* Only panels should scroll */
 /* ========================================================================== */
 /* 🔢 REGULAR LISTS (bullets & numbers)                                       */
 /* ========================================================================== */
-.tiptap ul:not([data-type="taskList"]) { 
-  list-style: disc; 
-  padding-left: 1.25rem; 
-  margin: 0.5rem 0 0.5rem 0.25rem; 
+.tiptap ul:not([data-type="taskList"]) {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0.5rem 0.25rem;
 }
-.tiptap ol:not([data-type="taskList"]) { 
-  list-style: decimal; 
-  padding-left: 1.25rem; 
-  margin: 0.5rem 0 0.5rem 0.25rem; 
-}
-.tiptap ul:not([data-type="taskList"]) li,
-.tiptap ol:not([data-type="taskList"]) li { margin: 0.25rem 0; }
-.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style: circle; }
-.tiptap ol:not([data-type="taskList"]) ol:not([data-type="taskList"]) { list-style: lower-alpha; }
 
 .tiptap ol:not([data-type="taskList"]) {
-  list-style-position: outside; /* keep marker separate */
-   padding-left: 1.7rem;         /* adjust until numbers align with checkbox squares */
-  text-indent: -0.25rem; 
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0.5rem 0.25rem;
 }
+
+.tiptap ul:not([data-type="taskList"]) li,
+.tiptap ol:not([data-type="taskList"]) li {
+  margin: 0.25rem 0;
+}
+
+.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style: circle;
+}
+
+.tiptap ol:not([data-type="taskList"]) ol:not([data-type="taskList"]) {
+  list-style: lower-alpha;
+}
+
+.tiptap ol:not([data-type="taskList"]) {
+  list-style-position: outside;
+  /* keep marker separate */
+  padding-left: 1.7rem;
+  /* adjust until numbers align with checkbox squares */
+  text-indent: -0.25rem;
+}
+
 .tiptap ol:not([data-type="taskList"]) li::marker {
   font-variant-numeric: tabular-nums;
 }
@@ -129,8 +241,10 @@ body { overflow: hidden; } /* Only panels should scroll */
 :root {
   --task-box: 16px;
   --task-gap: 0.5rem;
-  --task-text-nudge: 1px; /* shift text down for perfect visual centering */
-  --task-line: 1.5;       /* line-height for task items */
+  --task-text-nudge: 1px;
+  /* shift text down for perfect visual centering */
+  --task-line: 1.5;
+  /* line-height for task items */
 }
 
 .tiptap ul[data-type="taskList"] {
@@ -140,16 +254,17 @@ body { overflow: hidden; } /* Only panels should scroll */
 }
 
 /* Item wrapper */
-.tiptap ul[data-type="taskList"] > li {
+.tiptap ul[data-type="taskList"]>li {
   display: flex;
-  align-items: flex-start; /* aligns box with first line */
+  align-items: flex-start;
+  /* aligns box with first line */
   gap: var(--task-gap);
   margin: 0.25rem 0;
   line-height: var(--task-line);
 }
 
 /* Checkbox column */
-.tiptap ul[data-type="taskList"] > li > label {
+.tiptap ul[data-type="taskList"]>li>label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,26 +276,42 @@ body { overflow: hidden; } /* Only panels should scroll */
 }
 
 /* Checkbox appearance */
-.tiptap ul[data-type="taskList"] > li input[type="checkbox"] {
-  appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  width: var(--task-box); height: var(--task-box);
-  border: 1px solid #fff; background: #000;
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: var(--task-box);
+  height: var(--task-box);
+  border: 1px solid #fff;
+  background: #000;
   border-radius: 4px;
   margin: 0;
-  outline: none; box-shadow: none;
+  outline: none;
+  box-shadow: none;
 }
-.tiptap ul[data-type="taskList"] > li input[type="checkbox"]:checked {
-  background: #fff; border-color: #fff;
+
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked {
+  background: #fff;
+  border-color: #fff;
 }
-.tiptap ul[data-type="taskList"] > li input[type="checkbox"]:checked::after { content: none; }
+
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked::after {
+  content: none;
+}
 
 /* Text area */
-.tiptap ul[data-type="taskList"] > li > div {
+.tiptap ul[data-type="taskList"]>li>div {
   flex: 1 1 auto;
   transform: translateY(var(--task-text-nudge));
 }
-.tiptap ul[data-type="taskList"] > li > div p { margin: 0; }
-.tiptap ul[data-type="taskList"] > li > div p + p { margin-top: 0.25rem; }
+
+.tiptap ul[data-type="taskList"]>li>div p {
+  margin: 0;
+}
+
+.tiptap ul[data-type="taskList"]>li>div p+p {
+  margin-top: 0.25rem;
+}
 
 /* Nested task list + vertical guide */
 .tiptap ul[data-type="taskList"] ul[data-type="taskList"] {
@@ -188,6 +319,7 @@ body { overflow: hidden; } /* Only panels should scroll */
   margin-left: 1.25rem;
   padding-left: calc(var(--task-gap) + 2px);
 }
+
 .tiptap ul[data-type="taskList"] ul[data-type="taskList"]::before {
   content: "";
   position: absolute;
@@ -201,19 +333,29 @@ body { overflow: hidden; } /* Only panels should scroll */
 /* ========================================================================== */
 /* 📝 EDITOR (ProseMirror wrapper)                                            */
 /* ========================================================================== */
-:root { --maia-footer-h: 56px; }
+:root {
+  --maia-footer-h: 56px;
+}
 
-.maia-editor { 
+.maia-editor {
   outline: none;
   height: auto;
   min-height: 100%;
   overflow: visible;
 }
+
 .maia-editor:focus,
-.maia-editor .ProseMirror:focus { outline: none; }
-.maia-editor .ProseMirror { min-height: 100%; }
+.maia-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.maia-editor .ProseMirror {
+  min-height: 100%;
+}
+
 /* Make the whole editor surface feel editable */
-.maia-editor, .maia-editor .ProseMirror {
+.maia-editor,
+.maia-editor .ProseMirror {
   cursor: text;
 }
 
@@ -223,10 +365,12 @@ body { overflow: hidden; } /* Only panels should scroll */
 /* ========================================================================== */
 [data-tags-links] {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: #000;
   padding: 8px 16px;
   border-top: 1px solid #333;
-  box-shadow: 0 -2px 10px rgba(0,0,0,.5);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, .5);
   z-index: 9999;
 }
