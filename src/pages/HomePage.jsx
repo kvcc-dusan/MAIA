@@ -428,7 +428,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   );
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center p-4 md:p-8">
+    <div className="relative h-full w-full flex flex-col md:flex-row overflow-hidden">
       {/* Background: Dithered waves (Global Wallpaper) */}
       <div className="absolute inset-0 z-0">
         <Dither
@@ -445,14 +445,11 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         <div className={`absolute inset-0 pointer-events-none ${BG.overlayClass}`} />
       </div>
 
-      {/* Main Glass Window (Chronos Style) */}
-      <div className="relative z-10 glass-panel w-full max-w-7xl h-full max-h-[90vh] rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl">
+      {/* Main Content (Full Screen) */}
+      <div className="relative z-10 w-full h-full flex flex-col md:flex-row pointer-events-none">
 
-        {/* LEFT PANEL: Greeting & Quote (Transparent/Glassy) */}
-        <div className="flex-1 flex flex-col justify-center px-12 md:px-20 relative">
-          {/* Subtle noise texture or gradient if needed */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
-
+        {/* LEFT PANEL: Greeting & Quote (Transparent) */}
+        <div className="flex-1 flex flex-col justify-center px-12 md:px-20 relative pointer-events-auto">
           <div className="relative z-10">
             <h1 className="font-mono text-white leading-tight text-4xl md:text-6xl tracking-tight opacity-90 mb-6">
               {greeting}
@@ -463,19 +460,19 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
           </div>
         </div>
 
-        {/* RIGHT PANEL: Sidebar for Widgets (Darker, like Chronos Calendar side) */}
-        <div className="w-full md:w-[420px] bg-black/40 border-l border-white/5 flex flex-col">
-          {/* Header Area */}
-          <div className="p-6 border-b border-white/5 flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Dashboard</span>
-            <div className="text-xs text-zinc-600 font-mono">
+        {/* RIGHT PANEL: Sidebar for Widgets (Full Height Glass Sidebar) */}
+        <div className="w-full md:w-[420px] h-full bg-black/40 border-l border-white/5 backdrop-blur-xl flex flex-col pointer-events-auto">
+          {/* Header */}
+          <header className="p-6 border-b border-white/5 flex items-center justify-between flex-none">
+            <h1 className="text-xl font-mono text-white font-bold tracking-tight">Horizon</h1>
+            <div className="text-xs text-zinc-500 font-mono">
               {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </div>
-          </div>
+          </header>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {/* Weather Widget */}
-            <div className="bg-white/5 border border-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
+            <div className="glass-panel rounded-2xl p-5 w-full">
               <div className="flex items-start justify-between mb-4">
                 <div className="text-3xl font-light text-white">{weatherSnap?.temp != null ? Math.round(weatherSnap.temp) + "°" : "--"}</div>
                 <div className="text-right">

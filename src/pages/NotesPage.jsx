@@ -188,157 +188,166 @@ export default function NotesOverview({
     setMenu((m) => ({ ...m, open: false, sub: false }));
   };
 
-  return (
-    <div className="h-full w-full flex items-center justify-center p-4 md:p-8">
-      {/* Main Container */}
-      <div
-        ref={containerRef}
-        className="glass-panel w-full max-w-5xl h-full max-h-[90vh] rounded-3xl flex flex-col overflow-hidden shadow-2xl relative"
-      >
-        {/* Header */}
-        <div className="flex-none px-6 pt-6 pb-4 border-b border-white/5 bg-black/20 flex items-center justify-between z-20">
-          <div className="flex items-center gap-4">
-            {onBack && (
-              <button onClick={onBack} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors">
-                ←
-              </button>
-            )}
-            <div>
-              <h1 className="text-xl font-medium text-white tracking-wide">Codex</h1>
-              <div className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest mt-0.5">
-                {viewNotes.length} Notes · {sort === 'recent' ? 'Recent' : 'A-Z'}
-              </div>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative group">
+
+  return (
+    <div className="h-full w-full flex flex-col p-6 md:p-12 overflow-hidden relative">
+      {/* Background: Pitch Black */}
+      <div className="absolute inset-0 bg-black pointer-events-none" />
+
+      {/* Header */}
+      <header className="flex-none w-full mb-8 z-10 flex items-center justify-between">
+        {/* Left: Title */}
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="text-zinc-500 hover:text-white transition-colors text-xl"
+            >
+              ←
+            </button>
+          )}
+          <h1 className="text-xl font-mono text-white font-bold tracking-tight">Codex</h1>
+        </div>
+
+        {/* Right: Controls */}
+        <div className="flex items-center gap-4 text-xs font-mono text-zinc-500">
+          <span>{viewNotes.length} notes</span>
+          <span className="text-zinc-800">|</span>
+          <span>Sort</span>
+          <button
+            onClick={() => setSort('recent')}
+            className={`hover:text-zinc-300 transition-colors ${sort === 'recent' ? 'text-zinc-300' : ''}`}
+          >
+            Recent
+          </button>
+          <span>·</span>
+          <button
+            onClick={() => setSort('az')}
+            className={`hover:text-zinc-300 transition-colors ${sort === 'az' ? 'text-zinc-300' : ''}`}
+          >
+            A-Z
+          </button>
+          <span>·</span>
+          {showFilter ? (
+            <div className="relative flex items-center">
               <input
                 ref={filterRef}
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
-                placeholder="Filter..."
-                className="bg-black/40 border border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-white/20 hover:border-white/20 transition-colors w-40 focus:w-64 transition-all duration-300"
+                className="bg-transparent border-b border-zinc-700 text-zinc-300 outline-none w-24 py-0.5 focus:border-zinc-500 text-xs"
+                autoFocus
               />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 text-xs pointer-events-none">/</span>
+              <button
+                onClick={() => { setShowFilter(false); setFilter(""); }}
+                className="ml-2 hover:text-white"
+              >
+                ×
+              </button>
             </div>
+          ) : (
             <button
-              onClick={onCreateNote}
-              className="h-8 px-4 rounded-lg bg-white text-black text-xs font-semibold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/10"
+              onClick={() => { setShowFilter(true); setTimeout(() => filterRef.current?.focus(), 10); }}
+              className="hover:text-zinc-300 transition-colors"
             >
-              New Note
+              Filter
             </button>
-          </div>
+          )}
         </div>
+      </header>
 
-        {/* Chips / Pills Row (if needed, simplified) */}
-        {/* pinned or active filters could go here */}
-
-        {/* List Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-2 custom-scrollbar relative">
+      {/* Content: Pills Grid */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
+        <div className="flex flex-wrap gap-2 content-start pb-20">
           {viewNotes.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-center opacity-50">
-              <span className="text-4xl mb-4">📭</span>
-              <span className="text-sm text-zinc-500">No notes found.</span>
+            <div className="w-full flex flex-col items-center justify-center h-64 text-center opacity-40">
+              <span className="text-5xl mb-4 grayscale">📭</span>
+              <span className="text-sm text-zinc-500 font-mono">No notes found.</span>
             </div>
           )}
 
-          {viewNotes.map((n) => (
+          {viewNotes.map(n => (
             <button
               key={n.id}
               onClick={() => selectNote?.(n.id)}
-              onContextMenu={(e) => openMenu(e, n.id)}
-              className="group w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-200 hover:bg-white/5 hover:scale-[1.005] border border-transparent hover:border-white/5 relative"
+              onContextMenu={e => openMenu(e, n.id)}
+              className={`
+                h-9 px-4 rounded-full border flex items-center gap-3 transition-all text-sm font-mono
+                ${isPinned(n.id)
+                  ? "bg-white/10 border-white/30 text-white shadow-lg shadow-white/5"
+                  : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-zinc-300 hover:border-white/20"
+                }
+              `}
             >
-              {/* Icon/Pin */}
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${isPinned(n.id) ? "bg-white text-black" : "bg-white/5 text-zinc-500 group-hover:text-zinc-300"}`}>
-                {isPinned(n.id) ? "★" : "📄"}
-              </div>
-
-              {/* Text Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`font-medium truncate ${isPinned(n.id) ? "text-white" : "text-zinc-300 group-hover:text-white transition-colors"}`}>
-                    {n.title || "Untitled Note"}
-                  </span>
-                  {firstTag(n) && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      #{firstTag(n)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono">
-                  <span>{new Date(n.createdAt).toLocaleDateString()}</span>
-                  {n.project && (
-                    <>
-                      <span>·</span>
-                      <span className="text-zinc-400">{n.project}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Arrow on hover */}
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 -translate-x-2 group-hover:translate-x-0 duration-200">
-                →
-              </div>
+              <span className="truncate max-w-[200px]">{n.title || "Untitled"}</span>
+              <span className="text-zinc-600">•</span>
+              <span className="text-[10px] text-zinc-600 whitespace-nowrap">
+                {new Date(n.createdAt).toLocaleDateString()}
+              </span>
+              {isPinned(n.id) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white ml-1" />
+              )}
             </button>
           ))}
-        </div>
 
-        {/* Context menu */}
-        {menu.open && (
-          <div
-            ref={menuRef}
-            className="glass-panel fixed z-[100] min-w-[200px] rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-100"
-            style={{ left: menu.x, top: menu.y }}
-            onContextMenu={(e) => e.preventDefault()}
-            onMouseDown={(e) => e.stopPropagation()}
+          {/* New Note Button */}
+          <button
+            onClick={onCreateNote}
+            className="h-9 w-9 rounded-full border border-white/20 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white hover:bg-white/5 transition-all hover:scale-105"
           >
-            {/* Pin / Unpin */}
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                togglePin(menu.id);
-                setMenu((m) => ({ ...m, open: false, sub: false }));
-              }}
-            >
-              <span>{isPinned(menu.id) ? "Unpin" : "Pin Note"}</span>
-            </button>
-
-            {/* Rename */}
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const curr = notes.find((x) => x.id === menu.id);
-                const title = window.prompt("Rename note", curr?.title || "");
-                if (title != null) onRename(menu.id, title.trim());
-                setMenu((m) => ({ ...m, open: false, sub: false }));
-              }}
-            >
-              Rename
-            </button>
-
-            {/* Delete */}
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors border-t border-white/5"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (window.confirm("Delete this note?")) onDelete(menu.id);
-                setMenu((m) => ({ ...m, open: false, sub: false }));
-              }}
-            >
-              Delete
-            </button>
-          </div>
-        )}
-
+            +
+          </button>
+        </div>
       </div>
+
+      {/* Context Menu */}
+      {menu.open && (
+        <div
+          ref={menuRef}
+          className="glass-panel fixed z-[100] min-w-[200px] rounded-xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-100 border border-white/10 bg-black/80 backdrop-blur-xl"
+          style={{ left: menu.x, top: menu.y }}
+          onContextMenu={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              togglePin(menu.id);
+              setMenu((m) => ({ ...m, open: false, sub: false }));
+            }}
+          >
+            <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
+          </button>
+
+          <button
+            className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const curr = notes.find((x) => x.id === menu.id);
+              const title = window.prompt("Rename note", curr?.title || "");
+              if (title != null) onRename(menu.id, title.trim());
+              setMenu((m) => ({ ...m, open: false, sub: false }));
+            }}
+          >
+            Rename
+          </button>
+
+          <button
+            className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors border-t border-white/5"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (window.confirm("Delete this note?")) onDelete(menu.id);
+              setMenu((m) => ({ ...m, open: false, sub: false }));
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }
