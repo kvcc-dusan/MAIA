@@ -4,13 +4,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataProvider, useData } from "./context/DataContext.jsx";
 
 // Components
-import Navbar from "./components/Navbar.jsx";
+import Dock from "./components/Dock.jsx";
+import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage.jsx";
 import NotesPage from "./pages/NotesPage.jsx";
-import PulsePage from "./pages/PulsePage.jsx";
+// import PulsePage from "./pages/PulsePage.jsx"; // Refactored to ChronosModal
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
 import GraphPage from "./pages/GraphPage.jsx";
@@ -50,6 +51,9 @@ function AppContent() {
     window.clearTimeout(pushToast._t);
     pushToast._t = window.setTimeout(() => setToast(null), 2200);
   };
+
+  // Chronos (Pulse) is now a global modal tool
+  const [chronosOpen, setChronosOpen] = useState(false);
 
   /* -----------------------------------------
      Derived State
@@ -127,19 +131,24 @@ function AppContent() {
   ----------------------------------------- */
   return (
     <div
-      className="h-screen w-full bg-black text-zinc-200 grid min-h-0"
-      style={{ gridTemplateRows: "3rem minmax(0,1fr)" }}
+      className="h-screen w-full bg-black text-zinc-200 grid min-h-0 relative"
+      style={{ gridTemplateRows: "1fr" }} // Full height for content, Dock is floating
     >
-      <Navbar
-        search={search}
-        setSearch={setSearch}
+      {/* Dock (Floating Navigation) */}
+      <Dock
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        onNavigate={(page) => setCurrentPage(page)}
+        onOpenTool={(tool) => {
+          if (tool === "chronos") setChronosOpen(true);
+          if (tool === "search") setCmdOpen(true);
+        }}
       />
 
       {/* Main Content */}
       <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
-        <main className="h-full overflow-hidden min-h-0">
+        <main className="h-full overflow-hidden min-h-0 relative">
+          {/* Background noise/gradient could go here if global */}
+
           {currentPage === "journal" && (
             <JournalPage journal={journal} setJournal={setJournal} />
           )}
@@ -162,7 +171,7 @@ function AppContent() {
             <HomePage
               tasks={tasks}
               reminders={reminders}
-              onOpenPulse={() => setCurrentPage("pulse")}
+              onOpenPulse={() => setChronosOpen(true)}
             />
           )}
 
@@ -206,24 +215,26 @@ function AppContent() {
           {currentPage === "graph" && (
             <GraphPage notes={notes} onOpenNote={selectNote} />
           )}
-
-          {currentPage === "pulse" && (
-            <PulsePage
-              tasks={tasks}
-              setTasks={setTasks}
-              reminders={reminders}
-              setReminders={setReminders}
-              pushToast={pushToast}
-              goBack={() => setCurrentPage("overview")}
-            />
-          )}
         </main>
       </div>
 
+      {/* Global Modals */}
+      {chronosOpen && (
+        <ChronosModal
+          onClose={() => setChronosOpen(false)}
+          tasks={tasks}
+          setTasks={setTasks}
+          reminders={reminders}
+          setReminders={setReminders}
+          pushToast={pushToast}
+        />
+      )}
+
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-          <div className="px-3 py-1.5 rounded-md bg-zinc-900 border border-zinc-800 text-sm">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4">
+          <div className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-sm shadow-xl flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             {toast}
           </div>
         </div>

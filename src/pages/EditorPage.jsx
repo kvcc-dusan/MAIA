@@ -84,46 +84,53 @@ export default function Editor({ note, updateNote, projects = [] }) {
         />
       </div>
 
-      {/* Footer — fixed to viewport bottom */}
+      {/* Footer — fixed floating above Dock */}
       <div
         data-tags-links
-        className="fixed inset-x-0 bottom-0 bg-black border-t border-zinc-800 px-5 py-2 text-xs text-zinc-400 flex items-center z-[9999]"
+        className="fixed inset-x-0 bottom-24 mx-auto max-w-2xl px-5 py-2 flex items-center justify-center z-[40] pointer-events-none"
       >
-        <div className="ml-auto flex items-center gap-6">
+        <div className="glass-panel px-4 py-2 rounded-full flex items-center gap-6 pointer-events-auto bg-black/60 backdrop-blur-md border border-white/10 shadow-xl">
           {/* Tags */}
-          <div className="flex gap-2 items-center">
-            <span className="text-zinc-500">Tags</span>
-            <div className="flex gap-1 flex-wrap justify-end">
-              {(local.tags || []).map((t) => (
-                <span
-                  key={t}
-                  className="px-2 h-5 inline-flex items-center rounded-full border border-emerald-700/40 bg-emerald-900/25 text-emerald-300"
-                >
-                  #{t}
-                </span>
-              ))}
+          {(local.tags || []).length > 0 && (
+            <div className="flex gap-2 items-center">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">Tags</span>
+              <div className="flex gap-1">
+                {(local.tags || []).map((t) => (
+                  <span
+                    key={t}
+                    className="px-2 py-0.5 inline-flex items-center rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px]"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Links */}
-          <div className="flex gap-2 items-center">
-            <span className="text-zinc-500">Links</span>
-            <div className="flex gap-1 flex-wrap justify-end">
-              {(local.links || []).map((l) => (
-                <span
-                  key={l}
-                  className="px-2 h-5 inline-flex items-center rounded-full border border-zinc-700 text-zinc-300"
-                >
-                  {l}
-                </span>
-              ))}
+          {(local.links || []).length > 0 && (
+            <div className="flex gap-2 items-center border-l border-white/10 pl-4">
+              <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">Links</span>
+              <div className="flex gap-1">
+                {(local.links || []).map((l) => (
+                  <span
+                    key={l}
+                    className="px-2 py-0.5 inline-flex items-center rounded-md bg-white/5 border border-white/10 text-zinc-300 text-[10px]"
+                  >
+                    {l}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Word/Char counts */}
-          <div className="flex gap-2 items-center text-zinc-500">
+          <div className={`flex gap-3 items-center text-zinc-500 text-[10px] font-mono ${(local.tags?.length || local.links?.length) ? "border-l border-white/10 pl-4" : ""}`}>
             <span>
-              {(local?.wordCount ?? 0).toLocaleString()} words • {(local?.charCount ?? 0).toLocaleString()} chars
+              {(local?.wordCount ?? 0).toLocaleString()} words
+            </span>
+            <span>
+              {(local?.charCount ?? 0).toLocaleString()} chars
             </span>
           </div>
         </div>

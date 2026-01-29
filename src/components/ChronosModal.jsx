@@ -1,18 +1,42 @@
-// @maia:pulse (split layout: left = tasks+reminders, right = full-height calendar)
+// @maia:chronos-modal
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 
-// @maia:pulse
-export default function PulsePage({
+export default function ChronosModal({
+  onClose,
   tasks,
   setTasks,
   reminders,
   setReminders,
   pushToast,
-  goBack,
 }) {
   const today = new Date();
+
+  // Close on Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const toLocalInputValue = (date) => {
+    // Helper to format date for datetime-local input
+    const pad = (n) => (n < 10 ? "0" + n : n);
+    return (
+      date.getFullYear() +
+      "-" +
+      pad(date.getMonth() + 1) +
+      "-" +
+      pad(date.getDate()) +
+      "T" +
+      pad(date.getHours()) +
+      ":" +
+      pad(date.getMinutes())
+    );
+  };
 
   // ---- calendar view state
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
@@ -171,23 +195,21 @@ export default function PulsePage({
   const tasksOn = (date) =>
     tasks.filter((t) => t.due && sameDay(new Date(t.due), date));
 
-  // -------- tasks
+  // -------- tasks helpers
   const addTask = (title, date = null, description) => {
     const t = (title || "").trim();
     if (!t) return;
-    // Preserve the exact time passed in
     const dueIso = date ? new Date(date).toISOString() : null;
     setTasks((prev) => [
       { id: uid(), title: t, desc: description, done: false, createdAt: isoNow(), due: dueIso },
       ...prev,
     ]);
   };
-
   const toggleTask = (id) =>
     setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
 
-  // -------- reminders
+  // -------- reminders helpers
   const createReminder = () => {
     const title = reminderDraft.title.trim();
     if (!title) return;
@@ -231,36 +253,29 @@ export default function PulsePage({
     [reminders]
   );
 
-  const inbox = tasks.filter((t) => !t.due);
-  const scheduled = tasks.filter((t) => t.due);
-
   return (
-    <div className="h-full w-full flex items-center justify-center p-8">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+
       {/* FLOATING SHEET CONTAINER */}
       <div
         ref={containerRef}
-        className="glass-panel w-full max-w-6xl h-full max-h-[85vh] rounded-3xl grid overflow-hidden shadow-2xl relative"
+        className="glass-panel w-full max-w-6xl h-[85vh] rounded-3xl grid overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200"
         style={{
           gridTemplateColumns: `minmax(0,1fr) ${rightWidth}px`,
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* LEFT: header + tasks + reminders */}
         <div className="h-full overflow-y-auto overscroll-contain p-6 space-y-6 bg-black/5">
           {/* Header */}
           <div className="flex items-center justify-between pb-2">
             <div className="flex items-center gap-3">
-              {goBack && (
-                <button
-                  onClick={goBack}
-                  aria-label="Back"
-                  className="text-zinc-500 hover:text-white leading-none text-xl transition-colors"
-                >
-                  ←
-                </button>
-              )}
               <div className="text-xl font-medium text-white tracking-wide">Chronos</div>
             </div>
-            <div className="text-xs text-zinc-500 font-mono uppercase tracking-widest">{today.toLocaleDateString()}</div>
+            <div className="flex items-center gap-4">
+              <div className="text-xs text-zinc-500 font-mono uppercase tracking-widest">{today.toLocaleDateString()}</div>
+              <button onClick={onClose} className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">×</button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
@@ -490,196 +505,6 @@ export default function PulsePage({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ---------- small inputs & lists ---------- */
-
-function TextInput({ value, onChange, placeholder, autoFocus, id, className = "" }) {
-  return (
-    <input
-      id={id}
-      value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-      placeholder={placeholder}
-      autoFocus={autoFocus}
-      className={`w-full bg-zinc-950/70 border border-zinc-800/70 focus:border-zinc-700 outline-none px-3 py-2 text-sm rounded-md placeholder:text-zinc-500 ${className}`}
-    />
-  );
-}
-
-function NumberInput({ value, onChange, min = 0, className = "" }) {
-  return (
-    <input
-      type="number"
-      min={min}
-      value={value}
-      onChange={(e) => onChange?.(e.target.value)}
-      className={`bg-zinc-950/70 border border-zinc-800/70 focus:border-zinc-700 outline-none px-2 py-1.5 text-sm rounded-md ${className}`}
-    />
-  );
-}
-
-function TaskComposer({ onAdd, selectedDate, clearDate }) {
-  const [title, setTitle] = useState("");
-  const [useDeadline, setUseDeadline] = useState(false);
-  const [deadline, setDeadline] = useState(""); // yyyy-MM-ddTHH:mm
-
-  const add = () => {
-    const fromCalendar = selectedDate
-      ? (() => {
-        const d = new Date(selectedDate);
-        d.setHours(0, 0, 0, 0);
-        return d;
-      })()
-      : null;
-
-    const fromInput =
-      useDeadline && deadline ? new Date(deadline) : null;
-
-    const due = fromCalendar || fromInput || null;
-
-    onAdd(title, due);
-    setTitle("");
-    setUseDeadline(false);
-    setDeadline("");
-    clearDate?.();
-  };
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={`Add task${selectedDate ? " for " + selectedDate.toLocaleDateString() : ""
-            }`}
-          className="flex-1 bg-zinc-950/70 border border-zinc-800/70 focus:border-zinc-700 outline-none px-3 py-2 text-sm rounded-md"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") add();
-          }}
-        />
-        <button
-          onClick={add}
-          className="px-3 py-2 rounded-md bg-black text-white border border-white hover:bg-zinc-900"
-        >
-          Add
-        </button>
-      </div>
-
-      {/* Deadline controls */}
-      <div className="flex items-center gap-3 text-sm">
-        <button
-          type="button"
-          onClick={() => setUseDeadline((v) => !v)}
-          className={`px-2 py-1 rounded-md border ${useDeadline
-              ? "border-zinc-700 bg-zinc-900/60"
-              : "border-zinc-800/70 hover:bg-zinc-900/40"
-            }`}
-        >
-          {useDeadline ? "Deadline: On" : "Set deadline"}
-        </button>
-
-        {useDeadline && !selectedDate && (
-          <>
-            <input
-              type="datetime-local"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              className="bg-zinc-950/70 border border-zinc-800/70 focus:border-zinc-700 outline-none px-2 py-1.5 text-sm rounded-md"
-            />
-            {/* Quick picks */}
-            <div className="flex items-center gap-1">
-              <QuickPick label="Today" onPick={() => {
-                const d = new Date(); d.setHours(18, 0, 0, 0);
-                setDeadline(toLocalInputValue(d));
-              }} />
-              <QuickPick label="Tomorrow" onPick={() => {
-                const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 0, 0, 0);
-                setDeadline(toLocalInputValue(d));
-              }} />
-              <QuickPick label="Next week" onPick={() => {
-                const d = new Date(); d.setDate(d.getDate() + 7); d.setHours(9, 0, 0, 0);
-                setDeadline(toLocalInputValue(d));
-              }} />
-            </div>
-          </>
-        )}
-
-        {selectedDate && (
-          <div className="text-xs text-zinc-500">
-            Using date from calendar: {selectedDate.toLocaleDateString()}
-            <button
-              onClick={clearDate}
-              className="ml-2 underline decoration-dotted hover:text-zinc-300"
-            >
-              clear
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// small helper components
-function QuickPick({ label, onPick }) {
-  return (
-    <button
-      type="button"
-      onClick={onPick}
-      className="px-2 py-0.5 rounded-full border border-zinc-800/70 hover:bg-zinc-900/50 text-xs"
-    >
-      {label}
-    </button>
-  );
-}
-
-function toLocalInputValue(date) {
-  // returns "yyyy-MM-ddTHH:mm" in the user's local time
-  const pad = (n) => String(n).padStart(2, "0");
-  const y = date.getFullYear();
-  const m = pad(date.getMonth() + 1);
-  const d = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const mm = pad(date.getMinutes());
-  return `${y}-${m}-${d}T${hh}:${mm}`;
-}
-
-function TaskList({ title, tasks, onToggle, onDelete, showDue = false }) {
-  return (
-    <div>
-      <div className="text-xs text-zinc-500 mb-2 uppercase tracking-widest">{title}</div>
-      <div className="flex flex-col gap-2">
-        {tasks.length === 0 && <div className="text-zinc-600 text-sm">No tasks.</div>}
-        {tasks.map((t) => (
-          <div
-            key={t.id}
-            draggable
-            onDragStart={(e) => e.dataTransfer.setData("text/task-id", t.id)}
-            className="flex items-center justify-between rounded-lg border border-zinc-800/70 px-3 py-2 bg-zinc-950/40"
-          >
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={t.done} onChange={() => onToggle(t.id)} />
-              <span className={`text-sm ${t.done ? "line-through text-zinc-500" : "text-zinc-100"}`}>
-                {t.title}
-              </span>
-            </label>
-            <div className="flex items-center gap-3">
-              {showDue && t.due && (
-                <span className="text-xs text-zinc-500">{new Date(t.due).toLocaleString()}</span>
-              )}
-              <button
-                className="text-xs text-zinc-400 hover:text-zinc-100"
-                onClick={() => onDelete(t.id)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
