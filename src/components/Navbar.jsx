@@ -55,6 +55,7 @@ export default function Navbar({ search, setSearch, currentPage, setCurrentPage 
           {/* Keep IDs as your internal route keys; labels are the new names */}
           <Tab id="journal" label="Journal" />
           <Tab id="ledger" label="Decisions" />
+          <Tab id="review" label="Review" />
           <Tab id="pulse" label="Chronos" />
           <Tab id="projects" label="Opus" />
           <Tab id="overview" label="Codex" />

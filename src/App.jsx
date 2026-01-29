@@ -17,6 +17,7 @@ import GraphPage from "./pages/GraphPage.jsx";
 import CanvasPage from "./pages/CanvasPage.jsx";
 import JournalPage from "./pages/JournalPage.jsx";
 import LedgerPage from "./pages/LedgerPage.jsx";
+import ReviewPage from "./pages/ReviewPage.jsx";
 
 function AppContent() {
   // Pages
@@ -145,6 +146,16 @@ function AppContent() {
 
           {currentPage === "ledger" && (
             <LedgerPage ledger={ledger} setLedger={setLedger} />
+          )}
+
+          {currentPage === "review" && (
+            <ReviewPage
+              notes={notes}
+              projects={projects}
+              journal={journal}
+              setJournal={setJournal}
+              pushToast={pushToast}
+            />
           )}
 
           {currentPage === "home" && (
