@@ -5,15 +5,15 @@ import { uid, isoNow } from "../lib/ids.js";
 
 function SignalCard({ title, children, accent = "zinc" }) {
     const border = {
-        zinc: "border-zinc-800",
-        red: "border-red-900/50",
-        emerald: "border-emerald-900/50",
-        amber: "border-amber-900/50"
-    }[accent] || "border-zinc-800";
+        zinc: "border-white/5",
+        red: "border-red-500/20 bg-red-500/5",
+        emerald: "border-emerald-500/20 bg-emerald-500/5",
+        amber: "border-amber-500/20 bg-amber-500/5"
+    }[accent] || "border-white/5";
 
     return (
-        <div className={`p-4 rounded-lg bg-zinc-950/40 border ${border} mb-4`}>
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-mono mb-3">{title}</h3>
+        <div className={`p-4 rounded-xl glass-panel ${border} mb-4 shadow-none hover:bg-white/5 transition-colors`}>
+            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-3">{title}</h3>
             {children}
         </div>
     );
