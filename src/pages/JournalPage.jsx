@@ -31,7 +31,7 @@ export default function Journal({ journal = [], setJournal }) {
                     </div>
                 </header>
 
-                <div className="flex-1 border border-white/5 rounded-2xl bg-white/5 p-6 overflow-hidden flex flex-col backdrop-blur-sm shadow-inner transition-colors focus-within:bg-white/10 hover:border-white/10">
+                <div className="flex-1 border border-white/10 rounded-2xl bg-white/5 p-6 overflow-hidden flex flex-col backdrop-blur-sm shadow-inner transition-colors focus-within:bg-white/10 focus-within:border-white/20 hover:border-white/10">
                     <EditorRich
                         value={content}
                         onChange={setContent}

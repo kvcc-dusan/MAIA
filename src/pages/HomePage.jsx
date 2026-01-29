@@ -427,119 +427,106 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
     (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
   );
 
+
   return (
-    <div className="relative h-full w-full flex flex-col md:flex-row overflow-hidden">
-      {/* Background: Dithered waves (Global Wallpaper) */}
-      <div className="absolute inset-0 z-0">
-        <Dither
-          waveColor={BG.waveColor}
-          waveAmplitude={BG.waveAmplitude}
-          waveFrequency={BG.waveFrequency}
-          waveSpeed={BG.waveSpeed}
-          colorNum={BG.colorNum}
-          pixelSize={BG.pixelSize}
-          enableMouseInteraction={true}
-          mouseRadius={0.5}
-        />
-        {/* Vignette / Overlay */}
-        <div className={`absolute inset-0 pointer-events-none ${BG.overlayClass}`} />
-      </div>
+    <div className="relative h-full w-full flex items-center justify-center overflow-hidden bg-black">
+      {/* Main Content: Centered Glass Panel */}
+      <div className="w-full max-w-4xl mx-auto px-6">
+        {/* Greeting Section */}
+        <div className="mb-12 text-center">
+          <h1 className="font-mono text-white leading-tight text-4xl md:text-5xl tracking-tight mb-4">
+            {greeting} {userName || "Dušan"}.
+          </h1>
+          <p className="text-zinc-500 text-sm max-w-xl mx-auto leading-relaxed font-mono">
+            {quote}
+          </p>
+        </div>
 
-      {/* Main Content (Full Screen) */}
-      <div className="relative z-10 w-full h-full flex flex-col md:flex-row pointer-events-none">
+        {/* Glass Panel with Widgets */}
+        <div className="bg-white/5 border border-white/5 rounded-3xl p-8 backdrop-blur-xl shadow-2xl space-y-6">
+          {/* Weather Widget */}
+          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="flex items-start justify-between mb-3">
+              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Weather</div>
+              <div className="text-3xl font-light text-white">{weatherSnap?.temp != null ? Math.round(weatherSnap.temp) + "°" : "--"}</div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-zinc-300">{weatherSnap?.place || "Unknown"}</div>
+                <div className="text-xs text-zinc-600 font-mono">Local</div>
+              </div>
+              {weatherSnap?.icon && (
+                <div className="text-4xl opacity-60">{weatherSnap.icon}</div>
+              )}
+            </div>
+          </div>
 
-        {/* LEFT PANEL: Greeting & Quote (Transparent) */}
-        <div className="flex-1 flex flex-col justify-center px-12 md:px-20 relative pointer-events-auto">
-          <div className="relative z-10">
-            <h1 className="font-mono text-white leading-tight text-4xl md:text-6xl tracking-tight opacity-90 mb-6">
-              {greeting}
-            </h1>
-            <p className="text-zinc-400 text-sm md:text-base max-w-lg leading-relaxed border-l-2 border-white/10 pl-6 py-1">
-              {quote}
-            </p>
+          {/* Today's Focus Widget */}
+          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Today's Focus</div>
+              <button onClick={openPulse} className="text-xs text-zinc-400 hover:text-white transition-colors">
+                OPEN CHRONOS
+              </button>
+            </div>
+            {todayTasks.length === 0 ? (
+              <div
+                onClick={openPulse}
+                className="px-4 py-6 border border-dashed border-white/5 rounded-lg text-center text-xs text-zinc-600 cursor-pointer hover:border-white/10 hover:bg-white/5 transition-all"
+              >
+                No tasks for today.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {todayTasks.slice(0, 3).map(t => (
+                  <div key={t.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <div className={`w-1.5 h-1.5 rounded-full ${t.done ? "bg-zinc-600" : "bg-white"}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm ${t.done ? "line-through text-zinc-600" : "text-zinc-300"}`}>
+                        {t.title}
+                      </div>
+                      {t.due && (
+                        <div className="text-[10px] text-zinc-500 font-mono">
+                          {new Date(t.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Reminders Widget */}
+          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+            <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-3">Reminders</div>
+            {todayReminders.length === 0 ? (
+              <div className="px-4 py-4 text-xs text-zinc-600 italic">Clean slate.</div>
+            ) : (
+              <div className="space-y-2">
+                {todayReminders.slice(0, 3).map(r => (
+                  <div key={r.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                    <div className="flex-1">
+                      <div className="text-sm text-zinc-300">{r.title}</div>
+                      <div className="text-[10px] text-zinc-500 font-mono">
+                        {new Date(r.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* RIGHT PANEL: Sidebar for Widgets (Full Height Glass Sidebar) */}
-        <div className="w-full md:w-[420px] h-full bg-black/40 border-l border-white/5 backdrop-blur-xl flex flex-col pointer-events-auto">
-          {/* Header */}
-          <header className="p-6 border-b border-white/5 flex items-center justify-between flex-none">
-            <h1 className="text-xl font-mono text-white font-bold tracking-tight">Horizon</h1>
-            <div className="text-xs text-zinc-500 font-mono">
-              {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </header>
-
-          <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-            {/* Weather Widget */}
-            <div className="glass-panel rounded-2xl p-5 w-full">
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-3xl font-light text-white">{weatherSnap?.temp != null ? Math.round(weatherSnap.temp) + "°" : "--"}</div>
-                <div className="text-right">
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">{weatherSnap?.place || "Unknown"}</div>
-                  <div className="text-[10px] text-zinc-600 font-mono">Local</div>
-                </div>
-              </div>
-              {/* Tiny Map */}
-              <div className="w-full h-24 rounded-lg bg-black/40 border border-white/5 overflow-hidden grayscale opacity-60 relative">
-                <WorldMiniMap width={300} height={120} coords={weatherSnap?.coords} />
-              </div>
-            </div>
-
-            {/* Tasks Widget */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Focus</span>
-                <button onClick={openPulse} className="text-[10px] text-zinc-400 hover:text-white transition-colors">OPEN CHRONOS</button>
-              </div>
-
-              {todayTasks.length === 0 ? (
-                <div
-                  onClick={openPulse}
-                  className="p-4 rounded-xl border border-dashed border-white/10 text-center cursor-pointer hover:border-white/20 hover:bg-white/5 transition-all"
-                >
-                  <span className="text-xs text-zinc-600">No tasks for today</span>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {todayTasks.slice(0, 5).map(t => (
-                    <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                      <div className={`w-1.5 h-1.5 rounded-full ${t.done ? "bg-zinc-600" : "bg-white"}`}></div>
-                      <span className={`text-sm truncate ${t.done ? "text-zinc-500 line-through" : "text-zinc-200"}`}>{t.title}</span>
-                    </div>
-                  ))}
-                  {todayTasks.length > 5 && (
-                    <div className="text-center text-[10px] text-zinc-600 pt-2">
-                      + {todayTasks.length - 5} more
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Reminders Widget */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Reminders</span>
-              </div>
-              {todayReminders.length === 0 ? (
-                <div className="text-xs text-zinc-600 px-2 italic">Clean slate.</div>
-              ) : (
-                <div className="space-y-1">
-                  {todayReminders.slice(0, 4).map(r => (
-                    <div key={r.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-                      <span className="text-sm text-zinc-300 truncate">{r.title}</span>
-                      <span className="text-[10px] text-zinc-500 font-mono">{new Date(r.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
+        {/* Time Display */}
+        <div className="mt-6 text-center">
+          <div className="text-xs text-zinc-600 font-mono">
+            {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
       </div>
     </div>
   );
-
 }

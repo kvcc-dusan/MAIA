@@ -199,14 +199,6 @@ export default function NotesOverview({
       <header className="flex-none w-full mb-8 z-10 flex items-center justify-between">
         {/* Left: Title */}
         <div className="flex items-center gap-3">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="text-zinc-500 hover:text-white transition-colors text-xl"
-            >
-              ←
-            </button>
-          )}
           <h1 className="text-xl font-mono text-white font-bold tracking-tight">Codex</h1>
         </div>
 
@@ -272,20 +264,20 @@ export default function NotesOverview({
               onClick={() => selectNote?.(n.id)}
               onContextMenu={e => openMenu(e, n.id)}
               className={`
-                h-9 px-4 rounded-full border flex items-center gap-3 transition-all text-sm font-mono
+                px-5 py-3 rounded-xl border backdrop-blur-sm flex items-center gap-3 transition-all text-sm font-mono
                 ${isPinned(n.id)
-                  ? "bg-white/10 border-white/30 text-white shadow-lg shadow-white/5"
-                  : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-zinc-300 hover:border-white/20"
+                  ? "bg-white/10 border-white/20 text-white shadow-lg shadow-white/5"
+                  : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white hover:border-white/20"
                 }
               `}
             >
               <span className="truncate max-w-[200px]">{n.title || "Untitled"}</span>
               <span className="text-zinc-600">•</span>
-              <span className="text-[10px] text-zinc-600 whitespace-nowrap">
+              <span className="text-[10px] text-zinc-500 whitespace-nowrap font-mono">
                 {new Date(n.createdAt).toLocaleDateString()}
               </span>
               {isPinned(n.id) && (
-                <span className="w-1.5 h-1.5 rounded-full bg-white ml-1" />
+                <span className="w-1.5 h-1.5 rounded-full bg-white ml-2" />
               )}
             </button>
           ))}
@@ -293,9 +285,9 @@ export default function NotesOverview({
           {/* New Note Button */}
           <button
             onClick={onCreateNote}
-            className="h-9 w-9 rounded-full border border-white/20 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white hover:bg-white/5 transition-all hover:scale-105"
+            className="px-5 py-3 rounded-xl border border-white/20 backdrop-blur-sm flex items-center justify-center text-zinc-400 hover:text-white hover:border-white hover:bg-white/10 transition-all hover:scale-105 font-mono text-sm"
           >
-            +
+            + New Note
           </button>
         </div>
       </div>
