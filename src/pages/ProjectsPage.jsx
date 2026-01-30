@@ -37,8 +37,16 @@ export default function Projects({
   projects,
   setProjects,
   selectNote,
+  targetProjectId,
 }) {
   const [activeId, setActiveId] = useState(null);
+
+  // Sync targetProjectId from parent if provided
+  useEffect(() => {
+    if (targetProjectId) {
+      setActiveId(targetProjectId);
+    }
+  }, [targetProjectId]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
 
@@ -47,10 +55,10 @@ export default function Projects({
 
   // Set initial active project
   useEffect(() => {
-    if (!activeId && normalizedProjects.length > 0) {
+    if (!activeId && normalizedProjects.length > 0 && !targetProjectId) {
       setActiveId(normalizedProjects[0].id);
     }
-  }, [normalizedProjects.length, activeId]);
+  }, [normalizedProjects.length, activeId, targetProjectId]);
 
   const activeProject = useMemo(
     () => normalizedProjects.find((p) => p.id === activeId) || null,

@@ -41,6 +41,7 @@ function AppContent() {
   // Local state for navigation/selection that doesn't need persistence yet
   // or could be moved to context if we want deep linking later.
   const [currentNoteId, setCurrentNoteId] = useState(null);
+  const [targetProjectId, setTargetProjectId] = useState(null);
   const [search, setSearch] = useState("");
 
   // NOTE: Simple Toast was local to App. 
@@ -77,9 +78,14 @@ function AppContent() {
   /* -----------------------------------------
      Navigation Helpers
   ----------------------------------------- */
-  const selectNote = (id) => {
-    setCurrentNoteId(id);
-    setCurrentPage("editor");
+  const selectItem = (id, type = "note") => {
+    if (type === "project") {
+      setTargetProjectId(id);
+      setCurrentPage("projects");
+    } else {
+      setCurrentNoteId(id);
+      setCurrentPage("editor");
+    }
   };
 
   const openInternalByTitle = (title) => {
@@ -178,7 +184,7 @@ function AppContent() {
           {currentPage === "overview" && (
             <NotesPage
               notes={filteredNotes}
-              selectNote={selectNote}
+              selectNote={selectItem}
               onDelete={deleteNote}
               onRename={renameNote}
               onMove={moveNoteToProject}
@@ -198,7 +204,8 @@ function AppContent() {
               projects={projects}
               setProjects={setProjects}
               setNotes={setNotes}
-              selectNote={selectNote}
+              selectNote={selectItem}
+              targetProjectId={targetProjectId}
               pushToast={pushToast}
             />
           )}
@@ -213,7 +220,7 @@ function AppContent() {
           )}
 
           {currentPage === "graph" && (
-            <GraphPage notes={notes} onOpenNote={selectNote} />
+            <GraphPage notes={notes} projects={projects} onOpenNote={selectItem} />
           )}
         </main>
       </div>
@@ -245,7 +252,7 @@ function AppContent() {
         open={cmdOpen}
         onClose={() => setCmdOpen(false)}
         notes={notes}
-        onOpenNote={(id) => selectNote(id)}
+        onOpenNote={(id) => selectItem(id)}
         onCreateNote={handleCreateNote}
         go={go}
         quickAddTask={quickAddTask}

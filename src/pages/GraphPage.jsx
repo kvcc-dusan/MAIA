@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { dottedBg } from "../lib/theme.js";
 import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
+import { GlassCard } from "../components/GlassCard";
+import ProjectIcon from "../components/ProjectIcon";
 
 /* -----------------------------------------
    Theme Constants
@@ -18,14 +20,15 @@ const COLORS = [
 
 const THEME = {
   bg: "#000000",
-  nodeFill: "#18181b", // zinc-900
-  nodeStroke: "#3f3f46", // zinc-700
+  nodeFill: "#e4e4e7", // zinc-200 (Light Gray)
+  nodeActive: "#ffffff", // Pure White
+  nodeStroke: "none",
   link: "#27272a", // zinc-800
   text: "#a1a1aa", // zinc-400
   textActive: "#f4f4f5", // zinc-100
 };
 
-export default function GraphPage({ notes, onOpenNote }) {
+export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
@@ -44,8 +47,6 @@ export default function GraphPage({ notes, onOpenNote }) {
     });
 
     // 2. Velocity (Tags)
-    // We map note -> velocity based on its tags? 
-    // Or just identifying "Trending" notes if they contain trending tags.
     const velocityStats = calculateVelocity(notes);
     const hotTags = new Set(velocityStats.filter(v => v.velocity > 0).map(v => v.tag));
 
@@ -60,29 +61,45 @@ export default function GraphPage({ notes, onOpenNote }) {
   const { nodes, links } = useMemo(() => {
     const normalize = (s) => (s || "").trim().toLowerCase();
 
-    // Map notes to D3 nodes
-    const d3Nodes = notes.map((n) => {
+    // 1. Note Nodes
+    const noteNodes = notes.map((n) => {
       const clusterIdx = analysis.clusterMap.get(n.id);
       const clusterColor = clusterIdx !== undefined ? COLORS[clusterIdx % COLORS.length] : THEME.nodeStroke;
 
       return {
         id: n.id,
         title: n.title || "Untitled",
+        type: "note",
         group: clusterIdx,
         color: clusterColor,
         isHot: analysis.isHot(n),
         tags: n.tags || [],
-        val: 1 + (n.content?.length || 0) / 1000, // Size by content length?
+        val: 1 + (n.content?.length || 0) / 1000, // Size by content length
+        project: n.project || null,
+        projectIds: n.projectIds || [],
       };
     });
 
+    // 2. Project Nodes
+    const projectNodes = projects.map(p => ({
+      id: `proj-${p.id}`,
+      realId: p.id,
+      title: p.name,
+      type: "project",
+      color: "#3b82f6", // Blue (Tailwind 500) - visually distinct blue
+      val: 3, // Smaller fixed size (~5% larger)
+      tags: ["Project"],
+    }));
+
+    const allNodes = [...noteNodes, ...projectNodes];
     const idByTitle = new Map(notes.map((n) => [normalize(n.title), n.id]));
     const d3Links = [];
 
+    // 3. Links
     notes.forEach((n) => {
       const sourceId = n.id;
-      // Internal Link Parsing could be duplicated logic or use extractLinks util if exposed
-      // sticking to simple regex here for speed/independence or reusing existing pattern
+
+      // Note -> Note (Mentions)
       const matches = (n.content || "").match(/\[\[(.+?)\]\]/g) || [];
       matches.forEach((m) => {
         const t = m.slice(2, -2).trim();
@@ -91,10 +108,19 @@ export default function GraphPage({ notes, onOpenNote }) {
           d3Links.push({ source: sourceId, target: targetId });
         }
       });
+
+      // Note -> Project
+      projects.forEach(p => {
+        const isLinked = (n.projectIds && n.projectIds.includes(p.id)) ||
+          (n.project && normalize(n.project) === normalize(p.name));
+        if (isLinked) {
+          d3Links.push({ source: sourceId, target: `proj-${p.id}` });
+        }
+      });
     });
 
-    return { nodes: d3Nodes, links: d3Links };
-  }, [notes, analysis]);
+    return { nodes: allNodes, links: d3Links };
+  }, [notes, projects, analysis]);
 
 
   // --- D3 RENDER ---
@@ -118,26 +144,28 @@ export default function GraphPage({ notes, onOpenNote }) {
 
     // Simulation
     const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(80).strength(0.5))
+      .force("link", d3.forceLink(links).id(d => d.id).distance(100).strength(0.2)) // Softer, more elastic feel
       .force("charge", d3.forceManyBody().strength(-150))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collide", d3.forceCollide().radius(d => 15 + d.val).strength(0.8));
 
     // Elements
-    const link = linkLayer.selectAll("line")
+    // Use paths for curved 'elastic' links
+    const link = linkLayer.selectAll("path")
       .data(links)
-      .join("line")
+      .join("path")
+      .attr("fill", "none")
       .attr("stroke", THEME.link)
       .attr("stroke-opacity", 0.6)
-      .attr("stroke-width", 1);
+      .attr("stroke-width", 1.5);
 
     const node = nodeLayer.selectAll("circle")
       .data(nodes)
       .join("circle")
-      .attr("r", d => 6 + Math.sqrt(d.val * 3))
-      .attr("fill", THEME.nodeFill)
-      .attr("stroke", d => showSignals ? d.color : THEME.nodeStroke)
-      .attr("stroke-width", d => d.isHot && showSignals ? 3 : 1.5)
+      .attr("r", d => d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3)))
+      .attr("fill", d => d.type === "project" ? d.color : THEME.nodeFill)
+      .attr("stroke", "none")
+      .attr("stroke-width", 0)
       .style("cursor", "pointer")
       .call(drag(simulation));
 
@@ -145,45 +173,60 @@ export default function GraphPage({ notes, onOpenNote }) {
       .data(nodes)
       .join("text")
       .text(d => d.title)
-      .attr("font-size", 10)
+      .attr("font-size", d => 10 + d.val)
       .attr("fill", THEME.text)
-      .attr("dx", 12)
-      .attr("dy", 4)
-      .attr("opacity", d => (d.val > 2 || activeCluster === d.group) ? 1 : 0) // Hide labels for small nodes unless active
-      .style("pointer-events", "none");
+      .attr("text-anchor", "middle") // Center text horizontally
+      .attr("dy", d => 28 + d.val) // Position below the node with more gap
+      .attr("opacity", 0.7) // Default visible but slightly transparent
+      .style("pointer-events", "none")
+      .style("transition", "opacity 0.2s");
 
 
     // Interactions
     node
-      .on("click", (e, d) => onOpenNote && onOpenNote(d.id))
+      .on("click", (e, d) => {
+        if (d.type === "project") {
+          if (onOpenNote) onOpenNote(d.realId, "project");
+        } else {
+          onOpenNote && onOpenNote(d.id);
+        }
+      })
       .on("mouseover", (e, d) => {
         setHoveredNode(d);
         // Highlight connections
         link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
           .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
-        node.attr("opacity", n => {
-          const isConnected = links.some(l =>
-            (l.source.id === d.id && l.target.id === n.id) ||
-            (l.target.id === d.id && l.source.id === n.id)
-          );
-          return (n.id === d.id || isConnected) ? 1 : 0.1;
-        });
+        node
+          .attr("opacity", n => {
+            const isConnected = links.some(l =>
+              (l.source.id === d.id && l.target.id === n.id) ||
+              (l.target.id === d.id && l.source.id === n.id)
+            );
+            return (n.id === d.id || isConnected) ? 1 : 0.1;
+          })
+          .attr("fill", n => {
+            if (n.id === d.id) return THEME.nodeActive;
+            if (n.type === "project") return n.color;
+            return THEME.nodeFill;
+          });
         label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
       })
       .on("mouseout", () => {
         setHoveredNode(null);
         link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6);
-        node.attr("opacity", 1);
+        node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
         label.attr("opacity", d => (d.val > 2 || activeCluster === d.group) ? 1 : 0);
       });
 
     // Simulation Tick
     simulation.on("tick", () => {
-      link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
+      link.attr("d", d => {
+        const dx = d.target.x - d.source.x;
+        const dy = d.target.y - d.source.y;
+        const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Multiplier flattens the curve slightly
+        if (dr === 0) return "";
+        return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+      });
 
       node
         .attr("cx", d => d.x)
@@ -197,7 +240,17 @@ export default function GraphPage({ notes, onOpenNote }) {
     // Zoom
     const zoom = d3.zoom()
       .scaleExtent([0.1, 4])
-      .on("zoom", (event) => g.attr("transform", event.transform));
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+        // Semantic Zoom: Scale label opacity/size based on zoom level (k)
+        const k = event.transform.k;
+        label.attr("opacity", d => {
+          if (k > 1.5) return 1;
+          // Fainter when zoomed out
+          if (k < 0.7 && d.val < 2) return 0.1;
+          return 0.5;
+        });
+      });
 
     svg.call(zoom);
 
@@ -211,7 +264,7 @@ export default function GraphPage({ notes, onOpenNote }) {
     }, 500);
 
     return () => simulation.stop();
-  }, [nodes, links, dims, showSignals, activeCluster]); // Re-render when data or view options change
+  }, [nodes, links, dims, showSignals, activeCluster, onOpenNote]); // Re-render when data or view options change
 
   // Resize Handler
   useEffect(() => {
@@ -259,70 +312,88 @@ export default function GraphPage({ notes, onOpenNote }) {
       <svg ref={svgRef} className="w-full h-full block" />
 
       {/* CONTROLS OVERLAY */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        <div className="bg-black/80 backdrop-blur border border-zinc-800 p-3 rounded-lg w-64">
-          <h3 className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-3">Connexa Analysis</h3>
+      <div className="absolute top-4 left-4 z-10 flex flex-col gap-3 font-sans">
+        {/* Analysis Widget */}
+        <GlassCard className="w-64 p-4 bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <ProjectIcon name="layers" size={14} className="text-zinc-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Connexa Analysis</h3>
+          </div>
 
           {/* Signal Toggle */}
-          <label className="flex items-center justify-between text-sm text-zinc-300 cursor-pointer hover:text-white mb-4">
+          <label className="flex items-center justify-between text-xs font-medium text-zinc-300 cursor-pointer hover:text-white mb-4">
             <span>Show Signals</span>
             <input
               type="checkbox"
               checked={showSignals}
               onChange={e => setShowSignals(e.target.checked)}
-              className="accent-zinc-500"
+              className="accent-teal-500"
             />
           </label>
 
-          {/* Clusters List */}
-          <div className="space-y-1">
-            <div className="text-[10px] text-zinc-600 uppercase">Top Clusters</div>
-            {analysis.rawClusters.slice(0, 5).map((c, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveCluster(activeCluster === i ? null : i)}
-                className={`w-full text-left text-xs px-2 py-1 rounded flex items-center justify-between ${activeCluster === i
-                    ? "bg-zinc-800 text-white"
-                    : "text-zinc-400 hover:bg-zinc-900"
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                  <span className="truncate max-w-[120px]">{c.name}</span>
-                </div>
-                <span className="text-zinc-600 font-mono">{c.size}</span>
-              </button>
-            ))}
+          <div className="space-y-2">
+            <div className="text-[10px] uppercase font-bold text-zinc-600">Clusters</div>
+            <div className="space-y-1">
+              {analysis.rawClusters.slice(0, 5).map((c, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveCluster(activeCluster === i ? null : i)}
+                  className={`w-full text-left text-xs px-2 py-1.5 rounded-md flex items-center justify-between transition-colors ${activeCluster === i
+                    ? "bg-white/10 text-white"
+                    : "text-zinc-400 hover:bg-white/5"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                    <span className="truncate max-w-[120px]">{c.name}</span>
+                  </div>
+                  <span className="text-zinc-600 font-mono">{c.size}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        </GlassCard>
 
-        {/* Trending Tags Widget */}
-        <div className="bg-black/80 backdrop-blur border border-zinc-800 p-3 rounded-lg w-64">
-          <div className="text-[10px] text-zinc-600 uppercase mb-2">Momentum (Velocity)</div>
-          <div className="flex flex-wrap gap-1">
-            {Array.from(analysis.hotTags).slice(0, 8).map(tag => (
-              <span key={tag} className="text-[10px] bg-zinc-900 border border-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded">
+        {/* Momentum Widget */}
+        <GlassCard className="w-64 p-4 bg-black/40 backdrop-blur-xl border-white/10 shadow-2xl">
+          <div className="flex items-center gap-2 mb-3">
+            <ProjectIcon name="zap" size={14} className="text-zinc-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">Momentum</h3>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {Array.from(analysis.hotTags).slice(0, 10).map(tag => (
+              <span key={tag} className="text-[10px] bg-white/5 border border-white/10 text-zinc-300 px-2 py-0.5 rounded-full hover:bg-white/10 transition-colors cursor-default">
                 #{tag}
               </span>
             ))}
             {analysis.hotTags.size === 0 && (
-              <span className="text-xs text-zinc-700 italic">No trending tags</span>
+              <span className="text-xs text-zinc-600 italic">No trending tags</span>
             )}
           </div>
-        </div>
+        </GlassCard>
       </div>
 
       {/* Hover Info */}
       {hoveredNode && (
-        <div
-          className="absolute pointer-events-none z-20 bg-zinc-900 border border-zinc-700 p-2 rounded shadow-xl"
-          style={{ top: 20, right: 20 }} // Simple fixed link for now, or follow mouse
+        <GlassCard
+          className="absolute pointer-events-none z-20 min-w-[200px]"
+          style={{ top: 24, right: 24 }}
         >
-          <div className="text-zinc-100 font-medium text-sm">{hoveredNode.title}</div>
-          <div className="text-xs text-zinc-500 mt-1">
-            {hoveredNode.tags.length > 0 ? hoveredNode.tags.map(t => `#${t}`).join(" ") : "No tags"}
+          <div className="flex items-start gap-3">
+            <div className="w-3 h-3 rounded-full mt-1" style={{ background: hoveredNode.color }} />
+            <div>
+              <div className="text-white font-medium text-sm leading-tight">{hoveredNode.title}</div>
+              <div className="text-xs text-zinc-500 mt-2 flex flex-wrap gap-1">
+                {hoveredNode.tags.length > 0
+                  ? hoveredNode.tags.map(t => <span key={t} className="bg-white/5 px-1 rounded">#{t}</span>)
+                  : <span className="italic opacity-50">No tags</span>}
+              </div>
+              <div className="mt-3 pt-2 border-t border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest">
+                Click to open
+              </div>
+            </div>
           </div>
-        </div>
+        </GlassCard>
       )}
     </div>
   );
