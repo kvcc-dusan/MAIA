@@ -114,6 +114,7 @@ export default function EditorRich({
   const editor = useEditor({
     editable,
     content: value || "",
+    autofocus: 'start', // Focus at start of document
     editorProps: {
       attributes: {
         class:
