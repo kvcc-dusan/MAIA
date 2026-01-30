@@ -23,6 +23,12 @@ const withDefaults = (p) => ({
 
 const normalize = (s) => (s || "").trim().toLowerCase();
 
+/**
+ * Checks if a note belongs to a project via explicit ID or name matching.
+ * @param {Object} note
+ * @param {Object} project
+ * @returns {boolean}
+ */
 function noteBelongsToProject(note, project) {
   const ids = note.projectIds || [];
   if (project?.id && ids.includes(project.id)) return true;
@@ -32,6 +38,17 @@ function noteBelongsToProject(note, project) {
   return false;
 }
 
+/**
+ * ProjectsPage Component
+ * Manages the "Opus" view: Projects list, details, and creation.
+ *
+ * @param {Object} props
+ * @param {Array} props.notes - List of note objects
+ * @param {Array} props.projects - List of project objects
+ * @param {Function} props.setProjects - State setter for projects
+ * @param {Function} props.selectNote - Callback to navigate to a note
+ * @param {string} [props.targetProjectId] - ID of project to select initially (deep linking)
+ */
 export default function Projects({
   notes,
   projects,
@@ -40,6 +57,8 @@ export default function Projects({
   targetProjectId,
 }) {
   const [activeId, setActiveId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
 
   // Sync targetProjectId from parent if provided
   useEffect(() => {
@@ -47,18 +66,16 @@ export default function Projects({
       setActiveId(targetProjectId);
     }
   }, [targetProjectId]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showIconPicker, setShowIconPicker] = useState(false);
 
-  // Normalize projects
+  // Normalize projects to ensure schema consistency
   const normalizedProjects = useMemo(() => projects.map(withDefaults), [projects]);
 
-  // Set initial active project
+  // Set initial active project if none selected and not targeted
   useEffect(() => {
     if (!activeId && normalizedProjects.length > 0 && !targetProjectId) {
       setActiveId(normalizedProjects[0].id);
     }
-  }, [normalizedProjects.length, activeId, targetProjectId]);
+  }, [normalizedProjects, activeId, targetProjectId]);
 
   const activeProject = useMemo(
     () => normalizedProjects.find((p) => p.id === activeId) || null,
@@ -86,7 +103,7 @@ export default function Projects({
     if (activeId === id) setActiveId(null);
   }
 
-  // Group projects
+  // Group projects by status
   const activeList = normalizedProjects.filter(p => p.status === "Active");
   const otherList = normalizedProjects.filter(p => p.status !== "Active");
 
