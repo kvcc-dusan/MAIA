@@ -1,6 +1,10 @@
 // @maia:projects
 import React, { useEffect, useMemo, useState } from "react";
-import { uid } from "../lib/ids.js"; // Importing shared uid helper
+import { uid } from "../lib/ids.js";
+import GlassSurface from "../components/GlassSurface";
+import { GlassCard, GlassInput, GlassTextarea } from "../components/GlassCard";
+import CreateProjectModal from "../components/CreateProjectModal";
+import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
 
 /* -----------------------------------------
    Helpers
@@ -8,67 +12,24 @@ import { uid } from "../lib/ids.js"; // Importing shared uid helper
 const withDefaults = (p) => ({
   id: p.id ?? uid(),
   name: p.name ?? "Untitled",
-  emoji: p.emoji ?? "📁",
+  // Migrate or default to 'terminal' if no icon
+  icon: p.icon ?? "terminal",
   status: p.status ?? "Active", // Active | Paused | Done
-  description: p.description ?? "", // The "Mission"
+  description: p.description ?? "",
   createdAt: p.createdAt ?? new Date().toISOString(),
-  dueAt: p.dueAt ?? null,
-  milestones: p.milestones ?? [], // {id, name, dueAt, status}
-  links: p.links ?? [],           // {id, title, url}
-  // Preserving other fields to avoid data loss, though might not display all
-  decisions: p.decisions ?? [],
+  milestones: p.milestones ?? [],
+  links: p.links ?? [],
 });
 
 const normalize = (s) => (s || "").trim().toLowerCase();
 
-// Does note belong to a project (by id or legacy name)?
 function noteBelongsToProject(note, project) {
   const ids = note.projectIds || [];
   if (project?.id && ids.includes(project.id)) return true;
   if (note.project && project?.name && normalize(note.project) === normalize(project.name)) {
-    return true; // legacy string membership
+    return true;
   }
   return false;
-}
-
-/* -----------------------------------------
-   Sub-Components
------------------------------------------ */
-
-function ProjectListItem({ project, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-sm font-mono ${active
-        ? "bg-white/10 text-white border border-white/20"
-        : "text-zinc-500 hover:text-white hover:bg-white/10 border border-transparent"
-        }`}
-    >
-      <span className="text-base">{project.emoji}</span>
-      <div className="flex-1 min-w-0">
-        <div className={`truncate ${active ? "text-white" : ""}`}>
-          {project.name}
-        </div>
-      </div>
-      {project.status !== "Active" && (
-        <span className="text-[10px] uppercase text-zinc-600 border border-zinc-800 px-1 rounded">
-          {project.status[0]}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function Section({ title, children, action }) {
-  return (
-    <section className="mb-8">
-      <div className="flex items-center justify-between mb-3 border-b border-zinc-900 pb-1">
-        <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-mono">{title}</h3>
-        {action}
-      </div>
-      {children}
-    </section>
-  )
 }
 
 export default function Projects({
@@ -78,8 +39,10 @@ export default function Projects({
   selectNote,
 }) {
   const [activeId, setActiveId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
 
-  // Ensure projects have defaults
+  // Normalize projects
   const normalizedProjects = useMemo(() => projects.map(withDefaults), [projects]);
 
   // Set initial active project
@@ -94,7 +57,7 @@ export default function Projects({
     [normalizedProjects, activeId]
   );
 
-  const scopedNotes = useMemo(() => {
+  const linkedNotes = useMemo(() => {
     if (!activeProject) return [];
     return notes.filter((n) => noteBelongsToProject(n, activeProject));
   }, [notes, activeProject]);
@@ -103,16 +66,14 @@ export default function Projects({
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p));
   };
 
-  const createProject = () => {
-    const name = prompt("Project Name:");
-    if (!name) return;
-    const newProj = withDefaults({ name });
+  const handleCreateProject = ({ name, icon }) => {
+    const newProj = withDefaults({ name, icon });
     setProjects([...projects, newProj]);
     setActiveId(newProj.id);
   };
 
   const deleteProject = (id) => {
-    if (!confirm("Delete this project? Notes will remain but linkage will be lost.")) return;
+    if (!confirm("Delete this mission?")) return;
     setProjects(prev => prev.filter(p => p.id !== id));
     if (activeId === id) setActiveId(null);
   }
@@ -121,184 +82,235 @@ export default function Projects({
   const activeList = normalizedProjects.filter(p => p.status === "Active");
   const otherList = normalizedProjects.filter(p => p.status !== "Active");
 
-
   return (
-    <div className="h-full w-full flex overflow-hidden relative">
-      {/* Background: Subtle gradient for depth */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
+    <div className="h-full w-full flex relative overflow-hidden bg-black font-sans text-zinc-200">
 
-      {/* LEFT SIDEBAR: List (Full Height, Glassy) */}
-      <div className="w-64 md:w-72 flex-none flex flex-col bg-black/60 border-r border-white/5 backdrop-blur-xl z-20">
-        <header className="px-5 pt-6 pb-4 flex items-center justify-between border-b border-white/5">
-          <h1 className="text-xl font-mono text-white font-bold tracking-tight">Opus</h1>
-          <button onClick={createProject} className="text-zinc-400 hover:text-white text-xl leading-none transition-colors flex items-center justify-center w-6 h-6 rounded hover:bg-white/10">+</button>
-        </header>
+      {/* "Opus" Watermark */}
+      <div className="absolute bottom-[-1rem] left-[-0.5rem] text-[12rem] md:text-[16rem] leading-none font-bold text-white opacity-[0.34] select-none pointer-events-none z-0 tracking-tighter">
+        Opus
+      </div>
 
-        <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar p-3">
-          <div className="space-y-1">
-            {activeList.map(p => (
-              <ProjectListItem
-                key={p.id}
-                project={p}
-                active={p.id === activeId}
-                onClick={() => setActiveId(p.id)}
-              />
-            ))}
-          </div>
+      {/* Main Grid Container */}
+      <div className="relative z-10 w-full h-full p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pointer-events-none">
 
-          {otherList.length > 0 && (
-            <div>
-              <div className="px-3 mb-2 text-[10px] text-zinc-600 uppercase tracking-widest mt-4 font-bold">Archived</div>
-              <div className="space-y-1 opacity-60 hover:opacity-100 transition-opacity">
-                {otherList.map(p => (
-                  <ProjectListItem
-                    key={p.id}
-                    project={p}
-                    active={p.id === activeId}
-                    onClick={() => setActiveId(p.id)}
-                  />
-                ))}
+        {/* LEFT COLUMN: Project List (Glass Container) */}
+        <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-start pointer-events-auto">
+          <GlassSurface className="flex flex-col h-auto max-h-full">
+            {/* Header */}
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Missions</span>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors"
+              >
+                <span className="text-lg leading-none mb-0.5">+</span>
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+              {activeList.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setActiveId(p.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group ${p.id === activeId
+                    ? "bg-white/10 shadow-[inner_0_0_0_1px_rgba(255,255,255,0.05)] text-white"
+                    : "hover:bg-white/5 text-zinc-500 hover:text-zinc-300"
+                    }`}
+                >
+                  <span className={`text-xl group-hover:scale-110 transition-transform ${p.id === activeId ? "text-white" : "text-zinc-600"}`}>
+                    <ProjectIcon name={p.icon} size={20} />
+                  </span>
+                  <span className="font-medium truncate text-sm">{p.name}</span>
+                </button>
+              ))}
+
+              {otherList.length > 0 && (
+                <div className="pt-4 mt-4 border-t border-white/5">
+                  <div className="px-3 mb-2 text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Archived</div>
+                  {otherList.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setActiveId(p.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-white/5 text-white" : "text-zinc-600 hover:bg-white/5"
+                        }`}
+                    >
+                      <span className="text-sm grayscale">
+                        <ProjectIcon name={p.icon} size={16} />
+                      </span>
+                      <span className="truncate text-sm">{p.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </GlassSurface>
+        </div>
+
+        {/* RIGHT COLUMN: Details (Content) */}
+        <div className="md:col-span-8 lg:col-span-9 flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar pointer-events-auto">
+          {activeProject ? (
+            <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+
+              {/* Title & Meta */}
+              <div className="flex flex-col gap-6">
+                <div className="flex items-start gap-5">
+                  <button
+                    onClick={() => setShowIconPicker(true)}
+                    className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center bg-white/5 rounded-2xl text-white hover:bg-white/10 hover:scale-105 transition-all shadow-2xl group border border-white/5"
+                  >
+                    <ProjectIcon name={activeProject.icon} size={48} className="opacity-80 group-hover:opacity-100" />
+                  </button>
+                  <div className="flex-1 space-y-3 pt-1">
+                    <input
+                      value={activeProject.name}
+                      onChange={e => updateProject(activeProject.id, { name: e.target.value })}
+                      className="bg-transparent text-4xl md:text-5xl font-bold text-white w-full outline-none placeholder:text-zinc-700 tracking-tight"
+                      placeholder="Mission Name"
+                    />
+                    <div className="flex items-center gap-3">
+                      <div className="px-2 py-1 rounded bg-white/5 border border-white/5 flex items-center gap-2">
+                        <span className={`w-1.5 h-1.5 rounded-full ${activeProject.status === 'Active' ? 'bg-green-500' :
+                          activeProject.status === 'Paused' ? 'bg-amber-500' : 'bg-blue-500'
+                          }`} />
+                        <select
+                          value={activeProject.status}
+                          onChange={e => updateProject(activeProject.id, { status: e.target.value })}
+                          className="bg-transparent text-xs text-zinc-400 outline-none uppercase tracking-wide font-bold cursor-pointer"
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Paused">Paused</option>
+                          <option value="Done">Complete</option>
+                        </select>
+                      </div>
+                      <span className="text-xs text-zinc-600">•</span>
+                      <span className="text-xs text-zinc-500">Inception: {new Date(activeProject.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteProject(activeProject.id)}
+                    className="p-2 text-zinc-600 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                    title="Archive/Delete"
+                  >
+                    <ProjectIcon name="trash" size={18} />
+                  </button>
+                </div>
               </div>
+
+              {/* Content Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* Mission Statement */}
+                <div className="lg:col-span-2">
+                  <GlassCard className="p-6">
+                    <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-4">Strategic Mission</h3>
+                    <GlassTextarea
+                      value={activeProject.description}
+                      onChange={e => updateProject(activeProject.id, { description: e.target.value })}
+                      className="min-h-[120px] text-lg font-light leading-relaxed"
+                      placeholder="Define the core objective and desired outcome..."
+                    />
+                  </GlassCard>
+                </div>
+
+                {/* Linked Notes */}
+                <GlassCard className="flex flex-col h-[300px]">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
+                      <ProjectIcon name="writing" size={14} />
+                      Intel ({linkedNotes.length})
+                    </h3>
+                  </div>
+                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                    {linkedNotes.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-zinc-700 text-sm italic">
+                        Use [[project name]] in notes to link logic.
+                      </div>
+                    ) : (
+                      linkedNotes.map(n => (
+                        <button
+                          key={n.id}
+                          onClick={() => selectNote?.(n.id)}
+                          className="w-full text-left p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group"
+                        >
+                          <div className="text-sm text-zinc-200 group-hover:text-white truncate font-medium">{n.title || "Untitled Note"}</div>
+                          <div className="text-[10px] text-zinc-600 mt-1 truncate">{n.preview || "No content..."}</div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </GlassCard>
+
+                {/* Links / Resources */}
+                <GlassCard className="flex flex-col h-[300px]">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
+                      <ProjectIcon name="research" size={14} />
+                      Uplinks ({activeProject.links.length})
+                    </h3>
+                    <button
+                      onClick={() => {
+                        const url = prompt("Link URL:");
+                        if (url) {
+                          updateProject(activeProject.id, {
+                            links: [...activeProject.links, { id: uid(), url, title: new URL(url).hostname }]
+                          });
+                        }
+                      }}
+                      className="text-[10px] px-2 py-1 bg-white/10 rounded hover:bg-white/20 text-white transition-colors"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                    {activeProject.links.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-zinc-700 text-sm italic">
+                        No external uplinks established.
+                      </div>
+                    ) : (
+                      activeProject.links.map(l => (
+                        <a
+                          key={l.id}
+                          href={l.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all group"
+                        >
+                          <div className="text-sm text-blue-400 group-hover:text-blue-300 truncate font-mono">{l.title}</div>
+                          <div className="text-[10px] text-zinc-600 mt-0.5 truncate">{l.url}</div>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                </GlassCard>
+
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
+              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                <ProjectIcon name="work" size={40} className="opacity-50" />
+              </div>
+              <p className="text-lg font-light text-zinc-500">Select a mission to analyze.</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* RIGHT CONTENT: Details (Main Area) */}
-      <div className="flex-1 min-w-0 flex flex-col bg-transparent relative z-10">
-        {!activeProject ? (
-          <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 text-sm font-mono opacity-50">
-            <span className="text-5xl mb-4 grayscale opacity-50">📁</span>
-            Select a project to initiate mission.
-          </div>
-        ) : (
-          <div className="w-full h-full flex flex-col overflow-hidden p-6 md:p-8 space-y-6 animate-in fade-in duration-300">
-            {/* Project Header */}
-            <div className="flex items-start gap-4">
-              <button
-                className="text-5xl hover:scale-110 transition-transform cursor-pointer"
-                onClick={() => {
-                  const e = prompt("Emoji:", activeProject.emoji);
-                  if (e) updateProject(activeProject.id, { emoji: e });
-                }}
-              >
-                {activeProject.emoji}
-              </button>
-              <div className="flex-1">
-                <input
-                  className="bg-transparent text-3xl font-light text-white outline-none placeholder:text-zinc-700 w-full tracking-tight"
-                  value={activeProject.name}
-                  onChange={e => updateProject(activeProject.id, { name: e.target.value })}
-                  placeholder="Project Name"
-                />
-                <div className="flex items-center gap-4 mt-2">
-                  <select
-                    value={activeProject.status}
-                    onChange={e => updateProject(activeProject.id, { status: e.target.value })}
-                    className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-zinc-400 outline-none hover:bg-white/10 transition-colors"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Paused">Paused</option>
-                    <option value="Done">Done</option>
-                  </select>
-                  {activeProject.createdAt && (
-                    <span className="text-xs text-zinc-600 font-mono">
-                      Started {new Date(activeProject.createdAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  if (confirm('Delete this project?')) deleteProject(activeProject.id);
-                }}
-                className="text-zinc-600 hover:text-red-400 transition-colors text-sm"
-              >
-                Delete
-              </button>
-            </div>
+      <CreateProjectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={handleCreateProject}
+      />
 
-            {/* Glass Cards Container */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
-              {/* Strategic Mission Card */}
-              <div className="bg-white/5 border border-white/5 rounded-xl p-6 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-3">Strategic Mission</div>
-                <textarea
-                  className="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-zinc-200 text-sm leading-relaxed outline-none focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-600 min-h-[120px]"
-                  value={activeProject.description}
-                  onChange={e => updateProject(activeProject.id, { description: e.target.value })}
-                  placeholder="Describe the outcome and purpose of this project..."
-                />
-              </div>
-
-              {/* Linked Notes Card */}
-              <div className="bg-white/5 border border-white/5 rounded-xl p-6 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">
-                    Linked Notes ({linkedNotes.length})
-                  </div>
-                  <button
-                    onClick={() => setShowNotePicker(true)}
-                    className="text-xs text-zinc-400 hover:text-white transition-colors"
-                  >
-                    View All
-                  </button>
-                </div>
-                {linkedNotes.length === 0 ? (
-                  <div className="px-4 py-6 border border-dashed border-white/5 rounded-xl text-center text-xs text-zinc-600">
-                    Use [[note]] key to link notes.
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {linkedNotes.map(n => (
-                      <button
-                        key={n.id}
-                        onClick={() => selectNote?.(n.id)}
-                        className="w-full text-left px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-colors text-sm text-zinc-300 flex items-center gap-2"
-                      >
-                        <span className="truncate">{n.title || "Untitled"}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Resources Card */}
-              <div className="bg-white/5 border border-white/5 rounded-xl p-6 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Resources</div>
-                  <button
-                    onClick={addLink}
-                    className="text-xs text-zinc-400 hover:text-white transition-colors"
-                  >
-                    + Add Link
-                  </button>
-                </div>
-                {(activeProject.links || []).length === 0 ? (
-                  <div className="px-4 py-6 border border-dashed border-white/5 rounded-xl text-center text-xs text-zinc-600">
-                    No resources yet.
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {(activeProject.links || []).map(link => (
-                      <div key={link.id} className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-zinc-300 hover:text-white underline break-all"
-                        >
-                          {link.title || link.url}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Icon Picker for Active Project */}
+      {showIconPicker && (
+        <IconPicker
+          currentIcon={activeProject?.icon}
+          onSelect={(newIcon) => updateProject(activeProject.id, { icon: newIcon })}
+          onClose={() => setShowIconPicker(false)}
+        />
+      )}
     </div>
   );
 }
