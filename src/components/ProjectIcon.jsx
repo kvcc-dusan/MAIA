@@ -71,7 +71,7 @@ const icons = {
         <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     ),
     book: (
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     ),
     flag: (
         <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

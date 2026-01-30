@@ -104,7 +104,8 @@ export default function EditorRich({
 }) {
   // Helper to emit meta + counts based on rendered text
   function emitMeta(editor, onMetaChange) {
-    const raw = editor.view?.dom?.textContent ?? "";
+    // Use getText() to preserve newlines for accurate word counting
+    const raw = editor.getText();
     const meta = parseContentMeta(raw);
     const wordCount = countWords(raw);
     const charCount = raw.length; // includes newlines, which is what users expect visually

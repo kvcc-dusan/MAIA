@@ -51,69 +51,78 @@ export default function Editor({ note, updateNote, projects = [] }) {
 
       {/* Main Glass Sheet */}
       <div className="w-full max-w-4xl h-full p-4 md:p-8 flex flex-col min-h-0 z-10">
-        <GlassSurface className="flex flex-col w-full h-full shadow-2xl relative overflow-hidden">
+        <GlassSurface className="shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col w-full h-full relative overflow-hidden">
 
-          {/* Header */}
-          <div className="flex-none px-8 py-6 border-b border-white/5 flex items-start gap-4">
-            <div className="flex-1 flex flex-col gap-1">
-              <input
-                value={local.title}
-                onChange={(e) => setLocal({ ...local, title: e.target.value })}
-                placeholder="Untitled Note"
-                className="bg-transparent outline-none text-2xl md:text-3xl font-bold text-white placeholder:text-zinc-600 font-sans tracking-tight"
-              />
-              <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono">
-                <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                {local.project && (
-                  <>
-                    <span>•</span>
-                    <span className="text-zinc-400">@{local.project}</span>
-                  </>
-                )}
+            {/* Header */}
+            <div className="flex-none px-6 py-5 border-b border-white/5 flex items-start gap-4 bg-black/10 backdrop-blur-sm z-20">
+              <div className="flex-1 flex flex-col gap-1">
+                <input
+                  value={local.title}
+                  onChange={(e) => setLocal({ ...local, title: e.target.value })}
+                  placeholder="Untitled Note"
+                  className="bg-transparent outline-none text-2xl md:text-3xl font-bold text-white placeholder:text-zinc-600 font-sans tracking-tight"
+                />
+                <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono">
+                  <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  {local.project && (
+                    <>
+                      <span>•</span>
+                      <span className="text-zinc-400">@{local.project}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Mode Toggle */}
+              <button
+                onClick={toggleMode}
+                className="p-2 text-zinc-500 hover:text-white transition-colors"
+                title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
+              >
+                <ProjectIcon name={editable ? "book" : "quill"} size={20} />
+              </button>
+            </div>
+
+            {/* Editor Container */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar relative text-lg">
+              <div className="min-h-full px-6 py-6 md:px-12 pb-32">
+                <EditorRich
+                  value={local.content || ""}
+                  editable={editable}
+                  onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
+                  onMetaChange={(meta) => setLocal((v) => ({ ...v, ...meta }))}
+                  className="maia-editor"
+                />
               </div>
             </div>
 
-            {/* Mode Toggle */}
-            <button
-              onClick={toggleMode}
-              className={`p-2 rounded-lg transition-colors border ${editable ? 'bg-white/10 border-white/10 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-              title={editable ? "Reading Mode" : "Editing Mode"}
-            >
-              <ProjectIcon name={editable ? "quill" : "book"} size={18} />
-            </button>
-          </div>
+            {/* Status Bar (Floating Pill) */}
+            {/* Status Bar (Floating Pill) */}
+            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+              <div className="flex items-center gap-4 px-4 py-2 bg-black/30 backdrop-blur-xl border border-white/10 rounded-full text-[10px] text-zinc-400 font-mono shadow-[0_8px_32px_rgba(0,0,0,0.4)] ring-1 ring-white/5 pointer-events-auto transition-opacity duration-300 hover:bg-black/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
 
-          {/* Editor Container */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-            <div className="min-h-full px-8 py-8 md:px-12">
-              <EditorRich
-                value={local.content || ""}
-                editable={editable}
-                onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
-                onMetaChange={(meta) => setLocal((v) => ({ ...v, ...meta }))}
-                className="maia-editor pb-32"
-              />
-            </div>
-          </div>
+                {/* Stats */}
+                <div className="flex items-center gap-3 pr-4 border-r border-white/10">
+                  <span>{(local?.wordCount ?? 0).toLocaleString()} Words</span>
+                  <span>{(local?.charCount ?? 0).toLocaleString()} Chars</span>
+                </div>
 
-          {/* New Status Bar (Bottom of Glass) */}
-          <div className="flex-none h-8 border-t border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between px-4 text-[10px] text-zinc-500 font-mono uppercase tracking-wider select-none">
+                {/* Tags */}
+                <div className="flex items-center gap-2">
+                  {(local.tags && local.tags.length > 0) ? (
+                    local.tags.map(t => (
+                      <span key={t} className="text-emerald-400">#{t}</span>
+                    ))
+                  ) : (
+                    <span className="text-zinc-600 italic">No tags</span>
+                  )}
+                </div>
 
-            {/* Left: Stats */}
-            <div className="flex items-center gap-4">
-              <span>{(local?.wordCount ?? 0).toLocaleString()} Words</span>
-              <span>{(local?.charCount ?? 0).toLocaleString()} Chars</span>
-            </div>
-
-            {/* Right: Tags */}
-            <div className="flex items-center gap-2">
-              {(local.tags || []).map(t => (
-                <span key={t} className="text-emerald-500/80">#{t}</span>
-              ))}
+              </div>
             </div>
 
           </div>
-
         </GlassSurface>
       </div>
 
