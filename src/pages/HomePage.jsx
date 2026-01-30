@@ -4,6 +4,7 @@ import { geoMercator, geoPath, geoGraticule10 } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
 import Dither from "../components/Dither.jsx";
+import GlassSurface from "../components/GlassSurface.jsx";
 
 
 /* -------------------------------------------
@@ -429,102 +430,87 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center overflow-hidden bg-black">
-      {/* Main Content: Centered Glass Panel */}
-      <div className="w-full max-w-4xl mx-auto px-6">
-        {/* Greeting Section */}
-        <div className="mb-12 text-center">
-          <h1 className="font-mono text-white leading-tight text-4xl md:text-5xl tracking-tight mb-4">
-            {greeting}
-          </h1>
-          <p className="text-zinc-500 text-sm max-w-xl mx-auto leading-relaxed font-mono">
-            {quote}
-          </p>
+    <div className="relative h-full w-full flex overflow-hidden bg-black text-white font-sans selection:bg-white/20">
+
+      {/* 
+        MAIN CONTENT GRID
+        Split into two main zones:
+        - LEFT/CENTER: Minimal Greeting
+        - RIGHT: Glass Stack
+      */}
+      <div className="w-full h-full max-w-7xl mx-auto p-8 md:p-12 lg:p-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+        {/* LEFT ZONE: Greeting */}
+        <div className="flex flex-col justify-center items-start lg:items-center space-y-6">
+          <div className="space-y-4 text-left lg:text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-white/90">
+              {greeting}
+            </h1>
+            <p className="text-base md:text-lg text-zinc-500 font-mono max-w-md mx-auto leading-relaxed">
+              Everything should be made as simple as possible, but not simpler.
+            </p>
+          </div>
         </div>
 
-        {/* Glass Panel with Widgets */}
-        <div className="bg-white/5 border border-white/5 rounded-3xl p-8 backdrop-blur-xl shadow-2xl space-y-6">
+        {/* RIGHT ZONE: Glass Widgets Stack */}
+        <div className="flex flex-col items-center lg:items-end justify-center space-y-6 w-full max-w-sm mx-auto lg:mx-0 lg:ml-auto">
+
           {/* Weather Widget */}
-          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
-            <div className="flex items-start justify-between mb-3">
-              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Weather</div>
-              <div className="text-3xl font-light text-white">{weatherSnap?.temp != null ? Math.round(weatherSnap.temp) + "°" : "--"}</div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm text-zinc-300">{weatherSnap?.place || "Unknown"}</div>
-                <div className="text-xs text-zinc-600 font-mono">Local</div>
+          <GlassSurface className="p-6 flex items-center justify-between min-h-[100px]">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Weather</span>
+              <div className="text-lg font-medium text-zinc-200">
+                {weatherSnap?.coords ? `${Math.round(weatherSnap.temp)}°` : "--"}
               </div>
-              {weatherSnap?.icon && (
-                <div className="text-4xl opacity-60">{weatherSnap.icon}</div>
-              )}
+              <div className="text-xs text-zinc-500">
+                {weatherSnap?.place || "Locating..."}
+              </div>
             </div>
-          </div>
+            <div className="text-4xl font-light text-white/80">
+              {weatherSnap?.temp ? `${Math.round(weatherSnap.temp)}°` : "--"}
+            </div>
+          </GlassSurface>
 
-          {/* Today's Focus Widget */}
-          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Today's Focus</div>
-              <button onClick={openPulse} className="text-xs text-zinc-400 hover:text-white transition-colors">
-                OPEN CHRONOS
-              </button>
+          {/* Today's Focus */}
+          <GlassSurface className="p-6 flex flex-col min-h-[140px]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Focus</span>
+              <button onClick={openPulse} className="text-[10px] text-zinc-400 hover:text-white transition-colors">OPEN CHRONOS</button>
             </div>
+
             {todayTasks.length === 0 ? (
-              <div
-                onClick={openPulse}
-                className="px-4 py-6 border border-dashed border-white/5 rounded-lg text-center text-xs text-zinc-600 cursor-pointer hover:border-white/10 hover:bg-white/5 transition-all"
-              >
-                No tasks for today.
+              <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 text-xs text-center italic">
+                "No tasks for today."
               </div>
             ) : (
-              <div className="space-y-2">
-                {todayTasks.slice(0, 3).map(t => (
-                  <div key={t.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                    <div className={`w-1.5 h-1.5 rounded-full ${t.done ? "bg-zinc-600" : "bg-white"}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-sm ${t.done ? "line-through text-zinc-600" : "text-zinc-300"}`}>
-                        {t.title}
-                      </div>
-                      {t.due && (
-                        <div className="text-[10px] text-zinc-500 font-mono">
-                          {new Date(t.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      )}
-                    </div>
+              <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
+                {todayTasks.slice(0, 3).map(task => (
+                  <div key={task.id} className="flex items-center gap-2 text-sm text-zinc-300">
+                    <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-zinc-700' : 'bg-white'}`} />
+                    <span className={task.done ? 'line-through text-zinc-600' : ''}>{task.title}</span>
                   </div>
                 ))}
+                {todayTasks.length > 3 && (
+                  <div className="text-[10px] text-zinc-600 pt-1">+{todayTasks.length - 3} more</div>
+                )}
               </div>
             )}
-          </div>
+          </GlassSurface>
 
-          {/* Reminders Widget */}
-          <div className="bg-white/5 border border-white/5 rounded-xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
-            <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-3">Reminders</div>
+          {/* Reminders / Quick Note */}
+          <GlassSurface className="p-6 flex flex-col min-h-[100px]">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-3">Reminders</span>
             {todayReminders.length === 0 ? (
-              <div className="px-4 py-4 text-xs text-zinc-600 italic">Clean slate.</div>
+              <div className="text-sm text-zinc-600 italic">Clean slate.</div>
             ) : (
-              <div className="space-y-2">
-                {todayReminders.slice(0, 3).map(r => (
-                  <div key={r.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                    <div className="flex-1">
-                      <div className="text-sm text-zinc-300">{r.title}</div>
-                      <div className="text-[10px] text-zinc-500 font-mono">
-                        {new Date(r.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
+              <div className="space-y-1">
+                {todayReminders.slice(0, 2).map((r, i) => (
+                  <div key={i} className="text-xs text-zinc-400 truncate">• {r.title}</div>
                 ))}
               </div>
             )}
-          </div>
-        </div>
+          </GlassSurface>
 
-        {/* Time Display */}
-        <div className="mt-6 text-center">
-          <div className="text-xs text-zinc-600 font-mono">
-            {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </div>
         </div>
       </div>
     </div>
