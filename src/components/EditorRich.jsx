@@ -182,7 +182,7 @@ export default function EditorRich({
       {showPlaceholder && <InlinePlaceholder />}
       <EditorContent
         editor={editor}
-        className="tiptap maia-editor outline-none min-h-[60vh] text-zinc-100 font-mono leading-6"
+        className="tiptap maia-editor outline-none min-h-full text-zinc-200 leading-relaxed max-w-3xl mx-auto"
       />
     </div>
   );

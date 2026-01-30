@@ -95,7 +95,7 @@ export default function Projects({
 
         {/* LEFT COLUMN: Project List (Glass Container) */}
         <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-start pointer-events-auto">
-          <GlassSurface className="flex flex-col h-auto max-h-full">
+          <GlassSurface className="flex flex-col !h-auto max-h-full">
             {/* Header */}
             <div className="p-4 border-b border-white/5 flex items-center justify-between">
               <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Missions</span>
