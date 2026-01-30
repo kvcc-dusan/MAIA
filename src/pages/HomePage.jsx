@@ -435,7 +435,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         {/* Greeting Section */}
         <div className="mb-12 text-center">
           <h1 className="font-mono text-white leading-tight text-4xl md:text-5xl tracking-tight mb-4">
-            {greeting} {userName || "Dušan"}.
+            {greeting}
           </h1>
           <p className="text-zinc-500 text-sm max-w-xl mx-auto leading-relaxed font-mono">
             {quote}

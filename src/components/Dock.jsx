@@ -1,4 +1,5 @@
 import React from "react";
+import ProjectIcon from "./ProjectIcon.jsx";
 
 export default function Dock({ currentPage, onNavigate, onOpenTool }) {
     const DockItem = ({ id, label, icon, active, onClick }) => (
@@ -25,42 +26,42 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                 <DockItem
                     id="home"
                     label="Home"
-                    icon="⌂"
+                    icon={<ProjectIcon name="personal" size={20} />}
                     active={currentPage === "home"}
                     onClick={() => onNavigate("home")}
                 />
                 <DockItem
                     id="projects"
                     label="Opus"
-                    icon="⌘"
+                    icon={<ProjectIcon name="work" size={20} />}
                     active={currentPage === "projects"}
                     onClick={() => onNavigate("projects")}
                 />
                 <DockItem
                     id="overview"
                     label="Codex"
-                    icon="✦"
+                    icon={<ProjectIcon name="writing" size={20} />}
                     active={currentPage === "overview"}
                     onClick={() => onNavigate("overview")}
                 />
                 <DockItem
                     id="graph"
                     label="Connexa"
-                    icon="🕸"
+                    icon={<ProjectIcon name="design" size={20} />}
                     active={currentPage === "graph"}
                     onClick={() => onNavigate("graph")}
                 />
                 <DockItem
                     id="journal"
                     label="Journal"
-                    icon="✎"
+                    icon={<ProjectIcon name="writing" size={20} />}
                     active={currentPage === "journal"}
                     onClick={() => onNavigate("journal")}
                 />
                 <DockItem
                     id="review"
                     label="Review"
-                    icon="◎"
+                    icon={<ProjectIcon name="check" size={20} />}
                     active={currentPage === "review"}
                     onClick={() => onNavigate("review")}
                 />
@@ -72,14 +73,14 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                 <DockItem
                     id="chronos"
                     label="Chronos"
-                    icon="⚡"
+                    icon={<ProjectIcon name="star" size={20} />}
                     active={false} // Tool, not a page
                     onClick={() => onOpenTool("chronos")}
                 />
                 <DockItem
                     id="search"
                     label="Search"
-                    icon="🔍"
+                    icon={<ProjectIcon name="research" size={20} />}
                     active={false}
                     onClick={() => onOpenTool("search")}
                 />
