@@ -1,10 +1,11 @@
 // @maia:graph
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
 import { dottedBg } from "../lib/theme.js";
 import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
 import { GlassCard } from "../components/GlassCard";
 import ProjectIcon from "../components/ProjectIcon";
+import { useGraphSimulation } from "../hooks/useGraphSimulation";
 
 /* -----------------------------------------
    Theme Constants
@@ -28,8 +29,16 @@ const THEME = {
   textActive: "#f4f4f5", // zinc-100
 };
 
+/**
+ * GraphPage Component
+ * Renders the interactive force-directed graph of Notes and Projects.
+ *
+ * @param {Object} props
+ * @param {Array} props.notes - List of note objects
+ * @param {Array} props.projects - List of project objects
+ * @param {Function} props.onOpenNote - Callback when a node is clicked (id, type)
+ */
 export default function GraphPage({ notes, projects = [], onOpenNote }) {
-  const svgRef = useRef(null);
   const wrapperRef = useRef(null);
   const [dims, setDims] = useState({ w: 800, h: 600 });
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -123,150 +132,104 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   }, [notes, projects, analysis]);
 
 
-  // --- D3 RENDER ---
+  // --- INTERACTION CALLBACKS ---
 
+  const handleNodeClick = useCallback((d) => {
+    if (d.type === "project") {
+      if (onOpenNote) onOpenNote(d.realId, "project");
+    } else {
+      if (onOpenNote) onOpenNote(d.id);
+    }
+  }, [onOpenNote]);
+
+  const handleNodeHover = useCallback((d, { link, node, label }) => {
+    setHoveredNode(d);
+
+    // Highlight connections
+    link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
+      .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
+
+    node
+      .attr("opacity", n => {
+        const isConnected = links.some(l =>
+          (l.source.id === d.id && l.target.id === n.id) ||
+          (l.target.id === d.id && l.source.id === n.id)
+        );
+        return (n.id === d.id || isConnected) ? 1 : 0.1;
+      })
+      .attr("fill", n => {
+        if (n.id === d.id) return THEME.nodeActive;
+        if (n.type === "project") return n.color;
+        return THEME.nodeFill;
+      });
+
+    label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
+  }, [links]); // Depends on links structure
+
+  const handleNodeOut = useCallback((d, { link, node, label }) => {
+    setHoveredNode(null);
+    link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6);
+
+    // Reset Node Styles (respecting signals)
+    node
+      .attr("opacity", 1)
+      .attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill)
+      .attr("stroke", n => (showSignals && n.isHot) ? "#f472b6" : "none")
+      .attr("stroke-width", n => (showSignals && n.isHot) ? 2 : 0);
+
+    // Reset Label Styles (respecting cluster)
+    label.attr("opacity", n => {
+        if (activeCluster !== null) return n.group === activeCluster ? 1 : 0.1;
+        return n.val > 2 ? 0.7 : 0;
+    });
+  }, [activeCluster, showSignals]);
+
+
+  // --- HOOK ---
+
+  const svgRef = useGraphSimulation({
+    nodes,
+    links,
+    dims,
+    onNodeClick: handleNodeClick,
+    onNodeHover: handleNodeHover,
+    onNodeOut: handleNodeOut,
+  });
+
+
+  // --- VISUAL UPDATES (Side Effects) ---
+  // Handle activeCluster, showSignals, and simulation resets (nodes/dims)
   useEffect(() => {
     if (!svgRef.current) return;
-
-    // Measurements
-    const width = dims.w;
-    const height = dims.h;
-
-    // Clean old
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
 
-    // Layers
-    const g = svg.append("g");
-    const linkLayer = g.append("g").attr("class", "links");
-    const nodeLayer = g.append("g").attr("class", "nodes");
-    const labelLayer = g.append("g").attr("class", "labels");
+    // Update Nodes (Signals & Pulse)
+    const nodeSelection = svg.selectAll(".node");
 
-    // Simulation
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(100).strength(0.2)) // Softer, more elastic feel
-      .force("charge", d3.forceManyBody().strength(-150))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(d => 15 + d.val).strength(0.8));
+    nodeSelection
+       .attr("stroke", d => (showSignals && d.isHot) ? "#f472b6" : "none")
+       .attr("stroke-width", d => (showSignals && d.isHot) ? 2 : 0);
 
-    // Elements
-    // Use paths for curved 'elastic' links
-    const link = linkLayer.selectAll("path")
-      .data(links)
-      .join("path")
-      .attr("fill", "none")
-      .attr("stroke", THEME.link)
-      .attr("stroke-opacity", 0.6)
-      .attr("stroke-width", 1.5);
+    // Add pulse class to projects
+    nodeSelection
+       .filter(d => d.type === 'project')
+       .classed("pulse-project", true);
 
-    const node = nodeLayer.selectAll("circle")
-      .data(nodes)
-      .join("circle")
-      .attr("r", d => d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3)))
-      .attr("fill", d => d.type === "project" ? d.color : THEME.nodeFill)
-      .attr("stroke", "none")
-      .attr("stroke-width", 0)
-      .style("cursor", "pointer")
-      .call(drag(simulation));
+    // Update Labels (Cluster Filter)
+    svg.selectAll(".label")
+       .transition().duration(200)
+       .attr("opacity", d => {
+          if (activeCluster !== null) {
+              return d.group === activeCluster ? 1 : 0.1;
+          }
+          return d.val > 2 ? 0.7 : 0;
+       });
 
-    const label = labelLayer.selectAll("text")
-      .data(nodes)
-      .join("text")
-      .text(d => d.title)
-      .attr("font-size", d => 10 + d.val)
-      .attr("fill", THEME.text)
-      .attr("text-anchor", "middle") // Center text horizontally
-      .attr("dy", d => 28 + d.val) // Position below the node with more gap
-      .attr("opacity", 0.7) // Default visible but slightly transparent
-      .style("pointer-events", "none")
-      .style("transition", "opacity 0.2s");
+  }, [activeCluster, showSignals, svgRef, nodes, dims]); // Depend on state that affects visuals
 
 
-    // Interactions
-    node
-      .on("click", (e, d) => {
-        if (d.type === "project") {
-          if (onOpenNote) onOpenNote(d.realId, "project");
-        } else {
-          onOpenNote && onOpenNote(d.id);
-        }
-      })
-      .on("mouseover", (e, d) => {
-        setHoveredNode(d);
-        // Highlight connections
-        link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
-          .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
-        node
-          .attr("opacity", n => {
-            const isConnected = links.some(l =>
-              (l.source.id === d.id && l.target.id === n.id) ||
-              (l.target.id === d.id && l.source.id === n.id)
-            );
-            return (n.id === d.id || isConnected) ? 1 : 0.1;
-          })
-          .attr("fill", n => {
-            if (n.id === d.id) return THEME.nodeActive;
-            if (n.type === "project") return n.color;
-            return THEME.nodeFill;
-          });
-        label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
-      })
-      .on("mouseout", () => {
-        setHoveredNode(null);
-        link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6);
-        node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-        label.attr("opacity", d => (d.val > 2 || activeCluster === d.group) ? 1 : 0);
-      });
+  // --- RESIZE HANDLER ---
 
-    // Simulation Tick
-    simulation.on("tick", () => {
-      link.attr("d", d => {
-        const dx = d.target.x - d.source.x;
-        const dy = d.target.y - d.source.y;
-        const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Multiplier flattens the curve slightly
-        if (dr === 0) return "";
-        return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
-      });
-
-      node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
-
-      label
-        .attr("x", d => d.x)
-        .attr("y", d => d.y);
-    });
-
-    // Zoom
-    const zoom = d3.zoom()
-      .scaleExtent([0.1, 4])
-      .on("zoom", (event) => {
-        g.attr("transform", event.transform);
-        // Semantic Zoom: Scale label opacity/size based on zoom level (k)
-        const k = event.transform.k;
-        label.attr("opacity", d => {
-          if (k > 1.5) return 1;
-          // Fainter when zoomed out
-          if (k < 0.7 && d.val < 2) return 0.1;
-          return 0.5;
-        });
-      });
-
-    svg.call(zoom);
-
-    // Initial Zoom Fit (Delayed)
-    setTimeout(() => {
-      // Simple approximate center
-      svg.transition().duration(750).call(
-        zoom.transform,
-        d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
-      );
-    }, 500);
-
-    return () => simulation.stop();
-  }, [nodes, links, dims, showSignals, activeCluster, onOpenNote]); // Re-render when data or view options change
-
-  // Resize Handler
   useEffect(() => {
     if (!wrapperRef.current) return;
     const obs = new ResizeObserver(entries => {
@@ -278,36 +241,22 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   }, []);
 
 
-  // --- DRAG HELPER ---
-  function drag(simulation) {
-    function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    }
-
-    function dragged(event) {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-    }
-
-    function dragended(event) {
-      if (!event.active) simulation.alphaTarget(0);
-      event.subject.fx = null;
-      event.subject.fy = null;
-    }
-
-    return d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended);
-  }
-
   // --- UI RENDER ---
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden" ref={wrapperRef}>
       <div className="absolute inset-0 opacity-20 pointer-events-none" style={dottedBg} />
+
+      {/* Visual Polish Styles */}
+      <style>{`
+        @keyframes glow-blue {
+          0%, 100% { filter: drop-shadow(0 0 2px #3b82f6); }
+          50% { filter: drop-shadow(0 0 6px #3b82f6); }
+        }
+        .pulse-project {
+          animation: glow-blue 3s infinite;
+        }
+      `}</style>
 
       <svg ref={svgRef} className="w-full h-full block" />
 
@@ -376,11 +325,13 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       {/* Hover Info */}
       {hoveredNode && (
         <GlassCard
-          className="absolute pointer-events-none z-20 min-w-[200px]"
+          className="absolute pointer-events-none z-20 min-w-[200px] animate-in fade-in zoom-in-95 duration-200"
           style={{ top: 24, right: 24 }}
         >
           <div className="flex items-start gap-3">
-            <div className="w-3 h-3 rounded-full mt-1" style={{ background: hoveredNode.color }} />
+            <div className={`w-3 h-3 rounded-full mt-1 ${hoveredNode.type === 'project' ? 'animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.5)]' : ''}`}
+                 style={{ background: hoveredNode.color }}
+            />
             <div>
               <div className="text-white font-medium text-sm leading-tight">{hoveredNode.title}</div>
               <div className="text-xs text-zinc-500 mt-2 flex flex-wrap gap-1">
