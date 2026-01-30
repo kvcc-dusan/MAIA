@@ -5,6 +5,7 @@ import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
 import Dither from "../components/Dither.jsx";
 import GlassSurface from "../components/GlassSurface.jsx";
+import ColorBends from "../components/ColorBends.jsx";
 
 
 /* -------------------------------------------
@@ -364,7 +365,8 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
     return () => clearInterval(t);
   }, []);
 
-  const greeting = `${greetingFor(now)} Dušan.`; // <- tweak the name freely
+  const userName = "Dušan";
+  const greeting = `${greetingFor(now)}`;
 
   // Weather & place
   useEffect(() => {
@@ -432,7 +434,33 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   return (
     <div className="relative h-full w-full flex overflow-hidden bg-black text-white font-sans selection:bg-white/20">
 
-      {/* 
+      {/* Background: React Bits Color Bends */}
+      <div className="absolute inset-0 z-0">
+        <ColorBends
+          className="w-full h-full" // Full opacity for vibrancy
+          rotation={-113}
+          autoRotate={-5}
+          speed={0.22}
+          scale={0.9}
+          frequency={1}
+          warpStrength={1}
+          mouseInfluence={1}
+          parallax={1.3}
+          noise={0.19}
+          colors={[
+            "#1A3325", // Deep Forest Green
+            "#3D5A46", // Medium Moss
+            "#7C9082", // Sage
+            "#A6B4AC", // Mist
+            "#0F1C18", // Darker Earth
+            "#4A6657", // Muted Green
+            "#2C4437"  // Pine
+          ]}
+        />
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" /> {/* Lighter overlay for just enough text contrast */}
+      </div>
+
+      {/*
         MAIN CONTENT GRID
         Split into two main zones:
         - LEFT/CENTER: Minimal Greeting
@@ -441,13 +469,13 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
       <div className="w-full h-full max-w-7xl mx-auto p-8 md:p-12 lg:p-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
         {/* LEFT ZONE: Greeting */}
-        <div className="flex flex-col justify-center items-start lg:items-center space-y-6">
-          <div className="space-y-4 text-left lg:text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-white/90">
-              {greeting}
+        <div className="flex flex-col justify-center items-start space-y-6">
+          <div className="space-y-4 text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold">
+              <span className="text-zinc-500">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
-            <p className="text-base md:text-lg text-zinc-500 font-mono max-w-md mx-auto leading-relaxed">
-              Everything should be made as simple as possible, but not simpler.
+            <p className="text-base md:text-lg text-white font-normal max-w-md leading-relaxed">
+              "{quote}"
             </p>
           </div>
         </div>

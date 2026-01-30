@@ -36,11 +36,19 @@ const GlassSurface = ({ children, className = "" }) => {
             <div
                 className="absolute inset-0 z-0 pointer-events-none"
                 style={{
-                    background: "hsl(0 0% 0% / 0.05)",
-                    backdropFilter: "url(#glass-filter) saturate(1.2) blur(11px)",
+                    background: "rgba(0, 0, 0, 0.4)", // Darker base for depth
+                    backdropFilter: "url(#glass-filter) saturate(1.8) blur(16px)", // Stronger blur & saturation
+                    /* 
+                       Premium Dark Glass Effect
+                       - Multi-layer shadow for "thick glass" rim
+                       - Top inner highlight for light catching
+                       - Subtle bottom edge definition
+                    */
                     boxShadow: `
-            0 0 2px 1px color-mix(in oklch, white, transparent 75%) inset,
-            0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset
+            0 1px 0 0 rgba(255, 255, 255, 0.1) inset,       /* Sharp Top Inner Highlight */
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset,      /* Subtle Overall Border */
+            0 0 20px 0 rgba(0, 0, 0, 0.5),                  /* Soft Outer Glow/Shadow */
+            0 10px 20px -5px rgba(0, 0, 0, 0.8)             /* Deep Drop Shadow */
           `,
                 }}
             />

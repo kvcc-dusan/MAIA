@@ -1,5 +1,6 @@
 import React from "react";
 import ProjectIcon from "./ProjectIcon.jsx";
+import GlassSurface from "./GlassSurface.jsx";
 
 export default function Dock({ currentPage, onNavigate, onOpenTool }) {
     const DockItem = ({ id, label, icon, active, onClick }) => (
@@ -21,70 +22,72 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <div className="glass-panel px-4 py-3 rounded-2xl flex items-center gap-2 shadow-2xl border border-white/10 bg-black/60 backdrop-blur-xl">
-                {/* APPS */}
-                <DockItem
-                    id="home"
-                    label="Home"
-                    icon={<ProjectIcon name="personal" size={20} />}
-                    active={currentPage === "home"}
-                    onClick={() => onNavigate("home")}
-                />
-                <DockItem
-                    id="projects"
-                    label="Opus"
-                    icon={<ProjectIcon name="work" size={20} />}
-                    active={currentPage === "projects"}
-                    onClick={() => onNavigate("projects")}
-                />
-                <DockItem
-                    id="overview"
-                    label="Codex"
-                    icon={<ProjectIcon name="writing" size={20} />}
-                    active={currentPage === "overview"}
-                    onClick={() => onNavigate("overview")}
-                />
-                <DockItem
-                    id="graph"
-                    label="Connexa"
-                    icon={<ProjectIcon name="design" size={20} />}
-                    active={currentPage === "graph"}
-                    onClick={() => onNavigate("graph")}
-                />
-                <DockItem
-                    id="journal"
-                    label="Journal"
-                    icon={<ProjectIcon name="writing" size={20} />}
-                    active={currentPage === "journal"}
-                    onClick={() => onNavigate("journal")}
-                />
-                <DockItem
-                    id="review"
-                    label="Review"
-                    icon={<ProjectIcon name="check" size={20} />}
-                    active={currentPage === "review"}
-                    onClick={() => onNavigate("review")}
-                />
+            <GlassSurface className="rounded-2xl">
+                <div className="px-4 py-3 flex items-center gap-2">
+                    {/* APPS */}
+                    <DockItem
+                        id="home"
+                        label="Home"
+                        icon={<ProjectIcon name="personal" size={20} />}
+                        active={currentPage === "home"}
+                        onClick={() => onNavigate("home")}
+                    />
+                    <DockItem
+                        id="projects"
+                        label="Opus"
+                        icon={<ProjectIcon name="work" size={20} />}
+                        active={currentPage === "projects"}
+                        onClick={() => onNavigate("projects")}
+                    />
+                    <DockItem
+                        id="overview"
+                        label="Codex"
+                        icon={<ProjectIcon name="writing" size={20} />}
+                        active={currentPage === "overview"}
+                        onClick={() => onNavigate("overview")}
+                    />
+                    <DockItem
+                        id="graph"
+                        label="Connexa"
+                        icon={<ProjectIcon name="design" size={20} />}
+                        active={currentPage === "graph"}
+                        onClick={() => onNavigate("graph")}
+                    />
+                    <DockItem
+                        id="journal"
+                        label="Journal"
+                        icon={<ProjectIcon name="writing" size={20} />}
+                        active={currentPage === "journal"}
+                        onClick={() => onNavigate("journal")}
+                    />
+                    <DockItem
+                        id="review"
+                        label="Review"
+                        icon={<ProjectIcon name="check" size={20} />}
+                        active={currentPage === "review"}
+                        onClick={() => onNavigate("review")}
+                    />
 
-                {/* DIVIDER */}
-                <div className="w-[1px] h-8 bg-white/10 mx-2" />
+                    {/* DIVIDER */}
+                    <div className="w-[1px] h-8 bg-white/10 mx-2" />
 
-                {/* TOOLS */}
-                <DockItem
-                    id="chronos"
-                    label="Chronos"
-                    icon={<ProjectIcon name="star" size={20} />}
-                    active={false} // Tool, not a page
-                    onClick={() => onOpenTool("chronos")}
-                />
-                <DockItem
-                    id="search"
-                    label="Search"
-                    icon={<ProjectIcon name="research" size={20} />}
-                    active={false}
-                    onClick={() => onOpenTool("search")}
-                />
-            </div>
+                    {/* TOOLS */}
+                    <DockItem
+                        id="chronos"
+                        label="Chronos"
+                        icon={<ProjectIcon name="star" size={20} />}
+                        active={false} // Tool, not a page
+                        onClick={() => onOpenTool("chronos")}
+                    />
+                    <DockItem
+                        id="search"
+                        label="Search"
+                        icon={<ProjectIcon name="research" size={20} />}
+                        active={false}
+                        onClick={() => onOpenTool("search")}
+                    />
+                </div>
+            </GlassSurface>
         </div>
     );
 }
