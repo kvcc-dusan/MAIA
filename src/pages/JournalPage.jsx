@@ -1,81 +1,93 @@
-import React, { useState } from "react";
-import { uid, isoNow } from "../lib/ids.js";
-import EditorRich from "../components/EditorRich.jsx";
+import React, { useState, useMemo } from 'react';
+import { uid, isoNow } from '../lib/ids.js';
+import EditorRich from '../components/EditorRich.jsx';
+import GlassSurface from '../components/GlassSurface.jsx';
+import { GlassCard, GlassInput } from '../components/GlassCard';
+import ProjectIcon from '../components/ProjectIcon';
 
 export default function Journal({ journal = [], setJournal }) {
-    const [content, setContent] = useState("");
+    const [content, setContent] = useState('');
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleSubmit = () => {
         if (!content.trim()) return;
-        const entry = {
-            id: uid(),
-            content: content,
-            createdAt: isoNow(),
-        };
-        // Newest first
-        setJournal([entry, ...journal]);
-        setContent("");
+        setJournal([{ id: uid(), content, createdAt: isoNow() }, ...journal]);
+        setContent('');
     };
 
+    const filtered = useMemo(() =>
+        searchQuery ? journal.filter(e => e.content.toLowerCase().includes(searchQuery.toLowerCase())) : journal
+        , [journal, searchQuery]);
+
     return (
-        <div className="h-full flex flex-col max-w-4xl mx-auto w-full relative">
-            {/* Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
-
-            {/* Input Area (Top) */}
-            <div className="flex-1 min-h-0 flex flex-col p-6 lg:p-12 space-y-6 relative z-10">
-                <header className="flex items-center justify-between">
-                    <h1 className="text-xl font-mono text-white font-bold tracking-tight">Journal</h1>
-                    <div className="text-xs text-zinc-500 font-mono">
-                        {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
-                </header>
-
-                <div className="flex-1 border border-white/10 rounded-2xl bg-white/5 p-6 overflow-hidden flex flex-col backdrop-blur-sm shadow-inner transition-colors focus-within:bg-white/10 focus-within:border-white/20 hover:border-white/10">
-                    <EditorRich
-                        value={content}
-                        onChange={setContent}
-                        editable={true}
-                        className="flex-1 overflow-auto bg-transparent outline-none"
-                    />
-                </div>
-
-                <div className="flex justify-end">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!content.trim()}
-                        className="px-6 py-2 bg-zinc-100 text-black text-sm font-bold rounded-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-white/10"
-                    >
-                        Capture Entry
-                    </button>
-                </div>
+        <div className='h-full w-full relative bg-black overflow-hidden flex flex-col items-center font-sans text-zinc-200'>
+            <div className='absolute bottom-[-1rem] left-[-0.5rem] text-[12rem] md:text-[16rem] leading-none font-bold text-white opacity-[0.34] select-none pointer-events-none z-0 tracking-tighter'>
+                Journal
             </div>
 
-            {/* History (Bottom) */}
-            <div className="h-[35%] border-t border-white/5 overflow-y-auto px-6 lg:px-12 py-8 bg-black/40 backdrop-blur-md relative z-10 custom-scrollbar">
-                <div className="text-zinc-600 text-xs uppercase tracking-widest font-mono mb-8 font-bold">
-                    Signal Stream // History
-                </div>
+            <div className='w-full max-w-4xl h-full p-4 md:p-8 flex flex-col min-h-0 z-10 relative'>
+                <GlassSurface className='shadow-2xl relative flex flex-col h-full overflow-hidden'>
+                    <div className='flex-none px-6 py-5 border-b border-white/5 flex items-center justify-between bg-black/10 backdrop-blur-sm z-20'>
+                        <div>
+                            <div className='text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1'>Daily Log</div>
+                            <div className='text-3xl font-bold text-white tracking-tight'>{new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}</div>
+                        </div>
+                        <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors'>
+                            <ProjectIcon name='settings' size={24} />
+                        </button>
+                    </div>
 
-                <div className="space-y-12">
-                    {journal.length === 0 && (
-                        <div className="text-zinc-700 italic text-sm">No entries recorded.</div>
-                    )}
-                    {journal.map(entry => (
-                        <div key={entry.id} className="group relative border-l border-white/10 pl-6 py-1 hover:border-white/30 transition-colors">
-                            <div className="absolute -left-[3px] top-2 w-1.5 h-1.5 rounded-full bg-zinc-800 group-hover:bg-white transition-colors shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-                            <div className="text-zinc-500 text-xs font-mono mb-3 group-hover:text-zinc-400 transition-colors">
-                                {new Date(entry.createdAt).toLocaleString(undefined, {
-                                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                })}
-                            </div>
-                            <div className="opacity-80 group-hover:opacity-100 transition-opacity text-zinc-300">
-                                <EditorRich value={entry.content} editable={false} className="min-h-0" />
+                    <div className='flex-1 flex flex-col h-full min-h-0 px-6 pt-6 pb-0 md:px-12 gap-8'>
+                        {/* Editor Area (Grow with content, Max 50vh) */}
+                        <div className='flex-none flex flex-col max-h-[50vh] transition-all duration-300 ease-out'>
+                            <div className='p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors focus-within:bg-white/10 flex flex-col overflow-hidden bg-black/20 backdrop-blur-md'>
+                                <div className='flex-1 overflow-y-auto custom-scrollbar min-h-[120px]'>
+                                    <EditorRich value={content} onChange={setContent} editable={true} placeholder='Start writing...' className='outline-none min-h-full' />
+                                </div>
+                                <div className='flex-none flex justify-end mt-2 pt-2 border-t border-white/5 bg-transparent'>
+                                    <button onClick={handleSubmit} disabled={!content.trim()} className='text-xs font-bold uppercase tracking-wider px-6 py-2 bg-white rounded-lg text-black hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:shadow-none'>Capture</button>
+                                </div>
                             </div>
                         </div>
-                    ))}
+
+                        {/* Feed (Fills remaining space) */}
+                        <div className='flex-1 relative min-h-0 w-full'>
+                            <div className='absolute inset-0 overflow-y-auto custom-scrollbar space-y-6 pb-8'>
+                                <div className='text-xs font-bold text-zinc-600 uppercase tracking-widest sticky top-0 bg-transparent backdrop-blur-sm z-10 py-2 mb-4'>History</div>
+                                {filtered.map(entry => (
+                                    <div key={entry.id} className='group relative pl-6 border-l border-white/10 hover:border-white/30 transition-colors'>
+                                        <div className='absolute -left-[3px] top-2 w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-blue-500 transition-colors shadow-[0_0_8px_rgba(59,130,246,0.5)]' />
+                                        <div className='text-xs text-zinc-500 font-mono mb-2 flex justify-between'>
+                                            <span>{new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className='opacity-0 group-hover:opacity-100 transition-opacity'>{new Date(entry.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className='text-zinc-300 leading-relaxed opacity-90'>
+                                            <EditorRich value={entry.content} editable={false} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </GlassSurface>
+            </div>
+
+            {/* Drawer */}
+            <div className={`absolute top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-out ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                <div className='h-full w-full bg-black/90 backdrop-blur-2xl border-l border-white/10 flex flex-col shadow-2xl'>
+                    <div className='flex items-center justify-between p-4 border-b border-white/5'>
+                        <span className='text-xs font-bold uppercase tracking-wider text-zinc-400'>Settings</span>
+                        <button onClick={() => setIsDrawerOpen(false)} className='text-zinc-500 hover:text-white'><ProjectIcon name='check' size={18} /></button>
+                    </div>
+                    <div className='p-4 space-y-4'>
+                        <GlassInput value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder='Search history...' className='w-full text-xs' />
+                    </div>
                 </div>
             </div>
+
+            {/* Backdrop for Drawer */}
+            {isDrawerOpen && <div onClick={() => setIsDrawerOpen(false)} className='absolute inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity' />}
         </div>
     );
 }
