@@ -220,7 +220,13 @@ function AppContent() {
           )}
 
           {currentPage === "graph" && (
-            <GraphPage notes={notes} projects={projects} onOpenNote={selectItem} />
+            <GraphPage
+              notes={notes}
+              projects={projects}
+              setNotes={setNotes}
+              setProjects={setProjects}
+              onOpenNote={selectItem}
+            />
           )}
         </main>
       </div>
