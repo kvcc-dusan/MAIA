@@ -212,3 +212,133 @@ function findCentralNodeTitle(component, graph) {
     });
     return bestTitle;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                Missing Links                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Identifies pairs of notes that should be linked but aren't.
+ * Uses Jaccard Similarity of tags and Title Keyword overlap.
+ *
+ * @param {Array} notes
+ * @returns {Array} Top 5 { noteA, noteB, score, reason }
+ */
+export function findMissingLinks(notes) {
+    const pairs = [];
+    // eslint-disable-next-line no-unused-vars
+    const noteMap = new Map(notes.map(n => [n.id, n]));
+    const linksMap = new Map(); // id -> Set of linked note titles (normalized)
+
+    // Precompute links for fast lookup
+    notes.forEach(n => {
+        const links = new Set(extractLinks(n.content));
+        linksMap.set(n.id, links);
+    });
+
+    for (let i = 0; i < notes.length; i++) {
+        for (let j = i + 1; j < notes.length; j++) {
+            const a = notes[i];
+            const b = notes[j];
+
+            // Skip if already linked (check both directions)
+            const aTitle = (a.title || "").toLowerCase();
+            const bTitle = (b.title || "").toLowerCase();
+            if (linksMap.get(a.id).has(bTitle) || linksMap.get(b.id).has(aTitle)) {
+                continue;
+            }
+
+            let score = 0;
+            const reasons = [];
+
+            // 1. Tag Overlap (Jaccard)
+            const tagsA = new Set((a.tags || []).map(t => t.toLowerCase()));
+            const tagsB = new Set((b.tags || []).map(t => t.toLowerCase()));
+            const intersection = new Set([...tagsA].filter(x => tagsB.has(x)));
+            const union = new Set([...tagsA, ...tagsB]);
+
+            if (union.size > 0) {
+                const jaccard = intersection.size / union.size;
+                if (jaccard > 0) {
+                    score += jaccard * 2; // Weight tags heavily
+                    reasons.push(`Shared tags: ${Array.from(intersection).map(t => '#' + t).join(', ')}`);
+                }
+            }
+
+            // 2. Title Keyword Overlap (Simple)
+            // Stopwords could be improved
+            const getKeywords = (str) => str.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            const kwA = new Set(getKeywords(a.title || ""));
+            const kwB = new Set(getKeywords(b.title || ""));
+            const kwInt = new Set([...kwA].filter(x => kwB.has(x)));
+
+            if (kwInt.size > 0) {
+                score += 1.5;
+                reasons.push(`Similar topic: "${Array.from(kwInt).join(', ')}"`);
+            }
+
+            if (score > 0.5) {
+                pairs.push({
+                    noteA: a,
+                    noteB: b,
+                    score,
+                    reason: reasons.join(". ")
+                });
+            }
+        }
+    }
+
+    return pairs.sort((a, b) => b.score - a.score).slice(0, 5);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Theme Extraction                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Generates Themes based on clusters.
+ *
+ * @param {Array} notes
+ * @returns {Array} Top 3 { title, summary, quotes, notes }
+ */
+export function analyzeThemes(notes) {
+    const clusters = findClusters(notes);
+
+    return clusters.slice(0, 3).map(cluster => {
+        // Gather Top Tags in Cluster
+        const tagCounts = {};
+        cluster.notes.forEach(n => {
+            (n.tags || []).forEach(t => {
+                const tag = t.toLowerCase();
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+        });
+        const topTags = Object.entries(tagCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([t]) => `#${t}`);
+
+        // Gather Quotes (Lines starting with >)
+        const quotes = [];
+        cluster.notes.forEach(n => {
+            const lines = (n.content || "").split('\n');
+            lines.forEach(line => {
+                if (line.trim().startsWith('>')) {
+                    // Clean up callout syntax if present (> [!info])
+                    let clean = line.replace(/^>\s*/, '').replace(/^\[!.*?\]\s*/, '');
+                    if (clean.length > 20) quotes.push(clean);
+                }
+            });
+        });
+
+        // Summary Construction
+        const summary = `A cluster of ${cluster.size} notes revolving around ${topTags.join(', ')} and related concepts.`;
+
+        return {
+            title: `Theme: ${cluster.name}`,
+            summary,
+            quotes: quotes.slice(0, 3), // Top 3 quotes
+            notes: cluster.notes
+        };
+    });
+}
