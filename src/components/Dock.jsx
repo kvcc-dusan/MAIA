@@ -60,13 +60,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                         active={currentPage === "journal"}
                         onClick={() => onNavigate("journal")}
                     />
-                    <DockItem
-                        id="review"
-                        label="Review"
-                        icon={<ProjectIcon name="check" size={20} />}
-                        active={currentPage === "review"}
-                        onClick={() => onNavigate("review")}
-                    />
+
 
                     {/* DIVIDER */}
                     <div className="w-[1px] h-8 bg-white/10 mx-2" />
