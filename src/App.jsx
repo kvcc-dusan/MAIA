@@ -7,6 +7,7 @@ import { DataProvider, useData } from "./context/DataContext.jsx";
 import Dock from "./components/Dock.jsx";
 import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
+import GlobalFilters from "./components/GlobalFilters.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage.jsx";
@@ -271,6 +272,7 @@ function AppContent() {
 export default function App() {
   return (
     <DataProvider>
+      <GlobalFilters />
       <AppContent />
     </DataProvider>
   );
