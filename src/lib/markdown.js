@@ -27,6 +27,10 @@ function preprocess(src) {
   return withSize;
 }
 
+/**
+ * Creates a specific Markdown-it instance with custom plugins and post-processing.
+ * @returns {{render: (src: string) => string}} An object with a render method.
+ */
 export function makeMarkdown() {
   const md = new MarkdownIt({ html: true, linkify: true, breaks: false })
     .use(footnote)

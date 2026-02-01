@@ -2,6 +2,11 @@
 // Robust parser for tags and Obsidian-style wikilinks.
 // Handles [[Title]], [[Title|alias]], [[Title#Section]], [[Title#Section|alias]].
 
+/**
+ * Parses content to extract tags and wikilinks.
+ * @param {string} content - The raw content string.
+ * @returns {{tags: string[], links: string[]}} Object containing extracted tags and links.
+ */
 export function parseContentMeta(content) {
   const src = (content || "").replace(/%%[\s\S]*?%%/g, ""); // strip Obsidian comments
 
