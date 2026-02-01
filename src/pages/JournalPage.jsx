@@ -25,13 +25,13 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
         , [journal, searchQuery]);
 
     return (
-        <div className='h-full w-full relative bg-black overflow-hidden flex flex-col items-center font-sans text-zinc-200'>
+        <div className='h-full w-full relative bg-black overflow-hidden flex flex-col font-sans text-zinc-200'>
             {/* Background Watermark */}
             <div className='absolute bottom-[-1rem] left-[-0.5rem] text-[12rem] md:text-[16rem] leading-none font-bold text-white opacity-[0.34] select-none pointer-events-none z-0 tracking-tighter'>
                 Journal
             </div>
 
-            <div className='w-full max-w-4xl h-full p-4 md:p-8 flex flex-col min-h-0 z-10 relative'>
+            <div className='w-full h-full p-4 md:p-8 lg:px-16 flex flex-col min-h-0 z-10 relative'>
                 <GlassSurface className='shadow-2xl relative flex flex-col h-full overflow-hidden'>
 
                     {/* Header & Tabs */}
@@ -46,14 +46,14 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                             <div className="flex items-center gap-2 p-1 bg-white/5 rounded-lg border border-white/5 ml-4">
                                 <button
                                     onClick={() => setActiveTab('entries')}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'entries' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                                    className={`px-4 py-3 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'entries' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
                                         }`}
                                 >
                                     Entries
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('decisions')}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'decisions' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                                    className={`px-4 py-3 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'decisions' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
                                         }`}
                                 >
                                     Decisions
@@ -62,7 +62,7 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                         </div>
 
                         {activeTab === 'entries' && (
-                            <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors'>
+                            <button onClick={() => setIsDrawerOpen(true)} className='p-3 text-zinc-500 hover:text-white transition-colors'>
                                 <ProjectIcon name='settings' size={24} />
                             </button>
                         )}
@@ -81,14 +81,14 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                                             <EditorRich value={content} onChange={setContent} editable={true} placeholder='Start writing...' className='outline-none min-h-full' />
                                         </div>
                                         <div className='flex-none flex justify-end mt-2 pt-2 border-t border-white/5 bg-transparent'>
-                                            <button onClick={handleSubmit} disabled={!content.trim()} className='text-xs font-bold uppercase tracking-wider px-6 py-2 bg-white rounded-lg text-black hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:shadow-none'>Capture</button>
+                                            <button onClick={handleSubmit} disabled={!content.trim()} className='text-xs font-bold uppercase tracking-wider px-6 py-3 bg-white rounded-lg text-black hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:shadow-none'>Capture</button>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Feed */}
                                 <div className='flex-1 relative min-h-0 w-full'>
-                                    <div className='absolute inset-0 overflow-y-auto custom-scrollbar space-y-6 pb-8'>
+                                    <div className='absolute inset-0 overflow-y-auto custom-scrollbar space-y-6 pb-32'>
                                         <div className='text-xs font-bold text-zinc-600 uppercase tracking-widest sticky top-0 bg-transparent backdrop-blur-sm z-10 py-2 mb-4'>History</div>
                                         {filtered.map(entry => (
                                             <div key={entry.id} className='group relative pl-6 border-l border-white/10 hover:border-white/30 transition-colors'>
@@ -123,7 +123,7 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                 <div className='h-full w-full bg-black/90 backdrop-blur-2xl border-l border-white/10 flex flex-col shadow-2xl'>
                     <div className='flex items-center justify-between p-4 border-b border-white/5'>
                         <span className='text-xs font-bold uppercase tracking-wider text-zinc-400'>Settings</span>
-                        <button onClick={() => setIsDrawerOpen(false)} className='text-zinc-500 hover:text-white'><ProjectIcon name='check' size={18} /></button>
+                        <button onClick={() => setIsDrawerOpen(false)} className='p-4 text-zinc-500 hover:text-white'><ProjectIcon name='check' size={18} /></button>
                     </div>
                     <div className='p-4 space-y-4'>
                         <GlassInput value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder='Search history...' className='w-full text-xs' />

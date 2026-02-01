@@ -107,7 +107,7 @@ export default function Projects({
       </div>
 
       {/* Main Grid Container */}
-      <div className="relative z-10 w-full h-full p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pointer-events-none">
+      <div className="relative z-10 w-full h-full p-6 md:p-8 lg:px-16 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pointer-events-none">
 
         {/* LEFT COLUMN: Project List (Glass Container) */}
         <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-start pointer-events-auto">
