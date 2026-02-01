@@ -6,6 +6,7 @@ import { DataProvider, useData } from "./context/DataContext.jsx";
 // Components
 import Dock from "./components/Dock.jsx";
 import ChronosModal from "./components/ChronosModal.jsx";
+import LedgerModal from "./components/LedgerModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 
 // Pages
@@ -57,6 +58,7 @@ function AppContent() {
 
   // Chronos (Pulse) is now a global modal tool
   const [chronosOpen, setChronosOpen] = useState(false);
+  const [ledgerOpen, setLedgerOpen] = useState(false);
 
   // Project (Opus) Creation Modal - Lifted to App level for Action Center access
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -152,6 +154,7 @@ function AppContent() {
         onOpenTool={(tool) => {
           if (tool === "chronos") setChronosOpen(true);
           if (tool === "search") setCmdOpen(true);
+          if (tool === "ledger") setLedgerOpen(true);
         }}
       />
 
@@ -251,6 +254,14 @@ function AppContent() {
           reminders={reminders}
           setReminders={setReminders}
           pushToast={pushToast}
+        />
+      )}
+
+      {ledgerOpen && (
+        <LedgerModal
+          onClose={() => setLedgerOpen(false)}
+          ledger={ledger}
+          setLedger={setLedger}
         />
       )}
 
