@@ -31,7 +31,7 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                 Journal
             </div>
 
-            <div className='w-full max-w-4xl h-full p-4 md:p-8 flex flex-col min-h-0 z-10 relative'>
+            <div className='w-full max-w-4xl h-full p-4 md:p-8 lg:px-16 flex flex-col min-h-0 z-10 relative'>
                 <GlassSurface className='shadow-2xl relative flex flex-col h-full overflow-hidden'>
 
                     {/* Header & Tabs */}

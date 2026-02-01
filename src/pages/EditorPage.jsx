@@ -50,7 +50,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
       <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/20 to-black pointer-events-none" />
 
       {/* Main Glass Sheet */}
-      <div className="w-full max-w-4xl h-full p-4 md:p-8 flex flex-col min-h-0 z-10">
+      <div className="w-full max-w-4xl h-full p-4 md:p-8 lg:px-16 flex flex-col min-h-0 z-10">
         <GlassSurface className="shadow-2xl relative overflow-hidden">
           <div className="flex flex-col w-full h-full relative overflow-hidden">
 
