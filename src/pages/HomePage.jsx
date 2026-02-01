@@ -6,6 +6,7 @@ import land110 from "world-atlas/land-110m.json?json";
 import Dither from "../components/Dither.jsx";
 import GlassSurface from "../components/GlassSurface.jsx";
 import ColorBends from "../components/ColorBends.jsx";
+import { QUOTES } from "../data/quotes.js";
 
 
 /* -------------------------------------------
@@ -52,71 +53,6 @@ const BG_PRESETS = {
 
 // pick your preset:
 const BG = BG_PRESETS.charcoal;
-
-const QUOTES = [
-  "Small, consistent steps beat heroic sprints.",
-  "Clarity comes from writing. Write to see.",
-  "Protect your focus; it protects your future.",
-  "Elegance lives where power meets restraint.",
-  "Move one important thing forward every day.",
-  "Less but better.",
-  "Slow is smooth. Smooth is fast.",
-  "You do not rise to the level of your goals; you fall to the level of your systems.",
-  "Make it work. Make it right. Make it fast.",
-  "Perfect is the enemy of good.",
-  "Simplicity is the ultimate sophistication.",
-  "Everything should be made as simple as possible, but not simpler.",
-  "A problem well stated is a problem half solved.",
-  "Discipline equals freedom.",
-  "What gets measured gets managed.",
-  "The obstacle is the way.",
-  "Hurry slowly.",
-  "Measure twice, cut once.",
-  "Fortune favors the prepared mind.",
-  "Genius is 1% inspiration and 99% perspiration.",
-  "The best way out is always through.",
-  "The main thing is to keep the main thing the main thing.",
-  "If you can’t explain it simply, you don’t understand it well enough.",
-  "The first principle is that you must not fool yourself.",
-  "All models are wrong, but some are useful.",
-  "The map is not the territory.",
-  "Nature is pleased with simplicity.",
-  "We are what we repeatedly do. Excellence, then, is a habit.",
-  "He who has a why to live can bear almost any how.",
-  "Between stimulus and response there is a space.",
-  "What we know is a drop; what we don’t know is an ocean.",
-  "The beginning is the most important part of the work.",
-  "The man who moves a mountain begins by carrying away small stones.",
-  "Courage is grace under pressure.",
-  "Beware the barrenness of a busy life.",
-  "Concentrate all your thoughts upon the work at hand.",
-  "Do first what matters most.",
-  "Order and simplification are the first steps toward mastery.",
-  "In the middle of difficulty lies opportunity.",
-  "Action is the antidote to anxiety.",
-  "Saying no is a strategy, not a mood.",
-  "What you practice grows stronger.",
-  "Work deeply. Guard the shallow.",
-  "Write it down or it didn’t happen.",
-  "Coffee. Calm. Code.",
-  "Progress loves quiet.",
-  "Start where you are. Use what you have. Do what you can.",
-  "The way to get started is to quit talking and begin doing.",
-  "Focus is a verb.",
-  "Sharpen the axe; then swing.",
-  "Direction beats speed.",
-  "Tiny changes, remarkable results.",
-  "Energy goes where attention flows.",
-  "Amateurs talk strategy; professionals build habits.",
-  "Design is how it works.",
-  "Subtract until it sings.",
-  "Quality is not an act; it is a habit.",
-  "Make time; don’t find it.",
-  "Ship it, learn, improve.",
-  "Protect the morning; it protects the day.",
-  "Trust the process; test the result.",
-  "Consistency compounds.",
-];
 
 
 function quoteForToday() {
