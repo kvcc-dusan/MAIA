@@ -4,8 +4,15 @@ import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
 import GlassSurface from "./GlassSurface";
 
+const TECH_HUBS = [
+    { name: "San Francisco", lat: 37.7749, lon: -122.4194, tz: "America/Los_Angeles" },
+    { name: "New York", lat: 40.7128, lon: -74.0060, tz: "America/New_York" },
+    { name: "London", lat: 51.5074, lon: -0.1278, tz: "Europe/London" },
+];
+
 export default function WorldMapWidget({ weather }) {
     const { coords, temp, place } = weather || {};
+    const [hoveredHub, setHoveredHub] = useState(null);
 
     // Real-time clock
     const [now, setNow] = useState(new Date());
@@ -28,7 +35,7 @@ export default function WorldMapWidget({ weather }) {
         return feature(land110, land110.objects.land);
     }, []);
 
-    const { pathD, graticuleD, dotPos } = useMemo(() => {
+    const { pathD, graticuleD, dotPos, hubPositions } = useMemo(() => {
         // Adjusted dimensions for the middle section
         const width = 300;
         const height = 140; // Slightly shorter to fit in middle section gracefully
@@ -50,8 +57,35 @@ export default function WorldMapWidget({ weather }) {
             dotPos = { x, y };
         }
 
-        return { pathD, graticuleD, dotPos };
+        const hubPositions = TECH_HUBS.map(hub => {
+            const [x, y] = projection([hub.lon, hub.lat]);
+            return { ...hub, x, y };
+        });
+
+        return { pathD, graticuleD, dotPos, hubPositions };
     }, [mapData, coords]);
+
+    // Derived display values
+    let displayTemp = temp ? `${Math.round(temp)}°` : "--";
+    let displayPlace = place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating...";
+
+    // Determine subtitle (Timezone or Status)
+    let displaySub = "Scanning...";
+    if (hoveredHub) {
+        displayTemp = "--";
+        displayPlace = hoveredHub.name;
+        const hubTime = now.toLocaleTimeString("en-US", {
+            timeZone: hoveredHub.tz,
+            hour12: true,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        displaySub = `${hoveredHub.tz.split('/')[1].toUpperCase()} • ${hubTime}`;
+    } else if (place) {
+         // Default to user's local timezone if available
+         const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone.toUpperCase();
+         displaySub = userTz;
+    }
 
 
     return (
@@ -62,17 +96,17 @@ export default function WorldMapWidget({ weather }) {
                 {/* Left: Temp */}
                 <div className="flex flex-col">
                     <span className="text-4xl font-light text-white tracking-tighter">
-                        {temp ? `${Math.round(temp)}°` : "--"}
+                        {displayTemp}
                     </span>
                 </div>
 
                 {/* Right: Location & TZ */}
                 <div className="flex flex-col items-end text-right">
-                    <div className="text-sm text-zinc-300 font-medium tracking-wide">
-                        {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
+                    <div data-testid="widget-location" className="text-sm text-zinc-300 font-medium tracking-wide">
+                        {displayPlace}
                     </div>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono mt-1">
-                        {place ? "EUROPE/LJUBLJANA" : "Scanning..."} {/* Hardcoded based on user req or dynamic logic */}
+                    <div data-testid="widget-subtitle" className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono mt-1">
+                        {displaySub}
                     </div>
                 </div>
             </div>
@@ -87,6 +121,21 @@ export default function WorldMapWidget({ weather }) {
 
                         {/* Land - Pure Gray */}
                         <path d={pathD} fill="#3f3f46" />
+
+                        {/* Tech Hubs */}
+                        {hubPositions.map((hub) => (
+                             <g
+                                key={hub.name}
+                                data-testid={`hub-${hub.name}`}
+                                onMouseEnter={() => setHoveredHub(hub)}
+                                onMouseLeave={() => setHoveredHub(null)}
+                                className="cursor-pointer"
+                             >
+                                <circle cx={hub.x} cy={hub.y} r="3" fill={hoveredHub === hub ? "#60a5fa" : "#94a3b8"} fillOpacity={hoveredHub === hub ? 1 : 0.5} />
+                                {/* Invisible larger target for easier hovering */}
+                                <circle cx={hub.x} cy={hub.y} r="8" fill="transparent" />
+                             </g>
+                        ))}
 
                         {/* Location Dot - Emerald Green */}
                         {dotPos && (
