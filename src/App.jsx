@@ -9,16 +9,19 @@ import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 
 // Pages
+// Pages
 import HomePage from "./pages/HomePage.jsx";
 import NotesPage from "./pages/NotesPage.jsx";
 // import PulsePage from "./pages/PulsePage.jsx"; // Refactored to ChronosModal
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
-import GraphPage from "./pages/GraphPage.jsx";
-import CanvasPage from "./pages/CanvasPage.jsx";
 import JournalPage from "./pages/JournalPage.jsx";
 import LedgerPage from "./pages/LedgerPage.jsx";
 import ReviewPage from "./pages/ReviewPage.jsx";
+
+// Lazy loaded heavy pages
+const GraphPage = React.lazy(() => import("./pages/GraphPage.jsx"));
+const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
 
 function AppContent() {
   // Pages
@@ -155,79 +158,81 @@ function AppContent() {
         <main className="h-full overflow-hidden min-h-0 relative">
           {/* Background noise/gradient could go here if global */}
 
-          {currentPage === "journal" && (
-            <JournalPage journal={journal} setJournal={setJournal} />
-          )}
+          <React.Suspense fallback={<div className="flex h-full items-center justify-center text-zinc-500 text-sm animate-pulse">Loading...</div>}>
+            {currentPage === "journal" && (
+              <JournalPage journal={journal} setJournal={setJournal} />
+            )}
 
-          {currentPage === "ledger" && (
-            <LedgerPage ledger={ledger} setLedger={setLedger} />
-          )}
+            {currentPage === "ledger" && (
+              <LedgerPage ledger={ledger} setLedger={setLedger} />
+            )}
 
-          {currentPage === "review" && (
-            <ReviewPage
-              notes={notes}
-              projects={projects}
-              journal={journal}
-              setJournal={setJournal}
-              pushToast={pushToast}
-            />
-          )}
+            {currentPage === "review" && (
+              <ReviewPage
+                notes={notes}
+                projects={projects}
+                journal={journal}
+                setJournal={setJournal}
+                pushToast={pushToast}
+              />
+            )}
 
-          {currentPage === "home" && (
-            <HomePage
-              tasks={tasks}
-              reminders={reminders}
-              onOpenPulse={() => setChronosOpen(true)}
-            />
-          )}
+            {currentPage === "home" && (
+              <HomePage
+                tasks={tasks}
+                reminders={reminders}
+                onOpenPulse={() => setChronosOpen(true)}
+              />
+            )}
 
-          {currentPage === "overview" && (
-            <NotesPage
-              notes={filteredNotes}
-              selectNote={selectItem}
-              onDelete={deleteNote}
-              onRename={renameNote}
-              onMove={moveNoteToProject}
-              projects={projects}
-              onCreateNote={handleCreateNote}
-              onBack={() => setCurrentPage("home")}
-            />
-          )}
+            {currentPage === "overview" && (
+              <NotesPage
+                notes={filteredNotes}
+                selectNote={selectItem}
+                onDelete={deleteNote}
+                onRename={renameNote}
+                onMove={moveNoteToProject}
+                projects={projects}
+                onCreateNote={handleCreateNote}
+                onBack={() => setCurrentPage("home")}
+              />
+            )}
 
-          {currentPage === "canvas" && (
-            <CanvasPage goHome={() => setCurrentPage("home")} />
-          )}
+            {currentPage === "canvas" && (
+              <CanvasPage goHome={() => setCurrentPage("home")} />
+            )}
 
-          {currentPage === "projects" && (
-            <ProjectsPage
-              notes={notes}
-              projects={projects}
-              setProjects={setProjects}
-              setNotes={setNotes}
-              selectNote={selectItem}
-              targetProjectId={targetProjectId}
-              pushToast={pushToast}
-            />
-          )}
+            {currentPage === "projects" && (
+              <ProjectsPage
+                notes={notes}
+                projects={projects}
+                setProjects={setProjects}
+                setNotes={setNotes}
+                selectNote={selectItem}
+                targetProjectId={targetProjectId}
+                pushToast={pushToast}
+              />
+            )}
 
-          {currentPage === "editor" && (
-            <EditorPage
-              note={currentNote}
-              updateNote={updateNote}
-              onOpenInternalLink={openInternalByTitle}
-              projects={projects}
-            />
-          )}
+            {currentPage === "editor" && (
+              <EditorPage
+                note={currentNote}
+                updateNote={updateNote}
+                onOpenInternalLink={openInternalByTitle}
+                projects={projects}
+              />
+            )}
 
-          {currentPage === "graph" && (
-            <GraphPage
-              notes={notes}
-              projects={projects}
-              setNotes={setNotes}
-              setProjects={setProjects}
-              onOpenNote={selectItem}
-            />
-          )}
+            {currentPage === "graph" && (
+              <GraphPage
+                notes={notes}
+                projects={projects}
+                setNotes={setNotes}
+                setProjects={setProjects}
+                onOpenNote={selectItem}
+              />
+            )}
+          </React.Suspense>
         </main>
       </div>
 
