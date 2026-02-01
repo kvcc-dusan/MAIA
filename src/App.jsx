@@ -16,7 +16,6 @@ import NotesPage from "./pages/NotesPage.jsx";
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
 import JournalPage from "./pages/JournalPage.jsx";
-import LedgerPage from "./pages/LedgerPage.jsx";
 import ReviewPage from "./pages/ReviewPage.jsx";
 
 // Lazy loaded heavy pages
@@ -58,6 +57,9 @@ function AppContent() {
 
   // Chronos (Pulse) is now a global modal tool
   const [chronosOpen, setChronosOpen] = useState(false);
+
+  // Project (Opus) Creation Modal - Lifted to App level for Action Center access
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
 
   /* -----------------------------------------
      Derived State
@@ -160,11 +162,12 @@ function AppContent() {
 
           <React.Suspense fallback={<div className="flex h-full items-center justify-center text-zinc-500 text-sm animate-pulse">Loading...</div>}>
             {currentPage === "journal" && (
-              <JournalPage journal={journal} setJournal={setJournal} />
-            )}
-
-            {currentPage === "ledger" && (
-              <LedgerPage ledger={ledger} setLedger={setLedger} />
+              <JournalPage
+                journal={journal}
+                setJournal={setJournal}
+                ledger={ledger}
+                setLedger={setLedger}
+              />
             )}
 
             {currentPage === "review" && (
@@ -211,6 +214,9 @@ function AppContent() {
                 selectNote={selectItem}
                 targetProjectId={targetProjectId}
                 pushToast={pushToast}
+                // Lifted Project Creation State
+                isCreateModalOpen={projectModalOpen}
+                setCreateModalOpen={setProjectModalOpen}
               />
             )}
 
@@ -265,9 +271,14 @@ function AppContent() {
         notes={notes}
         onOpenNote={(id) => selectItem(id)}
         onCreateNote={handleCreateNote}
+        onCreateProject={() => {
+          setCurrentPage("projects");
+          setTimeout(() => setProjectModalOpen(true), 10); // Slight delay to ensure mount
+        }}
         go={go}
-        quickAddTask={quickAddTask}
-        quickAddReminder={quickAddReminder}
+        // quickAddTask={quickAddTask} // Removed prompt-based
+        // quickAddReminder={quickAddReminder} // Removed prompt-based
+        onOpenCronos={() => setChronosOpen(true)}
       />
     </div>
   );

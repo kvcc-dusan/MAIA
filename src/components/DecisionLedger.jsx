@@ -20,7 +20,7 @@ function NewDecisionModal({ onClose, onSubmit }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl">
                 <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -102,7 +102,7 @@ function ReviewModal({ decision, onClose, onReview }) {
     const [status, setStatus] = useState("success"); // success, failure, mixed
 
     return (
-        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl">
                 <h2 className="text-lg font-semibold mb-6">Review Decision Outcome</h2>
                 <div className="mb-6 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
@@ -202,8 +202,8 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                 )}
                 {d.status === "reviewed" && (
                     <div className={`text-xs px-2 py-0.5 rounded border capitalize ${d.outcomeStatus === 'success' ? 'border-green-900 text-green-500' :
-                            d.outcomeStatus === 'failure' ? 'border-red-900 text-red-500' :
-                                'border-yellow-900 text-yellow-500'
+                        d.outcomeStatus === 'failure' ? 'border-red-900 text-red-500' :
+                            'border-yellow-900 text-yellow-500'
                         }`}>
                         {d.outcomeStatus}
                     </div>
@@ -233,26 +233,26 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
     );
 
     return (
-        <div className="h-full flex flex-col max-w-5xl mx-auto w-full px-6 lg:px-12 py-8">
-            <header className="flex justify-between items-center mb-8">
+        <div className="h-full flex flex-col w-full">
+            <header className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-xl font-mono text-zinc-100">Decision Ledger</h1>
+                    <h2 className="text-lg font-mono text-zinc-100">Decision Ledger</h2>
                     <p className="text-zinc-500 text-sm mt-1">Track strategic choices and calibrate intuition.</p>
                 </div>
                 <button
                     onClick={() => setIsCreating(true)}
-                    className="px-4 py-2 bg-zinc-100 text-black text-sm font-medium rounded-md hover:bg-zinc-300 transition-colors"
+                    className="px-3 py-1.5 bg-zinc-800 text-zinc-200 text-xs uppercase tracking-wider font-bold rounded hover:bg-zinc-700 transition-colors"
                 >
                     + Log Decision
                 </button>
             </header>
 
-            <div className="flex-1 overflow-y-auto space-y-10 min-h-0 pb-12">
+            <div className="flex-1 overflow-y-auto space-y-8 min-h-0 pb-12 custom-scrollbar pr-2">
                 {/* Active Section */}
                 <section>
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                        <h3 className="text-sm uppercase tracking-widest text-zinc-400 font-mono">Open Loops ({openDecisions.length})</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Open Loops ({openDecisions.length})</h3>
                     </div>
                     <div className="grid gap-4">
                         {openDecisions.length === 0 && <div className="text-zinc-700 italic text-sm">No open decisions.</div>}
@@ -263,9 +263,9 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                 {/* Reviewed Section */}
                 {reviewedDecisions.length > 0 && (
                     <section>
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-2 h-2 rounded-full bg-zinc-700" />
-                            <h3 className="text-sm uppercase tracking-widest text-zinc-400 font-mono">Closed & Reviewed ({reviewedDecisions.length})</h3>
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Closed & Reviewed ({reviewedDecisions.length})</h3>
                         </div>
                         <div className="grid gap-4 opacity-75">
                             {reviewedDecisions.map(d => <DecisionCard key={d.id} d={d} />)}

@@ -7,9 +7,9 @@ export default function CommandPalette({
   notes = [],
   onOpenNote,        // (id) => void
   onCreateNote,      // () => void
-  go,                // (pageId) => void  e.g. "overview" | "projects" | "canvas" | "graph" | "pulse"
-  quickAddTask,      // (title) => void
-  quickAddReminder,  // (title) => void
+  onCreateProject,   // () => void
+  go,                // (pageId) => void
+  onOpenCronos,      // () => void
 }) {
   const [q, setQ] = useState("");
   const [i, setI] = useState(0);
@@ -39,14 +39,16 @@ export default function CommandPalette({
   const score = (title) => text(title).includes(text(q)) ? (q ? 1 : 0.5) : 0;
 
   const actions = [
-    { label: "New note", run: () => { onClose(); onCreateNote?.(); } },
-    { label: "New task…", run: () => { onClose(); const t = prompt("Task title?"); if (t) quickAddTask?.(t); } },
-    { label: "New reminder…", run: () => { onClose(); const t = prompt("Reminder title?"); if (t) quickAddReminder?.(t); } },
-    { label: "Go: Notes", run: () => { onClose(); go?.("overview"); } },
-    { label: "Go: Projects", run: () => { onClose(); go?.("projects"); } },
-    { label: "Go: Canvas", run: () => { onClose(); go?.("canvas"); } },
-    { label: "Go: Graph", run: () => { onClose(); go?.("graph"); } },
-    { label: "Go: Pulse", run: () => { onClose(); go?.("pulse"); } },
+    { label: "New Project", run: () => { onClose(); onCreateProject?.(); } }, // Triggers In-App Modal
+    { label: "New Note", run: () => { onClose(); onCreateNote?.(); } },
+    { label: "Chronos", run: () => { onClose(); onOpenCronos?.(); } },
+
+    { label: "Go to Opus", run: () => { onClose(); go?.("projects"); } },
+    { label: "Go to Connexa", run: () => { onClose(); go?.("graph"); } },
+    { label: "Go to Codex", run: () => { onClose(); go?.("overview"); } },
+    { label: "Go to Journal", run: () => { onClose(); go?.("journal"); } },
+    // { label: "Go to Ledger", run: () => { onClose(); go?.("ledger"); } }, // Merged into Journal
+    { label: "Go to Home", run: () => { onClose(); go?.("home"); } },
   ].map(a => ({ ...a, _type: "action" }));
 
   const noteItems = notes

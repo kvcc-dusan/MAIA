@@ -38,6 +38,8 @@ export default function Projects({
   setProjects,
   selectNote,
   targetProjectId,
+  isCreateModalOpen,
+  setCreateModalOpen,
 }) {
   const [activeId, setActiveId] = useState(null);
 
@@ -47,7 +49,13 @@ export default function Projects({
       setActiveId(targetProjectId);
     }
   }, [targetProjectId]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Use lifted state if provided, otherwise local (backwards compat, though App controls it now)
+  // But wait, we simplified. We expect props.
+  const [localModalOpen, setLocalModalOpen] = useState(false);
+  const isModalOpen = isCreateModalOpen !== undefined ? isCreateModalOpen : localModalOpen;
+  const setIsModalOpen = setCreateModalOpen || setLocalModalOpen;
+
   const [showIconPicker, setShowIconPicker] = useState(false);
 
   // Normalize projects

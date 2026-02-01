@@ -462,19 +462,24 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
       {/*
         MAIN CONTENT GRID
-        Split into two main zones:
-        - LEFT/CENTER: Minimal Greeting
-        - RIGHT: Glass Stack
+        - Removed max-w-7xl mx-auto to strict positioning from edge
+        - lg:pl-[128px] = Explicit 128px from left edge on desktop
       */}
-      <div className="w-full h-full max-w-7xl mx-auto p-8 md:p-12 lg:p-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="w-full h-full p-8 lg:pr-16 lg:pl-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
         {/* LEFT ZONE: Greeting */}
         <div className="flex flex-col justify-center items-start space-y-6">
           <div className="space-y-4 text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold">
-              <span className="text-zinc-500">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold whitespace-nowrap"
+              style={{ textShadow: "0 2px 4px rgba(0,0,0,0.8), 0 8px 32px rgba(0,0,0,0.5)" }}
+            >
+              <span className="text-zinc-400">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
-            <p className="text-base md:text-lg text-white font-normal max-w-md leading-relaxed">
+            <p
+              className="text-base md:text-lg text-white font-normal max-w-xl leading-relaxed"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.5)" }}
+            >
               "{quote}"
             </p>
           </div>
