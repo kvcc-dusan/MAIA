@@ -86,7 +86,7 @@ export default function WorldMapWidget({ weather }) {
                         <path d={graticuleD} fill="none" stroke="#334155" strokeWidth="0.5" strokeOpacity="0.2" />
 
                         {/* Land - Pure Gray */}
-                        <path d={pathD} fill="#3f3f46" />
+                        <path d={pathD} fill="#27272a" />
 
                         {/* Location Dot - Emerald Green */}
                         {dotPos && (
