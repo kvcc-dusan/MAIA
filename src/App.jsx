@@ -7,6 +7,8 @@ import { DataProvider, useData } from "./context/DataContext.jsx";
 import Dock from "./components/Dock.jsx";
 import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
+import DecisionLedger from "./components/DecisionLedger.jsx";
+import GlassSurface from "./components/GlassSurface.jsx";
 
 // Pages
 // Pages
@@ -56,7 +58,9 @@ function AppContent() {
   };
 
   // Chronos (Pulse) is now a global modal tool
+  // Chronos (Pulse) is now a global modal tool
   const [chronosOpen, setChronosOpen] = useState(false);
+  const [ledgerOpen, setLedgerOpen] = useState(false);
 
   // Project (Opus) Creation Modal - Lifted to App level for Action Center access
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -152,6 +156,7 @@ function AppContent() {
         onOpenTool={(tool) => {
           if (tool === "chronos") setChronosOpen(true);
           if (tool === "search") setCmdOpen(true);
+          if (tool === "ledger") setLedgerOpen(true);
         }}
       />
 
@@ -252,6 +257,23 @@ function AppContent() {
           setReminders={setReminders}
           pushToast={pushToast}
         />
+      )}
+
+      {/* Decision Ledger Modal */}
+      {ledgerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-5xl h-[85vh]">
+            <GlassSurface className="h-full w-full p-6 relative flex flex-col">
+              <button
+                onClick={() => setLedgerOpen(false)}
+                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
+              >
+                ✕
+              </button>
+              <DecisionLedger ledger={ledger} setLedger={setLedger} />
+            </GlassSurface>
+          </div>
+        </div>
       )}
 
       {/* Toast */}
