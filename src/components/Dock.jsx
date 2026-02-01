@@ -3,7 +3,7 @@ import ProjectIcon from "./ProjectIcon.jsx";
 import GlassSurface from "./GlassSurface.jsx";
 
 export default function Dock({ currentPage, onNavigate, onOpenTool }) {
-    const DockItem = ({ id, label, icon, active, onClick }) => (
+    const DockItem = ({ label, icon, active, onClick }) => (
         <button
             onClick={onClick}
             className={`
@@ -72,13 +72,6 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                         icon={<ProjectIcon name="star" size={20} />}
                         active={false} // Tool, not a page
                         onClick={() => onOpenTool("chronos")}
-                    />
-                    <DockItem
-                        id="ledger"
-                        label="Ledger"
-                        icon={<ProjectIcon name="flag" size={20} />}
-                        active={false}
-                        onClick={() => onOpenTool("ledger")}
                     />
                     <DockItem
                         id="search"

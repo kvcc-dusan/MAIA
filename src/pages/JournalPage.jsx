@@ -62,9 +62,18 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                         </div>
 
                         {activeTab === 'entries' && (
-                            <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors'>
-                                <ProjectIcon name='settings' size={24} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setActiveTab('decisions')}
+                                    className='p-2 text-zinc-500 hover:text-blue-400 transition-colors'
+                                    title="Open Decision Ledger"
+                                >
+                                    <ProjectIcon name='flag' size={24} />
+                                </button>
+                                <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors'>
+                                    <ProjectIcon name='settings' size={24} />
+                                </button>
+                            </div>
                         )}
                     </div>
 
