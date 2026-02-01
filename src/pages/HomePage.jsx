@@ -64,6 +64,10 @@ function quoteForToday() {
   return QUOTES[hash % QUOTES.length];
 }
 
+function getRandomQuote() {
+  return QUOTES[Math.floor(Math.random() * QUOTES.length)];
+}
+
 // "YYYY-MM-DDTHH:00" in local time (no Z)
 function localHourISO(date = new Date()) {
   const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -302,6 +306,10 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
     return () => clearInterval(t);
   }, []);
 
+  const refreshQuote = () => {
+    setQuote(getRandomQuote());
+  };
+
   const userName = "Dušan";
   const greeting = `${greetingFor(now)}`;
 
@@ -413,11 +421,23 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
             >
               <span className="text-white/80">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
-            <p
-              className="text-base md:text-lg text-white/90 font-normal italic max-w-xl leading-relaxed mix-blend-difference grayscale"
-            >
-              "{quote}"
-            </p>
+            <div className="relative group max-w-xl">
+              <p
+                data-testid="quote-text"
+                className="text-base md:text-lg text-white/90 font-normal italic leading-relaxed mix-blend-difference grayscale"
+              >
+                "{quote}"
+              </p>
+              <button
+                onClick={refreshQuote}
+                className="absolute -right-8 top-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1 text-white/50 hover:text-white"
+                title="New Quote"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
