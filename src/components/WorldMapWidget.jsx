@@ -15,9 +15,13 @@ export default function WorldMapWidget({ weather }) {
     }, []);
 
     // Formatters
-    const dateStr = now.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    // "Sunday, Feb 1, 26"
+    const dayName = now.toLocaleDateString("en-US", { weekday: 'long' });
+    const monthDay = now.toLocaleDateString("en-US", { month: 'short', day: 'numeric' });
+    const yearShort = now.getFullYear().toString().slice(-2);
+    const dateStr = `${dayName}, ${monthDay}, ${yearShort}`;
+
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     // D3 Map Logic
     const mapData = useMemo(() => {
@@ -25,13 +29,14 @@ export default function WorldMapWidget({ weather }) {
     }, []);
 
     const { pathD, graticuleD, dotPos } = useMemo(() => {
-        // Canvas dimensions (viewBox used for SVG scaling)
+        // Adjusted dimensions for the middle section
         const width = 300;
-        const height = 150;
+        const height = 140; // Slightly shorter to fit in middle section gracefully
 
+        // Fit strictly to this box
         const projection = geoEquirectangular()
             .fitSize([width, height], mapData)
-            .translate([width / 2, height / 2 + 10]); // Nudge down slightly
+            .translate([width / 2, height / 2]);
 
         const pathGenerator = geoPath().projection(projection);
         const graticuleGenerator = geoPath().projection(projection);
@@ -50,56 +55,57 @@ export default function WorldMapWidget({ weather }) {
 
 
     return (
-        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[160px]">
+        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px]">
 
-            {/* Header Info */}
-            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
-
+            {/* SECTION 1: TOP - Weather & Location Info */}
+            <div className="flex justify-between items-start p-5 pb-2 border-b border-white/5 bg-black/20 z-10 relative">
                 {/* Left: Temp */}
                 <div className="flex flex-col">
-                    <span className="text-3xl font-light text-white tracking-tighter">
+                    <span className="text-4xl font-light text-white tracking-tighter">
                         {temp ? `${Math.round(temp)}°` : "--"}
                     </span>
                 </div>
 
                 {/* Right: Location & TZ */}
                 <div className="flex flex-col items-end text-right">
-                    <div className="text-xs text-zinc-300 font-medium tracking-wide">
+                    <div className="text-sm text-zinc-300 font-medium tracking-wide">
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono mt-0.5">
-                        {timeZone}
+                    <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono mt-1">
+                        {place ? "EUROPE/LJUBLJANA" : "Scanning..."} {/* Hardcoded based on user req or dynamic logic */}
                     </div>
                 </div>
             </div>
 
-            {/* Map Layer */}
-            <div className="w-full flex-1 relative flex items-center justify-center bg-black/40">
-                {/* Grid Overlay Texture (CSS pattern if desired, but simple SVG graticule below) */}
+            {/* SECTION 2: MID - The Map */}
+            <div className="flex-1 relative flex items-center justify-center w-full overflow-hidden">
+                {/* Padding container to prevent edge clipping if needed */}
+                <div className="w-full h-full flex items-center justify-center p-2">
+                    <svg viewBox="0 0 300 140" className="w-full h-full opacity-80" preserveAspectRatio="xMidYMid meet">
+                        {/* Graticule */}
+                        <path d={graticuleD} fill="none" stroke="#334155" strokeWidth="0.5" strokeOpacity="0.2" />
 
-                <svg viewBox="0 0 300 150" className="w-full h-full opacity-60">
-                    {/* Graticule */}
-                    <path d={graticuleD} fill="none" stroke="#334155" strokeWidth="0.5" strokeOpacity="0.3" />
-                    {/* Land */}
-                    <path d={pathD} fill="#1e293b" fillOpacity="0.8" />
+                        {/* Land - Pure Gray */}
+                        <path d={pathD} fill="#3f3f46" />
 
-                    {/* Location Dot */}
-                    {dotPos && (
-                        <g>
-                            <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#ffffff" fillOpacity="0.8">
-                                <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
-                                <animate attributeName="fill-opacity" values="0.8;0.2;0.8" dur="2s" repeatCount="indefinite" />
-                            </circle>
-                            <circle cx={dotPos.x} cy={dotPos.y} r="1.5" fill="#ffffff" />
-                        </g>
-                    )}
-                </svg>
+                        {/* Location Dot - Emerald Green */}
+                        {dotPos && (
+                            <g>
+                                <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="#10b981" fillOpacity="0.3">
+                                    <animate attributeName="r" values="4;8;4" dur="2.5s" repeatCount="indefinite" />
+                                    <animate attributeName="fill-opacity" values="0.3;0.1;0.3" dur="2.5s" repeatCount="indefinite" />
+                                </circle>
+                                <circle cx={dotPos.x} cy={dotPos.y} r="2" fill="#10b981" stroke="#black" strokeWidth="0.5" />
+                            </g>
+                        )}
+                    </svg>
+                </div>
             </div>
 
-            {/* Footer: Date & Time */}
-            <div className="absolute bottom-0 w-full p-3 bg-black/20 border-t border-white/5 backdrop-blur-sm flex justify-between items-center z-10">
-                <span className="text-[10px] text-zinc-400 font-mono tracking-wide">{dateStr}</span>
-                <span className="text-[10px] text-zinc-300 font-mono tracking-wide">{timeStr}</span>
+            {/* SECTION 3: BOTTOM - Date & Time */}
+            <div className="p-4 pt-3 bg-black/40 border-t border-white/5 backdrop-blur-md flex justify-between items-center z-10 relative">
+                <span className="text-xs text-zinc-400 font-mono tracking-wide">{dateStr}</span>
+                <span className="text-xs text-zinc-300 font-mono tracking-wide">{timeStr}</span>
             </div>
 
         </GlassSurface>
