@@ -1,6 +1,16 @@
 // @maia:graph
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import * as d3 from "d3";
+import {
+  select,
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  drag as d3Drag,
+  zoom as d3Zoom,
+  zoomIdentity
+} from "d3";
 import { dottedBg } from "../lib/theme.js";
 import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
 import { uid, isoNow } from "../lib/ids.js";
@@ -63,9 +73,11 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
   // Refs for access inside D3 closures without re-running effects
   const searchRef = useRef("");
   const nodesRef = useRef([]); // Track current nodes for zoom
+  const activeClusterRef = useRef(activeCluster);
 
   // Sync refs
   useEffect(() => { searchRef.current = searchQuery; }, [searchQuery]);
+  useEffect(() => { activeClusterRef.current = activeCluster; }, [activeCluster]);
 
   // --- ANALYSIS ---
 
@@ -206,7 +218,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
     const height = dims.h;
 
     // Clean old
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
     // Layers
@@ -218,11 +230,11 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
     const labelLayer = g.append("g").attr("class", "labels");
 
     // Simulation
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
-      .force("charge", d3.forceManyBody().strength(-repelForce))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(d => 15 + d.val).strength(0.8));
+    const simulation = forceSimulation(nodes)
+      .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
+      .force("charge", forceManyBody().strength(-repelForce))
+      .force("center", forceCenter(width / 2, height / 2))
+      .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
 
     // Re-heat simulation on init to ensure layout settles
     simulation.alpha(1).restart();
@@ -326,7 +338,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
           // Return to Default State
           link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
           node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-          label.attr("opacity", d => (d.val > 2 || activeCluster === d.group) ? 1 : 0);
+          label.attr("opacity", d => (d.val > 2 || activeClusterRef.current === d.group) ? 1 : 0);
         }
       });
 
@@ -350,7 +362,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
     });
 
     // Zoom
-    const zoom = d3.zoom()
+    const zoom = d3Zoom()
       .scaleExtent([0.1, 4])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
@@ -379,12 +391,49 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
       // Simple approximate center
       svg.transition().duration(750).call(
         zoom.transform,
-        d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
+        zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
       );
     }, 500);
 
     return () => simulation.stop();
-  }, [nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance]);
+  }, [nodes, links, dims, showSignals, onOpenNote, repelForce, linkDistance]); // Removed visual-only deps
+
+  // --- VISUAL UPDATES EFFECT ---
+  // Updates styles when size/thickness/cluster changes, without restarting simulation
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svg = select(svgRef.current);
+
+    // Update Nodes
+    svg.selectAll(".node-element")
+      .transition().duration(300)
+      .attr("r", d => {
+        const base = d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3));
+        return base * nodeSize;
+      });
+
+    // Update Links
+    svg.selectAll(".link-element")
+      .transition().duration(300)
+      .attr("stroke-width", d => linkThickness);
+
+    // Update Labels
+    svg.selectAll(".label-element")
+      .transition().duration(300)
+      .attr("font-size", d => (10 + d.val) * fontSize);
+
+    // Update Active Cluster highlighting (if needed via opacity, though typically handled by hover/interaction)
+    // But if activeCluster changes, we might want to highlight those nodes?
+    // Current logic uses activeCluster in label opacity mainly.
+    const label = svg.selectAll(".label-element");
+    label.attr("opacity", d => {
+       // Re-evaluate opacity logic
+       if (searchQuery) return 0; // Handled by search effect
+       return (d.val > 2 || activeCluster === d.group) ? 1 : 0;
+    });
+
+  }, [nodeSize, linkThickness, fontSize, activeCluster, searchQuery]);
+
 
   // Resize Handler
   useEffect(() => {
@@ -401,7 +450,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
   // Handle "Dimming" and "Highlighting" without restarting simulation
   useEffect(() => {
     if (!svgRef.current) return;
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     const node = svg.selectAll(".node-element");
     const label = svg.selectAll(".label-element");
     const link = svg.selectAll(".link-element");
@@ -454,7 +503,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
       event.subject.fy = null;
     }
 
-    return d3.drag()
+    return d3Drag()
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended);
@@ -469,9 +518,9 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
     const height = dims.h;
     const scale = 1.5; // Zoom level
 
-    d3.select(svgRef.current).transition().duration(1000).call(
+    select(svgRef.current).transition().duration(1000).call(
       zoomRef.current.transform,
-      d3.zoomIdentity
+      zoomIdentity
         .translate(width / 2, height / 2)
         .scale(scale)
         .translate(-targetNode.x, -targetNode.y)
