@@ -7,6 +7,7 @@ import Dither from "../components/Dither.jsx";
 import GlassSurface from "../components/GlassSurface.jsx";
 import ColorBends from "../components/ColorBends.jsx";
 import { QUOTES } from "../data/quotes.js";
+import WorldMapWidget from "../components/WorldMapWidget.jsx";
 
 
 /* -------------------------------------------
@@ -407,14 +408,13 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         <div className="flex flex-col justify-center items-start space-y-6">
           <div className="space-y-4 text-left">
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold whitespace-nowrap"
-              style={{ textShadow: "0 2px 4px rgba(0,0,0,0.8), 0 8px 32px rgba(0,0,0,0.5)" }}
+              className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold whitespace-nowrap mix-blend-difference grayscale"
+              style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
             >
-              <span className="text-zinc-400">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
+              <span className="text-white/80">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
             <p
-              className="text-base md:text-lg text-white font-normal max-w-xl leading-relaxed"
-              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8), 0 4px 16px rgba(0,0,0,0.5)" }}
+              className="text-base md:text-lg text-white/90 font-normal italic max-w-xl leading-relaxed mix-blend-difference grayscale"
             >
               "{quote}"
             </p>
@@ -424,21 +424,8 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         {/* RIGHT ZONE: Glass Widgets Stack */}
         <div className="flex flex-col items-center lg:items-end justify-center space-y-6 w-full max-w-sm mx-auto lg:mx-0 lg:ml-auto">
 
-          {/* Weather Widget */}
-          <GlassSurface className="p-6 flex items-center justify-between min-h-[100px]">
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Weather</span>
-              <div className="text-lg font-medium text-zinc-200">
-                {weatherSnap?.coords ? `${Math.round(weatherSnap.temp)}°` : "--"}
-              </div>
-              <div className="text-xs text-zinc-500">
-                {weatherSnap?.place || "Locating..."}
-              </div>
-            </div>
-            <div className="text-4xl font-light text-white/80">
-              {weatherSnap?.temp ? `${Math.round(weatherSnap.temp)}°` : "--"}
-            </div>
-          </GlassSurface>
+          {/* World Map & Weather Widget */}
+          <WorldMapWidget weather={weatherSnap} />
 
           {/* Today's Focus */}
           <GlassSurface className="p-6 flex flex-col min-h-[140px]">
