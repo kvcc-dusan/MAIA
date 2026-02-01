@@ -112,7 +112,7 @@ export default function ReviewPage({ notes, projects, journal, setJournal, pushT
             </div>
 
             {/* RIGHT: The Synthesis (Write-Only) */}
-            <div className="flex-1 min-w-0 flex flex-col p-8 md:p-12 relative z-10">
+            <div className="flex-1 min-w-0 flex flex-col p-8 md:p-12 lg:px-16 relative z-10">
                 <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-center">
                     <h2 className="text-3xl font-light text-white mb-2 tracking-tight">Strategic Synthesis</h2>
                     <p className="text-zinc-500 text-sm mb-8 font-mono">

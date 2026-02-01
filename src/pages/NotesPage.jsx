@@ -171,7 +171,7 @@ export default function NotesOverview({
       </div>
 
       {/* Main Content Area */}
-      <div className="absolute inset-0 z-10 overflow-y-auto custom-scrollbar p-6 md:p-8">
+      <div className="absolute inset-0 z-10 overflow-y-auto custom-scrollbar p-6 md:p-8 lg:px-16">
         <div className="w-full min-h-min flex flex-col pointer-events-none">
           <GlassSurface className="pointer-events-auto flex flex-col !h-auto w-full shrink-0">
 
