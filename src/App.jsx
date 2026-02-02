@@ -172,6 +172,7 @@ function AppContent() {
                 setJournal={setJournal}
                 ledger={ledger}
                 setLedger={setLedger}
+                onOpenLedger={() => setLedgerOpen(true)}
               />
             )}
 

@@ -42,6 +42,9 @@ const icons = {
     check: (
         <path d="M20 6L9 17L4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     ),
+    plus: (
+        <path d="M12 5v14M5 12h14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    ),
     design: (
         <React.Fragment>
             <circle cx="12" cy="12" r="3" strokeWidth="1.5" />

@@ -73,13 +73,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                         active={false} // Tool, not a page
                         onClick={() => onOpenTool("chronos")}
                     />
-                    <DockItem
-                        id="ledger"
-                        label="Ledger"
-                        icon={<ProjectIcon name="flag" size={20} />}
-                        active={false}
-                        onClick={() => onOpenTool("ledger")}
-                    />
+
                     <DockItem
                         id="search"
                         label="Search"
