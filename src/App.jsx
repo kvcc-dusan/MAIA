@@ -9,6 +9,7 @@ import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 import DecisionLedger from "./components/DecisionLedger.jsx";
 import GlassSurface from "./components/GlassSurface.jsx";
+import GlassSkeleton from "./components/GlassSkeleton.jsx";
 
 // Pages
 // Pages
@@ -17,12 +18,12 @@ import NotesPage from "./pages/NotesPage.jsx";
 // import PulsePage from "./pages/PulsePage.jsx"; // Refactored to ChronosModal
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
-import JournalPage from "./pages/JournalPage.jsx";
 import ReviewPage from "./pages/ReviewPage.jsx";
 
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./pages/GraphPage.jsx"));
 const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
+const JournalPage = React.lazy(() => import("./pages/JournalPage.jsx"));
 
 function AppContent() {
   // Pages
@@ -165,7 +166,7 @@ function AppContent() {
         <main className="h-full overflow-hidden min-h-0 relative">
           {/* Background noise/gradient could go here if global */}
 
-          <React.Suspense fallback={<div className="flex h-full items-center justify-center text-zinc-500 text-sm animate-pulse">Loading...</div>}>
+          <React.Suspense fallback={<GlassSkeleton />}>
             {currentPage === "journal" && (
               <JournalPage
                 journal={journal}

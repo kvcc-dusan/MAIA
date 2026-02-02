@@ -1,6 +1,6 @@
 // @maia:graph-renderer
 import React, { useEffect, useRef } from "react";
-import * as d3 from "d3";
+import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, drag, zoom, zoomIdentity } from "d3";
 import { dottedBg } from "../../lib/theme.js";
 
 // Theme Constants (Should be shared, but copying for now for isolation)
@@ -55,7 +55,7 @@ export default function GraphRenderer({
         const height = dims.h;
 
         // Clean old
-        const svg = d3.select(svgRef.current);
+        const svg = select(svgRef.current);
         svg.selectAll("*").remove();
 
         // Layers
@@ -67,11 +67,11 @@ export default function GraphRenderer({
         const labelLayer = g.append("g").attr("class", "labels");
 
         // Simulation
-        const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
-            .force("charge", d3.forceManyBody().strength(-repelForce))
-            .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collide", d3.forceCollide().radius(d => 15 + d.val).strength(0.8));
+        const simulation = forceSimulation(nodes)
+            .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
+            .force("charge", forceManyBody().strength(-repelForce))
+            .force("center", forceCenter(width / 2, height / 2))
+            .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
 
         // Re-heat simulation on init to ensure layout settles
         simulation.alpha(1).restart();
@@ -102,7 +102,7 @@ export default function GraphRenderer({
             .attr("stroke-width", 0)
             .style("cursor", "pointer")
             .attr("class", "node-element")
-            .call(drag(simulation));
+            .call(createDrag(simulation));
 
         const label = labelLayer.selectAll("text")
             .data(nodes)
@@ -199,7 +199,7 @@ export default function GraphRenderer({
         });
 
         // Zoom
-        const zoom = d3.zoom()
+        const zoomBehavior = zoom()
             .scaleExtent([0.1, 4])
             .on("zoom", (event) => {
                 g.attr("transform", event.transform);
@@ -220,15 +220,15 @@ export default function GraphRenderer({
                 });
             });
 
-        zoomRef.current = zoom; // Store for external access
-        svg.call(zoom);
+        zoomRef.current = zoomBehavior; // Store for external access
+        svg.call(zoomBehavior);
 
         // Initial Zoom Fit (Delayed)
         setTimeout(() => {
             // Simple approximate center
             svg.transition().duration(750).call(
-                zoom.transform,
-                d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
+                zoomBehavior.transform,
+                zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
             );
         }, 500);
 
@@ -239,7 +239,7 @@ export default function GraphRenderer({
     // Handle "Dimming" and "Highlighting" without restarting simulation
     useEffect(() => {
         if (!svgRef.current) return;
-        const svg = d3.select(svgRef.current);
+        const svg = select(svgRef.current);
         const node = svg.selectAll(".node-element");
         const label = svg.selectAll(".label-element");
         const link = svg.selectAll(".link-element");
@@ -271,7 +271,7 @@ export default function GraphRenderer({
 
 
     // Helper Functions
-    function drag(simulation) {
+    function createDrag(simulation) {
         function dragstarted(event) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
@@ -289,7 +289,7 @@ export default function GraphRenderer({
             event.subject.fy = null;
         }
 
-        return d3.drag()
+        return drag()
             .on("start", dragstarted)
             .on("drag", dragged)
             .on("end", dragended);
