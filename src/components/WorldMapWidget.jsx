@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath, geoGraticule10 } from "d3-geo";
 import { feature } from "topojson-client";
-import land110 from "world-atlas/land-110m.json?json";
+import land110 from "world-atlas/land-110m.json";
 import GlassSurface from "./GlassSurface";
 
 export default function WorldMapWidget({ weather }) {
@@ -34,9 +34,7 @@ export default function WorldMapWidget({ weather }) {
         // Focus on Europe (Slovenia roughly 15E, 46N)
         // Zoomed in (scale 600) and centered
         const projection = geoEquirectangular()
-            .scale(600)
-            .center([15, 52])
-            .translate([width / 2, height / 2]);
+            .fitSize([width, height], mapData);
 
         const pathGenerator = geoPath().projection(projection);
         const pathD = pathGenerator(mapData);
@@ -103,12 +101,8 @@ export default function WorldMapWidget({ weather }) {
                */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <svg viewBox="0 0 300 180" className="w-[110%] h-[110%] opacity-100" preserveAspectRatio="xMidYMid slice">
-                            {/* Land: Using a color that matches the dark header vibe, maybe slightly lighter to stand out against the deep black of the card? 
-                            Or if the user said EXACT same... 
-                            If I make it exactly the same, it might vanish if the background is also same.
-                            I will use a solid dark gray #27272a (zinc-800) which is common for these dark UI headers.
-                        */}
-                            <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+                            {/* Land: Zinc-700 (#3f3f46) for subtle contrast, White stroke (0.25) for definition */}
+                            <path d={pathD} fill="#3f3f46" fillOpacity="1" stroke="white" strokeWidth="0.5" strokeOpacity="0.25" />
 
                             {/* Location Dot */}
                             {dotPos && (
