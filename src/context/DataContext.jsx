@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useCallback } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
@@ -56,7 +56,7 @@ export function DataProvider({ children }) {
     // --- Actions ---
 
     // Notes
-    const createNote = () => {
+    const createNote = useCallback(() => {
         const n = {
             id: uid(),
             title: "Untitled",
@@ -66,55 +66,58 @@ export function DataProvider({ children }) {
             createdAt: isoNow(),
             project: null,
         };
-        setNotes([n, ...notes]);
+        setNotes((prev) => [n, ...prev]);
         return n.id;
-    };
+    }, [setNotes]);
 
-    const updateNote = (updated) => {
+    const updateNote = useCallback((updated) => {
         setNotes((prev) =>
             prev.map((n) => (n.id === updated.id ? { ...n, ...updated } : n))
         );
-    };
+    }, [setNotes]);
 
-    const deleteNote = (id) => {
+    const deleteNote = useCallback((id) => {
         setNotes((prev) => prev.filter((n) => n.id !== id));
-    };
+    }, [setNotes]);
 
-    const renameNote = (id, title) => {
+    const renameNote = useCallback((id, title) => {
         setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, title: title || "" } : n)));
-    };
+    }, [setNotes]);
 
-    const moveNoteToProject = (id, name) => {
-        if (name && !projects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-            setProjects([...projects, { id: uid(), name: name.trim() }]);
-        }
+    const moveNoteToProject = useCallback((id, name) => {
+        setProjects(prevProjects => {
+            if (name && !prevProjects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+                return [...prevProjects, { id: uid(), name: name.trim() }];
+            }
+            return prevProjects;
+        });
         setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, project: name || null } : n)));
-    };
+    }, [setProjects, setNotes]);
 
-    const addProjectToNote = (noteId, projectId) => {
+    const addProjectToNote = useCallback((noteId, projectId) => {
         setNotes(prev => prev.map(n => {
             if (n.id !== noteId) return n;
             const ids = Array.from(new Set([...(n.projectIds || []), projectId]));
             return { ...n, projectIds: ids };
         }));
-    };
+    }, [setNotes]);
 
-    const removeProjectFromNote = (noteId, projectId) => {
+    const removeProjectFromNote = useCallback((noteId, projectId) => {
         setNotes(prev => prev.map(n => {
             if (n.id !== noteId) return n;
             const ids = (n.projectIds || []).filter(id => id !== projectId);
             return { ...n, projectIds: ids };
         }));
-    };
+    }, [setNotes]);
 
     // Projects
-    const updateProject = (id, patch) => {
+    const updateProject = useCallback((id, patch) => {
         setProjects((prev) =>
             prev.map((p) => (p.id === id ? { ...p, ...patch } : p))
         );
-    };
+    }, [setProjects]);
 
-    const deleteProject = (id) => {
+    const deleteProject = useCallback((id) => {
         // Cascade: Remove this project ID from all notes
         setNotes((prev) => prev.map(n => {
             if (n.projectIds && n.projectIds.includes(id)) {
@@ -123,9 +126,9 @@ export function DataProvider({ children }) {
             return n;
         }));
         setProjects((prev) => prev.filter((p) => p.id !== id));
-    };
+    }, [setProjects]);
 
-    const createProject = (name) => {
+    const createProject = useCallback((name) => {
         const p = {
             id: uid(),
             name: name || "Untitled",
@@ -134,24 +137,24 @@ export function DataProvider({ children }) {
             createdAt: isoNow(),
             description: "",
         };
-        setProjects([p, ...projects]);
+        setProjects((prev) => [p, ...prev]);
         return p;
-    };
+    }, [setProjects]);
 
     // Tasks
-    const addTask = (title, due = null, desc = "") => {
+    const addTask = useCallback((title, due = null, desc = "") => {
         if (!title.trim()) return;
         setTasks((prev) => [
             { id: uid(), title: title.trim(), desc, done: false, createdAt: isoNow(), due },
             ...prev,
         ]);
-    };
+    }, [setTasks]);
 
     // Reminders
-    const addReminder = (title, scheduledAt) => {
+    const addReminder = useCallback((title, scheduledAt) => {
         if (!title.trim()) return;
         setReminders((prev) => [{ id: uid(), title: title.trim(), scheduledAt, createdAt: isoNow(), delivered: false }, ...prev]);
-    };
+    }, [setReminders]);
 
     const value = useMemo(() => ({
         notes, setNotes,
@@ -165,7 +168,11 @@ export function DataProvider({ children }) {
         addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject,
         addTask, addReminder
-    }), [notes, projects, journal, ledger, tasks, reminders]);
+    }), [
+        notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders,
+        createNote, updateNote, deleteNote, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
+        updateProject, deleteProject, createProject, addTask, addReminder
+    ]);
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

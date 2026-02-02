@@ -231,6 +231,7 @@ function AppContent() {
 
               {currentPage === "editor" && (
                 <EditorPage
+                  key={currentNote?.id}
                   note={currentNote}
                   updateNote={updateNote}
                   onOpenInternalLink={openInternalByTitle}

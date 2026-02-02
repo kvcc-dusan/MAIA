@@ -1,69 +1,10 @@
-// src/components/Home.jsx
-import React, { useEffect, useMemo, useState } from "react";
-import { geoMercator, geoPath, geoGraticule10 } from "d3-geo";
-import { feature } from "topojson-client";
-import land110 from "world-atlas/land-110m.json?json";
-import Dither from "../components/Dither.jsx";
+// src/pages/HomePage.jsx
+import React, { useEffect, useState } from "react";
 import GlassSurface from "../components/GlassSurface.jsx";
 import ColorBends from "../components/ColorBends.jsx";
-import { QUOTES } from "../data/quotes.js";
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
-
-
-/* -------------------------------------------
-   Helpers
-------------------------------------------- */
-function greetingFor(date = new Date()) {
-  const h = date.getHours();
-  if (h >= 5 && h < 12) return "Good morning";
-  if (h >= 12 && h < 18) return "Good afternoon";
-  if (h >= 18 && h < 22) return "Good evening";
-  return "Good night";
-}
-// ---- Dither background tuning ----
-const BG_PRESETS = {
-  charcoal: {
-    waveColor: [0.40, 0.40, 0.40],
-    waveAmplitude: 0.28,
-    waveFrequency: 3.6,
-    waveSpeed: 0.01,
-    colorNum: 4,
-    pixelSize: 2,
-    overlayClass: "bg-black/60", // darker = /50, lighter = /20
-  },
-  duskBlue: {
-    waveColor: [0.32, 0.45, 0.90],
-    waveAmplitude: 0.22,
-    waveFrequency: 3.2,
-    waveSpeed: 0.01,
-    colorNum: 5,
-    pixelSize: 1,
-    // gentle top-to-bottom fade for readability
-    overlayClass: "bg-gradient-to-b from-black/60 via-transparent to-black/40",
-  },
-  vanta: {
-    waveColor: [0.15, 0.18, 0.20],
-    waveAmplitude: 0.35,
-    waveFrequency: 3.8,
-    waveSpeed: 0.008,
-    colorNum: 3,
-    pixelSize: 3,
-    overlayClass: "bg-black/80",
-  },
-};
-
-// pick your preset:
-const BG = BG_PRESETS.charcoal;
-
-
-function quoteForToday() {
-  const d = new Date();
-  const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return QUOTES[hash % QUOTES.length];
-}
+import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 
 // "YYYY-MM-DDTHH:00" in local time (no Z)
 function localHourISO(date = new Date()) {
@@ -105,7 +46,9 @@ async function reverseGeocode({ lat, lon }) {
         if (city || cc) return `${city || best.name}${cc ? `, ${cc}` : ""}`;
       }
     }
-  } catch { }
+  } catch {
+    // ignore
+  }
 
   // 2) Fallback: BigDataCloud (no key)
   try {
@@ -118,193 +61,22 @@ async function reverseGeocode({ lat, lon }) {
       const cc = d.countryCode || "";
       if (city || cc) return `${city}${cc ? `, ${cc}` : ""}`;
     }
-  } catch { }
+  } catch {
+    // ignore
+  }
 
   return null; // last resort
 }
 
 /* -------------------------------------------
-   Mini world map with timezone highlight
-------------------------------------------- */
-function WorldMiniMap({ width = 540, height = 210, coords }) {
-  // ---- knobs (tweak these) ----
-  const PAD = -12; // inner padding inside the rounded panel
-  // Crop so Americas are left and East Asia right; hide Antarctica.
-  const BOUNDS = { west: -180, east: 180, south: -20, north: 80 };
-
-  const land = useMemo(() => feature(land110, land110.objects.land), []);
-
-  // Fit the chosen lon/lat bounds exactly into the SVG rect (with PAD)
-  const projection = useMemo(() => {
-    const proj = geoMercator();
-    const frame = {
-      type: "Polygon",
-      coordinates: [[
-        [BOUNDS.west, BOUNDS.south],
-        [BOUNDS.east, BOUNDS.south],
-        [BOUNDS.east, BOUNDS.north],
-        [BOUNDS.west, BOUNDS.north],
-        [BOUNDS.west, BOUNDS.south],
-      ]],
-    };
-    return proj.fitExtent([[PAD, PAD], [width - PAD, height - PAD]], frame);
-  }, [width, height]);
-
-  const path = useMemo(() => geoPath(projection), [projection]);
-  const graticule = useMemo(() => geoGraticule10(), []);
-
-  // Timezone band (±7.5° around local meridian)
-  const offsetHours = -new Date().getTimezoneOffset() / 60;
-  const centerLon = offsetHours * 15;
-  const x1 = projection([centerLon - 7.5, 0])?.[0] ?? 0;
-  const x2 = projection([centerLon + 7.5, 0])?.[0] ?? width;
-  const bandX = Math.min(x1, x2);
-  const bandW = Math.abs(x2 - x1);
-
-  // Your position
-  const dotXY = coords ? projection([coords.lon, coords.lat]) : null;
-  const PULSE_MS = 1800; // ← tweak this for faster/slower pulsing
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      width="100%"
-      height="100%"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <defs>
-        {/* clip so grid/land never bleed outside the rounded panel */}
-        <clipPath id="wmMask">
-          <rect x="0" y="0" width={width} height={height} rx="18" />
-        </clipPath>
-      </defs>
-
-      <g clipPath="url(#wmMask)">
-        {/* faint grid */}
-        <path
-          d={path(graticule)}
-          fill="none"
-          stroke="#3f3f46"
-          strokeOpacity="0.2"
-          strokeWidth="0.7"
-        />
-
-        {/* timezone band */}
-        <rect x={bandX} y="0" width={bandW} height={height} fill="#fff" opacity="0.0" />
-
-        {/* land */}
-        <path
-          d={path(land)}
-          fill="#242424"
-          stroke="#4b5563"
-          strokeOpacity="0.0"
-          strokeWidth="0.8"
-        />
-
-        {dotXY && (
-          <g>
-            {/* solid dot that breathes */}
-            <circle cx={dotXY[0]} cy={dotXY[1]} r="5" fill="#fff">
-              <animate
-                attributeName="opacity"
-                values="0;1;0"   // fade in, fade out
-                dur={`${PULSE_MS}ms`}  // speed control
-                repeatCount="indefinite"
-              />
-            </circle>
-          </g>
-        )}
-
-      </g>
-    </svg>
-  );
-}
-
-
-/* -------------------------------------------
-   Weather + Time Card
-------------------------------------------- */
-function WeatherTimeCard({ snapshot }) {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <div className="glass-panel rounded-2xl p-5 w-full">
-      <div className="flex items-end justify-between mb-4">
-        <div className="text-4xl font-light text-white tracking-tight">
-          {snapshot?.temp != null ? Math.round(snapshot.temp) + "°" : "--"}
-        </div>
-        <div className="text-right">
-          <div className="text-[10px] text-zinc-500 font-mono mb-1 uppercase tracking-wider">{snapshot?.place || "—"}</div>
-          <div className="text-[10px] text-zinc-600 font-mono uppercase tracking-wider">{tz}</div>
-        </div>
-      </div>
-
-      {/* World mini map */}
-      <div className="w-full h-[180px] rounded-xl bg-black/20 border border-white/5 overflow-hidden relative grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-        <WorldMiniMap width={540} height={210} coords={snapshot?.coords} />
-      </div>
-
-      <div className="mt-4 flex justify-between items-center border-t border-white/5 pt-3">
-        <div className="text-xs text-zinc-400 font-mono">
-          {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
-        </div>
-        <div className="text-xs text-zinc-500 font-mono tracking-widest">
-          {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------
-   Today cards
-------------------------------------------- */
-function TodayCard({ title, empty, children, onClick }) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className="glass-panel rounded-2xl p-5 w-full cursor-pointer hover:bg-white/5 transition-all duration-300 group"
-    >
-      <div className="text-[10px] tracking-[0.2em] font-bold text-zinc-600 mb-3 group-hover:text-zinc-400 transition-colors uppercase">
-        {title}
-      </div>
-      {children ?? <div className="text-sm text-zinc-500 italic">{empty}</div>}
-    </div>
-  );
-}
-
-
-/* -------------------------------------------
    Home
 ------------------------------------------- */
 export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
-
-  const [now, setNow] = useState(new Date());
-  const [quote, setQuote] = useState(quoteForToday());
+  const { now, quote, greeting } = useHomeGreeting();
   const [weatherSnap, setWeatherSnap] = useState(null);
   const openPulse = () => onOpenPulse?.();
-  // live clock & greeting update
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  // rotate quote at midnight (check every minute)
-  useEffect(() => {
-    const t = setInterval(() => setQuote(quoteForToday()), 60 * 1000);
-    return () => clearInterval(t);
-  }, []);
 
   const userName = "Dušan";
-  const greeting = `${greetingFor(now)}`;
 
   // Weather & place
   useEffect(() => {
@@ -338,7 +110,9 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         try {
           const p = await reverseGeocode(coords);
           if (p) place = p;
-        } catch (_) { }
+        } catch {
+          // ignore
+        }
 
         if (!cancelled) {
           setWeatherSnap({
