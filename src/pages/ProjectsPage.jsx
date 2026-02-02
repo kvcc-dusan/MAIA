@@ -107,13 +107,13 @@ export default function Projects({
       </div>
 
       {/* Main Grid Container */}
-      <div className="relative z-10 w-full h-full p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 pointer-events-none">
+      <div className="relative z-10 w-full h-full p-4 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 pointer-events-none">
 
         {/* LEFT COLUMN: Project List (Glass Container) */}
         <div className="md:col-span-4 lg:col-span-3 flex flex-col justify-start pointer-events-auto">
           <GlassSurface className="flex flex-col !h-auto max-h-full">
             {/* Header */}
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+            <div className="p-3 md:p-4 border-b border-white/5 flex items-center justify-between">
               <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Missions</span>
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -166,14 +166,14 @@ export default function Projects({
         {/* RIGHT COLUMN: Details (Content) */}
         <div className="md:col-span-8 lg:col-span-9 flex flex-col h-full min-h-0 overflow-y-auto custom-scrollbar pointer-events-auto">
           {activeProject ? (
-            <div className="space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-8 pb-32 md:pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
               {/* Title & Meta */}
               <div className="flex flex-col gap-6">
-                <div className="flex items-start gap-5">
+                <div className="flex flex-col md:flex-row items-start gap-5">
                   <button
                     onClick={() => setShowIconPicker(true)}
-                    className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center bg-white/5 rounded-2xl text-white hover:bg-white/10 hover:scale-105 transition-all shadow-2xl group border border-white/5"
+                    className="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center bg-white/5 rounded-2xl text-white hover:bg-white/10 hover:scale-105 transition-all shadow-2xl group border border-white/5 flex-shrink-0"
                   >
                     <ProjectIcon name={activeProject.icon} size={48} className="opacity-80 group-hover:opacity-100" />
                   </button>
