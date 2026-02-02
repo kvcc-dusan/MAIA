@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath, geoGraticule10 } from "d3-geo";
 import { feature } from "topojson-client";
-import land110 from "world-atlas/land-110m.json?json";
+import land110 from "world-atlas/land-110m.json";
 import GlassSurface from "./GlassSurface";
 
 export default function WorldMapWidget({ weather }) {
@@ -24,10 +24,12 @@ export default function WorldMapWidget({ weather }) {
 
     // D3 Map Logic
     const mapData = useMemo(() => {
+        if (!land110 || !land110.objects || !land110.objects.land) return null;
         return feature(land110, land110.objects.land);
     }, []);
 
     const { pathD, dotPos } = useMemo(() => {
+        if (!mapData) return { pathD: "", dotPos: null };
         const width = 300;
         const height = 180; // Taller internal canvas for better centering
 
@@ -108,7 +110,7 @@ export default function WorldMapWidget({ weather }) {
                             If I make it exactly the same, it might vanish if the background is also same.
                             I will use a solid dark gray #27272a (zinc-800) which is common for these dark UI headers.
                         */}
-                            <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+                            <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.3" />
 
                             {/* Location Dot */}
                             {dotPos && (
