@@ -35,37 +35,40 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                 <GlassSurface className='shadow-2xl relative flex flex-col h-full overflow-hidden'>
 
                     {/* Header & Tabs */}
-                    <div className='flex-none px-6 py-5 border-b border-white/5 flex items-center justify-between bg-black/10 backdrop-blur-sm z-20'>
-                        <div className="flex items-center gap-6">
-                            <div>
-                                <div className='text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1'>Daily Log</div>
-                                <div className='text-3xl font-bold text-white tracking-tight'>{new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}</div>
-                            </div>
-
-                            {/* Tabs */}
-                            <div className="flex items-center gap-2 p-1 bg-white/5 rounded-lg border border-white/5 ml-4">
-                                <button
-                                    onClick={() => setActiveTab('entries')}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'entries' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
-                                        }`}
-                                >
-                                    Entries
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('decisions')}
-                                    className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${activeTab === 'decisions' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
-                                        }`}
-                                >
-                                    Decisions
-                                </button>
-                            </div>
+                    <div className='flex-none px-4 md:px-6 py-3 md:py-5 border-b border-white/5 flex items-center justify-between bg-black/10 backdrop-blur-sm z-20'>
+                        <div>
+                            <div className='text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1'>Daily Log</div>
+                            <div className='text-2xl md:text-3xl font-bold text-white tracking-tight'>{new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}</div>
                         </div>
 
-                        {activeTab === 'entries' && (
-                            <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors'>
-                                <ProjectIcon name='settings' size={24} />
+                        {/* Action Icons */}
+                        <div className="flex items-center gap-1 md:gap-2">
+                            <button
+                                onClick={() => setActiveTab('entries')}
+                                className={`w-11 h-11 flex items-center justify-center rounded-lg transition-colors ${activeTab === 'entries' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                aria-label="Entries"
+                            >
+                                <ProjectIcon name='quill' size={22} />
                             </button>
-                        )}
+
+                            <button
+                                onClick={() => setActiveTab('decisions')}
+                                className={`w-11 h-11 flex items-center justify-center rounded-lg transition-colors ${activeTab === 'decisions' ? 'bg-zinc-200 text-black shadow-sm' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                aria-label="Decision Ledger"
+                            >
+                                <ProjectIcon name='flag' size={22} />
+                            </button>
+
+                            {activeTab === 'entries' && (
+                                <button
+                                    onClick={() => setIsDrawerOpen(true)}
+                                    className='w-11 h-11 flex items-center justify-center rounded-lg text-zinc-500 hover:text-white hover:bg-white/5 transition-colors'
+                                    aria-label="Settings"
+                                >
+                                    <ProjectIcon name='settings' size={22} />
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Content Area */}
@@ -73,11 +76,11 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
 
                         {/* VIEW: ENTRIES */}
                         {activeTab === 'entries' && (
-                            <div className='flex flex-col h-full px-6 pt-6 pb-0 md:px-12 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300'>
+                            <div className='flex flex-col h-full px-4 md:px-12 pt-6 pb-0 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300'>
                                 {/* Editor Area */}
-                                <div className='flex-none flex flex-col max-h-[40vh] transition-all duration-300 ease-out'>
+                                <div className='flex-none flex flex-col max-h-[40vh] transition-all duration-300 ease-out z-10'>
                                     <div className='p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors focus-within:bg-white/10 flex flex-col overflow-hidden bg-black/20 backdrop-blur-md'>
-                                        <div className='flex-1 overflow-y-auto custom-scrollbar min-h-[100px]'>
+                                        <div className='flex-1 overflow-y-auto custom-scrollbar min-h-[120px]'>
                                             <EditorRich value={content} onChange={setContent} editable={true} placeholder='Start writing...' className='outline-none min-h-full' />
                                         </div>
                                         <div className='flex-none flex justify-end mt-2 pt-2 border-t border-white/5 bg-transparent'>
