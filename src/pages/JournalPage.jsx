@@ -47,10 +47,10 @@ export default function Journal({ journal = [], setJournal, onOpenLedger }) {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <button onClick={onOpenLedger} className='p-2 text-zinc-500 hover:text-white transition-colors' title="Decision Ledger">
+                            <button onClick={onOpenLedger} className='p-2 text-zinc-500 hover:text-white transition-colors' title="Decision Ledger" aria-label="Open Decision Ledger">
                                 <ProjectIcon name='flag' size={24} />
                             </button>
-                            <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors' title="Settings">
+                            <button onClick={() => setIsDrawerOpen(true)} className='p-2 text-zinc-500 hover:text-white transition-colors' title="Settings" aria-label="Open Settings">
                                 <ProjectIcon name='settings' size={24} />
                             </button>
                         </div>
@@ -98,7 +98,7 @@ export default function Journal({ journal = [], setJournal, onOpenLedger }) {
             </div>
 
             {/* Drawer (Only for Entries) */}
-            <div className={`absolute top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-out ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute top-0 right-0 h-full w-80 z-50 transform transition-all duration-300 ease-out ${isDrawerOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}`}>
                 <div className='h-full w-full bg-black/90 backdrop-blur-2xl border-l border-white/10 flex flex-col shadow-2xl'>
                     <div className='flex items-center justify-between p-4 border-b border-white/5'>
                         <span className='text-xs font-bold uppercase tracking-wider text-zinc-400'>Settings</span>

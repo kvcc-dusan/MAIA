@@ -49,12 +49,13 @@ export default function GraphControls({
             <button
                 onClick={() => setIsPanelOpen(!isPanelOpen)}
                 className="absolute top-4 right-4 z-50 p-2 text-zinc-400 hover:text-white bg-black/50 backdrop-blur rounded-lg border border-white/10 transition-colors"
+                aria-label="Toggle Graph Controls"
             >
                 <ProjectIcon name="settings" size={20} />
             </button>
 
             {/* Panel Drawer */}
-            <div className={`absolute top-0 right-0 h-full w-80 z-40 transition-transform duration-300 ease-in-out ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute top-0 right-0 h-full w-80 z-[60] transition-all duration-300 ease-in-out ${isPanelOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}`}>
                 <GlassCard className="h-full w-full border-l border-white/10 bg-black/80 backdrop-blur-2xl flex flex-col rounded-none">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -65,6 +66,7 @@ export default function GraphControls({
                         <button
                             onClick={() => setIsPanelOpen(false)}
                             className="text-zinc-500 hover:text-white transition-colors"
+                            aria-label="Close Controls"
                         >
                             <ProjectIcon name="check" size={16} />
                         </button>

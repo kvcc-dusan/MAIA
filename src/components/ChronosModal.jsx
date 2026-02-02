@@ -274,7 +274,7 @@ export default function ChronosModal({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-xs text-zinc-500 font-mono uppercase tracking-widest">{today.toLocaleDateString()}</div>
-              <button onClick={onClose} className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">×</button>
+              <button onClick={onClose} className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" aria-label="Close">×</button>
             </div>
           </div>
 
@@ -283,7 +283,7 @@ export default function ChronosModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Priority</div>
-                <button onClick={openTaskModal} className="text-zinc-400 hover:text-white text-lg leading-none">+</button>
+                <button onClick={openTaskModal} className="text-zinc-400 hover:text-white text-lg leading-none" aria-label="Add Task">+</button>
               </div>
 
               <div className="space-y-1">
@@ -325,7 +325,7 @@ export default function ChronosModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Signals & Reminders</div>
-                <button onClick={() => setShowReminderModal(true)} className="text-zinc-400 hover:text-white text-lg leading-none">+</button>
+                <button onClick={() => setShowReminderModal(true)} className="text-zinc-400 hover:text-white text-lg leading-none" aria-label="Add Reminder">+</button>
               </div>
 
               <div className="space-y-1">
@@ -373,8 +373,8 @@ export default function ChronosModal({
               })}
             </span>
             <div className="flex items-center gap-1">
-              <button onClick={() => setView((v) => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-400">‹</button>
-              <button onClick={() => setView((v) => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-400">›</button>
+              <button onClick={() => setView((v) => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-400" aria-label="Previous Month">‹</button>
+              <button onClick={() => setView((v) => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-400" aria-label="Next Month">›</button>
             </div>
           </div>
 

@@ -11,6 +11,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
         ${active ? "bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] scale-110" : "hover:bg-white/5 hover:scale-110 hover:-translate-y-1"}
       `}
             title={label}
+            aria-label={label}
         >
             <span className="text-xl opacity-80 group-hover:opacity-100 transition-opacity">{icon}</span>
             {/* Active Dot */}

@@ -92,6 +92,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px white, 0 0 15px rgba(255, 255, 255, 0.5);
+  }
 }
 
 @layer utilities {
