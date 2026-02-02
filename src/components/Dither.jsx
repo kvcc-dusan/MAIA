@@ -3,7 +3,7 @@ import { useRef, useEffect, forwardRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, wrapEffect } from "@react-three/postprocessing";
 import { Effect } from "postprocessing";
-import * as THREE from "three";
+import { Uniform, Vector2, Color } from "three";
 
 /* ---------------- Shaders ---------------- */
 
@@ -146,8 +146,8 @@ void mainImage(in vec4 inputColor, in vec2 uv, out vec4 outputColor){
 class RetroEffectImpl extends Effect {
   constructor() {
     const uniforms = new Map([
-      ["colorNum", new THREE.Uniform(4.0)],
-      ["pixelSize", new THREE.Uniform(2.0)],
+      ["colorNum", new Uniform(4.0)],
+      ["pixelSize", new Uniform(2.0)],
     ]);
     super("RetroEffect", ditherFragmentShader, { uniforms });
     this.uniforms = uniforms;
@@ -180,19 +180,19 @@ function DitheredWaves({
   mouseRadius,
 }) {
   const mesh = useRef(null);
-  const mouseRef = useRef(new THREE.Vector2());
+  const mouseRef = useRef(new Vector2());
   const { viewport, size, gl } = useThree();
 
   const uniformsRef = useRef({
-    time: new THREE.Uniform(0),
-    resolution: new THREE.Uniform(new THREE.Vector2(0, 0)),
-    waveSpeed: new THREE.Uniform(waveSpeed),
-    waveFrequency: new THREE.Uniform(waveFrequency),
-    waveAmplitude: new THREE.Uniform(waveAmplitude),
-    waveColor: new THREE.Uniform(new THREE.Color(...waveColor)),
-    mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
-    enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
-    mouseRadius: new THREE.Uniform(mouseRadius),
+    time: new Uniform(0),
+    resolution: new Uniform(new Vector2(0, 0)),
+    waveSpeed: new Uniform(waveSpeed),
+    waveFrequency: new Uniform(waveFrequency),
+    waveAmplitude: new Uniform(waveAmplitude),
+    waveColor: new Uniform(new Color(...waveColor)),
+    mousePos: new Uniform(new Vector2(0, 0)),
+    enableMouseInteraction: new Uniform(enableMouseInteraction ? 1 : 0),
+    mouseRadius: new Uniform(mouseRadius),
   });
 
   // Keep resolution in sync with canvas size

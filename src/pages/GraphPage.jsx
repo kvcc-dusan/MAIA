@@ -1,6 +1,6 @@
 // @maia:graph
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import * as d3 from "d3";
+import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
 import { GlassCard } from "../components/GlassCard";
 import GraphRenderer from "../components/Graph/GraphRenderer.jsx";
@@ -199,9 +199,9 @@ export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, 
     const height = dims.h;
     const scale = 1.5; // Zoom level
 
-    d3.select(svgRef.current).transition().duration(1000).call(
+    select(svgRef.current).transition().duration(1000).call(
       zoomRef.current.transform,
-      d3.zoomIdentity
+      zoomIdentity
         .translate(width / 2, height / 2)
         .scale(scale)
         .translate(-targetNode.x, -targetNode.y)
