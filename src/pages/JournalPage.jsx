@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { uid, isoNow } from '../lib/ids.js';
 import EditorRich from '../components/EditorRich.jsx';
+import MarkdownDisplay from '../components/MarkdownDisplay.jsx';
 import GlassSurface from '../components/GlassSurface.jsx';
 import { GlassCard, GlassInput } from '../components/GlassCard';
 import ProjectIcon from '../components/ProjectIcon';
@@ -98,7 +99,7 @@ export default function Journal({ journal = [], setJournal, ledger, setLedger })
                                                     <span className='opacity-0 group-hover:opacity-100 transition-opacity'>{new Date(entry.createdAt).toLocaleDateString()}</span>
                                                 </div>
                                                 <div className='text-zinc-300 leading-relaxed opacity-90'>
-                                                    <EditorRich value={entry.content} editable={false} />
+                                                    <MarkdownDisplay content={entry.content} />
                                                 </div>
                                             </div>
                                         ))}

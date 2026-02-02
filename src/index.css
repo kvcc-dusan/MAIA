@@ -296,32 +296,39 @@ body {
 /* ========================================================================== */
 /* 🔢 REGULAR LISTS (bullets & numbers)                                       */
 /* ========================================================================== */
-.tiptap ul:not([data-type="taskList"]) {
+.tiptap ul:not([data-type="taskList"]),
+.prose ul:not(.contains-task-list) {
   list-style: disc;
   padding-left: 1.25rem;
   margin: 0.5rem 0 0.5rem 0.25rem;
 }
 
-.tiptap ol:not([data-type="taskList"]) {
+.tiptap ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) {
   list-style: decimal;
   padding-left: 1.25rem;
   margin: 0.5rem 0 0.5rem 0.25rem;
 }
 
 .tiptap ul:not([data-type="taskList"]) li,
-.tiptap ol:not([data-type="taskList"]) li {
+.tiptap ol:not([data-type="taskList"]) li,
+.prose ul:not(.contains-task-list) li,
+.prose ol:not(.contains-task-list) li {
   margin: 0.25rem 0;
 }
 
-.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]),
+.prose ul:not(.contains-task-list) ul:not(.contains-task-list) {
   list-style: circle;
 }
 
-.tiptap ol:not([data-type="taskList"]) ol:not([data-type="taskList"]) {
+.tiptap ol:not([data-type="taskList"]) ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) ol:not(.contains-task-list) {
   list-style: lower-alpha;
 }
 
-.tiptap ol:not([data-type="taskList"]) {
+.tiptap ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) {
   list-style-position: outside;
   /* keep marker separate */
   padding-left: 1.7rem;
@@ -329,14 +336,15 @@ body {
   text-indent: -0.25rem;
 }
 
-.tiptap ol:not([data-type="taskList"]) li::marker {
+.tiptap ol:not([data-type="taskList"]) li::marker,
+.prose ol:not(.contains-task-list) li::marker {
   font-variant-numeric: tabular-nums;
 }
 
 
 
 /* ========================================================================== */
-/* ☑️ TASK LISTS (TipTap TaskList/TaskItem)                                   */
+/* ☑️ TASK LISTS (TipTap TaskList/TaskItem + Markdown-it)                     */
 /* ========================================================================== */
 :root {
   --task-box: 16px;
@@ -347,14 +355,16 @@ body {
   /* line-height for task items */
 }
 
-.tiptap ul[data-type="taskList"] {
+.tiptap ul[data-type="taskList"],
+.prose .contains-task-list {
   list-style: none;
   padding-left: 0;
   margin: 0.5rem 0;
 }
 
 /* Item wrapper */
-.tiptap ul[data-type="taskList"]>li {
+.tiptap ul[data-type="taskList"]>li,
+.prose .contains-task-list .task-list-item {
   display: flex;
   align-items: flex-start;
   /* aligns box with first line */
@@ -364,7 +374,8 @@ body {
 }
 
 /* Checkbox column */
-.tiptap ul[data-type="taskList"]>li>label {
+.tiptap ul[data-type="taskList"]>li>label,
+.prose .contains-task-list .task-list-item-checkbox {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -376,7 +387,8 @@ body {
 }
 
 /* Checkbox appearance */
-.tiptap ul[data-type="taskList"]>li input[type="checkbox"] {
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"],
+.prose .contains-task-list .task-list-item-checkbox {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -390,12 +402,14 @@ body {
   box-shadow: none;
 }
 
-.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked {
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked,
+.prose .contains-task-list .task-list-item-checkbox:checked {
   background: #fff;
   border-color: #fff;
 }
 
-.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked::after {
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked::after,
+.prose .contains-task-list .task-list-item-checkbox:checked::after {
   content: none;
 }
 
@@ -414,13 +428,15 @@ body {
 }
 
 /* Nested task list + vertical guide */
-.tiptap ul[data-type="taskList"] ul[data-type="taskList"] {
+.tiptap ul[data-type="taskList"] ul[data-type="taskList"],
+.prose .contains-task-list .contains-task-list {
   position: relative;
   margin-left: 1.25rem;
   padding-left: calc(var(--task-gap) + 2px);
 }
 
-.tiptap ul[data-type="taskList"] ul[data-type="taskList"]::before {
+.tiptap ul[data-type="taskList"] ul[data-type="taskList"]::before,
+.prose .contains-task-list .contains-task-list::before {
   content: "";
   position: absolute;
   left: 0.25rem;
