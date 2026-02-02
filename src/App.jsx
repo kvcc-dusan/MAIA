@@ -267,6 +267,7 @@ function AppContent() {
               <button
                 onClick={() => setLedgerOpen(false)}
                 className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
+                aria-label="Close Ledger"
               >
                 ✕
               </button>
