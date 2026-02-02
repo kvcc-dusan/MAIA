@@ -24,8 +24,13 @@ export default function WorldMapWidget({ weather }) {
 
     // D3 Map Logic
     const mapData = useMemo(() => {
+        console.log("DEBUG: land110 raw", land110);
+        if (!land110 || !land110.objects) {
+            console.error("DEBUG: land110 missing or no objects");
+            return null;
+        }
         return feature(land110, land110.objects.land);
-    }, []);
+    }, [land110]);
 
     const { pathD, dotPos } = useMemo(() => {
         const width = 300;
@@ -39,7 +44,8 @@ export default function WorldMapWidget({ weather }) {
             .translate([width / 2, height / 2]);
 
         const pathGenerator = geoPath().projection(projection);
-        const pathD = pathGenerator(mapData);
+        const pathD = mapData ? pathGenerator(mapData) : "";
+        console.log("DEBUG: pathD result", pathD);
 
         let dotPos = null;
         if (coords) {
