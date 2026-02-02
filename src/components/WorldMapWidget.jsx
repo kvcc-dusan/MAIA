@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { geoEquirectangular, geoPath, geoGraticule10 } from "d3-geo";
+import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json";
 import GlassSurface from "./GlassSurface";
