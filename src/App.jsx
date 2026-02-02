@@ -9,6 +9,7 @@ import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 import DecisionLedger from "./components/DecisionLedger.jsx";
 import GlassSurface from "./components/GlassSurface.jsx";
+import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 
 // Pages
 // Pages
@@ -165,8 +166,9 @@ function AppContent() {
         <main className="h-full overflow-hidden min-h-0 relative">
           {/* Background noise/gradient could go here if global */}
 
-          <React.Suspense fallback={<div className="flex h-full items-center justify-center text-zinc-500 text-sm animate-pulse">Loading...</div>}>
-            {currentPage === "journal" && (
+          <GlassErrorBoundary>
+            <React.Suspense fallback={<div className="flex h-full items-center justify-center text-zinc-500 text-sm animate-pulse">Loading...</div>}>
+              {currentPage === "journal" && (
               <JournalPage
                 journal={journal}
                 setJournal={setJournal}
@@ -243,7 +245,8 @@ function AppContent() {
                 onOpenNote={selectItem}
               />
             )}
-          </React.Suspense>
+            </React.Suspense>
+          </GlassErrorBoundary>
         </main>
       </div>
 
