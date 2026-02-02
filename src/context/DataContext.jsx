@@ -115,8 +115,13 @@ export function DataProvider({ children }) {
     };
 
     const deleteProject = (id) => {
-        // Logic from Projects.jsx regarding checking notes membership could be moved here or kept in UI
-        // For now, raw delete
+        // Cascade: Remove this project ID from all notes
+        setNotes((prev) => prev.map(n => {
+            if (n.projectIds && n.projectIds.includes(id)) {
+                return { ...n, projectIds: n.projectIds.filter(pid => pid !== id) };
+            }
+            return n;
+        }));
         setProjects((prev) => prev.filter((p) => p.id !== id));
     };
 
