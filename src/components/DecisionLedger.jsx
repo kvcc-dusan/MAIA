@@ -20,8 +20,17 @@ function NewDecisionModal({ onClose, onSubmit }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl">
+        <div
+            className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="w-full sm:max-w-lg bg-zinc-950 border-t sm:border border-zinc-800 rounded-t-xl sm:rounded-xl p-6 shadow-2xl pb-12 sm:pb-6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Mobile Handle */}
+                <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 sm:hidden" />
+
                 <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                     Log New Decision
@@ -102,8 +111,17 @@ function ReviewModal({ decision, onClose, onReview }) {
     const [status, setStatus] = useState("success"); // success, failure, mixed
 
     return (
-        <div className="fixed inset-0 bg-black/80 grid place-items-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl">
+        <div
+            className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="w-full sm:max-w-lg bg-zinc-950 border-t sm:border border-zinc-800 rounded-t-xl sm:rounded-xl p-6 shadow-2xl pb-12 sm:pb-6"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Mobile Handle */}
+                <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6 sm:hidden" />
+
                 <h2 className="text-lg font-semibold mb-6">Review Decision Outcome</h2>
                 <div className="mb-6 p-3 bg-zinc-900/50 rounded-lg border border-zinc-800">
                     <div className="text-zinc-400 text-xs uppercase mb-1">Decision</div>

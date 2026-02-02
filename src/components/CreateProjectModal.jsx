@@ -27,9 +27,18 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-md p-4">
-                <GlassSurface className="p-6 md:p-8 rounded-2xl relative z-10">
+        <div
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={onClose}
+        >
+            <div
+                className="w-full sm:max-w-md p-0 sm:p-4 transition-all duration-300 ease-out slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <GlassSurface className="p-6 md:p-8 rounded-t-2xl rounded-b-none sm:rounded-2xl border-b-0 sm:border-b relative z-10 pb-12 sm:pb-8">
+                    {/* Mobile Handle */}
+                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6 sm:hidden" />
+
                     <h2 className="text-xl font-bold text-white mb-6 font-mono tracking-tight text-center">Inception Protocol</h2>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
