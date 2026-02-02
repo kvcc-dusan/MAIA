@@ -1,5 +1,5 @@
 // src/pages/NotesPage.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GlassSurface from "../components/GlassSurface";
 import ProjectIcon from "../components/ProjectIcon";
 
@@ -54,7 +54,7 @@ export default function NotesOverview({
   const pinned = useMemo(() => new Set(pinnedArr), [pinnedArr]);
 
   // helpers
-  const isPinned = (id) => pinned.has(id);
+  const isPinned = useCallback((id) => pinned.has(id), [pinned]);
 
   // open context menu at cursor
   const openMenu = (e, id) => {
@@ -147,7 +147,7 @@ export default function NotesOverview({
       ...arr.filter((n) => !isPinned(n.id)),
     ];
     return pinnedOnTop;
-  }, [notes, sort, parsedFilter, pinned]);
+  }, [notes, sort, parsedFilter, isPinned]);
 
   // pin/unpin
   const togglePin = (id) => {

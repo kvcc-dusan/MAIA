@@ -233,7 +233,7 @@ export default function GraphRenderer({
         }, 500);
 
         return () => simulation.stop();
-    }, [nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance]);
+    }, [nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, setHoveredNode, svgRef, zoomRef]);
 
     // --- SEARCH VISUAL EFFECT ---
     // Handle "Dimming" and "Highlighting" without restarting simulation
@@ -267,7 +267,7 @@ export default function GraphRenderer({
             return match ? 1 : 0;
         });
 
-    }, [searchQuery, nodes]);
+    }, [searchQuery, nodes, svgRef]);
 
 
     // Helper Functions

@@ -66,7 +66,7 @@ export default function Projects({
     if (!activeId && normalizedProjects.length > 0 && !targetProjectId) {
       setActiveId(normalizedProjects[0].id);
     }
-  }, [normalizedProjects.length, activeId, targetProjectId]);
+  }, [normalizedProjects, activeId, targetProjectId]);
 
   const activeProject = useMemo(
     () => normalizedProjects.find((p) => p.id === activeId) || null,

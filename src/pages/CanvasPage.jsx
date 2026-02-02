@@ -1,5 +1,5 @@
 // @maia:tabula (react-konva canvas)
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Stage, Layer, Line, Group, Rect, Text as KText, Arrow, Image as KImage, Circle } from "react-konva";
 import Konva from "konva";
 
@@ -70,21 +70,22 @@ export default function CanvasBoard({ goHome }) {
   const linkingFromRef = useRef(null);                   // id while linking
   const [currentStrokeId, setCurrentStrokeId] = useState(null);
 
+  // State ref to allow stable pushHistory
+  const stateRef = useRef({ strokes, notes, images, links, stagePos, stageScale });
+  useEffect(() => {
+    stateRef.current = { strokes, notes, images, links, stagePos, stageScale };
+  }, [strokes, notes, images, links, stagePos, stageScale]);
+
   // history
   const hist = useRef({ stack: [], idx: -1 });
-  const pushHistory = () => {
-    const snapshot = {
-      strokes: deepClone(strokes),
-      notes: deepClone(notes),
-      images: deepClone(images),
-      links: deepClone(links),
-      stagePos: { ...stagePos },
-      stageScale,
-    };
+
+  const pushHistory = useCallback(() => {
+    const snapshot = deepClone(stateRef.current);
     const s = hist.current;
     s.stack = s.stack.slice(0, s.idx + 1).concat(snapshot).slice(-100);
     s.idx = s.stack.length - 1;
-  };
+  }, []);
+
   const undo = () => {
     const s = hist.current;
     if (s.idx <= 0) return;
@@ -111,7 +112,7 @@ export default function CanvasBoard({ goHome }) {
   };
 
   // first snapshot
-  useEffect(() => { pushHistory(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { pushHistory(); }, [pushHistory]);
 
   /* -------------------------------------------
      Pan & zoom
@@ -295,7 +296,9 @@ export default function CanvasBoard({ goHome }) {
         ta.removeEventListener("blur", onBlur);
         ta.removeEventListener("keydown", onKey);
         if (document.body.contains(ta)) document.body.removeChild(ta);
-      } catch {}
+      } catch {
+        // ignore
+      }
     };
     // eslint-disable-next-line
   }, [editing, stagePos, stageScale]);
@@ -342,7 +345,7 @@ export default function CanvasBoard({ goHome }) {
       ["dragenter", "dragover"].forEach((t) => el.removeEventListener(t, onPrevent));
       el.removeEventListener("drop", onDrop);
     };
-  }, [wrapRef]);
+  }, [wrapRef, pushHistory]);
 
   /* -------------------------------------------
      UI actions

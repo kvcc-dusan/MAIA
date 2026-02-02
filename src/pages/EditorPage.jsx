@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import GlassSurface from "../components/GlassSurface.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
@@ -9,15 +9,13 @@ const modeKey = (id) => `maia:note-mode:${id}`;
 
 export default function Editor({ note, updateNote, projects = [] }) {
   const [local, setLocal] = useState(note);
-  const [mode, setMode] = useState("edit"); // "edit" | "read"
-
-  useEffect(() => {
-    setLocal(note);
+  const [mode, setMode] = useState(() => {
     if (note?.id) {
       const saved = localStorage.getItem(modeKey(note.id));
-      setMode(saved === "read" ? "read" : "edit");
+      return saved === "read" ? "read" : "edit";
     }
-  }, [note?.id]);
+    return "edit";
+  });
 
   // Persist
   useDebounced(() => {
