@@ -10,6 +10,7 @@ import CommandPalette from "./components/CommandPalette.jsx";
 import DecisionLedger from "./components/DecisionLedger.jsx";
 import GlassSurface from "./components/GlassSurface.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
+import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 
 // Pages
 // Pages
@@ -166,86 +167,88 @@ function AppContent() {
         <main className="h-full overflow-hidden min-h-0 relative">
           {/* Background noise/gradient could go here if global */}
 
-          <React.Suspense fallback={<GlassSkeleton />}>
-            {currentPage === "journal" && (
-              <JournalPage
-                journal={journal}
-                setJournal={setJournal}
-                ledger={ledger}
-                setLedger={setLedger}
-                onOpenLedger={() => setLedgerOpen(true)}
-              />
-            )}
+          <GlassErrorBoundary>
+            <React.Suspense fallback={<GlassSkeleton />}>
+              {currentPage === "journal" && (
+                <JournalPage
+                  journal={journal}
+                  setJournal={setJournal}
+                  ledger={ledger}
+                  setLedger={setLedger}
+                  onOpenLedger={() => setLedgerOpen(true)}
+                />
+              )}
 
-            {currentPage === "review" && (
-              <ReviewPage
-                notes={notes}
-                projects={projects}
-                journal={journal}
-                setJournal={setJournal}
-                pushToast={pushToast}
-              />
-            )}
+              {currentPage === "review" && (
+                <ReviewPage
+                  notes={notes}
+                  projects={projects}
+                  journal={journal}
+                  setJournal={setJournal}
+                  pushToast={pushToast}
+                />
+              )}
 
-            {currentPage === "home" && (
-              <HomePage
-                tasks={tasks}
-                reminders={reminders}
-                onOpenPulse={() => setChronosOpen(true)}
-              />
-            )}
+              {currentPage === "home" && (
+                <HomePage
+                  tasks={tasks}
+                  reminders={reminders}
+                  onOpenPulse={() => setChronosOpen(true)}
+                />
+              )}
 
-            {currentPage === "overview" && (
-              <NotesPage
-                notes={filteredNotes}
-                selectNote={selectItem}
-                onDelete={deleteNote}
-                onRename={renameNote}
-                onMove={moveNoteToProject}
-                projects={projects}
-                onCreateNote={handleCreateNote}
-                onBack={() => setCurrentPage("home")}
-              />
-            )}
+              {currentPage === "overview" && (
+                <NotesPage
+                  notes={filteredNotes}
+                  selectNote={selectItem}
+                  onDelete={deleteNote}
+                  onRename={renameNote}
+                  onMove={moveNoteToProject}
+                  projects={projects}
+                  onCreateNote={handleCreateNote}
+                  onBack={() => setCurrentPage("home")}
+                />
+              )}
 
-            {currentPage === "canvas" && (
-              <CanvasPage goHome={() => setCurrentPage("home")} />
-            )}
+              {currentPage === "canvas" && (
+                <CanvasPage goHome={() => setCurrentPage("home")} />
+              )}
 
-            {currentPage === "projects" && (
-              <ProjectsPage
-                notes={notes}
-                projects={projects}
-                setProjects={setProjects}
-                setNotes={setNotes}
-                selectNote={selectItem}
-                targetProjectId={targetProjectId}
-                pushToast={pushToast}
-                // Lifted Project Creation State
-                isCreateModalOpen={projectModalOpen}
-                setCreateModalOpen={setProjectModalOpen}
-              />
-            )}
+              {currentPage === "projects" && (
+                <ProjectsPage
+                  notes={notes}
+                  projects={projects}
+                  setProjects={setProjects}
+                  setNotes={setNotes}
+                  selectNote={selectItem}
+                  targetProjectId={targetProjectId}
+                  pushToast={pushToast}
+                  // Lifted Project Creation State
+                  isCreateModalOpen={projectModalOpen}
+                  setCreateModalOpen={setProjectModalOpen}
+                />
+              )}
 
-            {currentPage === "editor" && (
-              <EditorPage
-                note={currentNote}
-                updateNote={updateNote}
-                onOpenInternalLink={openInternalByTitle}
-                projects={projects}
-              />
-            )}
+              {currentPage === "editor" && (
+                <EditorPage
+                  note={currentNote}
+                  updateNote={updateNote}
+                  onOpenInternalLink={openInternalByTitle}
+                  projects={projects}
+                />
+              )}
 
-            {currentPage === "graph" && (
-              <GraphPage
-                notes={notes}
-                projects={projects}
-                setNotes={setNotes}
-                setProjects={setProjects}
-                onOpenNote={selectItem}
-              />
-            )}
-          </React.Suspense>
+              {currentPage === "graph" && (
+                <GraphPage
+                  notes={notes}
+                  projects={projects}
+                  setNotes={setNotes}
+                  setProjects={setProjects}
+                  onOpenNote={selectItem}
+                />
+              )}
+            </React.Suspense>
+          </GlassErrorBoundary>
         </main>
       </div>
 
