@@ -1,26 +1,22 @@
 // @maia:graph-renderer
 import React, { useEffect, useRef } from "react";
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, drag, zoom, zoomIdentity } from "d3";
+import { select, drag, zoom, zoomIdentity } from "d3";
 import { dottedBg } from "../../lib/theme.js";
+import { useGraphSimulation } from "../../hooks/useGraphSimulation.js";
 
-// Theme Constants (Should be shared, but copying for now for isolation)
+// Theme Constants
 const COLORS = [
-    "#2dd4bf", // Teal (Growth)
-    "#f472b6", // Pink (Creative)
-    "#fbbf24", // Amber (Energy)
-    "#818cf8", // Indigo (Deep)
-    "#34d399", // Emerald
-    "#a78bfa", // Violet
+    "#2dd4bf", "#f472b6", "#fbbf24", "#818cf8", "#34d399", "#a78bfa",
 ];
 
 const THEME = {
     bg: "#000000",
-    nodeFill: "#e4e4e7", // zinc-200 (Light Gray)
-    nodeActive: "#ffffff", // Pure White
+    nodeFill: "#e4e4e7",
+    nodeActive: "#ffffff",
     nodeStroke: "none",
-    link: "#27272a", // zinc-800
-    text: "#a1a1aa", // zinc-400
-    textActive: "#f4f4f5", // zinc-100
+    link: "#27272a",
+    text: "#a1a1aa",
+    textActive: "#f4f4f5",
 };
 
 function GraphRenderer({
@@ -37,26 +33,34 @@ function GraphRenderer({
     linkDistance,
     searchQuery,
     setHoveredNode,
-    wrapperRef, // Optional if we want resizing handled inside or outside
-    svgRef,     // Passed from parent to allow imperative handleZoomToNode if needed, or we keep zoom logic here
-    zoomRef,    // passed ref
-    nodesRef,   // passed ref
-    searchRef   // passed ref
+    wrapperRef,
+    svgRef,
+    zoomRef,
+    nodesRef,
+    searchRef
 }) {
 
-    const gRef = useRef(null); // Store the main group for zooming
+    const gRef = useRef(null);
 
-    // Stable Refs for Callbacks to avoid effect re-runs
+    // Stable Refs for Callbacks to avoid effect re-runs (Performance Optimization)
     const onOpenNoteRef = useRef(onOpenNote);
     useEffect(() => { onOpenNoteRef.current = onOpenNote; }, [onOpenNote]);
 
     const setHoveredNodeRef = useRef(setHoveredNode);
     useEffect(() => { setHoveredNodeRef.current = setHoveredNode; }, [setHoveredNode]);
 
-    // --- D3 RENDER & SIMULATION ---
-    // Restart simulation only when topology (nodes/links), dimensions, or physics/sizing props change.
+    // Use the custom simulation hook (Refactor)
+    const simulation = useGraphSimulation({
+        nodes,
+        links,
+        dims,
+        repelForce,
+        linkDistance
+    });
+
+    // --- D3 RENDER ---
     useEffect(() => {
-        if (!svgRef.current) return;
+        if (!svgRef.current || !simulation) return;
 
         // Measurements
         const width = dims.w;
@@ -68,34 +72,23 @@ function GraphRenderer({
 
         // Layers
         const g = svg.append("g");
-        gRef.current = g; // Store for zoom
+        gRef.current = g;
 
         const linkLayer = g.append("g").attr("class", "links");
         const nodeLayer = g.append("g").attr("class", "nodes");
         const labelLayer = g.append("g").attr("class", "labels");
 
-        // Simulation
-        const simulation = forceSimulation(nodes)
-            .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
-            .force("charge", forceManyBody().strength(-repelForce))
-            .force("center", forceCenter(width / 2, height / 2))
-            .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
-
-        // Re-heat simulation on init to ensure layout settles
-        simulation.alpha(1).restart();
-
         // Update ref for Zoom access
         nodesRef.current = nodes;
 
         // Elements
-        // Use paths for curved 'elastic' links
         const link = linkLayer.selectAll("path")
             .data(links)
             .join("path")
             .attr("fill", "none")
             .attr("stroke", THEME.link)
             .attr("stroke-opacity", 0.6)
-            .attr("stroke-width", d => linkThickness)
+            .attr("stroke-width", linkThickness)
             .attr("class", "link-element");
 
         const node = nodeLayer.selectAll("circle")
@@ -118,15 +111,15 @@ function GraphRenderer({
             .text(d => d.title)
             .attr("font-size", d => (10 + d.val) * fontSize)
             .attr("fill", THEME.text)
-            .attr("text-anchor", "middle") // Center text horizontally
-            .attr("dy", d => 28 + d.val) // Position below the node with more gap
-            .attr("opacity", 0.7) // Default visible but slightly transparent
+            .attr("text-anchor", "middle")
+            .attr("dy", d => 28 + d.val)
+            .attr("opacity", 0.7)
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element");
 
 
-        // Interactions
+        // Interactions using Stable Refs
         node
             .on("click", (e, d) => {
                 const cb = onOpenNoteRef.current;
@@ -165,98 +158,80 @@ function GraphRenderer({
                 const isSearchActive = q.length > 0;
 
                 if (isSearchActive) {
-                    // Return to Search State
                     node.attr("opacity", n => {
                         const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0.1;
                     });
-
-                    // Ensure project color is preserved
                     node.attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-
-                    link.attr("stroke", THEME.link).attr("stroke-opacity", 0.1); // Dim links during search
+                    link.attr("stroke", THEME.link).attr("stroke-opacity", 0.1);
                     label.attr("opacity", n => {
                         const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0;
                     });
-
                 } else {
-                    // Return to Default State
                     link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
                     node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                    label.attr("opacity", d => (d.val > 2) ? 1 : 0); // Note: activeCluster check moved to separate effect
+                    label.attr("opacity", d => (d.val > 2) ? 1 : 0);
                 }
             });
 
-        // Simulation Tick
+        // Simulation Tick Linkage
         simulation.on("tick", () => {
             link.attr("d", d => {
                 const dx = d.target.x - d.source.x;
                 const dy = d.target.y - d.source.y;
-                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Multiplier flattens the curve slightly
+                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5;
                 if (dr === 0) return "";
                 return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
             });
-
-            node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
-
-            label
-                .attr("x", d => d.x)
-                .attr("y", d => d.y);
+            node.attr("cx", d => d.x).attr("cy", d => d.y);
+            label.attr("x", d => d.x).attr("y", d => d.y);
         });
 
-        // Zoom
+        // Zoom Behavior
         const zoomBehavior = zoom()
             .scaleExtent([0.1, 4])
             .on("zoom", (event) => {
                 g.attr("transform", event.transform);
-                // Semantic Zoom: Scale label opacity/size based on zoom level (k)
                 const k = event.transform.k;
                 label.attr("opacity", d => {
-                    // If searching, let search logic handle opacity unless we want semantic zoom on top
                     if (searchRef.current) {
                         const q = searchRef.current.toLowerCase();
                         const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0;
                     }
-
                     if (k > 1.5) return 1;
-                    // Fainter when zoomed out
                     if (k < 0.7 && d.val < 2) return 0.1;
                     return 0.5;
                 });
             });
 
-        zoomRef.current = zoomBehavior; // Store for external access
+        zoomRef.current = zoomBehavior;
         svg.call(zoomBehavior);
 
-        // Initial Zoom Fit (Delayed)
         setTimeout(() => {
-            // Simple approximate center
             svg.transition().duration(750).call(
                 zoomBehavior.transform,
                 zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
             );
         }, 500);
 
-        return () => simulation.stop();
-    }, [nodes, links, dims, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, svgRef, zoomRef]); // Removed: activeCluster, onOpenNote, setHoveredNode, searchQuery
+        return () => {
+            // Detach listener
+            simulation.on("tick", null);
+        };
+    }, [simulation, nodes, links, dims, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, svgRef, zoomRef]); // Removed callback deps (onOpenNote, etc)
 
-    // --- SEARCH & VISUAL EFFECT ---
-    // Handle "Dimming", "Highlighting", and "Active Cluster" without restarting simulation
+    // --- SEARCH EFFECT ---
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = select(svgRef.current);
         const node = svg.selectAll(".node-element");
         const label = svg.selectAll(".label-element");
         const link = svg.selectAll(".link-element");
-
         const q = searchQuery.toLowerCase().trim();
 
         if (q) {
-            // SEARCH MODE
             node.style("opacity", d => {
                 const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
                 return match ? 1 : 0.1;
@@ -267,45 +242,29 @@ function GraphRenderer({
                 return match ? 1 : 0;
             });
         } else {
-            // DEFAULT MODE
             node.style("opacity", 1).style("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
             link.style("opacity", 1).attr("stroke-opacity", 0.6);
-
-            // Show labels for important nodes OR active cluster
-            label.style("opacity", d => {
-                if (activeCluster !== null && activeCluster !== undefined) {
-                     return d.group === activeCluster ? 1 : 0;
-                }
-                return (d.val > 2) ? 1 : 0.5; // Fallback semantic visibility
-            });
+            label.style("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : (d.val > 2 ? 1 : 0.5));
         }
-
     }, [searchQuery, activeCluster, nodes, svgRef]);
 
 
-    // Helper Functions
     function createDrag(simulation) {
         function dragstarted(event) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
         }
-
         function dragged(event) {
             event.subject.fx = event.x;
             event.subject.fy = event.y;
         }
-
         function dragended(event) {
             if (!event.active) simulation.alphaTarget(0);
             event.subject.fx = null;
             event.subject.fy = null;
         }
-
-        return drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
+        return drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
     }
 
     return (
