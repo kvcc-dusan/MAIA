@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
@@ -40,15 +40,14 @@ function AppContent() {
     reminders, setReminders,
     // Actions
     createNote, updateNote, deleteNote, renameNote,
-    moveNoteToProject, updateProject, createProject, deleteProject,
-    addTask, addReminder
+    moveNoteToProject,
   } = useData();
 
   // Local state for navigation/selection that doesn't need persistence yet
   // or could be moved to context if we want deep linking later.
   const [currentNoteId, setCurrentNoteId] = useState(null);
   const [targetProjectId, setTargetProjectId] = useState(null);
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
 
   // NOTE: Simple Toast was local to App. 
   // Ideally this moves to a UI Context, but for now we keep it here and pass down.
@@ -111,16 +110,16 @@ function AppContent() {
   const go = (page) => setCurrentPage(page);
 
   // Command Palette Helpers
-  const quickAddTask = (title) => {
-    addTask(title);
-    pushToast("Task added");
-  };
+  // const quickAddTask = (title) => {
+  //   addTask(title);
+  //   pushToast("Task added");
+  // };
 
-  const quickAddReminder = (title) => {
-    const when = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    addReminder(title, when);
-    pushToast("Reminder set for +15 min");
-  };
+  // const quickAddReminder = (title) => {
+  //   const when = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  //   addReminder(title, when);
+  //   pushToast("Reminder set for +15 min");
+  // };
 
   const handleCreateNote = () => {
     const id = createNote();
