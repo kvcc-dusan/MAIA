@@ -79,7 +79,11 @@ export default function WorldMapWidget({ weather }) {
     // Let's assume Land = #27272a (zinc-800) and Header BG = #27272a.
 
     return (
-        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40">
+        <GlassSurface
+            className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40"
+            role="region"
+            aria-label="Current Weather and Location"
+        >
 
             <div className="flex flex-col w-full h-full">
 
@@ -95,7 +99,7 @@ export default function WorldMapWidget({ weather }) {
                         <div className="text-sm text-zinc-300 font-medium tracking-wide">
                             {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                         </div>
-                        <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono mt-1">
+                        <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-mono mt-1">
                             EUROPE/LJUBLJANA
                         </div>
                     </div>
@@ -108,7 +112,12 @@ export default function WorldMapWidget({ weather }) {
                   if we want strict clipping. But flex-1 does that.
                */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <svg viewBox="0 0 300 180" className="w-[110%] h-[110%] opacity-100" preserveAspectRatio="xMidYMid slice">
+                        <svg
+                            viewBox="0 0 300 180"
+                            className="w-[110%] h-[110%] opacity-100"
+                            preserveAspectRatio="xMidYMid slice"
+                            aria-hidden="true"
+                        >
                             {/* Land: Using a color that matches the dark header vibe, maybe slightly lighter to stand out against the deep black of the card? 
                             Or if the user said EXACT same... 
                             If I make it exactly the same, it might vanish if the background is also same.

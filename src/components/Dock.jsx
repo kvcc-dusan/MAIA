@@ -8,6 +8,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
             onClick={onClick}
             className={`
         group relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all duration-300 ease-out
+        focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none
         ${active ? "bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] scale-110" : "hover:bg-white/5 hover:scale-110 hover:-translate-y-1"}
       `}
             title={label}
@@ -22,7 +23,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
     );
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50" aria-label="Main Navigation">
             <GlassSurface className="rounded-2xl">
                 <div className="px-4 py-3 flex items-center gap-2">
                     {/* APPS */}
@@ -84,6 +85,6 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
                     />
                 </div>
             </GlassSurface>
-        </div>
+        </nav>
     );
 }

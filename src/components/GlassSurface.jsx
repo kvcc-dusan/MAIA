@@ -1,8 +1,8 @@
 import React from "react";
 
-const GlassSurface = ({ children, className = "" }) => {
+const GlassSurface = ({ children, className = "", ...props }) => {
     return (
-        <div className={`relative w-full h-full overflow-hidden rounded-[20px] ${className}`}>
+        <div className={`relative w-full h-full overflow-hidden rounded-[20px] ${className}`} {...props}>
             {/* 
         The SVG Filter Definition 
         - Creates a subtle 'turbulence' noise map
