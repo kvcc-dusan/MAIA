@@ -4,7 +4,7 @@ import { Stage, Layer, Line, Group, Rect, Text as KText, Arrow, Image as KImage,
 import Konva from "konva";
 
 const dottedBg = {
-  backgroundColor: "#000",
+  backgroundColor: "var(--color-bg-base)",
   backgroundImage: "radial-gradient(rgba(255,255,255,0.10) 1px, transparent 1px)",
   backgroundSize: "20px 20px",
   backgroundPosition: "-10px -10px",
@@ -261,8 +261,8 @@ export default function CanvasBoard({ goHome }) {
     ta.style.width = `${(note.w - 24) * scale}px`;
     ta.style.height = `${(note.h - 24) * scale}px`;
     ta.style.background = "rgba(0,0,0,0.9)";
-    ta.style.color = "#e4e4e7";
-    ta.style.border = "1px solid #3f3f46";
+    ta.style.color = "var(--color-text-primary)";
+    ta.style.border = "1px solid var(--color-border-default)";
     ta.style.outline = "none";
     ta.style.resize = "none";
     ta.style.padding = `${8 * scale}px`;
@@ -366,7 +366,16 @@ export default function CanvasBoard({ goHome }) {
     return { x: n.x + n.w / 2, y: n.y + n.h / 2 };
   };
 
-  const palette = ["#ffffff", "#a1a1aa", "#60a5fa", "#818cf8", "#22d3ee", "#34d399", "#f59e0b", "#f43f5e"];
+  const palette = [
+    "var(--color-highlight)",
+    "var(--color-text-secondary)",
+    "var(--color-sky)",
+    "var(--color-indigo)",
+    "var(--color-teal)",
+    "var(--color-emerald)",
+    "var(--color-amber)",
+    "var(--color-rose)"
+  ];
 
   /* -------------------------------------------
      Render
@@ -423,7 +432,7 @@ export default function CanvasBoard({ goHome }) {
                 className="w-5 h-5 rounded-full"
                 style={{
                   background: c,
-                  boxShadow: drawColor === c && !eraseOn ? "0 0 0 2px #fff, inset 0 0 0 1px #000" : "inset 0 0 0 1px rgba(0,0,0,0.45)",
+                  boxShadow: drawColor === c && !eraseOn ? "0 0 0 2px var(--color-highlight), inset 0 0 0 1px var(--color-bg-base)" : "inset 0 0 0 1px rgba(0,0,0,0.45)",
                 }}
                 title={c}
               />
@@ -481,8 +490,8 @@ export default function CanvasBoard({ goHome }) {
                 points={[a.x, a.y, b.x, b.y]}
                 pointerLength={10}
                 pointerWidth={10}
-                stroke="#71717a"
-                fill="#71717a"
+                stroke="var(--color-text-muted)"
+                fill="var(--color-text-muted)"
                 strokeWidth={2}
                 tension={0}
               />
@@ -527,8 +536,8 @@ export default function CanvasBoard({ goHome }) {
                 width={n.w}
                 height={n.h}
                 cornerRadius={12}
-                fill="#0b0b0b"
-                stroke={selectedId === n.id ? "#ffffff" : "#3f3f46"}
+                fill="var(--color-bg-subtle)"
+                stroke={selectedId === n.id ? "var(--color-highlight)" : "var(--color-border-default)"}
                 strokeWidth={selectedId === n.id ? 1.5 : 1}
                 shadowBlur={selectedId === n.id ? 4 : 0}
               />
@@ -540,13 +549,13 @@ export default function CanvasBoard({ goHome }) {
                 text={n.text}
                 fontSize={14}
                 fontFamily="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-                fill="#e4e4e7"
+                fill="var(--color-text-primary)"
                 lineHeight={1.35}
                 wrap="word"
                 listening={false}
               />
               {/* little anchor to hint linking (optional visual) */}
-              <Circle x={n.w - 10} y={n.h / 2} radius={4} fill="#71717a" opacity={0.5} listening={false} />
+              <Circle x={n.w - 10} y={n.h / 2} radius={4} fill="var(--color-text-muted)" opacity={0.5} listening={false} />
             </Group>
           ))}
 
@@ -599,7 +608,7 @@ function URLImage({ id, x, y, w, h, src, selected, draggable, onDragMove, onSele
       onClick={onSelect}
     >
       <KImage image={image} width={w} height={h} />
-      <Rect width={w} height={h} stroke={selected ? "#ffffff" : "#3f3f46"} strokeWidth={selected ? 1.5 : 1} />
+      <Rect width={w} height={h} stroke={selected ? "var(--color-highlight)" : "var(--color-border-default)"} strokeWidth={selected ? 1.5 : 1} />
     </Group>
   );
 }
