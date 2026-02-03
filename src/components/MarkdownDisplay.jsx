@@ -3,7 +3,7 @@ import { makeMarkdown } from '../lib/markdown';
 
 const md = makeMarkdown();
 
-export default function MarkdownDisplay({ content, className = '' }) {
+function MarkdownDisplay({ content, className = '' }) {
     const html = useMemo(() => md.render(content || ''), [content]);
 
     return (
@@ -13,3 +13,5 @@ export default function MarkdownDisplay({ content, className = '' }) {
         />
     );
 }
+
+export default React.memo(MarkdownDisplay);

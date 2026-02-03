@@ -22,7 +22,8 @@ export function useHomeGreeting() {
   const [quote, setQuote] = useState(() => quoteForToday());
 
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
+    // Update every minute is sufficient for "Good morning/afternoon" and date string
+    const t = setInterval(() => setNow(new Date()), 60 * 1000);
     return () => clearInterval(t);
   }, []);
 

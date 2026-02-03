@@ -1,5 +1,5 @@
 // src/pages/HomePage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import GlassSurface from "../components/GlassSurface.jsx";
 import ColorBends from "../components/ColorBends.jsx";
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
@@ -71,10 +71,15 @@ async function reverseGeocode({ lat, lon }) {
 /* -------------------------------------------
    Home
 ------------------------------------------- */
+
+const MemoizedColorBends = React.memo(ColorBends);
+
 export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   const { now, quote, greeting } = useHomeGreeting();
   const [weatherSnap, setWeatherSnap] = useState(null);
-  const openPulse = () => onOpenPulse?.();
+
+  // Stable callback for the button
+  const openPulse = useCallback(() => onOpenPulse?.(), [onOpenPulse]);
 
   const userName = "Dušan";
 
@@ -136,11 +141,17 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   }, []);
 
   // Today data
-  const todayStr = now.toDateString();
-  const todayTasks = tasks.filter((t) => t.due && new Date(t.due).toDateString() === todayStr);
-  const todayReminders = reminders.filter(
-    (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
-  );
+  const todayStr = useMemo(() => now.toDateString(), [now]);
+
+  const todayTasks = useMemo(() => {
+    return tasks.filter((t) => t.due && new Date(t.due).toDateString() === todayStr);
+  }, [tasks, todayStr]);
+
+  const todayReminders = useMemo(() => {
+    return reminders.filter(
+      (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
+    );
+  }, [reminders, todayStr]);
 
 
   return (
@@ -148,7 +159,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
       {/* Background: React Bits Color Bends */}
       <div className="absolute inset-0 z-0">
-        <ColorBends
+        <MemoizedColorBends
           className="w-full h-full" // Full opacity for vibrancy
           rotation={-113}
           autoRotate={-5}
