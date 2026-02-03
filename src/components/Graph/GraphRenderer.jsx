@@ -1,7 +1,8 @@
 // @maia:graph-renderer
 import React, { useEffect, useRef } from "react";
-import { select, forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, drag, zoom, zoomIdentity } from "d3";
+import { select, drag, zoom, zoomIdentity } from "d3";
 import { dottedBg } from "../../lib/theme.js";
+import { useGraphSimulation } from "../../hooks/useGraphSimulation.js";
 
 // Theme Constants (Should be shared, but copying for now for isolation)
 const COLORS = [
@@ -46,9 +47,18 @@ export default function GraphRenderer({
 
     const gRef = useRef(null); // Store the main group for zooming
 
+    // Use the custom simulation hook
+    const simulation = useGraphSimulation({
+        nodes,
+        links,
+        dims,
+        repelForce,
+        linkDistance
+    });
+
     // --- D3 RENDER ---
     useEffect(() => {
-        if (!svgRef.current) return;
+        if (!svgRef.current || !simulation) return;
 
         // Measurements
         const width = dims.w;
@@ -66,16 +76,6 @@ export default function GraphRenderer({
         const nodeLayer = g.append("g").attr("class", "nodes");
         const labelLayer = g.append("g").attr("class", "labels");
 
-        // Simulation
-        const simulation = forceSimulation(nodes)
-            .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
-            .force("charge", forceManyBody().strength(-repelForce))
-            .force("center", forceCenter(width / 2, height / 2))
-            .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
-
-        // Re-heat simulation on init to ensure layout settles
-        simulation.alpha(1).restart();
-
         // Update ref for Zoom access
         nodesRef.current = nodes;
 
@@ -87,7 +87,7 @@ export default function GraphRenderer({
             .attr("fill", "none")
             .attr("stroke", THEME.link)
             .attr("stroke-opacity", 0.6)
-            .attr("stroke-width", d => linkThickness)
+            .attr("stroke-width", linkThickness)
             .attr("class", "link-element");
 
         const node = nodeLayer.selectAll("circle")
@@ -232,8 +232,10 @@ export default function GraphRenderer({
             );
         }, 500);
 
-        return () => simulation.stop();
-    }, [nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, setHoveredNode, svgRef, zoomRef]);
+        return () => {
+            simulation.on("tick", null);
+        };
+    }, [simulation, nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, setHoveredNode, svgRef, zoomRef]);
 
     // --- SEARCH VISUAL EFFECT ---
     // Handle "Dimming" and "Highlighting" without restarting simulation
