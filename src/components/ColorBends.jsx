@@ -4,33 +4,68 @@ import './ColorBends.css';
 
 const MAX_COLORS = 8;
 
+/**
+ * GLSL Fragment Shader
+ *
+ * This shader creates the fluid/liquid animation effect.
+ *
+ * ALGORITHM:
+ * 1. Normalized Coordinates: Converts UV to centered [-1, 1] space.
+ * 2. Rotation & Scaling: Applies base rotation and scaling factors.
+ * 3. Domain Warping:
+ *    - Uses layered sine/cosine functions to displace coordinates recursively.
+ *    - 's' is the seed coordinate, 'r' is the displacement vector.
+ *    - 'warped' is the final distorted coordinate.
+ * 4. Metaball-like Field:
+ *    - Calculates distance fields 'm0' (original) and 'm1' (warped).
+ *    - Mixes them based on warp strength to create organic stretching.
+ * 5. Color Mixing:
+ *    - For each input color, calculates a weight 'w' based on the field value.
+ *    - 'exp(-6.0 / exp(6.0 * m))' creates sharp, defined bands (isoline-like).
+ *    - Sums weighted colors to produce the final pixel color.
+ * 6. Noise & Dither: Adds high-frequency noise to prevent banding artifacts.
+ */
 const frag = `
 #define MAX_COLORS ${MAX_COLORS}
-uniform vec2 uCanvas;
-uniform float uTime;
-uniform float uSpeed;
-uniform vec2 uRot;
-uniform int uColorCount;
-uniform vec3 uColors[MAX_COLORS];
-uniform int uTransparent;
-uniform float uScale;
-uniform float uFrequency;
-uniform float uWarpStrength;
-uniform vec2 uPointer; // in NDC [-1,1]
-uniform float uMouseInfluence;
-uniform float uParallax;
-uniform float uNoise;
+uniform vec2 uCanvas;       // Canvas resolution
+uniform float uTime;        // Elapsed time for animation
+uniform float uSpeed;       // Animation speed multiplier
+uniform vec2 uRot;          // Rotation vector (cos, sin)
+uniform int uColorCount;    // Number of active colors
+uniform vec3 uColors[MAX_COLORS]; // Color array
+uniform int uTransparent;   // Boolean flag for transparency
+uniform float uScale;       // Zoom level
+uniform float uFrequency;   // Frequency of sine waves (complexity)
+uniform float uWarpStrength;// Intensity of domain warping
+uniform vec2 uPointer;      // Mouse position in NDC [-1, 1]
+uniform float uMouseInfluence; // Strength of mouse interaction
+uniform float uParallax;    // Parallax strength
+uniform float uNoise;       // Grain intensity
 varying vec2 vUv;
 
 void main() {
   float t = uTime * uSpeed;
+
+  // Center coordinates: [-1, 1]
   vec2 p = vUv * 2.0 - 1.0;
+
+  // Parallax shift based on mouse pointer
   p += uPointer * uParallax * 0.1;
+
+  // Rotate coordinates
   vec2 rp = vec2(p.x * uRot.x - p.y * uRot.y, p.x * uRot.y + p.y * uRot.x);
+
+  // Correct aspect ratio and apply scale
   vec2 q = vec2(rp.x * (uCanvas.x / uCanvas.y), rp.y);
   q /= max(uScale, 0.0001);
+
+  // Radial distortion (lens effect)
   q /= 0.5 + 0.2 * dot(q, q);
+
+  // Global drift
   q += 0.2 * cos(t) - 7.56;
+
+  // Interactive push/pull from mouse
   vec2 toward = (uPointer - rp);
   q += toward * uMouseInfluence * 0.2;
 
@@ -38,28 +73,47 @@ void main() {
     float a = 1.0;
 
     if (uColorCount > 0) {
+      // -- MULTI-COLOR MODE --
       vec2 s = q;
       vec3 sumCol = vec3(0.0);
       float cover = 0.0;
+
       for (int i = 0; i < MAX_COLORS; ++i) {
             if (i >= uColorCount) break;
-            s -= 0.01;
+            s -= 0.01; // Slight offset per layer
+
+            // Domain Warping: Displace coordinate 's' using sine waves
             vec2 r = sin(1.5 * (s.yx * uFrequency) + 2.0 * cos(s * uFrequency));
+
+            // Field 1: Base pattern
             float m0 = length(r + sin(5.0 * r.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+
+            // Warp parameters
             float kBelow = clamp(uWarpStrength, 0.0, 1.0);
-            float kMix = pow(kBelow, 0.3); // strong response across 0..1
-            float gain = 1.0 + max(uWarpStrength - 1.0, 0.0); // allow >1 to amplify displacement
+            float kMix = pow(kBelow, 0.3);
+            float gain = 1.0 + max(uWarpStrength - 1.0, 0.0);
+
+            // Calculate warped coordinate
             vec2 disp = (r - s) * kBelow;
             vec2 warped = s + disp * gain;
+
+            // Field 2: Distorted pattern
             float m1 = length(warped + sin(5.0 * warped.y * uFrequency - 3.0 * t + float(i)) / 4.0);
+
+            // Mix fields
             float m = mix(m0, m1, kMix);
+
+            // Banding function (Metaball-like falloff)
             float w = 1.0 - exp(-6.0 / exp(6.0 * m));
+
+            // Accumulate color
             sumCol += uColors[i] * w;
             cover = max(cover, w);
       }
       col = clamp(sumCol, 0.0, 1.0);
       a = uTransparent > 0 ? cover : 1.0;
     } else {
+        // -- FALLBACK RGB MODE --
         vec2 s = q;
         for (int k = 0; k < 3; ++k) {
             s -= 0.01;
@@ -77,6 +131,7 @@ void main() {
         a = uTransparent > 0 ? max(max(col.r, col.g), col.b) : 1.0;
     }
 
+    // Add film grain / noise
     if (uNoise > 0.0001) {
       float n = fract(sin(dot(gl_FragCoord.xy + vec2(uTime), vec2(12.9898, 78.233))) * 43758.5453123);
       col += (n - 0.5) * uNoise;
@@ -96,6 +151,18 @@ void main() {
 }
 `;
 
+/**
+ * ColorBends Component
+ *
+ * A high-performance, generative fluid background component.
+ * It renders a single full-screen quad using custom WebGL shaders (Three.js).
+ *
+ * Features:
+ * - Fluid simulation via domain warping shaders.
+ * - Reactive to mouse movement (parallax + distortion).
+ * - Fully configurable (colors, speed, complexity).
+ * - Transparent background support.
+ */
 export default function ColorBends({
     className,
     style,
@@ -116,19 +183,25 @@ export default function ColorBends({
     const rafRef = useRef(null);
     const materialRef = useRef(null);
     const resizeObserverRef = useRef(null);
+
+    // Mutable refs for animation state
     const rotationRef = useRef(rotation);
     const autoRotateRef = useRef(autoRotate);
     const pointerTargetRef = useRef(new Vector2(0, 0));
     const pointerCurrentRef = useRef(new Vector2(0, 0));
     const pointerSmoothRef = useRef(8);
 
+    // --- INIT THREE.JS SCENE ---
     useEffect(() => {
         const container = containerRef.current;
         const scene = new Scene();
+        // Orthographic camera for 2D feel
         const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
         const geometry = new PlaneGeometry(2, 2);
         const uColorsArray = Array.from({ length: MAX_COLORS }, () => new Vector3(0, 0, 0));
+
+        // Shader Material configuration
         const material = new ShaderMaterial({
             vertexShader: vert,
             fragmentShader: frag,
@@ -172,6 +245,7 @@ export default function ColorBends({
 
         const clock = new Clock();
 
+        // Handle Resizing
         const handleResize = () => {
             const w = container.clientWidth || 1;
             const h = container.clientHeight || 1;
@@ -189,27 +263,32 @@ export default function ColorBends({
             window.addEventListener('resize', handleResize);
         }
 
+        // Animation Loop
         const loop = () => {
             const dt = clock.getDelta();
             const elapsed = clock.elapsedTime;
             material.uniforms.uTime.value = elapsed;
 
+            // Calculate Rotation Matrix
             const deg = (rotationRef.current % 360) + autoRotateRef.current * elapsed;
             const rad = (deg * Math.PI) / 180;
             const c = Math.cos(rad);
             const s = Math.sin(rad);
             material.uniforms.uRot.value.set(c, s);
 
+            // Smooth Pointer Movement
             const cur = pointerCurrentRef.current;
             const tgt = pointerTargetRef.current;
             const amt = Math.min(1, dt * pointerSmoothRef.current);
             cur.lerp(tgt, amt);
             material.uniforms.uPointer.value.copy(cur);
+
             renderer.render(scene, camera);
             rafRef.current = requestAnimationFrame(loop);
         };
         rafRef.current = requestAnimationFrame(loop);
 
+        // Cleanup
         return () => {
             if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
             if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
@@ -223,6 +302,7 @@ export default function ColorBends({
         };
     }, [frequency, mouseInfluence, noise, parallax, scale, speed, transparent, warpStrength]);
 
+    // --- UPDATE PROPS (Hot Updates) ---
     useEffect(() => {
         const material = materialRef.current;
         const renderer = rendererRef.current;
@@ -271,6 +351,7 @@ export default function ColorBends({
         transparent
     ]);
 
+    // --- MOUSE LISTENER ---
     useEffect(() => {
         const material = materialRef.current;
         const container = containerRef.current;
@@ -278,6 +359,7 @@ export default function ColorBends({
 
         const handlePointerMove = e => {
             const rect = container.getBoundingClientRect();
+            // Convert to NDC [-1, 1] relative to center
             const x = ((e.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
             const y = -(((e.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
             pointerTargetRef.current.set(x, y);

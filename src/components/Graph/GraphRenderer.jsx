@@ -23,6 +23,32 @@ const THEME = {
     textActive: "#f4f4f5", // zinc-100
 };
 
+/**
+ * GraphRenderer Component
+ *
+ * Renders an interactive force-directed graph using D3.js within a React component.
+ * It manages the D3 simulation lifecycle, SVG rendering, and user interactions (drag, zoom, click).
+ *
+ * @param {Object} props
+ * @param {Array} props.nodes - List of graph nodes { id, title, val, type, ... }
+ * @param {Array} props.links - List of graph links { source, target, ... }
+ * @param {Object} props.dims - Dimensions object { w, h }
+ * @param {string} props.activeCluster - Currently active cluster ID for highlighting
+ * @param {boolean} props.showSignals - Toggle signal visualization (future feature)
+ * @param {Function} props.onOpenNote - Callback when a node is clicked
+ * @param {number} props.nodeSize - Base radius scale for nodes
+ * @param {number} props.linkThickness - Stroke width for links
+ * @param {number} props.fontSize - Base font size scale
+ * @param {number} props.repelForce - Strength of node repulsion (negative value)
+ * @param {number} props.linkDistance - Target distance for links
+ * @param {string} props.searchQuery - Current search string to filter/highlight nodes
+ * @param {Function} props.setHoveredNode - Callback to update parent state on hover
+ * @param {Object} props.wrapperRef - Ref for the container div
+ * @param {Object} props.svgRef - Ref for the SVG element (managed by parent or local)
+ * @param {Object} props.zoomRef - Ref to store D3 zoom behavior for external control
+ * @param {Object} props.nodesRef - Ref to store current nodes for external access
+ * @param {Object} props.searchRef - Ref to store current search query for D3 event closures
+ */
 export default function GraphRenderer({
     nodes,
     links,
@@ -47,6 +73,8 @@ export default function GraphRenderer({
     const gRef = useRef(null); // Store the main group for zooming
 
     // --- D3 RENDER ---
+    // This effect handles the initialization and "hot" updates of the D3 simulation.
+    // It runs whenever structural props (nodes/links) or config props change.
     useEffect(() => {
         if (!svgRef.current) return;
 
@@ -54,33 +82,38 @@ export default function GraphRenderer({
         const width = dims.w;
         const height = dims.h;
 
-        // Clean old
+        // Clean old D3 elements to prevent duplication on re-render
         const svg = select(svgRef.current);
         svg.selectAll("*").remove();
 
-        // Layers
+        // Layers setup: Order determines z-index (Links < Nodes < Labels)
         const g = svg.append("g");
-        gRef.current = g; // Store for zoom
+        gRef.current = g; // Store for zoom transforms
 
         const linkLayer = g.append("g").attr("class", "links");
         const nodeLayer = g.append("g").attr("class", "nodes");
         const labelLayer = g.append("g").attr("class", "labels");
 
-        // Simulation
+        // Simulation Setup
+        // forceLink: pulls linked nodes together
+        // forceManyBody: repels all nodes from each other (prevents clumping)
+        // forceCenter: pulls the whole graph to the center of the canvas
+        // forceCollide: prevents nodes from overlapping visually
         const simulation = forceSimulation(nodes)
             .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
             .force("charge", forceManyBody().strength(-repelForce))
             .force("center", forceCenter(width / 2, height / 2))
             .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
 
-        // Re-heat simulation on init to ensure layout settles
+        // Re-heat simulation on init to ensure layout settles quickly
         simulation.alpha(1).restart();
 
-        // Update ref for Zoom access
+        // Update ref for Zoom access outside this scope
         nodesRef.current = nodes;
 
-        // Elements
-        // Use paths for curved 'elastic' links
+        // --- Elements ---
+
+        // Links: Rendered as paths for curved 'elastic' appearance
         const link = linkLayer.selectAll("path")
             .data(links)
             .join("path")
@@ -90,10 +123,12 @@ export default function GraphRenderer({
             .attr("stroke-width", d => linkThickness)
             .attr("class", "link-element");
 
+        // Nodes: Circles sized by 'val' (value/importance)
         const node = nodeLayer.selectAll("circle")
             .data(nodes)
             .join("circle")
             .attr("r", d => {
+                // Project nodes are larger (10 base), others scale with value
                 const base = d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3));
                 return base * nodeSize;
             })
@@ -102,8 +137,9 @@ export default function GraphRenderer({
             .attr("stroke-width", 0)
             .style("cursor", "pointer")
             .attr("class", "node-element")
-            .call(createDrag(simulation));
+            .call(createDrag(simulation)); // Attach drag behavior
 
+        // Labels: Text elements centered below nodes
         const label = labelLayer.selectAll("text")
             .data(nodes)
             .join("text")
@@ -113,12 +149,12 @@ export default function GraphRenderer({
             .attr("text-anchor", "middle") // Center text horizontally
             .attr("dy", d => 28 + d.val) // Position below the node with more gap
             .attr("opacity", 0.7) // Default visible but slightly transparent
-            .style("pointer-events", "none")
+            .style("pointer-events", "none") // Let clicks pass through to nodes/canvas
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element");
 
 
-        // Interactions
+        // --- Interactions ---
         node
             .on("click", (e, d) => {
                 if (d.type === "project") {
@@ -130,7 +166,7 @@ export default function GraphRenderer({
             .on("mouseover", (e, d) => {
                 setHoveredNode(d);
 
-                // Highlight connections
+                // Highlight connections: Fade out unrelated links/nodes
                 link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
                     .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
@@ -156,7 +192,7 @@ export default function GraphRenderer({
                 const isSearchActive = q.length > 0;
 
                 if (isSearchActive) {
-                    // Return to Search State
+                    // Return to Search State logic
                     node.attr("opacity", n => {
                         const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0.1;
@@ -179,12 +215,13 @@ export default function GraphRenderer({
                 }
             });
 
-        // Simulation Tick
+        // Simulation Tick: Updates positions on every frame
         simulation.on("tick", () => {
             link.attr("d", d => {
                 const dx = d.target.x - d.source.x;
                 const dy = d.target.y - d.source.y;
-                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5; // Multiplier flattens the curve slightly
+                // Calculate curve radius for visual flair (larger radius = flatter curve)
+                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5;
                 if (dr === 0) return "";
                 return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
             });
@@ -198,7 +235,7 @@ export default function GraphRenderer({
                 .attr("y", d => d.y);
         });
 
-        // Zoom
+        // Zoom Behavior
         const zoomBehavior = zoom()
             .scaleExtent([0.1, 4])
             .on("zoom", (event) => {
@@ -225,7 +262,7 @@ export default function GraphRenderer({
 
         // Initial Zoom Fit (Delayed)
         setTimeout(() => {
-            // Simple approximate center
+            // Simple approximate center animation
             svg.transition().duration(750).call(
                 zoomBehavior.transform,
                 zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
@@ -237,6 +274,7 @@ export default function GraphRenderer({
 
     // --- SEARCH VISUAL EFFECT ---
     // Handle "Dimming" and "Highlighting" without restarting simulation
+    // This effect runs cheaply when searchQuery changes
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = select(svgRef.current);
@@ -270,10 +308,12 @@ export default function GraphRenderer({
     }, [searchQuery, nodes, svgRef]);
 
 
-    // Helper Functions
+    // Helper: Standard D3 Drag Behavior
     function createDrag(simulation) {
         function dragstarted(event) {
+            // 'active' indicates if the simulation is currently running. If not, restart it lightly.
             if (!event.active) simulation.alphaTarget(0.3).restart();
+            // Fix the node position to the pointer
             event.subject.fx = event.subject.x;
             event.subject.fy = event.subject.y;
         }
@@ -284,7 +324,8 @@ export default function GraphRenderer({
         }
 
         function dragended(event) {
-            if (!event.active) simulation.alphaTarget(0);
+            if (!event.active) simulation.alphaTarget(0); // Cooldown
+            // Release the node
             event.subject.fx = null;
             event.subject.fy = null;
         }
