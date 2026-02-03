@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Scene, OrthographicCamera, PlaneGeometry, Vector3, ShaderMaterial, Vector2, Mesh, WebGLRenderer, Clock, SRGBColorSpace } from 'three';
+import { Scene, OrthographicCamera, PlaneGeometry, Vector3, ShaderMaterial, Vector2, Mesh, WebGLRenderer, Clock, SRGBColorSpace, Color } from 'three';
 import './ColorBends.css';
 
 const MAX_COLORS = 8;
@@ -238,13 +238,23 @@ export default function ColorBends({
         material.uniforms.uParallax.value = parallax;
         material.uniforms.uNoise.value = noise;
 
-        const toVec3 = hex => {
-            const h = hex.replace('#', '').trim();
-            const v =
-                h.length === 3
-                    ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
-                    : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-            return new Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
+        const resolveColor = (str) => {
+            if (str && str.startsWith('var(')) {
+                const match = str.match(/var\(([^)]+)\)/);
+                if (match) {
+                    const varName = match[1].trim();
+                    // Try resolving from document root
+                    const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                    if (val) return val;
+                }
+            }
+            return str;
+        };
+
+        const toVec3 = colStr => {
+            const resolved = resolveColor(colStr);
+            const c = new Color(resolved);
+            return new Vector3(c.r, c.g, c.b);
         };
 
         const arr = (colors || []).filter(Boolean).slice(0, MAX_COLORS).map(toVec3);

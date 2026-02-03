@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { geoEquirectangular, geoPath, geoGraticule10 } from "d3-geo";
+import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
 import GlassSurface from "./GlassSurface";
@@ -30,7 +30,7 @@ export default function WorldMapWidget({ weather }) {
             return null;
         }
         return feature(land110, land110.objects.land);
-    }, [land110]);
+    }, []);
 
     const { pathD, dotPos } = useMemo(() => {
         const width = 300;
@@ -60,32 +60,16 @@ export default function WorldMapWidget({ weather }) {
     }, [mapData, coords]);
 
 
-    // Styles
-    // Header/Footer/Map match color: using a dark gray/black with high opacity
-    const SECTION_BG = "bg-[#18181b]"; // zinc-900 like
-    const MAP_FILL = "#18181b"; // Matching the background for "negative space" feel or slightly lighter?
-    // User asked: "match the exact same texture and color of the map... as the header background"
-    // If we make the land the same color as the header, and the "ocean" is transparent...
-    // Actually the user probably means the "ocean" should be the color of the header, and land is ...?
-    // "let's make also the map be the same texture and color as the header background" -> This implies the map SHAPE is that color.
-    // If the map shape is that color, what is the background? 
-    // Re-reading: "map be the same texture and color as the header background... so not the map background, but the map itself."
-    // So Land = Dark Header Color. Background = Transparent?
-    // If Land is Dark Header Color (dark gray), and it sits on a GlassSurface (dark), it might be invisible.
-    // Unless the GlassSurface is lighter?
-    // Let's try: Land = Header Color (#1f1f22 approx). Map container background = slightly lighter or transparent.
-    // Actually, usually "Header" is darker than "Body".
-    // If Land matches Header, and Header is dark... 
-    // Let's assume Land = #27272a (zinc-800) and Header BG = #27272a.
+    // Styles (Refactored to use CSS Variables)
 
     return (
-        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40">
+        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-maia-bg-glass">
 
             <div className="flex flex-col w-full h-full">
 
                 {/* HEADER: Weather & Location Info */}
                 {/* Darker background as requested */}
-                <div className="flex justify-between items-start p-5 pb-3 bg-black/40 z-20 relative">
+                <div className="flex justify-between items-start p-5 pb-3 bg-maia-bg-glass z-20 relative">
                     <div className="flex flex-col">
                         <span className="text-4xl font-light text-white tracking-tighter">
                             {temp ? `${Math.round(temp)}°` : "--"}
@@ -109,23 +93,19 @@ export default function WorldMapWidget({ weather }) {
                */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <svg viewBox="0 0 300 180" className="w-[110%] h-[110%] opacity-100" preserveAspectRatio="xMidYMid slice">
-                            {/* Land: Using a color that matches the dark header vibe, maybe slightly lighter to stand out against the deep black of the card? 
-                            Or if the user said EXACT same... 
-                            If I make it exactly the same, it might vanish if the background is also same.
-                            I will use a solid dark gray #27272a (zinc-800) which is common for these dark UI headers.
-                        */}
-                            <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+                            {/* Land */}
+                            <path d={pathD} fill="var(--color-bg-base)" fillOpacity="0.5" stroke="var(--color-highlight)" strokeWidth="0.5" strokeOpacity="0.1" />
 
                             {/* Location Dot */}
                             {dotPos && (
                                 <g>
                                     {/* Pulse: Expand (r 4->12) and Fade Out (opacity 0.6->0) */}
-                                    <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="#10b981">
+                                    <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="var(--color-emerald)">
                                         <animate attributeName="r" values="4;16" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
                                         <animate attributeName="opacity" values="0.6;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
                                     </circle>
                                     {/* Static center dot */}
-                                    <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#10b981" />
+                                    <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="var(--color-emerald)" />
                                 </g>
                             )}
                         </svg>
@@ -134,7 +114,7 @@ export default function WorldMapWidget({ weather }) {
 
                 {/* FOOTER: Date & Time */}
                 {/* Darker background matching header */}
-                <div className="p-4 py-3 bg-black/40 flex justify-between items-center z-20 relative">
+                <div className="p-4 py-3 bg-maia-bg-glass flex justify-between items-center z-20 relative">
                     <div className="flex flex-col">
                         <span className="text-xs text-zinc-400 font-mono tracking-wide">{dateStr}</span>
                     </div>

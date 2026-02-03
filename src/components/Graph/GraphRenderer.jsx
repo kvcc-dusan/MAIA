@@ -5,22 +5,22 @@ import { dottedBg } from "../../lib/theme.js";
 
 // Theme Constants (Should be shared, but copying for now for isolation)
 const COLORS = [
-    "#2dd4bf", // Teal (Growth)
-    "#f472b6", // Pink (Creative)
-    "#fbbf24", // Amber (Energy)
-    "#818cf8", // Indigo (Deep)
-    "#34d399", // Emerald
-    "#a78bfa", // Violet
+    "var(--color-teal)", // Teal (Growth)
+    "var(--color-pink)", // Pink (Creative)
+    "var(--color-amber)", // Amber (Energy)
+    "var(--color-indigo)", // Indigo (Deep)
+    "var(--color-emerald)", // Emerald
+    "var(--color-violet)", // Violet
 ];
 
 const THEME = {
-    bg: "#000000",
-    nodeFill: "#e4e4e7", // zinc-200 (Light Gray)
-    nodeActive: "#ffffff", // Pure White
+    bg: "var(--color-bg-base)",
+    nodeFill: "var(--color-text-primary)", // zinc-200
+    nodeActive: "var(--color-highlight)", // Pure White
     nodeStroke: "none",
-    link: "#27272a", // zinc-800
-    text: "#a1a1aa", // zinc-400
-    textActive: "#f4f4f5", // zinc-100
+    link: "var(--color-border-subtle)", // zinc-800
+    text: "var(--color-text-secondary)", // zinc-400
+    textActive: "var(--color-text-primary)", // zinc-100
 };
 
 export default function GraphRenderer({
@@ -87,7 +87,7 @@ export default function GraphRenderer({
             .attr("fill", "none")
             .attr("stroke", THEME.link)
             .attr("stroke-opacity", 0.6)
-            .attr("stroke-width", d => linkThickness)
+            .attr("stroke-width", () => linkThickness)
             .attr("class", "link-element");
 
         const node = nodeLayer.selectAll("circle")
@@ -131,7 +131,7 @@ export default function GraphRenderer({
                 setHoveredNode(d);
 
                 // Highlight connections
-                link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
+                link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "var(--color-highlight)" : THEME.link)
                     .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
                 node
@@ -296,7 +296,7 @@ export default function GraphRenderer({
     }
 
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden" ref={wrapperRef}>
+        <div className="relative w-full h-full bg-maia-bg-base overflow-hidden" ref={wrapperRef}>
             <div className="absolute inset-0 opacity-20 pointer-events-none" style={dottedBg} />
             <svg ref={svgRef} className="w-full h-full block" />
         </div>

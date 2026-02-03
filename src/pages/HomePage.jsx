@@ -144,7 +144,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
 
   return (
-    <div className="relative h-full w-full flex overflow-hidden bg-black text-white font-sans selection:bg-white/20">
+    <div className="relative h-full w-full flex overflow-hidden bg-maia-bg-base text-maia-text-primary font-sans selection:bg-maia-text-primary/20">
 
       {/* Background: React Bits Color Bends */}
       <div className="absolute inset-0 z-0">
@@ -160,13 +160,13 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
           parallax={1.3}
           noise={0.19}
           colors={[
-            "#1A3325", // Deep Forest Green
-            "#3D5A46", // Medium Moss
-            "#7C9082", // Sage
-            "#A6B4AC", // Mist
-            "#0F1C18", // Darker Earth
-            "#4A6657", // Muted Green
-            "#2C4437"  // Pine
+            "var(--color-home-1)", // Deep Forest Green
+            "var(--color-home-2)", // Medium Moss
+            "var(--color-home-3)", // Sage
+            "var(--color-home-4)", // Mist
+            "var(--color-home-5)", // Darker Earth
+            "var(--color-home-6)", // Muted Green
+            "var(--color-home-7)"  // Pine
           ]}
         />
         <div className="absolute inset-0 bg-black/20 pointer-events-none" /> {/* Lighter overlay for just enough text contrast */}
@@ -208,24 +208,24 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
           <GlassErrorBoundary>
             <GlassSurface className="p-6 flex flex-col min-h-[140px]">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Focus</span>
-                <button onClick={openPulse} className="text-[10px] text-zinc-400 hover:text-white transition-colors">OPEN CHRONOS</button>
+                <span className="text-[10px] uppercase tracking-widest text-maia-text-muted font-bold">Today's Focus</span>
+                <button onClick={openPulse} className="text-[10px] text-maia-text-secondary hover:text-maia-text-primary transition-colors">OPEN CHRONOS</button>
               </div>
 
               {todayTasks.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 text-xs text-center italic">
+                <div className="flex-1 flex flex-col items-center justify-center text-maia-text-muted text-xs text-center italic">
                   "No tasks for today."
                 </div>
               ) : (
                 <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
                   {todayTasks.slice(0, 3).map(task => (
-                    <div key={task.id} className="flex items-center gap-2 text-sm text-zinc-300">
-                      <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-zinc-700' : 'bg-white'}`} />
-                      <span className={task.done ? 'line-through text-zinc-600' : ''}>{task.title}</span>
+                    <div key={task.id} className="flex items-center gap-2 text-sm text-maia-text-secondary">
+                      <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-maia-border-default' : 'bg-maia-text-primary'}`} />
+                      <span className={task.done ? 'line-through text-maia-text-muted' : ''}>{task.title}</span>
                     </div>
                   ))}
                   {todayTasks.length > 3 && (
-                    <div className="text-[10px] text-zinc-600 pt-1">+{todayTasks.length - 3} more</div>
+                    <div className="text-[10px] text-maia-text-muted pt-1">+{todayTasks.length - 3} more</div>
                   )}
                 </div>
               )}
@@ -235,13 +235,13 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
           {/* Reminders / Quick Note */}
           <GlassErrorBoundary>
             <GlassSurface className="p-6 flex flex-col min-h-[100px]">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-3">Reminders</span>
+              <span className="text-[10px] uppercase tracking-widest text-maia-text-muted font-bold mb-3">Reminders</span>
               {todayReminders.length === 0 ? (
-                <div className="text-sm text-zinc-600 italic">Clean slate.</div>
+                <div className="text-sm text-maia-text-muted italic">Clean slate.</div>
               ) : (
                 <div className="space-y-1">
                   {todayReminders.slice(0, 2).map((r, i) => (
-                    <div key={i} className="text-xs text-zinc-400 truncate">• {r.title}</div>
+                    <div key={i} className="text-xs text-maia-text-secondary truncate">• {r.title}</div>
                   ))}
                 </div>
               )}

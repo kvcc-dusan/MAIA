@@ -2,15 +2,14 @@
 import React from "react";
 import { GlassCard, GlassInput } from "../GlassCard";
 import ProjectIcon from "../ProjectIcon";
-import { dottedBg } from "../../lib/theme.js";
 
 const COLORS = [
-    "#2dd4bf", // Teal (Growth)
-    "#f472b6", // Pink (Creative)
-    "#fbbf24", // Amber (Energy)
-    "#818cf8", // Indigo (Deep)
-    "#34d399", // Emerald
-    "#a78bfa", // Violet
+    "var(--color-teal)", // Teal (Growth)
+    "var(--color-pink)", // Pink (Creative)
+    "var(--color-amber)", // Amber (Energy)
+    "var(--color-indigo)", // Indigo (Deep)
+    "var(--color-emerald)", // Emerald
+    "var(--color-violet)", // Violet
 ];
 
 export default function GraphControls({
@@ -48,7 +47,7 @@ export default function GraphControls({
             {/* Panel Toggle Button */}
             <button
                 onClick={() => setIsPanelOpen(!isPanelOpen)}
-                className="absolute top-4 right-4 z-50 p-2 text-zinc-400 hover:text-white bg-black/50 backdrop-blur rounded-lg border border-white/10 transition-colors"
+                className="absolute top-4 right-4 z-50 p-2 text-maia-text-secondary hover:text-maia-text-primary bg-maia-bg-glass backdrop-blur rounded-lg border border-maia-border-highlight transition-colors"
                 aria-label="Toggle Graph Controls"
             >
                 <ProjectIcon name="settings" size={20} />
@@ -56,7 +55,7 @@ export default function GraphControls({
 
             {/* Panel Drawer */}
             <div className={`absolute top-0 right-0 h-full w-80 z-[60] transition-all duration-300 ease-in-out ${isPanelOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}`}>
-                <GlassCard className="h-full w-full border-l border-white/10 bg-black/80 backdrop-blur-2xl flex flex-col rounded-none">
+                <GlassCard className="h-full w-full border-l border-maia-border-highlight bg-maia-bg-glass-heavy backdrop-blur-2xl flex flex-col rounded-none">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/5">
                         <div className="flex items-center gap-2">
