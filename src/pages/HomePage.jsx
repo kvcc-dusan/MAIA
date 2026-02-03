@@ -147,30 +147,8 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
     <div className="relative h-full w-full flex overflow-hidden bg-black text-white font-sans selection:bg-white/20">
 
       {/* Background: React Bits Color Bends */}
-      <div className="absolute inset-0 z-0">
-        <ColorBends
-          className="w-full h-full" // Full opacity for vibrancy
-          rotation={-113}
-          autoRotate={-5}
-          speed={0.22}
-          scale={0.9}
-          frequency={1}
-          warpStrength={1}
-          mouseInfluence={1}
-          parallax={1.3}
-          noise={0.19}
-          colors={[
-            "#1A3325", // Deep Forest Green
-            "#3D5A46", // Medium Moss
-            "#7C9082", // Sage
-            "#A6B4AC", // Mist
-            "#0F1C18", // Darker Earth
-            "#4A6657", // Muted Green
-            "#2C4437"  // Pine
-          ]}
-        />
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" /> {/* Lighter overlay for just enough text contrast */}
-      </div>
+      {/* Background: Pitch Black as requested */}
+      <div className="absolute inset-0 z-0 bg-black" />
 
       {/*
         MAIN CONTENT GRID
@@ -206,7 +184,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
           {/* Today's Focus */}
           <GlassErrorBoundary>
-            <GlassSurface className="p-6 flex flex-col min-h-[140px]">
+            <GlassSurface className="p-6 flex flex-col min-h-[140px]" withGlow={true}>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Focus</span>
                 <button onClick={openPulse} className="text-[10px] text-zinc-400 hover:text-white transition-colors">OPEN CHRONOS</button>
@@ -234,7 +212,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
           {/* Reminders / Quick Note */}
           <GlassErrorBoundary>
-            <GlassSurface className="p-6 flex flex-col min-h-[100px]">
+            <GlassSurface className="p-6 flex flex-col min-h-[100px]" withGlow={true}>
               <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-3">Reminders</span>
               {todayReminders.length === 0 ? (
                 <div className="text-sm text-zinc-600 italic">Clean slate.</div>

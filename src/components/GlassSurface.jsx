@@ -1,8 +1,31 @@
-import React from "react";
+import ColorBends from "./ColorBends";
 
-const GlassSurface = ({ children, className = "" }) => {
+const GlassSurface = ({ children, className = "", withGlow = false }) => {
     return (
         <div className={`relative w-full h-full overflow-hidden rounded-[20px] ${className}`}>
+            {/* Optional Internal Glow (ColorBends) */}
+            {withGlow && (
+                <div className="absolute inset-0 z-0">
+                    <ColorBends
+                        className="w-full h-full"
+                        rotation={0}
+                        autoRotate={1}
+                        speed={0.2}
+                        scale={1.0} // Balanced zoom
+                        frequency={1.0}
+                        warpStrength={1.2}
+                        mouseInfluence={0}
+                        colors={[
+                            "#10b981", // Emerald-500 (Bright)
+                            "#3b82f6", // Blue-500 (Bright)
+                            "#ffffff", // White (Highlight)
+                            "#059669", // Emerald-600
+                            "#2563eb", // Blue-600
+                        ]}
+                    />
+                </div>
+            )}
+
             {/* 
         The SVG Filter Definition 
         - Creates a subtle 'turbulence' noise map
@@ -36,7 +59,7 @@ const GlassSurface = ({ children, className = "" }) => {
             <div
                 className="absolute inset-0 z-0 pointer-events-none"
                 style={{
-                    background: "rgba(0, 0, 0, 0.4)", // Darker base for depth
+                    background: withGlow ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.4)", // Very clear glass if glowing
                     backdropFilter: "url(#glass-filter) saturate(1.8) blur(16px)", // Stronger blur & saturation
                     /* 
                        Premium Dark Glass Effect

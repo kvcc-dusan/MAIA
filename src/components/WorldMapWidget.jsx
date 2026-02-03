@@ -39,9 +39,7 @@ export default function WorldMapWidget({ weather }) {
         // Focus on Europe (Slovenia roughly 15E, 46N)
         // Zoomed in (scale 600) and centered
         const projection = geoEquirectangular()
-            .scale(600)
-            .center([15, 52])
-            .translate([width / 2, height / 2]);
+            .fitSize([width, height], mapData);
 
         const pathGenerator = geoPath().projection(projection);
         const pathD = mapData ? pathGenerator(mapData) : "";
@@ -79,7 +77,7 @@ export default function WorldMapWidget({ weather }) {
     // Let's assume Land = #27272a (zinc-800) and Header BG = #27272a.
 
     return (
-        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40">
+        <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40" withGlow={true}>
 
             <div className="flex flex-col w-full h-full">
 
@@ -101,30 +99,20 @@ export default function WorldMapWidget({ weather }) {
                     </div>
                 </div>
 
-                {/* CENTER SECTION: The Map (Clip Content) */}
-                <div className="flex-1 relative w-full overflow-hidden bg-transparent">
-                    {/* 
-                  Clip container: absolute inset to ensure map doesn't overflow header/footer visually 
-                  if we want strict clipping. But flex-1 does that.
-               */}
+                {/* CENTER SECTION: Fixed Height for stability */}
+                <div className="w-full h-[180px] relative overflow-hidden bg-transparent">
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <svg viewBox="0 0 300 180" className="w-[110%] h-[110%] opacity-100" preserveAspectRatio="xMidYMid slice">
-                            {/* Land: Using a color that matches the dark header vibe, maybe slightly lighter to stand out against the deep black of the card? 
-                            Or if the user said EXACT same... 
-                            If I make it exactly the same, it might vanish if the background is also same.
-                            I will use a solid dark gray #27272a (zinc-800) which is common for these dark UI headers.
-                        */}
-                            <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+                        <svg viewBox="0 0 300 180" className="w-full h-full opacity-100" preserveAspectRatio="xMidYMid slice">
+                            {/* Land: Zinc-700 (#3f3f46) - Mid-Dark Grey with 40% opacity */}
+                            <path d={pathD} fill="#3f3f46" fillOpacity="0.4" stroke="none" />
 
                             {/* Location Dot */}
                             {dotPos && (
                                 <g>
-                                    {/* Pulse: Expand (r 4->12) and Fade Out (opacity 0.6->0) */}
-                                    <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="#10b981">
+                                    <circle cx={dotPos.x} cy={dotPos.y} r="8" fill="#10b981" opacity="0.4">
                                         <animate attributeName="r" values="4;16" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                                        <animate attributeName="opacity" values="0.6;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
+                                        <animate attributeName="opacity" values="0.4;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
                                     </circle>
-                                    {/* Static center dot */}
                                     <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#10b981" />
                                 </g>
                             )}
@@ -142,6 +130,6 @@ export default function WorldMapWidget({ weather }) {
                 </div>
             </div>
 
-        </GlassSurface>
+        </GlassSurface >
     );
 }

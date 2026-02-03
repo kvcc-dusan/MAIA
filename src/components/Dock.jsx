@@ -23,7 +23,7 @@ export default function Dock({ currentPage, onNavigate, onOpenTool }) {
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <GlassSurface className="rounded-2xl">
+            <GlassSurface className="rounded-2xl" withGlow={true}>
                 <div className="px-4 py-3 flex items-center gap-2">
                     {/* APPS */}
                     <DockItem
