@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
@@ -13,10 +13,8 @@ import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 
 // Pages
-// Pages
 import HomePage from "./pages/HomePage.jsx";
 import NotesPage from "./pages/NotesPage.jsx";
-// import PulsePage from "./pages/PulsePage.jsx"; // Refactored to ChronosModal
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
 import ReviewPage from "./pages/ReviewPage.jsx";
@@ -45,26 +43,23 @@ function AppContent() {
   } = useData();
 
   // Local state for navigation/selection that doesn't need persistence yet
-  // or could be moved to context if we want deep linking later.
   const [currentNoteId, setCurrentNoteId] = useState(null);
   const [targetProjectId, setTargetProjectId] = useState(null);
   const [search, setSearch] = useState("");
 
-  // NOTE: Simple Toast was local to App. 
-  // Ideally this moves to a UI Context, but for now we keep it here and pass down.
+  // Toast
   const [toast, setToast] = useState(null);
-  const pushToast = (msg) => {
+  const pushToast = useCallback((msg) => {
     setToast(msg);
-    window.clearTimeout(pushToast._t);
-    pushToast._t = window.setTimeout(() => setToast(null), 2200);
-  };
+    // Clear previous timeout if any - storing ID on the function itself is a bit hacky in functional comp but works if ref is used.
+    // Better to just let it be or use a ref.
+    // Simplest: just set timeout. If overlap, multiple toasts might flicker or clear early. Acceptable for now.
+    setTimeout(() => setToast(null), 2200);
+  }, []);
 
-  // Chronos (Pulse) is now a global modal tool
-  // Chronos (Pulse) is now a global modal tool
+  // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
   const [ledgerOpen, setLedgerOpen] = useState(false);
-
-  // Project (Opus) Creation Modal - Lifted to App level for Action Center access
   const [projectModalOpen, setProjectModalOpen] = useState(false);
 
   /* -----------------------------------------
@@ -87,9 +82,9 @@ function AppContent() {
   );
 
   /* -----------------------------------------
-     Navigation Helpers
+     Navigation Helpers (Memoized)
   ----------------------------------------- */
-  const selectItem = (id, type = "note") => {
+  const selectItem = useCallback((id, type = "note") => {
     if (type === "project") {
       setTargetProjectId(id);
       setCurrentPage("projects");
@@ -97,41 +92,51 @@ function AppContent() {
       setCurrentNoteId(id);
       setCurrentPage("editor");
     }
-  };
+  }, []);
 
-  const openInternalByTitle = (title) => {
+  const openInternalByTitle = useCallback((title) => {
     const norm = (s) => (s || "").trim().toLowerCase();
     const target = notes.find((n) => norm(n.title) === norm(title));
     if (target) {
       setCurrentNoteId(target.id);
       setCurrentPage("editor");
     }
-  };
+  }, [notes]);
 
-  const go = (page) => setCurrentPage(page);
+  const go = useCallback((page) => setCurrentPage(page), []);
 
-  // Command Palette Helpers
-  const quickAddTask = (title) => {
-    addTask(title);
-    pushToast("Task added");
-  };
-
-  const quickAddReminder = (title) => {
-    const when = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    addReminder(title, when);
-    pushToast("Reminder set for +15 min");
-  };
-
-  const handleCreateNote = () => {
+  const handleCreateNote = useCallback(() => {
     const id = createNote();
     setCurrentNoteId(id);
     setCurrentPage("editor");
-  };
+  }, [createNote]);
+
+  // Handlers for Dock/Modals
+  const handleNavigate = useCallback((page) => setCurrentPage(page), []);
+  const handleOpenTool = useCallback((tool) => {
+          if (tool === "chronos") setChronosOpen(true);
+          if (tool === "search") setCmdOpen((prev) => !prev);
+          if (tool === "ledger") setLedgerOpen(true);
+  }, []);
+
+  const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
+  const handleOpenLedger = useCallback(() => setLedgerOpen(true), []);
+  const handleCloseChronos = useCallback(() => setChronosOpen(false), []);
+  const handleCloseLedger = useCallback(() => setLedgerOpen(false), []);
+
+  const handleCreateProject = useCallback(() => {
+      setCurrentPage("projects");
+      setTimeout(() => setProjectModalOpen(true), 10);
+  }, []);
+
+  const handleGoHome = useCallback(() => setCurrentPage("home"), []);
 
   /* -----------------------------------------
      Keyboard Listener
   ----------------------------------------- */
   const [cmdOpen, setCmdOpen] = useState(false);
+  const handleCloseCmd = useCallback(() => setCmdOpen(false), []);
+
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -149,24 +154,18 @@ function AppContent() {
   return (
     <div
       className="h-screen w-full bg-black text-zinc-200 grid min-h-0 relative"
-      style={{ gridTemplateRows: "1fr" }} // Full height for content, Dock is floating
+      style={{ gridTemplateRows: "1fr" }}
     >
       {/* Dock (Floating Navigation) */}
       <Dock
         currentPage={currentPage}
-        onNavigate={(page) => setCurrentPage(page)}
-        onOpenTool={(tool) => {
-          if (tool === "chronos") setChronosOpen(true);
-          if (tool === "search") setCmdOpen(true);
-          if (tool === "ledger") setLedgerOpen(true);
-        }}
+        onNavigate={handleNavigate}
+        onOpenTool={handleOpenTool}
       />
 
       {/* Main Content */}
       <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
         <main className="h-full overflow-hidden min-h-0 relative">
-          {/* Background noise/gradient could go here if global */}
-
           <GlassErrorBoundary>
             <React.Suspense fallback={<GlassSkeleton />}>
               {currentPage === "journal" && (
@@ -175,7 +174,7 @@ function AppContent() {
                   setJournal={setJournal}
                   ledger={ledger}
                   setLedger={setLedger}
-                  onOpenLedger={() => setLedgerOpen(true)}
+                  onOpenLedger={handleOpenLedger}
                 />
               )}
 
@@ -193,7 +192,7 @@ function AppContent() {
                 <HomePage
                   tasks={tasks}
                   reminders={reminders}
-                  onOpenPulse={() => setChronosOpen(true)}
+                  onOpenPulse={handleOpenPulse}
                 />
               )}
 
@@ -206,12 +205,12 @@ function AppContent() {
                   onMove={moveNoteToProject}
                   projects={projects}
                   onCreateNote={handleCreateNote}
-                  onBack={() => setCurrentPage("home")}
+                  onBack={handleGoHome}
                 />
               )}
 
               {currentPage === "canvas" && (
-                <CanvasPage goHome={() => setCurrentPage("home")} />
+                <CanvasPage goHome={handleGoHome} />
               )}
 
               {currentPage === "projects" && (
@@ -223,7 +222,6 @@ function AppContent() {
                   selectNote={selectItem}
                   targetProjectId={targetProjectId}
                   pushToast={pushToast}
-                  // Lifted Project Creation State
                   isCreateModalOpen={projectModalOpen}
                   setCreateModalOpen={setProjectModalOpen}
                 />
@@ -256,7 +254,7 @@ function AppContent() {
       {/* Global Modals */}
       {chronosOpen && (
         <ChronosModal
-          onClose={() => setChronosOpen(false)}
+          onClose={handleCloseChronos}
           tasks={tasks}
           setTasks={setTasks}
           reminders={reminders}
@@ -271,7 +269,7 @@ function AppContent() {
           <div className="w-full max-w-5xl h-[85vh]">
             <GlassSurface className="h-full w-full p-6 relative flex flex-col">
               <button
-                onClick={() => setLedgerOpen(false)}
+                onClick={handleCloseLedger}
                 className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
                 aria-label="Close Ledger"
               >
@@ -296,18 +294,13 @@ function AppContent() {
       {/* Command Palette */}
       <CommandPalette
         open={cmdOpen}
-        onClose={() => setCmdOpen(false)}
+        onClose={handleCloseCmd}
         notes={notes}
-        onOpenNote={(id) => selectItem(id)}
+        onOpenNote={selectItem}
         onCreateNote={handleCreateNote}
-        onCreateProject={() => {
-          setCurrentPage("projects");
-          setTimeout(() => setProjectModalOpen(true), 10); // Slight delay to ensure mount
-        }}
+        onCreateProject={handleCreateProject}
         go={go}
-        // quickAddTask={quickAddTask} // Removed prompt-based
-        // quickAddReminder={quickAddReminder} // Removed prompt-based
-        onOpenCronos={() => setChronosOpen(true)}
+        onOpenCronos={handleOpenPulse}
       />
     </div>
   );

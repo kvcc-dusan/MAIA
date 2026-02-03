@@ -23,7 +23,7 @@ const THEME = {
     textActive: "#f4f4f5", // zinc-100
 };
 
-export default function GraphRenderer({
+function GraphRenderer({
     nodes,
     links,
     dims,
@@ -46,7 +46,15 @@ export default function GraphRenderer({
 
     const gRef = useRef(null); // Store the main group for zooming
 
-    // --- D3 RENDER ---
+    // Stable Refs for Callbacks to avoid effect re-runs
+    const onOpenNoteRef = useRef(onOpenNote);
+    useEffect(() => { onOpenNoteRef.current = onOpenNote; }, [onOpenNote]);
+
+    const setHoveredNodeRef = useRef(setHoveredNode);
+    useEffect(() => { setHoveredNodeRef.current = setHoveredNode; }, [setHoveredNode]);
+
+    // --- D3 RENDER & SIMULATION ---
+    // Restart simulation only when topology (nodes/links), dimensions, or physics/sizing props change.
     useEffect(() => {
         if (!svgRef.current) return;
 
@@ -121,14 +129,15 @@ export default function GraphRenderer({
         // Interactions
         node
             .on("click", (e, d) => {
+                const cb = onOpenNoteRef.current;
                 if (d.type === "project") {
-                    if (onOpenNote) onOpenNote(d.realId, "project");
+                    if (cb) cb(d.realId, "project");
                 } else {
-                    onOpenNote && onOpenNote(d.id);
+                    cb && cb(d.id);
                 }
             })
             .on("mouseover", (e, d) => {
-                setHoveredNode(d);
+                setHoveredNodeRef.current?.(d);
 
                 // Highlight connections
                 link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
@@ -150,7 +159,7 @@ export default function GraphRenderer({
                 label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
             })
             .on("mouseout", () => {
-                setHoveredNode(null);
+                setHoveredNodeRef.current?.(null);
 
                 const q = searchRef.current.toLowerCase().trim();
                 const isSearchActive = q.length > 0;
@@ -175,7 +184,7 @@ export default function GraphRenderer({
                     // Return to Default State
                     link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
                     node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                    label.attr("opacity", d => (d.val > 2 || activeCluster === d.group) ? 1 : 0);
+                    label.attr("opacity", d => (d.val > 2) ? 1 : 0); // Note: activeCluster check moved to separate effect
                 }
             });
 
@@ -233,10 +242,10 @@ export default function GraphRenderer({
         }, 500);
 
         return () => simulation.stop();
-    }, [nodes, links, dims, showSignals, activeCluster, onOpenNote, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, setHoveredNode, svgRef, zoomRef]);
+    }, [nodes, links, dims, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, svgRef, zoomRef]); // Removed: activeCluster, onOpenNote, setHoveredNode, searchQuery
 
-    // --- SEARCH VISUAL EFFECT ---
-    // Handle "Dimming" and "Highlighting" without restarting simulation
+    // --- SEARCH & VISUAL EFFECT ---
+    // Handle "Dimming", "Highlighting", and "Active Cluster" without restarting simulation
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = select(svgRef.current);
@@ -246,28 +255,32 @@ export default function GraphRenderer({
 
         const q = searchQuery.toLowerCase().trim();
 
-        if (!q) {
-            // Reset to default
+        if (q) {
+            // SEARCH MODE
+            node.style("opacity", d => {
+                const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
+                return match ? 1 : 0.1;
+            });
+            link.style("opacity", 0.1);
+            label.style("opacity", d => {
+                const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
+                return match ? 1 : 0;
+            });
+        } else {
+            // DEFAULT MODE
             node.style("opacity", 1).style("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
             link.style("opacity", 1).attr("stroke-opacity", 0.6);
-            label.style("opacity", 0.7);
-            return;
+
+            // Show labels for important nodes OR active cluster
+            label.style("opacity", d => {
+                if (activeCluster !== null && activeCluster !== undefined) {
+                     return d.group === activeCluster ? 1 : 0;
+                }
+                return (d.val > 2) ? 1 : 0.5; // Fallback semantic visibility
+            });
         }
 
-        // Apply Search Dimming
-        node.style("opacity", d => {
-            const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
-            return match ? 1 : 0.1;
-        });
-
-        link.style("opacity", 0.1); // Dim links
-
-        label.style("opacity", d => {
-            const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
-            return match ? 1 : 0;
-        });
-
-    }, [searchQuery, nodes, svgRef]);
+    }, [searchQuery, activeCluster, nodes, svgRef]);
 
 
     // Helper Functions
@@ -302,3 +315,5 @@ export default function GraphRenderer({
         </div>
     );
 }
+
+export default React.memo(GraphRenderer);

@@ -1,11 +1,71 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { geoEquirectangular, geoPath, geoGraticule10 } from "d3-geo";
+import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
 import GlassSurface from "./GlassSurface";
 
+const MapVisual = React.memo(({ weather }) => {
+    const { coords } = weather || {};
+
+    // D3 Map Logic
+    const mapData = useMemo(() => {
+        if (!land110 || !land110.objects) {
+            return null;
+        }
+        return feature(land110, land110.objects.land);
+    }, []); // land110 is static import
+
+    const { pathD, dotPos } = useMemo(() => {
+        const width = 300;
+        const height = 180; // Taller internal canvas for better centering
+
+        // Focus on Europe (Slovenia roughly 15E, 46N)
+        // Zoomed in (scale 600) and centered
+        const projection = geoEquirectangular()
+            .scale(600)
+            .center([15, 52])
+            .translate([width / 2, height / 2]);
+
+        const pathGenerator = geoPath().projection(projection);
+        const pathD = mapData ? pathGenerator(mapData) : "";
+
+        let dotPos = null;
+        if (coords) {
+            const [x, y] = projection([coords.lon, coords.lat]);
+            // Only show dot if it projects within reasonable bounds (crude clip)
+            if (x > -20 && x < width + 20 && y > -20 && y < height + 20) {
+                dotPos = { x, y };
+            }
+        }
+
+        return { pathD, dotPos };
+    }, [mapData, coords]);
+
+    return (
+        <div className="absolute inset-0 flex items-center justify-center">
+            <svg viewBox="0 0 300 180" className="w-[110%] h-[110%] opacity-100" preserveAspectRatio="xMidYMid slice">
+                {/* Land: Using a color that matches the dark header vibe */}
+                <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+
+                {/* Location Dot */}
+                {dotPos && (
+                    <g>
+                        {/* Pulse: Expand (r 4->12) and Fade Out (opacity 0.6->0) */}
+                        <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="#10b981">
+                            <animate attributeName="r" values="4;16" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
+                            <animate attributeName="opacity" values="0.6;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
+                        </circle>
+                        {/* Static center dot */}
+                        <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#10b981" />
+                    </g>
+                )}
+            </svg>
+        </div>
+    );
+});
+
 export default function WorldMapWidget({ weather }) {
-    const { coords, temp, place } = weather || {};
+    const { temp, place } = weather || {};
 
     // Real-time clock
     const [now, setNow] = useState(new Date());
@@ -21,60 +81,6 @@ export default function WorldMapWidget({ weather }) {
     const dateStr = `${dayName}, ${monthDay}, ${yearShort}`;
 
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-    // D3 Map Logic
-    const mapData = useMemo(() => {
-        console.log("DEBUG: land110 raw", land110);
-        if (!land110 || !land110.objects) {
-            console.error("DEBUG: land110 missing or no objects");
-            return null;
-        }
-        return feature(land110, land110.objects.land);
-    }, [land110]);
-
-    const { pathD, dotPos } = useMemo(() => {
-        const width = 300;
-        const height = 180; // Taller internal canvas for better centering
-
-        // Focus on Europe (Slovenia roughly 15E, 46N)
-        // Zoomed in (scale 600) and centered
-        const projection = geoEquirectangular()
-            .fitSize([width, height], mapData);
-
-        const pathGenerator = geoPath().projection(projection);
-        const pathD = mapData ? pathGenerator(mapData) : "";
-        console.log("DEBUG: pathD result", pathD);
-
-        let dotPos = null;
-        if (coords) {
-            const [x, y] = projection([coords.lon, coords.lat]);
-            // Only show dot if it projects within reasonable bounds (crude clip)
-            if (x > -20 && x < width + 20 && y > -20 && y < height + 20) {
-                dotPos = { x, y };
-            }
-        }
-
-        return { pathD, dotPos };
-    }, [mapData, coords]);
-
-
-    // Styles
-    // Header/Footer/Map match color: using a dark gray/black with high opacity
-    const SECTION_BG = "bg-[#18181b]"; // zinc-900 like
-    const MAP_FILL = "#18181b"; // Matching the background for "negative space" feel or slightly lighter?
-    // User asked: "match the exact same texture and color of the map... as the header background"
-    // If we make the land the same color as the header, and the "ocean" is transparent...
-    // Actually the user probably means the "ocean" should be the color of the header, and land is ...?
-    // "let's make also the map be the same texture and color as the header background" -> This implies the map SHAPE is that color.
-    // If the map shape is that color, what is the background? 
-    // Re-reading: "map be the same texture and color as the header background... so not the map background, but the map itself."
-    // So Land = Dark Header Color. Background = Transparent?
-    // If Land is Dark Header Color (dark gray), and it sits on a GlassSurface (dark), it might be invisible.
-    // Unless the GlassSurface is lighter?
-    // Let's try: Land = Header Color (#1f1f22 approx). Map container background = slightly lighter or transparent.
-    // Actually, usually "Header" is darker than "Body".
-    // If Land matches Header, and Header is dark... 
-    // Let's assume Land = #27272a (zinc-800) and Header BG = #27272a.
 
     return (
         <GlassSurface className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40" withGlow={true}>
@@ -101,23 +107,7 @@ export default function WorldMapWidget({ weather }) {
 
                 {/* CENTER SECTION: Fixed Height for stability */}
                 <div className="w-full h-[180px] relative overflow-hidden bg-transparent">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <svg viewBox="0 0 300 180" className="w-full h-full opacity-100" preserveAspectRatio="xMidYMid slice">
-                            {/* Land: Zinc-700 (#3f3f46) - Mid-Dark Grey with 40% opacity */}
-                            <path d={pathD} fill="#3f3f46" fillOpacity="0.4" stroke="none" />
-
-                            {/* Location Dot */}
-                            {dotPos && (
-                                <g>
-                                    <circle cx={dotPos.x} cy={dotPos.y} r="8" fill="#10b981" opacity="0.4">
-                                        <animate attributeName="r" values="4;16" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                                        <animate attributeName="opacity" values="0.4;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                                    </circle>
-                                    <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#10b981" />
-                                </g>
-                            )}
-                        </svg>
-                    </div>
+                    <MapVisual weather={weather} />
                 </div>
 
                 {/* FOOTER: Date & Time */}
