@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useState } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import GlassSurface from "../components/GlassSurface.jsx";
@@ -7,7 +6,7 @@ import { useDebounced } from "../hooks/useDebounced.js";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
 
-export default function Editor({ note, updateNote, projects = [] }) {
+export default function Editor({ note, updateNote }) {
   const [local, setLocal] = useState(note);
   const [mode, setMode] = useState(() => {
     if (note?.id) {

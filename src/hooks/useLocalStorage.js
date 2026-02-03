@@ -5,14 +5,14 @@ export function useLocalStorage(key, initial) {
     try {
       const raw = localStorage.getItem(key);
       if (raw) return JSON.parse(raw);
-    } catch { }
+    } catch { /* ignore */ }
     return typeof initial === "function" ? initial() : initial;
   });
 
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(state));
-    } catch { }
+    } catch { /* ignore */ }
   }, [key, state]);
 
   return [state, setState];

@@ -3,7 +3,7 @@ import ProjectIcon from "./ProjectIcon.jsx";
 import GlassSurface from "./GlassSurface.jsx";
 
 export default function Dock({ currentPage, onNavigate, onOpenTool }) {
-    const DockItem = ({ id, label, icon, active, onClick }) => (
+    const DockItem = ({ label, icon, active, onClick }) => (
         <button
             onClick={onClick}
             className={`

@@ -87,7 +87,7 @@ export default function GraphRenderer({
             .attr("fill", "none")
             .attr("stroke", THEME.link)
             .attr("stroke-opacity", 0.6)
-            .attr("stroke-width", d => linkThickness)
+            .attr("stroke-width", () => linkThickness)
             .attr("class", "link-element");
 
         const node = nodeLayer.selectAll("circle")

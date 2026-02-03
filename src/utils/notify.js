@@ -16,7 +16,7 @@ async function show(title, options) {
     } else if ("Notification" in window) {
       new Notification(title, options);
     }
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 export function scheduleLocalNotification(id, title, whenISO) {
