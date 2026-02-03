@@ -3,6 +3,7 @@ import MarkdownIt from "markdown-it";
 import footnote from "markdown-it-footnote";
 import mark from "markdown-it-mark";
 import taskLists from "markdown-it-task-lists";
+import DOMPurify from "dompurify";
 
 // Callouts + wiki-links + image size helpers
 function preprocess(src) {
@@ -54,7 +55,12 @@ export function makeMarkdown() {
   return {
     render(src) {
       const pre = preprocess(src);
-      return postprocess(md.render(pre));
+      const rawHtml = md.render(pre);
+      const sanitized = DOMPurify.sanitize(rawHtml, {
+        ADD_ATTR: ["data-internal-link", "target", "id"], // Allow wikilinks, external links, and footnote IDs
+        ADD_TAGS: ["input"], // Allow checkbox inputs for task lists
+      });
+      return postprocess(sanitized);
     }
   };
 }
