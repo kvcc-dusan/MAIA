@@ -1,8 +1,8 @@
 import ColorBends from "./ColorBends";
 
-const GlassSurface = ({ children, className = "", withGlow = false }) => {
+const GlassSurface = ({ children, className = "", withGlow = false, ...props }) => {
     return (
-        <div className={`relative w-full h-full overflow-hidden rounded-[20px] ${className}`}>
+        <div className={`relative w-full h-full overflow-hidden rounded-[20px] ${className}`} {...props}>
             {/* Optional Internal Glow (ColorBends) */}
             {withGlow && (
                 <div className="absolute inset-0 z-0">

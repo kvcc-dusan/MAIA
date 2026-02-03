@@ -52,7 +52,7 @@ export function GlassListItem({
 export function GlassInput({ className = "", ...props }) {
     return (
         <input
-            className={`w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors placeholder:text-zinc-600 ${className}`}
+            className={`w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors placeholder:text-zinc-400 ${className}`}
             {...props}
         />
     );
@@ -62,7 +62,7 @@ export function GlassInput({ className = "", ...props }) {
 export function GlassTextarea({ className = "", ...props }) {
     return (
         <textarea
-            className={`w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-600 ${className}`}
+            className={`w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-400 ${className}`}
             {...props}
         />
     );
