@@ -148,8 +148,7 @@ function AppContent() {
   ----------------------------------------- */
   return (
     <div
-      className="h-screen w-full bg-black text-zinc-200 grid min-h-0 relative"
-      style={{ gridTemplateRows: "1fr" }} // Full height for content, Dock is floating
+      className="h-screen w-full bg-black text-zinc-200 grid min-h-0 relative grid-rows-[1fr]"
     >
       {/* Dock (Floating Navigation) */}
       <Dock
@@ -163,7 +162,7 @@ function AppContent() {
       />
 
       {/* Main Content */}
-      <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="grid min-h-0 grid-cols-[1fr]">
         <main className="h-full overflow-hidden min-h-0 relative">
           {/* Background noise/gradient could go here if global */}
 
