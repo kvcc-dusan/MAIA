@@ -1,7 +1,7 @@
 // src/pages/HomePage.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import GlassSurface from "../components/GlassSurface.jsx";
-import ColorBends from "../components/ColorBends.jsx";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../components/ui/card.jsx";
+
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
@@ -10,6 +10,19 @@ import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 function localHourISO(date = new Date()) {
   const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return d.toISOString().slice(0, 13) + ":00";
+}
+
+// WMO Weather interpretation codes (Open-Meteo)
+function getWeatherLabel(code) {
+  if (code === 0) return "Clear";
+  if (code === 1 || code === 2 || code === 3) return "Cloudy";
+  if (code === 45 || code === 48) return "Foggy";
+  if (code >= 51 && code <= 67) return "Rain";
+  if (code >= 71 && code <= 77) return "Snow";
+  if (code >= 80 && code <= 82) return "Rain";
+  if (code >= 85 && code <= 86) return "Snow";
+  if (code >= 95 && code <= 99) return "Storm";
+  return "Clear";
 }
 
 /* -------------------------------------------
@@ -120,6 +133,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
         if (!cancelled) {
           setWeatherSnap({
             temp: w.hourly?.temperature_2m?.[idx],
+            condition: getWeatherLabel(w.hourly?.weathercode?.[idx]),
             next2hProb: next2,
             place: place || undefined,
             coords, // <- keep for map dot
@@ -153,10 +167,9 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
 
   return (
-    <div className="relative h-full w-full flex overflow-hidden bg-black text-white font-sans selection:bg-white/20">
+    <div className="relative h-full w-full flex overflow-hidden bg-[#050505] text-white font-sans selection:bg-white/20">
 
-      {/* Background: Pitch Black as requested */}
-      <div className="absolute inset-0 z-0 bg-black" />
+
 
       {/*
         MAIN CONTENT GRID
@@ -172,7 +185,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
               className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold whitespace-nowrap mix-blend-difference grayscale"
               style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
             >
-              <span className="text-white/80">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
+              <span className="text-white/50">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
             <p
               className="text-base md:text-lg text-white/90 font-normal italic max-w-xl leading-relaxed mix-blend-difference grayscale"
@@ -190,50 +203,53 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
             <WorldMapWidget weather={weatherSnap} />
           </GlassErrorBoundary>
 
-          {/* Today's Focus */}
+          {/* Combined Widget: Focus & Reminders */}
           <GlassErrorBoundary>
-            <GlassSurface className="p-6 flex flex-col min-h-[140px]" withGlow={true}>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today's Focus</span>
-                <button onClick={openPulse} className="text-[10px] text-zinc-400 hover:text-white transition-colors">OPEN CHRONOS</button>
+            <Card className="flex flex-col w-full min-h-[260px] bg-card/80 backdrop-blur-sm shadow-lg border-[0.5px] border-white/10 rounded-[24px]">
+
+              {/* HEADER: Focus Title */}
+              <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Today's Focus</CardTitle>
+              </CardHeader>
+
+              {/* BODY: Focus List */}
+              <div className="flex-1 flex flex-col">
+                {/* Focus Items */}
+                <CardContent className="p-5 pt-1 pb-4 flex flex-col gap-4">
+                  {todayTasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest font-mono text-center italic py-2">
+                      no tasks for today.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
+                      {todayTasks.slice(0, 3).map(task => (
+                        <div key={task.id} className="flex items-center gap-2 text-sm text-card-foreground">
+                          <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-muted-foreground' : 'bg-primary'}`} />
+                          <span className={task.done ? 'line-through text-muted-foreground' : ''}>{task.title}</span>
+                        </div>
+                      ))}
+                      {todayTasks.length > 3 && (
+                        <div className="text-[10px] text-muted-foreground pt-1">+{todayTasks.length - 3} more</div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
               </div>
 
-              {todayTasks.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 text-xs text-center italic">
-                  "No tasks for today."
-                </div>
-              ) : (
-                <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
-                  {todayTasks.slice(0, 3).map(task => (
-                    <div key={task.id} className="flex items-center gap-2 text-sm text-zinc-300">
-                      <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-zinc-700' : 'bg-white'}`} />
-                      <span className={task.done ? 'line-through text-zinc-600' : ''}>{task.title}</span>
-                    </div>
-                  ))}
-                  {todayTasks.length > 3 && (
-                    <div className="text-[10px] text-zinc-600 pt-1">+{todayTasks.length - 3} more</div>
-                  )}
-                </div>
-              )}
-            </GlassSurface>
-          </GlassErrorBoundary>
+              {/* FOOTER: Open Chronos */}
+              <CardFooter className="p-4 py-3 flex justify-end items-center z-20 relative bg-muted/20 border-t-[0.5px] border-white/5">
+                <button
+                  onClick={openPulse}
+                  className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-bold"
+                >
+                  <span>Open Chronos</span>
+                  {/* Tiny arrow icon optional */}
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                </button>
+              </CardFooter>
 
-          {/* Reminders / Quick Note */}
-          <GlassErrorBoundary>
-            <GlassSurface className="p-6 flex flex-col min-h-[100px]" withGlow={true}>
-              <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-3">Reminders</span>
-              {todayReminders.length === 0 ? (
-                <div className="text-sm text-zinc-600 italic">Clean slate.</div>
-              ) : (
-                <div className="space-y-1">
-                  {todayReminders.slice(0, 2).map((r, i) => (
-                    <div key={i} className="text-xs text-zinc-400 truncate">• {r.title}</div>
-                  ))}
-                </div>
-              )}
-            </GlassSurface>
+            </Card>
           </GlassErrorBoundary>
-
         </div>
       </div>
     </div>

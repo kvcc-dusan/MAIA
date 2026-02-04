@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import land110 from "world-atlas/land-110m.json?json";
-import GlassSurface from "./GlassSurface";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 
 const MapVisual = React.memo(({ weather }) => {
     const { coords } = weather || {};
@@ -17,13 +17,13 @@ const MapVisual = React.memo(({ weather }) => {
 
     const { pathD, dotPos } = useMemo(() => {
         const width = 300;
-        const height = 180; // Taller internal canvas for better centering
+        const height = 180;
 
-        // Focus on Europe (Slovenia roughly 15E, 46N)
-        // Zoomed in (scale 600) and centered
+        // Europe Focus (Zoomed Out to 500)
+        // Dynamically center on User Location (e.g. Maribor)
         const projection = geoEquirectangular()
-            .scale(600)
-            .center([15, 52])
+            .scale(500)
+            .center(coords ? [coords.lon, coords.lat] : [15, 48])
             .translate([width / 2, height / 2]);
 
         const pathGenerator = geoPath().projection(projection);
@@ -32,8 +32,8 @@ const MapVisual = React.memo(({ weather }) => {
         let dotPos = null;
         if (coords) {
             const [x, y] = projection([coords.lon, coords.lat]);
-            // Only show dot if it projects within reasonable bounds (crude clip)
-            if (x > -20 && x < width + 20 && y > -20 && y < height + 20) {
+            // Check bounds just in case, but fitSize should ensure it's generally in view
+            if (x >= 0 && x <= width && y >= 0 && y <= height) {
                 dotPos = { x, y };
             }
         }
@@ -45,32 +45,52 @@ const MapVisual = React.memo(({ weather }) => {
         <div className="absolute inset-0 flex items-center justify-center">
             <svg
                 viewBox="0 0 300 180"
-                className="w-[110%] h-[110%] opacity-100"
-                preserveAspectRatio="xMidYMid slice"
+                className="w-full h-full opacity-100"
+                preserveAspectRatio="xMidYMid meet"
                 aria-hidden="true"
             >
-                {/* Land: Using a color that matches the dark header vibe */}
-                <path d={pathD} fill="black" fillOpacity="0.5" stroke="white" strokeWidth="0.5" strokeOpacity="0.1" />
+                {/* 
+                    Visual Fixes: 
+                    - Land: Distinct Dark Grey (#52525b / zinc-600) to stand out against Black/Zinc-900 bg.
+                    - Sea: Transparent (shows the glass/glow behind).
+                    - Stroke: Subtle border to define shapes.
+                */}
+                <path
+                    d={pathD}
+                    fill="black"
+                    fillOpacity="0.5"
+                    stroke="white"
+                    strokeWidth="0.5"
+                    strokeOpacity="0.1"
+                />
 
                 {/* Location Dot */}
+                {/* Location Dot with Pill Pulse Animation */}
                 {dotPos && (
-                    <g>
-                        {/* Pulse: Expand (r 4->12) and Fade Out (opacity 0.6->0) */}
-                        <circle cx={dotPos.x} cy={dotPos.y} r="4" fill="#10b981">
-                            <animate attributeName="r" values="4;16" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                            <animate attributeName="opacity" values="0.6;0" dur="2s" repeatCount="indefinite" begin="0s" calcMode="spline" keySplines="0.4 0 0.2 1" />
-                        </circle>
-                        {/* Static center dot */}
-                        <circle cx={dotPos.x} cy={dotPos.y} r="3" fill="#10b981" />
-                    </g>
+                    <foreignObject
+                        x={dotPos.x - 10}
+                        y={dotPos.y - 10}
+                        width="20"
+                        height="20"
+                        className="overflow-visible" // Allow ping to spill out if needed
+                    >
+                        <div className="flex items-center justify-center w-full h-full">
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            </span>
+                        </div>
+                    </foreignObject>
                 )}
             </svg>
         </div>
     );
 });
 
+
+
 export default function WorldMapWidget({ weather }) {
-    const { temp, place } = weather || {};
+    const { temp, place, condition } = weather || {};
 
     // Real-time clock
     const [now, setNow] = useState(new Date());
@@ -80,56 +100,61 @@ export default function WorldMapWidget({ weather }) {
     }, []);
 
     // Formatters
+    const getOrdinalSuffix = (i) => {
+        const j = i % 10,
+            k = i % 100;
+        if (j === 1 && k !== 11) return "st";
+        if (j === 2 && k !== 12) return "nd";
+        if (j === 3 && k !== 13) return "rd";
+        return "th";
+    };
+
     const dayName = now.toLocaleDateString("en-US", { weekday: 'long' });
-    const monthDay = now.toLocaleDateString("en-US", { month: 'short', day: 'numeric' });
-    const yearShort = now.getFullYear().toString().slice(-2);
-    const dateStr = `${dayName}, ${monthDay}, ${yearShort}`;
+    const monthName = now.toLocaleDateString("en-US", { month: 'long' });
+    const dayNum = now.getDate();
+    const dateStr = `${dayName}, ${monthName} ${dayNum}${getOrdinalSuffix(dayNum)}`;
 
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <GlassSurface
-            className="p-0 flex flex-col w-full overflow-hidden relative min-h-[220px] bg-black/40"
-            withGlow={true}
-            role="region"
-            aria-label="Current Weather and Location"
-        >
-
-            <div className="flex flex-col w-full h-full">
-
-                {/* HEADER: Weather & Location Info */}
-                {/* Darker background as requested */}
-                <div className="flex justify-between items-start p-5 pb-3 bg-black/40 z-20 relative">
-                    <div className="flex flex-col">
-                        <span className="text-4xl font-light text-white tracking-tighter">
-                            {temp ? `${Math.round(temp)}°` : "--"}
-                        </span>
+        <Card className="flex flex-col w-full overflow-hidden relative min-h-[260px] bg-card/80 backdrop-blur-sm shadow-lg border-[0.5px] border-white/10 rounded-[24px]">
+            {/* HEADER: Date & Location Info */}
+            <div className="flex justify-between items-start p-6 pb-4 z-20 relative">
+                {/* Left: Date */}
+                <div className="flex flex-col items-start text-left">
+                    <div className="text-sm text-card-foreground font-medium tracking-wide leading-none">
+                        {dayName}
                     </div>
-                    <div className="flex flex-col items-end text-right">
-                        <div className="text-sm text-zinc-300 font-medium tracking-wide">
-                            {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
-                        </div>
-                        <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-mono mt-1">
-                            EUROPE/LJUBLJANA
-                        </div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mt-1.5 leading-none">
+                        {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
                     </div>
                 </div>
 
-                {/* CENTER SECTION: Fixed Height for stability */}
-                <div className="w-full h-[180px] relative overflow-hidden bg-transparent">
-                    <MapVisual weather={weather} />
-                </div>
-
-                {/* FOOTER: Date & Time */}
-                {/* Darker background matching header */}
-                <div className="p-4 py-3 bg-black/40 flex justify-between items-center z-20 relative">
-                    <div className="flex flex-col">
-                        <span className="text-xs text-zinc-400 font-mono tracking-wide">{dateStr}</span>
+                {/* Right: Location */}
+                <div className="flex flex-col items-end text-right">
+                    <div className="text-sm text-card-foreground font-medium tracking-wide leading-none">
+                        {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
-                    <span className="text-xs text-zinc-300 font-mono tracking-wide">{timeStr}</span>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mt-1.5 leading-none">
+                        EUROPE/LJUBLJANA
+                    </div>
                 </div>
             </div>
 
-        </GlassSurface >
+            {/* CENTER SECTION: Expanded Height for breathing room */}
+            <CardContent className="w-full h-[200px] p-0 relative overflow-hidden bg-transparent z-10">
+                <MapVisual weather={weather} />
+            </CardContent>
+
+            {/* FOOTER: Temp & Time */}
+            <CardFooter className="p-4 py-3 flex justify-between items-center z-20 relative bg-muted/20 border-t-[0.5px] border-white/5">
+                <div className="flex flex-col">
+                    <span className="text-xs text-muted-foreground font-mono tracking-wide">
+                        {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
+                    </span>
+                </div>
+                <span className="text-xs text-muted-foreground font-mono tracking-wide">{timeStr}</span>
+            </CardFooter>
+        </Card>
     );
 }

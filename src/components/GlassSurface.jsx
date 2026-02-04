@@ -11,7 +11,7 @@ const GlassSurface = ({ children, className = "", withGlow = false, ...props }) 
                         rotation={0}
                         autoRotate={1}
                         speed={0.2}
-                        scale={1.0} // Balanced zoom
+                        scale={1.0} // Revert to balanced zoom
                         frequency={1.0}
                         warpStrength={1.2}
                         mouseInfluence={0}
