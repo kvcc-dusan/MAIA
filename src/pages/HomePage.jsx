@@ -1,85 +1,10 @@
-// src/pages/HomePage.jsx
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../components/ui/card.jsx";
 
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
-
-// "YYYY-MM-DDTHH:00" in local time (no Z)
-function localHourISO(date = new Date()) {
-  const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return d.toISOString().slice(0, 13) + ":00";
-}
-
-// WMO Weather interpretation codes (Open-Meteo)
-function getWeatherLabel(code) {
-  if (code === 0) return "Clear";
-  if (code === 1 || code === 2 || code === 3) return "Cloudy";
-  if (code === 45 || code === 48) return "Foggy";
-  if (code >= 51 && code <= 67) return "Rain";
-  if (code >= 71 && code <= 77) return "Snow";
-  if (code >= 80 && code <= 82) return "Rain";
-  if (code >= 85 && code <= 86) return "Snow";
-  if (code >= 95 && code <= 99) return "Storm";
-  return "Clear";
-}
-
-/* -------------------------------------------
-   Weather (Open-Meteo, no API key)
-------------------------------------------- */
-async function fetchWeather({ lat, lon }) {
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("weather fetch failed");
-  return res.json();
-}
-
-async function reverseGeocode({ lat, lon }) {
-  // 1) Open-Meteo (no key)
-  try {
-    const res = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const best = data?.results?.[0];
-      if (best) {
-        const city =
-          best.city ||
-          best.locality ||
-          best.town ||
-          best.village ||
-          best.name ||
-          best.admin3 ||
-          best.admin2;
-        const cc = best.country_code || best.country_code2 || best.country_code3;
-        if (city || cc) return `${city || best.name}${cc ? `, ${cc}` : ""}`;
-      }
-    }
-  } catch {
-    // ignore
-  }
-
-  // 2) Fallback: BigDataCloud (no key)
-  try {
-    const res = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
-    );
-    if (res.ok) {
-      const d = await res.json();
-      const city = d.city || d.locality || d.principalSubdivision || d.countryName;
-      const cc = d.countryCode || "";
-      if (city || cc) return `${city}${cc ? `, ${cc}` : ""}`;
-    }
-  } catch {
-    // ignore
-  }
-
-  return null; // last resort
-}
+import { useWeather } from "../hooks/useWeather.js";
 
 /* -------------------------------------------
    Home
@@ -87,70 +12,12 @@ async function reverseGeocode({ lat, lon }) {
 
 export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   const { now, quote, greeting } = useHomeGreeting();
-  const [weatherSnap, setWeatherSnap] = useState(null);
+  const { weather } = useWeather();
 
   // Stable callback for the button
   const openPulse = useCallback(() => onOpenPulse?.(), [onOpenPulse]);
 
   const userName = "Dušan";
-
-  // Weather & place
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        // Geolocation first
-        const coords = await new Promise((resolve, reject) => {
-          if (!("geolocation" in navigator)) return reject(new Error("no geo"));
-          navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-            () => reject(new Error("denied")),
-            { enableHighAccuracy: true, timeout: 8000 }
-          );
-        });
-
-        const w = await fetchWeather(coords);
-
-        // Which hour is "now" in returned local timeline
-        const nowKey = localHourISO(new Date());
-        const idx = (w.hourly?.time || []).findIndex((t) => t.startsWith(nowKey));
-
-        const next2 = [];
-        for (let i = 0; i < 2; i++) {
-          const v = w.hourly?.precipitation_probability?.[idx + i] ?? 0;
-          next2.push(Number(v) || 0);
-        }
-
-        let place = null;
-        try {
-          const p = await reverseGeocode(coords);
-          if (p) place = p;
-        } catch {
-          // ignore
-        }
-
-        if (!cancelled) {
-          setWeatherSnap({
-            temp: w.hourly?.temperature_2m?.[idx],
-            condition: getWeatherLabel(w.hourly?.weathercode?.[idx]),
-            next2hProb: next2,
-            place: place || undefined,
-            coords, // <- keep for map dot
-          });
-        }
-      } catch {
-        if (!cancelled) setWeatherSnap(null);
-      }
-    };
-
-    run();
-    const t = setInterval(run, 10 * 60 * 1000);
-    return () => {
-      cancelled = true;
-      clearInterval(t);
-    };
-  }, []);
 
   // Today data
   const todayStr = useMemo(() => now.toDateString(), [now]);
@@ -200,7 +67,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
 
           {/* World Map & Weather Widget */}
           <GlassErrorBoundary>
-            <WorldMapWidget weather={weatherSnap} />
+            <WorldMapWidget weather={weather} />
           </GlassErrorBoundary>
 
           {/* Combined Widget: Focus & Reminders */}
