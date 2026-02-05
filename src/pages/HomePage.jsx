@@ -6,17 +6,7 @@ import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import FocusTaskItem from "../components/FocusTaskItem.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 import { useWeather } from "../hooks/useWeather.js";
-import { Dock } from "../components/ui/dock.jsx";
-import {
-  Home as HomeIcon,
-  Briefcase,
-  BookOpen,
-  Library,
-  Globe,
-  Hourglass,
-  Sparkles,
-  Search
-} from "lucide-react";
+
 
 /* -------------------------------------------
    Home
@@ -39,16 +29,7 @@ export default function Home({ tasks = [], onOpenPulse }) {
   }, [tasks, todayStr]);
 
 
-  const DOCK_ITEMS = [
-    { icon: HomeIcon, label: "Home", onClick: () => console.log("Nav: Home") },
-    { icon: Briefcase, label: "Projects", onClick: () => console.log("Nav: Projects") },
-    { icon: BookOpen, label: "Journal", onClick: () => console.log("Nav: Journal") },
-    { icon: Library, label: "Codex", onClick: () => console.log("Nav: Codex") },
-    { icon: Globe, label: "Connect", onClick: () => console.log("Nav: Connect") },
-    { icon: Hourglass, label: "Chronos", onClick: openPulse }, // Existing Chronos action
-    { icon: Sparkles, label: "Opus", onClick: () => console.log("Nav: Opus") },
-    { icon: Search, label: "Search", onClick: () => console.log("Nav: Search") },
-  ];
+
 
   return (
     <div className="relative flex h-full w-full overflow-hidden bg-midnight font-sans text-white selection:bg-white/20">
@@ -132,12 +113,7 @@ export default function Home({ tasks = [], onOpenPulse }) {
         </div>
       </div>
 
-      {/* BOTTOM DOCK */}
-      <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto">
-          <Dock items={DOCK_ITEMS} />
-        </div>
-      </div>
+
     </div>
   );
 }

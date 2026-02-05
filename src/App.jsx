@@ -4,7 +4,17 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { DataProvider, useData } from "./context/DataContext.jsx";
 
 // Components
-import Dock from "./components/Dock.jsx";
+import { Dock } from "./components/ui/dock.jsx";
+import {
+  Home as HomeIcon,
+  Sparkles,
+  Library,
+  Globe,
+  BookOpen,
+  Hourglass,
+  Search
+} from "lucide-react";
+
 import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 import DecisionLedger from "./components/DecisionLedger.jsx";
@@ -113,9 +123,9 @@ function AppContent() {
   // Handlers for Dock/Modals
   const handleNavigate = useCallback((page) => setCurrentPage(page), []);
   const handleOpenTool = useCallback((tool) => {
-          if (tool === "chronos") setChronosOpen(true);
-          if (tool === "search") setCmdOpen((prev) => !prev);
-          if (tool === "ledger") setLedgerOpen(true);
+    if (tool === "chronos") setChronosOpen(true);
+    if (tool === "search") setCmdOpen((prev) => !prev);
+    if (tool === "ledger") setLedgerOpen(true);
   }, []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
@@ -124,8 +134,8 @@ function AppContent() {
   const handleCloseLedger = useCallback(() => setLedgerOpen(false), []);
 
   const handleCreateProject = useCallback(() => {
-      setCurrentPage("projects");
-      setTimeout(() => setProjectModalOpen(true), 10);
+    setCurrentPage("projects");
+    setTimeout(() => setProjectModalOpen(true), 10);
   }, []);
 
   const handleGoHome = useCallback(() => setCurrentPage("home"), []);
@@ -156,10 +166,18 @@ function AppContent() {
       style={{ gridTemplateRows: "1fr" }}
     >
       {/* Dock (Floating Navigation) */}
+      {/* Dock (Floating Navigation) */}
       <Dock
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        onOpenTool={handleOpenTool}
+        items={[
+          { icon: HomeIcon, label: "Home", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
+          { icon: Sparkles, label: "Opus", onClick: () => handleNavigate("projects"), isActive: currentPage === "projects" },
+          { icon: Library, label: "Codex", onClick: () => handleNavigate("overview"), isActive: currentPage === "overview" },
+          { icon: Globe, label: "Conexa", onClick: () => handleNavigate("graph"), isActive: currentPage === "graph" },
+          { icon: BookOpen, label: "Journal", onClick: () => handleNavigate("journal"), isActive: currentPage === "journal" },
+          { type: 'separator' },
+          { icon: Hourglass, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
+          { icon: Search, label: "Search", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
+        ]}
       />
 
       {/* Main Content */}
