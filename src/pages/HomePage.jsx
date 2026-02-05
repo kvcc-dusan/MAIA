@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../compone
 
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
+import FocusTaskItem from "../components/FocusTaskItem.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 
 // "YYYY-MM-DDTHH:00" in local time (no Z)
@@ -223,10 +224,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
                   ) : (
                     <div className="space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
                       {todayTasks.slice(0, 3).map(task => (
-                        <div key={task.id} className="flex items-center gap-2 text-sm text-card-foreground">
-                          <span className={`w-1.5 h-1.5 rounded-full ${task.done ? 'bg-muted-foreground' : 'bg-primary'}`} />
-                          <span className={task.done ? 'line-through text-muted-foreground' : ''}>{task.title}</span>
-                        </div>
+                        <FocusTaskItem key={task.id} task={task} />
                       ))}
                       {todayTasks.length > 3 && (
                         <div className="text-[10px] text-muted-foreground pt-1">+{todayTasks.length - 3} more</div>
