@@ -238,6 +238,19 @@ body {
   margin: 0.75rem 0;
 }
 
+/* Custom Scrollbar - Hidden but Scrollable */
+.custom-scrollbar {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome/Safari */
+}
+
 /* Horizontal rules & code blocks */
 .tiptap hr,
 .prose hr {
