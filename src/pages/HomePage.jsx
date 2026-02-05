@@ -38,7 +38,7 @@ export default function Home({ tasks = [], onOpenPulse }) {
         - Removed max-w-7xl mx-auto to strict positioning from edge
         - lg:pl-[128px] = Explicit 128px from left edge on desktop
       */}
-      <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-8 lg:grid-cols-2 lg:px-16 pb-32"> {/* Added pb-32 for Dock space */}
+      <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-8 lg:grid-cols-2 lg:px-16">
 
         {/* LEFT ZONE: Greeting */}
         <div className="flex flex-col items-start justify-center space-y-6">
