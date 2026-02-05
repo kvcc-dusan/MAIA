@@ -41,10 +41,7 @@ const DockIconButton = React.forwardRef(
                 >
                     {label}
                 </span>
-                {/* Active Indicator Dot */}
-                {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 w-1 h-1 -translate-x-1/2 rounded-full bg-white/50" />
-                )}
+
             </motion.button>
         );
     }
@@ -55,13 +52,10 @@ const Dock = React.forwardRef(({ items, className }, ref) => {
     return (
         <div
             ref={ref}
-            className={cn("w-full flex items-center justify-center p-4", className)}
+            className={cn("fixed bottom-6 left-0 right-0 z-50 flex items-center justify-center pointer-events-none", className)}
         >
-            <div className="w-fit flex items-center justify-center relative">
+            <div className="w-fit flex items-center justify-center relative pointer-events-auto">
                 <motion.div
-                    initial="initial"
-                    animate="animate"
-                    variants={floatingAnimation}
                     className={cn(
                         "flex items-center gap-2 p-2 px-3 rounded-[24px]", // The requested 24px radius
                         "backdrop-blur-sm border border-white/10 shadow-lg",
