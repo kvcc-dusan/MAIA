@@ -2,6 +2,7 @@ import React from "react";
 import GlassSurface from "./GlassSurface";
 
 // Project Icon System - 16 SVG presets (ChatGPT/Apple style)
+// eslint-disable-next-line react-refresh/only-export-components
 export const ICON_PRESETS = [
     "terminal", "brain", "globe", "briefcase",
     "zap", "cube", "quill", "palette",

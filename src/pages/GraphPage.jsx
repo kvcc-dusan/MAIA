@@ -28,7 +28,7 @@ const THEME = {
   textActive: "#f4f4f5", // zinc-100
 };
 
-export default function GraphPage({ notes, projects = [], onOpenNote, setNotes, setProjects }) {
+export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
   const zoomRef = useRef(null); // Store zoom behavior

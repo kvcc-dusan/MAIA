@@ -126,7 +126,7 @@ export function DataProvider({ children }) {
             return n;
         }));
         setProjects((prev) => prev.filter((p) => p.id !== id));
-    }, [setProjects]);
+    }, [setProjects, setNotes]);
 
     const createProject = useCallback((name) => {
         const p = {
@@ -177,6 +177,7 @@ export function DataProvider({ children }) {
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useData() {
     return useContext(DataContext);
 }

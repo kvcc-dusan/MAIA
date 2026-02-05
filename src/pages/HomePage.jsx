@@ -85,7 +85,7 @@ async function reverseGeocode({ lat, lon }) {
    Home
 ------------------------------------------- */
 
-export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
+export default function Home({ tasks = [], onOpenPulse }) {
   const { now, quote, greeting } = useHomeGreeting();
   const [weatherSnap, setWeatherSnap] = useState(null);
 
@@ -158,12 +158,6 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   const todayTasks = useMemo(() => {
     return tasks.filter((t) => t.due && new Date(t.due).toDateString() === todayStr);
   }, [tasks, todayStr]);
-
-  const todayReminders = useMemo(() => {
-    return reminders.filter(
-      (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
-    );
-  }, [reminders, todayStr]);
 
 
   return (

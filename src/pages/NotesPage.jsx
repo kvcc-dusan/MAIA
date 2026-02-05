@@ -18,12 +18,8 @@ export default function NotesOverview({
   selectNote,
   onDelete,
   onRename,
-  onMove,
-  projects,
   onCreateNote,
-  onBack,
 }) {
-  const containerRef = useRef(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -48,7 +44,7 @@ export default function NotesOverview({
   useEffect(() => {
     try {
       localStorage.setItem("maia.codex.pinned", JSON.stringify(pinnedArr));
-    } catch { }
+    } catch { /* ignore */ }
   }, [pinnedArr]);
 
   const pinned = useMemo(() => new Set(pinnedArr), [pinnedArr]);
@@ -59,7 +55,6 @@ export default function NotesOverview({
   // open context menu at cursor
   const openMenu = (e, id) => {
     e.preventDefault();
-    const wrap = containerRef.current;
 
     // We need global coordinates since the menu is fixed
     const x = e.clientX;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
@@ -38,14 +38,13 @@ function AppContent() {
     reminders, setReminders,
     // Actions
     createNote, updateNote, deleteNote, renameNote,
-    moveNoteToProject, updateProject, createProject, deleteProject,
-    addTask, addReminder
+    moveNoteToProject
   } = useData();
 
   // Local state for navigation/selection that doesn't need persistence yet
   const [currentNoteId, setCurrentNoteId] = useState(null);
   const [targetProjectId, setTargetProjectId] = useState(null);
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
 
   // Toast
   const [toast, setToast] = useState(null);
