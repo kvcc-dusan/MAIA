@@ -53,37 +53,6 @@ export default function ChronosModal({
     at: new Date().toISOString().slice(0, 16), // yyyy-MM-ddTHH:mm
   });
 
-  // quick-pick helpers for the reminder modal
-  const setInMinutes = (mins) =>
-    setReminderDraft((d) => ({ ...d, mode: "in", minutes: mins }));
-
-  const scheduleFor = (date) =>
-    setReminderDraft((d) => ({ ...d, mode: "at", at: toLocalInputValue(date) }));
-
-  const laterToday = () => {
-    const d = new Date();
-    d.setHours(18, 0, 0, 0);
-    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); // if past 18:00, use tomorrow
-    scheduleFor(d);
-  };
-
-  const tomorrowMorning = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(9, 0, 0, 0);
-    scheduleFor(d);
-  };
-
-  const nextMondayMorning = () => {
-    const d = new Date();
-    const day = d.getDay(); // Sun=0 .. Sat=6
-    let add = (8 - day) % 7; // days until next Monday
-    if (add === 0) add = 7;
-    d.setDate(d.getDate() + add);
-    d.setHours(9, 0, 0, 0);
-    scheduleFor(d);
-  };
-
   // --- Task modal state ---
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskDraft, setTaskDraft] = useState({
@@ -104,29 +73,6 @@ export default function ChronosModal({
     setShowTaskModal(true);
   };
   const closeTaskModal = () => setShowTaskModal(false);
-
-  // quick picks
-  const taskPickTodayEvening = () => {
-    const d = new Date();
-    d.setHours(18, 0, 0, 0);
-    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
-    setTaskDraft((t) => ({ ...t, at: toLocalInputValue(d) }));
-  };
-  const taskPickTomorrowMorning = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(9, 0, 0, 0);
-    setTaskDraft((t) => ({ ...t, at: toLocalInputValue(d) }));
-  };
-  const taskPickNextMonday = () => {
-    const d = new Date();
-    const day = d.getDay();          // Sun=0..Sat=6
-    let add = (8 - day) % 7;         // next Monday
-    if (add === 0) add = 7;
-    d.setDate(d.getDate() + add);
-    d.setHours(9, 0, 0, 0);
-    setTaskDraft((t) => ({ ...t, at: toLocalInputValue(d) }));
-  };
 
   const createTaskFromModal = () => {
     const title = taskDraft.title.trim();
@@ -155,11 +101,7 @@ export default function ChronosModal({
   }, [rightWidth]);
 
   const draggingRef = useRef(false);
-  const onHandleDown = (e) => {
-    draggingRef.current = true;
-    document.body.style.cursor = "col-resize";
-    e.preventDefault();
-  };
+
   useEffect(() => {
     const onMove = (e) => {
       if (!draggingRef.current || !containerRef.current) return;

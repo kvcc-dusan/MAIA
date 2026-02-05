@@ -6,7 +6,6 @@ import { ChevronDownIcon, ChevronUpIcon, MinusIcon } from 'lucide-react';
 
 export const Pill = ({
     variant = 'secondary',
-    themed = false,
     className,
     ...props
 }) => (
@@ -101,7 +100,7 @@ export const PillDelta = ({ className, delta }) => {
 };
 
 export const PillIcon = ({
-    icon: Icon,
+    icon: Icon, // eslint-disable-line no-unused-vars
     className,
     ...props
 }) => (

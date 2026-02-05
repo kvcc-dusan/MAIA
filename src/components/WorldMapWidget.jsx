@@ -118,7 +118,6 @@ export default function WorldMapWidget({ weather }) {
     const dayName = now.toLocaleDateString("en-US", { weekday: 'long' });
     const monthName = now.toLocaleDateString("en-US", { month: 'long' });
     const dayNum = now.getDate();
-    const dateStr = `${dayName}, ${monthName} ${dayNum}${getOrdinalSuffix(dayNum)}`;
 
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 

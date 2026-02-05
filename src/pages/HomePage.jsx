@@ -11,7 +11,7 @@ import { useWeather } from "../hooks/useWeather.js";
    Home
 ------------------------------------------- */
 
-export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
+export default function Home({ tasks = [], onOpenPulse }) {
   const { now, quote, greeting } = useHomeGreeting();
   const { weather } = useWeather();
 
@@ -26,12 +26,6 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
   const todayTasks = useMemo(() => {
     return tasks.filter((t) => t.due && new Date(t.due).toDateString() === todayStr);
   }, [tasks, todayStr]);
-
-  const todayReminders = useMemo(() => {
-    return reminders.filter(
-      (r) => new Date(r.scheduledAt).toDateString() === todayStr && !r.delivered
-    );
-  }, [reminders, todayStr]);
 
 
   return (
@@ -89,14 +83,14 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
                       no tasks for today.
                     </div>
                   ) : (
-                    <div className="space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
+                    <ul className="space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
                       {todayTasks.slice(0, 3).map(task => (
                         <FocusTaskItem key={task.id} task={task} />
                       ))}
                       {todayTasks.length > 3 && (
-                        <div className="text-[10px] text-muted-foreground pt-1">+{todayTasks.length - 3} more</div>
+                        <li className="text-[10px] text-muted-foreground pt-1">+{todayTasks.length - 3} more</li>
                       )}
-                    </div>
+                    </ul>
                   )}
                 </CardContent>
               </div>
@@ -105,6 +99,7 @@ export default function Home({ tasks = [], reminders = [], onOpenPulse }) {
               <CardFooter className="p-4 py-3 flex justify-end items-center z-20 relative bg-muted/20 border-t-[0.5px] border-white/5">
                 <button
                   onClick={openPulse}
+                  aria-label="Open Chronos Dashboard"
                   className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-bold"
                 >
                   <span>Open Chronos</span>

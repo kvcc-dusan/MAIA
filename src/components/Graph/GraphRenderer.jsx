@@ -24,7 +24,6 @@ function GraphRenderer({
     links,
     dims,
     activeCluster,
-    showSignals,
     onOpenNote,
     nodeSize,
     linkThickness,
