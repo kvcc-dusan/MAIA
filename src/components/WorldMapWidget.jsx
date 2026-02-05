@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export const MapVisual = React.memo(({ coords, topology }) => {
     // D3 Map Logic
@@ -42,7 +42,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
         <div className="absolute inset-0 flex items-center justify-center">
             <svg
                 viewBox="0 0 300 180"
-                className="w-full h-full opacity-100"
+                className="h-full w-full opacity-100"
                 preserveAspectRatio="xMidYMid meet"
                 aria-hidden="true"
             >
@@ -54,11 +54,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                 */}
                 <path
                     d={pathD}
-                    fill="black"
-                    fillOpacity="0.5"
-                    stroke="white"
-                    strokeWidth="0.5"
-                    strokeOpacity="0.1"
+                    className="fill-black/50 stroke-white/10 stroke-[0.5]"
                 />
 
                 {/* Location Dot */}
@@ -71,7 +67,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                         height="20"
                         className="overflow-visible" // Allow ping to spill out if needed
                     >
-                        <div className="flex items-center justify-center w-full h-full">
+                        <div className="flex h-full w-full items-center justify-center">
                             <span className="relative flex h-2 w-2">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -122,43 +118,43 @@ export default function WorldMapWidget({ weather }) {
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <Card className="flex flex-col w-full overflow-hidden relative min-h-[260px] bg-card/80 backdrop-blur-sm shadow-lg border-[0.5px] border-white/10 rounded-[24px]">
+        <Card className="relative flex min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
             {/* HEADER: Date & Location Info */}
-            <div className="flex justify-between items-start p-6 pb-4 z-20 relative">
+            <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
                 <div className="flex flex-col items-start text-left">
-                    <div className="text-sm text-card-foreground font-medium tracking-wide leading-none">
+                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
                         {dayName}
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mt-1.5 leading-none">
+                    <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
                         {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
                     </div>
                 </div>
 
                 {/* Right: Location */}
                 <div className="flex flex-col items-end text-right">
-                    <div className="text-sm text-card-foreground font-medium tracking-wide leading-none">
+                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-mono mt-1.5 leading-none">
+                    <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
                         EUROPE/LJUBLJANA
                     </div>
                 </div>
             </div>
 
             {/* CENTER SECTION: Expanded Height for breathing room */}
-            <CardContent className="w-full h-[200px] p-0 relative overflow-hidden bg-transparent z-10">
+            <CardContent className="relative z-10 h-[200px] w-full overflow-hidden bg-transparent p-0">
                 <MapVisual coords={coords} topology={topology} />
             </CardContent>
 
             {/* FOOTER: Temp & Time */}
-            <CardFooter className="p-4 py-3 flex justify-between items-center z-20 relative bg-muted/20 border-t-[0.5px] border-white/5">
+            <CardFooter className="relative z-20 flex items-center justify-between border-t-[0.5px] border-white/5 bg-muted/20 p-4 py-3">
                 <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground font-mono tracking-wide">
+                    <span className="font-mono text-xs tracking-wide text-muted-foreground">
                         {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
                     </span>
                 </div>
-                <span className="text-xs text-muted-foreground font-mono tracking-wide">{timeStr}</span>
+                <span className="font-mono text-xs tracking-wide text-muted-foreground">{timeStr}</span>
             </CardFooter>
         </Card>
     );

@@ -29,28 +29,25 @@ export default function Home({ tasks = [], onOpenPulse }) {
 
 
   return (
-    <div className="relative h-full w-full flex overflow-hidden bg-[#050505] text-white font-sans selection:bg-white/20">
-
-
-
+    <div className="relative flex h-full w-full overflow-hidden bg-midnight font-sans text-white selection:bg-white/20">
       {/*
         MAIN CONTENT GRID
         - Removed max-w-7xl mx-auto to strict positioning from edge
         - lg:pl-[128px] = Explicit 128px from left edge on desktop
       */}
-      <div className="w-full h-full p-8 lg:pr-16 lg:pl-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-8 lg:grid-cols-2 lg:px-16">
 
         {/* LEFT ZONE: Greeting */}
-        <div className="flex flex-col justify-center items-start space-y-6">
+        <div className="flex flex-col items-start justify-center space-y-6">
           <div className="space-y-4 text-left">
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl tracking-tight font-semibold whitespace-nowrap mix-blend-difference grayscale"
+              className="whitespace-nowrap text-4xl font-semibold tracking-tight mix-blend-difference grayscale md:text-5xl lg:text-6xl"
               style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
             >
               <span className="text-white/50">{greeting}</span> <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
             <p
-              className="text-base md:text-lg text-white/90 font-normal italic max-w-xl leading-relaxed mix-blend-difference grayscale"
+              className="max-w-xl text-base font-normal italic leading-relaxed text-white/90 mix-blend-difference grayscale md:text-lg"
             >
               "{quote}"
             </p>
@@ -58,7 +55,7 @@ export default function Home({ tasks = [], onOpenPulse }) {
         </div>
 
         {/* RIGHT ZONE: Glass Widgets Stack */}
-        <div className="flex flex-col items-center lg:items-end justify-center space-y-6 w-full max-w-sm mx-auto lg:mx-0 lg:ml-auto">
+        <div className="mx-auto flex w-full max-w-sm flex-col items-center justify-center space-y-6 lg:ml-auto lg:mx-0 lg:items-end">
 
           {/* World Map & Weather Widget */}
           <GlassErrorBoundary>
@@ -67,28 +64,28 @@ export default function Home({ tasks = [], onOpenPulse }) {
 
           {/* Combined Widget: Focus & Reminders */}
           <GlassErrorBoundary>
-            <Card className="flex flex-col w-full min-h-[260px] bg-card/80 backdrop-blur-sm shadow-lg border-[0.5px] border-white/10 rounded-[24px]">
+            <Card className="flex min-h-[260px] w-full flex-col rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
 
               {/* HEADER: Focus Title */}
-              <CardHeader className="p-5 pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Today's Focus</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-2">
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Today's Focus</CardTitle>
               </CardHeader>
 
               {/* BODY: Focus List */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex flex-1 flex-col">
                 {/* Focus Items */}
-                <CardContent className="p-5 pt-1 pb-4 flex flex-col gap-4">
+                <CardContent className="flex flex-col gap-4 p-5 pb-4 pt-1">
                   {todayTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest font-mono text-center italic py-2">
+                    <div className="flex flex-col items-center justify-center py-2 text-center font-mono text-[10px] italic uppercase tracking-widest text-muted-foreground">
                       no tasks for today.
                     </div>
                   ) : (
-                    <ul className="space-y-2 overflow-y-auto custom-scrollbar max-h-[80px]">
+                    <ul className="max-h-[80px] space-y-2 overflow-y-auto custom-scrollbar">
                       {todayTasks.slice(0, 3).map(task => (
                         <FocusTaskItem key={task.id} task={task} />
                       ))}
                       {todayTasks.length > 3 && (
-                        <li className="text-[10px] text-muted-foreground pt-1">+{todayTasks.length - 3} more</li>
+                        <li className="pt-1 text-[10px] text-muted-foreground">+{todayTasks.length - 3} more</li>
                       )}
                     </ul>
                   )}
@@ -96,11 +93,11 @@ export default function Home({ tasks = [], onOpenPulse }) {
               </div>
 
               {/* FOOTER: Open Chronos */}
-              <CardFooter className="p-4 py-3 flex justify-end items-center z-20 relative bg-muted/20 border-t-[0.5px] border-white/5">
+              <CardFooter className="relative z-20 flex items-center justify-end border-t-[0.5px] border-white/5 bg-muted/20 p-4 py-3">
                 <button
                   onClick={openPulse}
                   aria-label="Open Chronos Dashboard"
-                  className="flex items-center gap-2 text-[10px] text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-bold"
+                  className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <span>Open Chronos</span>
                   {/* Tiny arrow icon optional */}
