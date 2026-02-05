@@ -6,6 +6,17 @@ import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import FocusTaskItem from "../components/FocusTaskItem.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 import { useWeather } from "../hooks/useWeather.js";
+import { Dock } from "../components/ui/dock.jsx";
+import {
+  Home as HomeIcon,
+  Briefcase,
+  BookOpen,
+  Library,
+  Globe,
+  Hourglass,
+  Sparkles,
+  Search
+} from "lucide-react";
 
 /* -------------------------------------------
    Home
@@ -28,6 +39,17 @@ export default function Home({ tasks = [], onOpenPulse }) {
   }, [tasks, todayStr]);
 
 
+  const DOCK_ITEMS = [
+    { icon: HomeIcon, label: "Home", onClick: () => console.log("Nav: Home") },
+    { icon: Briefcase, label: "Projects", onClick: () => console.log("Nav: Projects") },
+    { icon: BookOpen, label: "Journal", onClick: () => console.log("Nav: Journal") },
+    { icon: Library, label: "Codex", onClick: () => console.log("Nav: Codex") },
+    { icon: Globe, label: "Connect", onClick: () => console.log("Nav: Connect") },
+    { icon: Hourglass, label: "Chronos", onClick: openPulse }, // Existing Chronos action
+    { icon: Sparkles, label: "Opus", onClick: () => console.log("Nav: Opus") },
+    { icon: Search, label: "Search", onClick: () => console.log("Nav: Search") },
+  ];
+
   return (
     <div className="relative flex h-full w-full overflow-hidden bg-midnight font-sans text-white selection:bg-white/20">
       {/*
@@ -35,7 +57,7 @@ export default function Home({ tasks = [], onOpenPulse }) {
         - Removed max-w-7xl mx-auto to strict positioning from edge
         - lg:pl-[128px] = Explicit 128px from left edge on desktop
       */}
-      <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-8 lg:grid-cols-2 lg:px-16">
+      <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-8 lg:grid-cols-2 lg:px-16 pb-32"> {/* Added pb-32 for Dock space */}
 
         {/* LEFT ZONE: Greeting */}
         <div className="flex flex-col items-start justify-center space-y-6">
@@ -107,6 +129,13 @@ export default function Home({ tasks = [], onOpenPulse }) {
 
             </Card>
           </GlassErrorBoundary>
+        </div>
+      </div>
+
+      {/* BOTTOM DOCK */}
+      <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto">
+          <Dock items={DOCK_ITEMS} />
         </div>
       </div>
     </div>
