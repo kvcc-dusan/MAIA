@@ -29,7 +29,7 @@ const DockIconButton = React.forwardRef(
                     className
                 )}
             >
-                <Icon className="w-5 h-5" />
+                {Icon ? <Icon className="w-5 h-5" /> : <div className="w-5 h-5 bg-red-500/20 rounded-full" />}
                 <span
                     className={cn(
                         "absolute -top-10 left-1/2 -translate-x-1/2",
@@ -69,8 +69,12 @@ const Dock = React.forwardRef(({ items, className }, ref) => {
                         "hover:shadow-2xl transition-shadow duration-300"
                     )}
                 >
-                    {items.map((item) => (
-                        <DockIconButton key={item.label} {...item} />
+                    {items.map((item, index) => (
+                        item.type === 'separator' ? (
+                            <div key={`sep-${index}`} className="w-[1px] h-8 bg-white/10 mx-2" />
+                        ) : (
+                            <DockIconButton key={item.label || index} {...item} />
+                        )
                     ))}
                 </motion.div>
             </div>
