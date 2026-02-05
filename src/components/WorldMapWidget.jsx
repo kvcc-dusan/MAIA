@@ -1,19 +1,16 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
-import land110 from "world-atlas/land-110m.json?json";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 
-const MapVisual = React.memo(({ weather }) => {
-    const { coords } = weather || {};
-
+export const MapVisual = React.memo(({ coords, topology }) => {
     // D3 Map Logic
     const mapData = useMemo(() => {
-        if (!land110 || !land110.objects) {
+        if (!topology || !topology.objects) {
             return null;
         }
-        return feature(land110, land110.objects.land);
-    }, []); // land110 is static import
+        return feature(topology, topology.objects.land);
+    }, [topology]);
 
     const { pathD, dotPos } = useMemo(() => {
         const width = 300;
@@ -90,7 +87,16 @@ const MapVisual = React.memo(({ weather }) => {
 
 
 export default function WorldMapWidget({ weather }) {
-    const { temp, place, condition } = weather || {};
+    const { temp, place, condition, coords } = weather || {};
+
+    // Lazy load map data
+    const [topology, setTopology] = useState(null);
+    useEffect(() => {
+        // Dynamic import for bundle optimization
+        import("world-atlas/land-110m.json?json")
+            .then((mod) => setTopology(mod.default || mod))
+            .catch((err) => console.error("Failed to load map topology:", err));
+    }, []);
 
     // Real-time clock
     const [now, setNow] = useState(new Date());
@@ -143,7 +149,7 @@ export default function WorldMapWidget({ weather }) {
 
             {/* CENTER SECTION: Expanded Height for breathing room */}
             <CardContent className="w-full h-[200px] p-0 relative overflow-hidden bg-transparent z-10">
-                <MapVisual weather={weather} />
+                <MapVisual coords={coords} topology={topology} />
             </CardContent>
 
             {/* FOOTER: Temp & Time */}
