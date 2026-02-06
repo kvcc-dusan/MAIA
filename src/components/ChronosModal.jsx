@@ -5,6 +5,7 @@ import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import EmptyState from "./EmptyState";
 
 // --- CONSTANTS ---
 const NEON_BLUE = '#0044FF';
@@ -386,6 +387,8 @@ export default function ChronosModal({
   reminders,
   setReminders,
   pushToast,
+  toggleTask,
+  deleteTask,
 }) {
   const today = new Date();
 
@@ -576,8 +579,7 @@ export default function ChronosModal({
   const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
   const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date));
 
-  const toggleTask = (id) => setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
-  const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
+  // toggleTask and deleteTask are now passed via props
 
   const upcomingSignals = useMemo(
     () => reminders.filter((r) => !r.delivered).sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
@@ -618,7 +620,7 @@ export default function ChronosModal({
                 {(() => {
                   const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
                   if (list.length === 0) {
-                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
+                    return <EmptyState icon="check" message={`No tasks for ${selectedDate ? "this day" : "now"}.`} className="py-8" />;
                   }
                   return list.map(t => (
                     <div key={t.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10">
@@ -641,7 +643,7 @@ export default function ChronosModal({
               </div>
 
               <div className="space-y-2">
-                {upcomingSignals.length === 0 && <div className="py-2 text-sm text-zinc-600 italic">No active signals.</div>}
+                {upcomingSignals.length === 0 && <EmptyState icon="zap" message="No active signals." className="py-8" />}
                 {upcomingSignals.map(s => {
                   const dotColor = getPriorityColor(s.priority || 'low');
                   return (

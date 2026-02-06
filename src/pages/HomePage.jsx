@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../compone
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import FocusTaskItem from "../components/FocusTaskItem.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 import { useWeather } from "../hooks/useWeather.js";
 
@@ -79,9 +80,11 @@ export default function Home({ tasks = [], onOpenPulse }) {
                 {/* Focus Items */}
                 <CardContent className="flex flex-col gap-4 p-5 pb-4 pt-1">
                   {todayTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-2 text-center font-mono text-[10px] italic uppercase tracking-widest text-muted-foreground">
-                      no tasks for today.
-                    </div>
+                    <EmptyState
+                      icon="check"
+                      message="No tasks for today."
+                      className="py-2 min-h-[100px]"
+                    />
                   ) : (
                     <ul className="max-h-[80px] space-y-2 overflow-y-auto custom-scrollbar">
                       {todayTasks.slice(0, 3).map(task => (

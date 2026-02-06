@@ -5,13 +5,20 @@ import MarkdownDisplay from '../components/MarkdownDisplay.jsx';
 import GlassSurface from '../components/GlassSurface.jsx';
 import { GlassCard, GlassInput } from '../components/GlassCard';
 import ProjectIcon from '../components/ProjectIcon';
+import EmptyState from '../components/EmptyState';
 
 const JournalHistoryList = React.memo(({ entries }) => {
     return (
         <div className='flex-1 relative min-h-0 w-full'>
             <div className='absolute inset-0 overflow-y-auto custom-scrollbar space-y-6 pb-8'>
                 <div className='text-xs font-bold text-zinc-600 uppercase tracking-widest sticky top-0 bg-transparent backdrop-blur-sm z-10 py-2 mb-4'>History</div>
-                {entries.map(entry => (
+                {entries.length === 0 ? (
+                    <EmptyState
+                        icon="book"
+                        message="No journal entries found."
+                        className="h-64"
+                    />
+                ) : entries.map(entry => (
                     <div key={entry.id} className='group relative pl-6 border-l border-white/10 hover:border-white/30 transition-colors'>
                         <div className='absolute -left-[3px] top-2 w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-blue-500 transition-colors shadow-[0_0_8px_rgba(59,130,246,0.5)]' />
                         <div className='text-xs text-zinc-500 font-mono mb-2 flex justify-between'>
