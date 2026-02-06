@@ -1,7 +1,7 @@
 // @maia:tabula (react-konva canvas)
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Stage, Layer, Line, Group, Rect, Text as KText, Arrow, Image as KImage, Circle } from "react-konva";
-import Konva from "konva";
+import { useSize } from "../hooks/useSize.js";
 
 const dottedBg = {
   backgroundColor: "#000",
@@ -11,23 +11,6 @@ const dottedBg = {
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
-
-/* -------------------------------------------
-   Helpers
-------------------------------------------- */
-function useSize() {
-  const ref = useRef(null);
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  useEffect(() => {
-    const ro = new ResizeObserver(() => {
-      const el = ref.current;
-      if (el) setSize({ w: el.clientWidth, h: el.clientHeight });
-    });
-    if (ref.current) ro.observe(ref.current);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, size];
-}
 
 function worldPointer(stage) {
   const p = stage.getPointerPosition();

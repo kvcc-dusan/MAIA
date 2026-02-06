@@ -1,5 +1,6 @@
 // @maia:command-palette
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function CommandPalette({
   open,
@@ -86,12 +87,16 @@ export default function CommandPalette({
               key={idx}
               onMouseEnter={() => setI(idx)}
               onClick={() => it.run()}
-              className={`w-full text-left px-4 py-3 rounded-xl text-[13px] tracking-wide transition-colors flex items-center justify-between group ${i === idx ? "bg-white/10 text-white" : "text-zinc-400"
-                }`}
+              className={cn(
+                "w-full text-left px-4 py-3 rounded-xl text-[13px] tracking-wide transition-colors flex items-center justify-between group",
+                i === idx ? "bg-white/10 text-white" : "text-zinc-400"
+              )}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors ${i === idx ? "bg-white text-black" : "bg-zinc-800 text-zinc-500 group-hover:bg-zinc-700 group-hover:text-zinc-300"
-                  }`}>
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors",
+                  i === idx ? "bg-white text-black" : "bg-zinc-800 text-zinc-500 group-hover:bg-zinc-700 group-hover:text-zinc-300"
+                )}>
                   {it._type === 'action' ? 'CMD' : 'DOC'}
                 </div>
                 <span>{it.label}</span>
