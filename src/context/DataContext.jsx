@@ -150,6 +150,18 @@ export function DataProvider({ children }) {
         ]);
     }, [setTasks]);
 
+    const toggleTask = useCallback((id) => {
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+    }, [setTasks]);
+
+    const deleteTask = useCallback((id) => {
+        setTasks((prev) => prev.filter((t) => t.id !== id));
+    }, [setTasks]);
+
+    const updateTask = useCallback((id, patch) => {
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    }, [setTasks]);
+
     // Reminders
     const addReminder = useCallback((title, scheduledAt) => {
         if (!title.trim()) return;
@@ -167,11 +179,11 @@ export function DataProvider({ children }) {
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject,
         addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject,
-        addTask, addReminder
+        addTask, toggleTask, deleteTask, updateTask, addReminder
     }), [
         notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders,
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
-        updateProject, deleteProject, createProject, addTask, addReminder
+        updateProject, deleteProject, createProject, addTask, toggleTask, deleteTask, updateTask, addReminder
     ]);
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

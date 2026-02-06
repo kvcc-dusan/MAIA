@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
 import { GlassCard } from "../components/GlassCard";
+import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import GraphRenderer from "../components/Graph/GraphRenderer.jsx";
 import GraphControls from "../components/Graph/GraphControls.jsx";
 
@@ -234,26 +235,28 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
 
-      <GraphRenderer
-        nodes={nodes}
-        links={links}
-        dims={dims}
-        activeCluster={activeCluster}
-        showSignals={showSignals}
-        onOpenNote={onOpenNote}
-        nodeSize={nodeSize}
-        linkThickness={linkThickness}
-        fontSize={fontSize}
-        repelForce={repelForce}
-        linkDistance={linkDistance}
-        searchQuery={searchQuery}
-        setHoveredNode={setHoveredNode}
-        wrapperRef={wrapperRef}
-        svgRef={svgRef}
-        zoomRef={zoomRef}
-        nodesRef={nodesRef}
-        searchRef={searchRef}
-      />
+      <GlassErrorBoundary>
+        <GraphRenderer
+          nodes={nodes}
+          links={links}
+          dims={dims}
+          activeCluster={activeCluster}
+          showSignals={showSignals}
+          onOpenNote={onOpenNote}
+          nodeSize={nodeSize}
+          linkThickness={linkThickness}
+          fontSize={fontSize}
+          repelForce={repelForce}
+          linkDistance={linkDistance}
+          searchQuery={searchQuery}
+          setHoveredNode={setHoveredNode}
+          wrapperRef={wrapperRef}
+          svgRef={svgRef}
+          zoomRef={zoomRef}
+          nodesRef={nodesRef}
+          searchRef={searchRef}
+        />
+      </GlassErrorBoundary>
 
       <GraphControls
         isPanelOpen={isPanelOpen}

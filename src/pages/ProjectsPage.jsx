@@ -5,6 +5,7 @@ import GlassSurface from "../components/GlassSurface";
 import { GlassCard, GlassInput, GlassTextarea } from "../components/GlassCard";
 import CreateProjectModal from "../components/CreateProjectModal";
 import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
+import EmptyState from "../components/EmptyState";
 
 /* -----------------------------------------
    Helpers
@@ -125,6 +126,16 @@ export default function Projects({
 
             {/* List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+              {activeList.length === 0 && otherList.length === 0 && (
+                <EmptyState
+                  icon="briefcase"
+                  message="No missions yet."
+                  action={() => setIsModalOpen(true)}
+                  actionLabel="Create"
+                  className="h-64"
+                />
+              )}
+
               {activeList.map(p => (
                 <button
                   key={p.id}
@@ -239,9 +250,11 @@ export default function Projects({
                   </div>
                   <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
                     {linkedNotes.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-zinc-700 text-sm italic">
-                        Use [[project name]] in notes to link logic.
-                      </div>
+                      <EmptyState
+                        icon="writing"
+                        message="Use [[project name]] in notes to link logic."
+                        className="h-full"
+                      />
                     ) : (
                       linkedNotes.map(n => (
                         <button
@@ -280,9 +293,11 @@ export default function Projects({
                   </div>
                   <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
                     {activeProject.links.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-zinc-700 text-sm italic">
-                        No external uplinks established.
-                      </div>
+                      <EmptyState
+                        icon="globe"
+                        message="No external uplinks established."
+                        className="h-full"
+                      />
                     ) : (
                       activeProject.links.map(l => (
                         <a
@@ -303,12 +318,11 @@ export default function Projects({
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
-              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                <ProjectIcon name="work" size={40} className="opacity-50" />
-              </div>
-              <p className="text-lg font-light text-zinc-500">Select a mission to analyze.</p>
-            </div>
+            <EmptyState
+              icon="work"
+              message="Select a mission to analyze."
+              className="h-full"
+            />
           )}
         </div>
       </div>

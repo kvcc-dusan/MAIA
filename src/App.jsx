@@ -48,7 +48,8 @@ function AppContent() {
     reminders, setReminders,
     // Actions
     createNote, updateNote, deleteNote, renameNote,
-    moveNoteToProject
+    moveNoteToProject,
+    toggleTask, deleteTask, updateTask
   } = useData();
 
   // Local state for navigation/selection that doesn't need persistence yet
@@ -277,6 +278,9 @@ function AppContent() {
           reminders={reminders}
           setReminders={setReminders}
           pushToast={pushToast}
+          toggleTask={toggleTask}
+          deleteTask={deleteTask}
+          updateTask={updateTask}
         />
       )}
 
