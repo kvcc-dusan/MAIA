@@ -1,7 +1,7 @@
 // @maia:graph-controls
 import React from "react";
-import { GlassCard, GlassInput } from "../GlassCard";
-import ProjectIcon from "../ProjectIcon";
+import { GlassCard, GlassInput } from "../../../components/GlassCard";
+import ProjectIcon from "../../../components/ProjectIcon";
 
 const COLORS = [
     "#2dd4bf", // Teal (Growth)
