@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { GlassCard, GlassInput, GlassTextarea } from "./GlassCard";
 import ProjectIcon from "./ProjectIcon";
+import { cn } from "@/lib/utils";
 
 function NewDecisionModal({ onClose, onSubmit }) {
     const [draft, setDraft] = useState({
@@ -153,9 +154,12 @@ function ReviewModal({ decision, onClose, onReview }) {
                                     <button
                                         key={s}
                                         onClick={() => setStatus(s)}
-                                        className={`flex-1 capitalize text-xs font-bold py-2 rounded-md transition-all ${status === s
-                                            ? (s === 'success' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm' : s === 'failure' ? 'bg-red-500/20 text-red-300' : 'bg-yellow-500/20 text-yellow-300')
-                                            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
+                                        className={cn(
+                                            "flex-1 capitalize text-xs font-bold py-2 rounded-md transition-all",
+                                            status === s
+                                                ? (s === 'success' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm' : s === 'failure' ? 'bg-red-500/20 text-red-300' : 'bg-yellow-500/20 text-yellow-300')
+                                                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'
+                                        )}
                                     >
                                         {s}
                                     </button>
@@ -212,10 +216,11 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                 <div className="space-y-1">
                     <div className="text-zinc-200 font-bold text-sm tracking-tight">{d.title}</div>
                     <div className="flex items-center gap-2">
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${d.stakes === 'high' ? 'border-red-500/30 text-red-400 bg-red-500/10' :
+                        <span className={cn("text-[10px] px-1.5 py-0.5 rounded border uppercase tracking-wider font-bold",
+                            d.stakes === 'high' ? 'border-red-500/30 text-red-400 bg-red-500/10' :
                                 d.stakes === 'medium' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' :
                                     'border-blue-500/30 text-blue-400 bg-blue-500/10'
-                            } uppercase tracking-wider font-bold`}>{d.stakes}</span>
+                        )}>{d.stakes}</span>
 
                         <span className="text-[10px] text-zinc-500 border border-white/5 px-1.5 py-0.5 rounded bg-black/20 uppercase tracking-wider">{d.reversibility}</span>
                         <span className="text-[10px] text-zinc-500 font-mono">Conf: {d.confidence}%</span>
@@ -232,10 +237,11 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                 )}
 
                 {d.status === "reviewed" && (
-                    <div className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${d.outcomeStatus === 'success' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' :
+                    <div className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border",
+                        d.outcomeStatus === 'success' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' :
                             d.outcomeStatus === 'failure' ? 'border-red-500/30 text-red-400 bg-red-500/10' :
                                 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10'
-                        }`}>
+                    )}>
                         {d.outcomeStatus}
                     </div>
                 )}

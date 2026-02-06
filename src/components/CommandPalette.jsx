@@ -97,6 +97,7 @@ export default function CommandPalette({
                   "w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors shrink-0",
                   i === idx ? "bg-white text-black" : "bg-white/5 text-zinc-500 group-hover:bg-white/10 group-hover:text-zinc-300"
                 )}>
+                )}>
                   {it._type === 'action' ? 'CMD' : 'DOC'}
                 </div>
                 <span>{it.label}</span>

@@ -9,6 +9,7 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Extension } from "@tiptap/core";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
+import { cn } from "@/lib/utils";
 
 /** Inline placeholder exactly where line 1 starts */
 function InlinePlaceholder() {
@@ -179,7 +180,7 @@ export default function EditorRich({
   const showPlaceholder = editor.isEmpty && editor.isEditable;
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={cn("relative", className)}>
       {showPlaceholder && <InlinePlaceholder />}
       <EditorContent
         editor={editor}

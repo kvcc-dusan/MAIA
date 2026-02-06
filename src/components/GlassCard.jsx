@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 // Reusable Glass Card component matching Chronos aesthetic
 export function GlassCard({
     children,
@@ -16,7 +18,12 @@ export function GlassCard({
 
     return (
         <div
-            className={`${variants[variant]} border rounded-xl p-4 backdrop-blur-sm ${hoverClass} ${className}`}
+            className={cn(
+                variants[variant],
+                "border rounded-xl p-4 backdrop-blur-sm",
+                hoverClass,
+                className
+            )}
             {...props}
         >
             {children}
@@ -33,14 +40,13 @@ export function GlassListItem({
 }) {
     return (
         <div
-            className={`
-        border rounded-xl p-3 backdrop-blur-sm transition-colors
-        ${active
+            className={cn(
+                "border rounded-xl p-3 backdrop-blur-sm transition-colors",
+                active
                     ? "bg-white/10 border-white/20 text-white"
-                    : "bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
-                }
-        ${className}
-      `}
+                    : "bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-white",
+                className
+            )}
             {...props}
         >
             {children}
@@ -52,7 +58,10 @@ export function GlassListItem({
 export function GlassInput({ className = "", ...props }) {
     return (
         <input
-            className={`w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors placeholder:text-zinc-400 ${className}`}
+            className={cn(
+                "w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors placeholder:text-zinc-400",
+                className
+            )}
             {...props}
         />
     );
@@ -62,7 +71,10 @@ export function GlassInput({ className = "", ...props }) {
 export function GlassTextarea({ className = "", ...props }) {
     return (
         <textarea
-            className={`w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-400 ${className}`}
+            className={cn(
+                "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-400",
+                className
+            )}
             {...props}
         />
     );

@@ -17,6 +17,16 @@ function quoteForToday() {
   return QUOTES[hash % QUOTES.length];
 }
 
+/**
+ * Hook to provide a time-based greeting and a daily quote.
+ * Updates the time every minute.
+ *
+ * @returns {{
+ *   now: Date,
+ *   quote: string,
+ *   greeting: string
+ * }}
+ */
 export function useHomeGreeting() {
   const [now, setNow] = useState(new Date());
   const [quote, setQuote] = useState(() => quoteForToday());

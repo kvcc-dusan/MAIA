@@ -1,6 +1,17 @@
 import { useEffect, useMemo } from 'react';
 import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3';
 
+/**
+ * Custom hook to run a D3 force simulation for a graph.
+ *
+ * @param {Object} params
+ * @param {Array} params.nodes - List of node objects.
+ * @param {Array} params.links - List of link objects.
+ * @param {{w: number, h: number}} params.dims - Dimensions of the simulation area.
+ * @param {number} params.repelForce - Strength of the charge force (repulsion).
+ * @param {number} params.linkDistance - Desired distance between linked nodes.
+ * @returns {Object} - The D3 simulation instance.
+ */
 export function useGraphSimulation({
     nodes,
     links,

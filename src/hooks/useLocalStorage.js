@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
 
+/**
+ * Hook to persist state to localStorage.
+ *
+ * @param {string} key - The localStorage key.
+ * @param {*} initial - The initial value (or function returning it).
+ * @returns {[*, Function]} - State and setter tuple.
+ */
 export function useLocalStorage(key, initial) {
   const [state, setState] = useState(() => {
     try {
