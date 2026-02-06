@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- CONSTANTS ---
-const NEON_BLUE = '#0044FF';
+const NEON_BLUE = '#3377FF';
 const NEON_ORANGE = '#FF5930';
 const NEON_GREEN = '#ABFA54';
 
@@ -54,11 +54,12 @@ function Portal({ children }) {
   return createPortal(children, document.body);
 }
 
-function CloseButton({ onClick, className }) {
+function CloseButton({ onClick, className, "aria-label": ariaLabel = "Close" }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick && onClick(e); }}
       className={cn("w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20", className)}
+      aria-label={ariaLabel}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
@@ -71,6 +72,7 @@ function PriorityCheckbox({ checked, onChange, priority }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onChange && onChange(); }}
+      aria-label={`Mark as ${checked ? 'not done' : 'done'} - Priority ${priority}`}
       className={cn(
         "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative group",
         checked
@@ -206,6 +208,19 @@ function DateTimePicker({ label, value, onChange }) {
     return () => window.removeEventListener("mousedown", globalClick);
   }, [open]);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (open && e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [open]);
+
   useLayoutEffect(() => {
     if (open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
@@ -272,6 +287,7 @@ function DateTimePicker({ label, value, onChange }) {
       {label && <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
+        aria-label="Select Date and Time"
         className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
       >
         <div className="flex items-center gap-3 truncate">
@@ -302,7 +318,7 @@ function DateTimePicker({ label, value, onChange }) {
                     <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
                   </div>
                   <div className="grid grid-cols-7 text-center gap-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => <div key={d} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
                     {gridCells.map((d, i) => (
                       <div key={i} className="aspect-square">
                         {d && (
@@ -603,7 +619,7 @@ export default function ChronosModal({
             <h2 className="text-2xl font-semibold text-white tracking-tight">Chronos</h2>
             <div className="flex items-center gap-6">
               <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">{today.toLocaleDateString()}</span>
-              <CloseButton onClick={onClose} className="text-zinc-400 hover:text-white transition-colors" />
+              <CloseButton onClick={onClose} aria-label="Close Modal" className="text-zinc-400 hover:text-white transition-colors" />
             </div>
           </div>
 
@@ -627,7 +643,7 @@ export default function ChronosModal({
                         <div className={cn("text-sm font-medium transition-colors truncate", t.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{t.title}</div>
                         {t.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(t.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
                       </div>
-                      <CloseButton onClick={() => deleteTask(t.id)} className="opacity-0 group-hover:opacity-100" />
+                      <CloseButton onClick={() => deleteTask(t.id)} aria-label="Delete Task" className="opacity-0 group-hover:opacity-100" />
                     </div>
                   ));
                 })()}
@@ -655,7 +671,7 @@ export default function ChronosModal({
                         <div className="text-sm text-zinc-200 truncate">{s.title}</div>
                         <div className="text-[10px] text-zinc-500 font-mono">{new Date(s.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
-                      <CloseButton onClick={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }} className="opacity-0 group-hover:opacity-100" />
+                      <CloseButton onClick={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }} aria-label="Delete Signal" className="opacity-0 group-hover:opacity-100" />
                     </div>
                   )
                 })}
@@ -680,7 +696,7 @@ export default function ChronosModal({
 
               <div className="px-6 pb-6 flex-none">
                 <div className="grid grid-cols-7 mb-2">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => <div key={d} className="text-center text-[10px] font-bold text-zinc-600 py-1">{d}</div>)}
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-[10px] font-bold text-zinc-600 py-1">{d}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-1 auto-rows-fr">
                   {gridCells.map((d, i) => {
