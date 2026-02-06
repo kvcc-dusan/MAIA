@@ -76,7 +76,7 @@ export default function CommandPalette({
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Type a command or search notes..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/20 transition-all font-medium"
+            className="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 font-medium"
           />
         </div>
         <div className="max-h-[360px] overflow-auto p-2 space-y-1 custom-scrollbar">

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
+import { rescheduleAll, ensurePermission } from "./utils/notify.js";
 
 // Components
 import { Dock } from "./components/ui/dock.jsx";
@@ -158,6 +159,18 @@ function AppContent() {
   }, []);
 
   /* -----------------------------------------
+     Persistent Notifications
+  ----------------------------------------- */
+  useEffect(() => {
+    // Ensure permissions on first user interaction or load if possible, though browsers block auto-request.
+    // Rely on ChronosModal to ask permission, but here we just schedule what we have.
+    if (reminders && reminders.length > 0) {
+      rescheduleAll(reminders);
+    }
+  }, [reminders]);
+
+
+  /* -----------------------------------------
      Layout
   ----------------------------------------- */
   return (
@@ -276,6 +289,7 @@ function AppContent() {
           setTasks={setTasks}
           reminders={reminders}
           setReminders={setReminders}
+          projects={projects}
           pushToast={pushToast}
         />
       )}
@@ -301,9 +315,15 @@ function AppContent() {
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4">
-          <div className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-sm shadow-xl flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            {toast}
+          <div className="px-4 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 text-zinc-200 text-sm shadow-2xl flex items-center gap-2 font-medium">
+            {typeof toast === 'string' ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                {toast}
+              </>
+            ) : (
+              toast
+            )}
           </div>
         </div>
       )}

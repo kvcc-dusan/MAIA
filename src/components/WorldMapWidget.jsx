@@ -69,8 +69,8 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                     >
                         <div className="flex h-full w-full items-center justify-center">
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#ABFA54' }}></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: '#ABFA54' }}></span>
                             </span>
                         </div>
                     </foreignObject>

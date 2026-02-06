@@ -1,6 +1,9 @@
 // @maia:chronos-modal
+import ProjectIcon from "./ProjectIcon";
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+import * as Popover from "@radix-ui/react-popover";
+import * as ContextMenu from "@radix-ui/react-context-menu";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
@@ -18,9 +21,9 @@ const TASK_PRIORITIES = [
 ];
 
 const SIGNAL_PRIORITIES = [
-  { value: 'high', label: 'High', color: NEON_BLUE },
-  { value: 'medium', label: 'Medium', color: NEON_ORANGE },
-  { value: 'low', label: 'Low', color: NEON_GREEN }
+  { value: 'p1', label: 'High Priority', color: NEON_BLUE },
+  { value: 'p2', label: 'Medium Priority', color: NEON_ORANGE },
+  { value: 'p3', label: 'Normal Priority', color: NEON_GREEN }
 ];
 
 const IN_PRESETS = [
@@ -37,9 +40,9 @@ const IN_PRESETS = [
 
 const getPriorityColor = (p) => {
   switch (p) {
-    case 'high': case 'p1': return NEON_BLUE;
-    case 'medium': case 'p2': return NEON_ORANGE;
-    case 'low': case 'p3': return NEON_GREEN;
+    case 'p1': return NEON_BLUE;
+    case 'p2': return NEON_ORANGE;
+    case 'p3': return NEON_GREEN;
     default: return NEON_GREEN;
   }
 };
@@ -379,12 +382,198 @@ function DateTimePicker({ label, value, onChange }) {
   )
 }
 
+// --- POPUP & CONTEXT MENU ROW COMPONENTS ---
+
+function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
+  const [open, setOpen] = useState(false);
+
+  // Derived
+  const priorityLabel = TASK_PRIORITIES.find(p => p.value === (task.priority || 'p3'))?.label || 'Normal';
+  const priorityColor = getPriorityColor(task.priority || 'p3');
+
+  return (
+    <ContextMenu.Root>
+      <ContextMenu.Trigger className="block">
+        <Popover.Root open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <div
+              className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer"
+              onClick={(e) => {
+                // Prevent popover if clicking checkbox or delete
+                if (e.target.closest('button')) {
+                  e.preventDefault();
+                  return;
+                }
+              }}
+            >
+              <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} />
+              <div className="flex-1 min-w-0">
+                <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{task.title}</div>
+                {task.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+              </div>
+              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" />
+            </div>
+          </Popover.Trigger>
+
+          <AnimatePresence>
+            {open && (
+              <Popover.Portal>
+                <Popover.Content
+                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-semibold text-white text-sm leading-tight">{task.title}</h4>
+                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </Popover.Close>
+                    </div>
+                    {task.desc && <p className="text-xs text-zinc-400 leading-relaxed">{task.desc}</p>}
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priorityColor }} />
+                        <span className="text-[10px] font-medium text-zinc-300">{priorityLabel}</span>
+                      </div>
+                      {task.due && (
+                        <div className="text-[10px] text-zinc-500 font-mono">
+                          {new Date(task.due).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Popover.Arrow className="fill-[#09090b]" />
+                </Popover.Content>
+              </Popover.Portal>
+            )}
+          </AnimatePresence>
+        </Popover.Root>
+      </ContextMenu.Trigger>
+
+      <ContextMenu.Portal>
+        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
+          <ContextMenu.Item
+            className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
+            onSelect={onEdit}
+          >
+            <span>Edit Task</span>
+          </ContextMenu.Item>
+
+          <ContextMenu.Sub>
+            <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors">
+              Assign to Project
+              <span>›</span>
+            </ContextMenu.SubTrigger>
+            <ContextMenu.Portal>
+              <ContextMenu.SubContent className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 ml-1")}>
+                {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-zinc-600 italic">No projects</div>}
+                {projects.map(p => (
+                  <ContextMenu.Item
+                    key={p.id}
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
+                    onSelect={() => onAssign(p.id)}
+                  >
+                    <ProjectIcon name={p.icon} size={14} className="text-zinc-500 group-hover:text-white" />
+                    <span className="truncate">{p.name}</span>
+                  </ContextMenu.Item>
+                ))}
+              </ContextMenu.SubContent>
+            </ContextMenu.Portal>
+          </ContextMenu.Sub>
+
+          <ContextMenu.Separator className="h-px bg-white/10 my-1" />
+
+          <ContextMenu.Item
+            className="flex items-center gap-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded cursor-pointer outline-none transition-colors"
+            onSelect={onDelete}
+          >
+            Delete Task
+          </ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
+  );
+}
+
+function SignalRow({ signal, onDelete, onEdit }) {
+  const [open, setOpen] = useState(false);
+  const dotColor = getPriorityColor(signal.priority || 'low');
+
+  return (
+    <ContextMenu.Root>
+      <ContextMenu.Trigger className="block">
+        <Popover.Root open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <div className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer">
+              <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                <span className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ backgroundColor: dotColor }}></span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-zinc-200 truncate">{signal.title}</div>
+                <div className="text-[10px] text-zinc-500 font-mono">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" />
+            </div>
+          </Popover.Trigger>
+
+          <AnimatePresence>
+            {open && (
+              <Popover.Portal>
+                <Popover.Content
+                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
+                  sideOffset={5}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-semibold text-white text-sm leading-tight">{signal.title}</h4>
+                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </Popover.Close>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                      <div className="text-[10px] text-zinc-400 font-mono">
+                        Scheduled for {new Date(signal.scheduledAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                  <Popover.Arrow className="fill-[#09090b]" />
+                </Popover.Content>
+              </Popover.Portal>
+            )}
+          </AnimatePresence>
+        </Popover.Root>
+      </ContextMenu.Trigger>
+
+      <ContextMenu.Portal>
+        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200")}>
+          <ContextMenu.Item
+            className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
+            onSelect={onEdit}
+          >
+            Edit Signal
+          </ContextMenu.Item>
+          <ContextMenu.Separator className="h-px bg-white/10 my-1" />
+          <ContextMenu.Item
+            className="flex items-center gap-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded cursor-pointer outline-none transition-colors"
+            onSelect={onDelete}
+          >
+            Cancel Signal
+          </ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
+  );
+}
+
 export default function ChronosModal({
   onClose,
   tasks,
   setTasks,
   reminders,
   setReminders,
+  projects = [],
   pushToast,
 }) {
   const today = new Date();
@@ -430,6 +619,7 @@ export default function ChronosModal({
   }, [selectedDate, rightView]);
 
   const [signalDraft, setSignalDraft] = useState({
+    id: null,
     title: "",
     description: "",
     priority: "low",
@@ -439,6 +629,7 @@ export default function ChronosModal({
   });
 
   const [taskDraft, setTaskDraft] = useState({
+    id: null,
     title: "",
     description: "",
     priority: "p3",
@@ -446,30 +637,56 @@ export default function ChronosModal({
     at: ""
   });
 
-  const openTaskForm = (prefillDate = null) => {
-    let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
-    if (!prefillDate && !selectedDate) base.setHours(9, 0, 0, 0);
-    else if (prefillDate) base = new Date(prefillDate);
+  const openTaskForm = (prefillDate = null, existingTask = null) => {
+    if (existingTask) {
+      // Edit Mode
+      setTaskDraft({
+        id: existingTask.id,
+        title: existingTask.title,
+        description: existingTask.desc || "",
+        priority: existingTask.priority || "p3",
+        repeating: existingTask.repeating || "none",
+        at: existingTask.due ? toLocalInputValue(new Date(existingTask.due)) : ""
+      });
+    } else {
+      // Create Mode
+      let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
+      if (!prefillDate && !selectedDate) base.setHours(9, 0, 0, 0);
+      else if (prefillDate) base = new Date(prefillDate);
 
-    setTaskDraft({
-      title: "",
-      description: "",
-      priority: "p3",
-      repeating: "none",
-      at: toLocalInputValue(base),
-    });
+      setTaskDraft({
+        id: null,
+        title: "",
+        description: "",
+        priority: "p3",
+        repeating: "none",
+        at: toLocalInputValue(base),
+      });
+    }
     setRightView("task-form");
   };
 
-  const openSignalForm = () => {
-    setSignalDraft({
-      title: "",
-      description: "",
-      priority: "low",
-      mode: "in",
-      minutes: 15,
-      at: toLocalInputValue(new Date()),
-    });
+  const openSignalForm = (existingSignal = null) => {
+    if (existingSignal) {
+      setSignalDraft({
+        id: existingSignal.id,
+        title: existingSignal.title,
+        description: "", // Signals don't have desc usually
+        priority: existingSignal.priority || "p3",
+        mode: "at", // Edit always shows 'at'
+        at: existingSignal.scheduledAt ? toLocalInputValue(new Date(existingSignal.scheduledAt)) : toLocalInputValue(new Date())
+      });
+    } else {
+      setSignalDraft({
+        id: null,
+        title: "",
+        description: "",
+        priority: "p3",
+        mode: "in",
+        minutes: 15,
+        at: toLocalInputValue(new Date()),
+      });
+    }
     setRightView("signal-form");
   };
 
@@ -477,23 +694,48 @@ export default function ChronosModal({
     setRightView("calendar");
   };
 
-  const addTask = (title, date = null, description, priority = "p3") => {
-    const t = (title || "").trim();
-    if (!t) return;
-    const dueIso = date ? new Date(date).toISOString() : null;
-    setTasks((prev) => [
-      { id: uid(), title: t, desc: description, done: false, createdAt: isoNow(), due: dueIso, priority },
-      ...prev,
-    ]);
-  };
-  const createTask = () => {
+  const saveTask = () => {
     const title = taskDraft.title.trim();
     if (!title || !taskDraft.at) return;
-    addTask(title, new Date(taskDraft.at), taskDraft.description.trim() || undefined, taskDraft.priority);
+
+    const dueIso = new Date(taskDraft.at).toISOString();
+
+    if (taskDraft.id) {
+      // Update
+      setTasks(prev => prev.map(t => t.id === taskDraft.id ? {
+        ...t,
+        title,
+        desc: taskDraft.description.trim() || undefined,
+        due: dueIso,
+        priority: taskDraft.priority,
+        repeating: taskDraft.repeating
+      } : t));
+    } else {
+      // Create
+      setTasks(prev => [
+        {
+          id: uid(),
+          title,
+          desc: taskDraft.description.trim() || undefined,
+          done: false,
+          createdAt: isoNow(),
+          due: dueIso,
+          priority: taskDraft.priority,
+          repeating: taskDraft.repeating
+        },
+        ...prev,
+      ]);
+    }
     closeForm();
   };
 
-  const createSignal = () => {
+  const assignTask = (id, projectId) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, projectId } : t));
+    const projectTitle = projects.find(p => p.id === projectId)?.name || "Project";
+    pushToast?.(`Assigned to ${projectTitle}`);
+  };
+
+  const createSignal = () => { // Actually 'saveSignal' now
     const title = signalDraft.title.trim();
     if (!title) return;
 
@@ -503,23 +745,54 @@ export default function ChronosModal({
         : new Date(signalDraft.at);
     if (isNaN(when.getTime())) return;
 
-    const id = uid();
-    const newSignal = {
-      id,
-      title,
-      scheduledAt: when.toISOString(),
-      createdAt: isoNow(),
-      delivered: false,
-      priority: signalDraft.priority
-    };
+    if (when < new Date()) {
+      pushToast?.(
+        <>
+          <span className="text-red-400 font-bold">Error:</span>
+          <span>Time is in the past!</span>
+        </>
+      );
+      return;
+    }
 
-    setReminders((prev) => [newSignal, ...prev]);
+    const pColor = TASK_PRIORITIES.find(p => p.value === signalDraft.priority)?.color || '#fff';
+    const toastContent = (label) => (
+      <>
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pColor }} />
+        <span>{label}</span>
+      </>
+    );
+
+    if (signalDraft.id) {
+      // Update logic
+      setReminders(prev => prev.map(s => s.id === signalDraft.id ? {
+        ...s,
+        title,
+        priority: signalDraft.priority,
+        scheduledAt: when.toISOString()
+      } : s));
+      ensurePermission().then((ok) => {
+        if (ok) scheduleLocalNotification(signalDraft.id, title, when.toISOString());
+      });
+      pushToast?.(toastContent(`Signal updated for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+    } else {
+      // Create
+      const id = uid();
+      const newSignal = {
+        id,
+        title,
+        scheduledAt: when.toISOString(),
+        createdAt: isoNow(),
+        delivered: false,
+        priority: signalDraft.priority
+      };
+      setReminders((prev) => [newSignal, ...prev]);
+      ensurePermission().then((ok) => {
+        if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
+      });
+      pushToast?.(toastContent(`Signal set for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+    }
     closeForm();
-
-    ensurePermission().then((ok) => {
-      if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
-    });
-    pushToast?.(`Signal set for ${when.toLocaleTimeString()}`);
   };
 
   useEffect(() => {
@@ -537,8 +810,6 @@ export default function ChronosModal({
       switch (val) {
         case 'tonight':
           target.setHours(21, 0, 0, 0); // 9 PM
-          // If it's already past 9pm, maybe set for tomorrow? Or just keep today even if past. 
-          // User said "Tonight (9pm)". Let's assume today.
           break;
         case 'tm_morning':
           target.setDate(target.getDate() + 1);
@@ -574,7 +845,7 @@ export default function ChronosModal({
   while (gridCells.length < 42) gridCells.push(null);
 
   const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
-  const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date));
+  const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date) && !t.deleted);
 
   const toggleTask = (id) => setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
@@ -621,14 +892,15 @@ export default function ChronosModal({
                     return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
                   }
                   return list.map(t => (
-                    <div key={t.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10">
-                      <PriorityCheckbox checked={t.done} priority={t.priority || 'p3'} onChange={() => toggleTask(t.id)} />
-                      <div className="flex-1 min-w-0">
-                        <div className={cn("text-sm font-medium transition-colors truncate", t.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{t.title}</div>
-                        {t.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(t.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
-                      </div>
-                      <CloseButton onClick={() => deleteTask(t.id)} className="opacity-0 group-hover:opacity-100" />
-                    </div>
+                    <TaskRow
+                      key={t.id}
+                      task={t}
+                      onToggle={() => toggleTask(t.id)}
+                      onDelete={() => deleteTask(t.id)}
+                      onEdit={() => openTaskForm(null, t)}
+                      onAssign={(projectId) => assignTask(t.id, projectId)}
+                      projects={projects}
+                    />
                   ));
                 })()}
               </div>
@@ -642,23 +914,14 @@ export default function ChronosModal({
 
               <div className="space-y-2">
                 {upcomingSignals.length === 0 && <div className="py-2 text-sm text-zinc-600 italic">No active signals.</div>}
-                {upcomingSignals.map(s => {
-                  const dotColor = getPriorityColor(s.priority || 'low');
-                  return (
-                    <div key={s.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all">
-                      {/* Alignment Wrapper for Dot: Matches Task Checkbox size (w-5 h-5) */}
-                      <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                        <span className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ backgroundColor: dotColor }}></span>
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-zinc-200 truncate">{s.title}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono">{new Date(s.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      </div>
-                      <CloseButton onClick={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }} className="opacity-0 group-hover:opacity-100" />
-                    </div>
-                  )
-                })}
+                {upcomingSignals.map(s => (
+                  <SignalRow
+                    key={s.id}
+                    signal={s}
+                    onDelete={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }}
+                    onEdit={() => openSignalForm(s)}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -718,7 +981,6 @@ export default function ChronosModal({
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-0" ref={scrollContainerRef}>
                   {selectedDate ? (() => {
-                    // Standard 0-23h List
                     const hours = Array.from({ length: 24 }, (_, i) => i);
 
                     return hours.map((hour) => {
@@ -727,7 +989,6 @@ export default function ChronosModal({
 
                       const slotTasks = tasks.filter(t => t.due && new Date(t.due) >= slotDate && new Date(t.due) < slotEnd);
 
-                      // 12h Formatting
                       const isPm = hour >= 12;
                       const h12 = hour % 12 || 12;
                       const label = `${h12.toString().padStart(2, '0')}:${'00'} ${isPm ? 'PM' : 'AM'}`;
@@ -764,7 +1025,9 @@ export default function ChronosModal({
           {rightView === 'task-form' && (
             <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-semibold text-white">New Task</h2>
+                <h2 className="text-xl font-semibold text-white">
+                  {taskDraft.id ? "Edit Task" : "New Task"}
+                </h2>
                 <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
               </div>
 
@@ -777,31 +1040,35 @@ export default function ChronosModal({
                     placeholder="What needs to be done?"
                     value={taskDraft.title}
                     onChange={e => setTaskDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && createTask()}
+                    onKeyDown={e => e.key === 'Enter' && saveTask()}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <CustomSelect
-                    label="Priority"
-                    value={taskDraft.priority}
-                    options={TASK_PRIORITIES}
-                    onChange={val => setTaskDraft(d => ({ ...d, priority: val }))}
-                  />
-                </div>
 
-                <div className="space-y-2">
-                  <CustomSelect
-                    label="Repeating"
-                    value={taskDraft.repeating}
-                    options={[
-                      { value: 'none', label: 'Does not repeat' },
-                      { value: 'daily', label: 'Daily' },
-                      { value: 'weekly', label: 'Weekly' },
-                      { value: 'monthly', label: 'Monthly' }
-                    ]}
-                    onChange={val => setTaskDraft(d => ({ ...d, repeating: val }))}
-                  />
+
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-2">
+                    <CustomSelect
+                      label="Priority"
+                      value={taskDraft.priority}
+                      options={TASK_PRIORITIES}
+                      onChange={val => setTaskDraft(d => ({ ...d, priority: val }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <CustomSelect
+                      label="Repeating"
+                      value={taskDraft.repeating}
+                      options={[
+                        { value: 'none', label: 'Does not repeat' },
+                        { value: 'daily', label: 'Daily' },
+                        { value: 'weekly', label: 'Weekly' },
+                        { value: 'monthly', label: 'Monthly' }
+                      ]}
+                      onChange={val => setTaskDraft(d => ({ ...d, repeating: val }))}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -811,8 +1078,8 @@ export default function ChronosModal({
               </div>
 
               <div className="flex justify-end pt-4">
-                <button onClick={createTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  Create Task
+                <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                  {taskDraft.id ? "Save Changes" : "Create Task"}
                 </button>
               </div>
             </div>
@@ -821,7 +1088,9 @@ export default function ChronosModal({
           {rightView === 'signal-form' && (
             <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-semibold text-white">New Signal</h2>
+                <h2 className="text-xl font-semibold text-white">
+                  {signalDraft.id ? "Edit Signal" : "New Signal"}
+                </h2>
                 <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
               </div>
 
@@ -882,7 +1151,7 @@ export default function ChronosModal({
 
               <div className="flex justify-end pt-4">
                 <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  Create Signal
+                  {signalDraft.id ? "Save Changes" : "Create Signal"}
                 </button>
               </div>
             </div>
@@ -893,3 +1162,5 @@ export default function ChronosModal({
     </div>
   );
 }
+
+
