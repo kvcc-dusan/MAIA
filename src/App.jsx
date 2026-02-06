@@ -47,6 +47,7 @@ function AppContent() {
     ledger, setLedger,
     tasks, setTasks,
     reminders, setReminders,
+    sessions, setSessions,
     // Actions
     createNote, updateNote, deleteNote, renameNote,
     moveNoteToProject
@@ -289,6 +290,8 @@ function AppContent() {
           setTasks={setTasks}
           reminders={reminders}
           setReminders={setReminders}
+          sessions={sessions}
+          setSessions={setSessions}
           projects={projects}
           pushToast={pushToast}
         />

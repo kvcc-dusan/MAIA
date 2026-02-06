@@ -52,6 +52,7 @@ export function DataProvider({ children }) {
     // Tasks & Reminders
     const [tasks, setTasks] = useLocalStorage("maia.tasks", []);
     const [reminders, setReminders] = useLocalStorage("maia.reminders", []);
+    const [sessions, setSessions] = useLocalStorage("maia.sessions", []);
 
     // --- Actions ---
 
@@ -163,13 +164,14 @@ export function DataProvider({ children }) {
         ledger, setLedger,
         tasks, setTasks,
         reminders, setReminders,
+        sessions, setSessions,
         // Actions
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject,
         addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject,
         addTask, addReminder
     }), [
-        notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders,
+        notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject, addTask, addReminder
     ]);
