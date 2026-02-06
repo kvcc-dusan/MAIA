@@ -65,7 +65,7 @@ export default function CommandPalette({
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm transition-opacity" onMouseDown={onClose}>
       <div
-        className="mx-auto mt-32 w-[600px] rounded-3xl glass-panel overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="mx-auto mt-32 w-[90%] md:w-[600px] rounded-3xl glass-panel overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-white/5">
