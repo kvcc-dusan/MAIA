@@ -80,28 +80,13 @@ export const MapVisual = React.memo(({ coords, topology }) => {
     );
 });
 
-
-
-export default function WorldMapWidget({ weather }) {
-    const { temp, place, condition, coords } = weather || {};
-
-    // Lazy load map data
-    const [topology, setTopology] = useState(null);
-    useEffect(() => {
-        // Dynamic import for bundle optimization
-        import("world-atlas/land-110m.json?json")
-            .then((mod) => setTopology(mod.default || mod))
-            .catch((err) => console.error("Failed to load map topology:", err));
-    }, []);
-
-    // Real-time clock
+const LiveDate = React.memo(() => {
     const [now, setNow] = useState(new Date());
     useEffect(() => {
-        const t = setInterval(() => setNow(new Date()), 1000);
+        const t = setInterval(() => setNow(new Date()), 60000); // Update every minute
         return () => clearInterval(t);
     }, []);
 
-    // Formatters
     const getOrdinalSuffix = (i) => {
         const j = i % 10,
             k = i % 100;
@@ -115,21 +100,50 @@ export default function WorldMapWidget({ weather }) {
     const monthName = now.toLocaleDateString("en-US", { month: 'long' });
     const dayNum = now.getDate();
 
+    return (
+        <div className="flex flex-col items-start text-left">
+            <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
+                {dayName}
+            </div>
+            <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
+                {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
+            </div>
+        </div>
+    );
+});
+
+const LiveTime = React.memo(() => {
+    const [now, setNow] = useState(new Date());
+    useEffect(() => {
+        const t = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(t);
+    }, []);
+
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    return (
+        <span className="font-mono text-xs tracking-wide text-muted-foreground">{timeStr}</span>
+    );
+});
+
+export default function WorldMapWidget({ weather }) {
+    const { temp, place, condition, coords } = weather || {};
+
+    // Lazy load map data
+    const [topology, setTopology] = useState(null);
+    useEffect(() => {
+        // Dynamic import for bundle optimization
+        import("world-atlas/land-110m.json?json")
+            .then((mod) => setTopology(mod.default || mod))
+            .catch((err) => console.error("Failed to load map topology:", err));
+    }, []);
 
     return (
         <Card className="relative flex min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
             {/* HEADER: Date & Location Info */}
             <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
-                <div className="flex flex-col items-start text-left">
-                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
-                        {dayName}
-                    </div>
-                    <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
-                        {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
-                    </div>
-                </div>
+                <LiveDate />
 
                 {/* Right: Location */}
                 <div className="flex flex-col items-end text-right">
@@ -154,7 +168,7 @@ export default function WorldMapWidget({ weather }) {
                         {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
                     </span>
                 </div>
-                <span className="font-mono text-xs tracking-wide text-muted-foreground">{timeStr}</span>
+                <LiveTime />
             </CardFooter>
         </Card>
     );

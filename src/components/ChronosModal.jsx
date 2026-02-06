@@ -1,5 +1,5 @@
 // @maia:chronos-modal
-import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState, useLayoutEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
@@ -379,231 +379,25 @@ function DateTimePicker({ label, value, onChange }) {
   )
 }
 
-export default function ChronosModal({
-  onClose,
-  tasks,
-  setTasks,
-  reminders,
-  setReminders,
-  pushToast,
-}) {
-  const today = new Date();
+const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+const LeftPanel = React.memo(({ tasks, reminders, selectedDate, onOpenTaskForm, onOpenSignalForm, toggleTask, deleteTask, deleteSignal }) => {
+    const tasksOn = useMemo(() => {
+      if (!selectedDate) return tasks.filter(t => !t.done);
+      return tasks.filter((t) => t.due && sameDay(new Date(t.due), selectedDate));
+    }, [tasks, selectedDate]);
 
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return (
-      date.getFullYear() +
-      "-" +
-      pad(date.getMonth() + 1) +
-      "-" +
-      pad(date.getDate()) +
-      "T" +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
+    const upcomingSignals = useMemo(
+        () => reminders.filter((r) => !r.delivered).sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
+        [reminders]
     );
-  };
 
-  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-
-  const [rightView, setRightView] = useState("calendar");
-
-  const scrollContainerRef = useRef(null);
-
-  // Auto-scroll to 7 AM when selectedDate changes or modal opens
-  useLayoutEffect(() => {
-    if (selectedDate && rightView === 'calendar') {
-      const el = document.getElementById('timeline-hour-7');
-      if (el && scrollContainerRef.current) {
-        el.scrollIntoView({ block: 'start' });
-      }
-    }
-  }, [selectedDate, rightView]);
-
-  const [signalDraft, setSignalDraft] = useState({
-    title: "",
-    description: "",
-    priority: "low",
-    mode: "in",
-    minutes: 15,
-    at: toLocalInputValue(new Date()),
-  });
-
-  const [taskDraft, setTaskDraft] = useState({
-    title: "",
-    description: "",
-    priority: "p3",
-    repeating: "none",
-    at: ""
-  });
-
-  const openTaskForm = (prefillDate = null) => {
-    let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
-    if (!prefillDate && !selectedDate) base.setHours(9, 0, 0, 0);
-    else if (prefillDate) base = new Date(prefillDate);
-
-    setTaskDraft({
-      title: "",
-      description: "",
-      priority: "p3",
-      repeating: "none",
-      at: toLocalInputValue(base),
-    });
-    setRightView("task-form");
-  };
-
-  const openSignalForm = () => {
-    setSignalDraft({
-      title: "",
-      description: "",
-      priority: "low",
-      mode: "in",
-      minutes: 15,
-      at: toLocalInputValue(new Date()),
-    });
-    setRightView("signal-form");
-  };
-
-  const closeForm = () => {
-    setRightView("calendar");
-  };
-
-  const addTask = (title, date = null, description, priority = "p3") => {
-    const t = (title || "").trim();
-    if (!t) return;
-    const dueIso = date ? new Date(date).toISOString() : null;
-    setTasks((prev) => [
-      { id: uid(), title: t, desc: description, done: false, createdAt: isoNow(), due: dueIso, priority },
-      ...prev,
-    ]);
-  };
-  const createTask = () => {
-    const title = taskDraft.title.trim();
-    if (!title || !taskDraft.at) return;
-    addTask(title, new Date(taskDraft.at), taskDraft.description.trim() || undefined, taskDraft.priority);
-    closeForm();
-  };
-
-  const createSignal = () => {
-    const title = signalDraft.title.trim();
-    if (!title) return;
-
-    const when =
-      signalDraft.mode === "in"
-        ? new Date(Date.now() + Number(signalDraft.minutes || 0) * 60000)
-        : new Date(signalDraft.at);
-    if (isNaN(when.getTime())) return;
-
-    const id = uid();
-    const newSignal = {
-      id,
-      title,
-      scheduledAt: when.toISOString(),
-      createdAt: isoNow(),
-      delivered: false,
-      priority: signalDraft.priority
-    };
-
-    setReminders((prev) => [newSignal, ...prev]);
-    closeForm();
-
-    ensurePermission().then((ok) => {
-      if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
-    });
-    pushToast?.(`Signal set for ${when.toLocaleTimeString()}`);
-  };
-
-  useEffect(() => {
-    rescheduleAll(reminders || []);
-  }, [reminders]);
-
-  const handleInPresetChange = (val) => {
-    if (typeof val === 'number') {
-      setSignalDraft(d => ({ ...d, minutes: val }));
-    } else {
-      // Handle smart presets
-      const now = new Date();
-      let target = new Date();
-
-      switch (val) {
-        case 'tonight':
-          target.setHours(21, 0, 0, 0); // 9 PM
-          // If it's already past 9pm, maybe set for tomorrow? Or just keep today even if past. 
-          // User said "Tonight (9pm)". Let's assume today.
-          break;
-        case 'tm_morning':
-          target.setDate(target.getDate() + 1);
-          target.setHours(9, 0, 0, 0); // 9 AM
-          break;
-        case 'tm_noon':
-          target.setDate(target.getDate() + 1);
-          target.setHours(12, 0, 0, 0); // 12 PM
-          break;
-        default: break;
-      }
-
-      setSignalDraft(d => ({
-        ...d,
-        mode: 'at',
-        at: toLocalInputValue(target)
-      }));
-    }
-  };
-
-  const containerRef = useRef(null);
-  const [rightWidth, setRightWidth] = useState(() =>
-    Number(localStorage.getItem("pulse.rightWidth")) || 420
-  );
-
-  const monthStart = new Date(view.y, view.m, 1);
-  const monthEnd = new Date(view.y, view.m + 1, 0);
-  const startPad = (monthStart.getDay() + 6) % 7;
-  const daysInMonth = monthEnd.getDate();
-  const gridCells = [];
-  for (let i = 0; i < startPad; i++) gridCells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) gridCells.push(new Date(view.y, view.m, d));
-  while (gridCells.length < 42) gridCells.push(null);
-
-  const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
-  const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date));
-
-  const toggleTask = (id) => setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
-  const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
-
-  const upcomingSignals = useMemo(
-    () => reminders.filter((r) => !r.delivered).sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
-    [reminders]
-  );
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
-
-      <div
-        ref={containerRef}
-        className={cn(
-          "w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
-          "border border-white/10 bg-black/80 backdrop-blur-xl",
-          "grid"
-        )}
-        style={{ gridTemplateColumns: `minmax(0,1fr) ${rightWidth}px` }}
-        onClick={(e) => e.stopPropagation()}
-      >
-
+    return (
         <div className="h-full flex flex-col overflow-hidden border-r border-white/5">
           <div className="flex-none px-8 py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-semibold text-white tracking-tight">Chronos</h2>
             <div className="flex items-center gap-6">
-              <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">{today.toLocaleDateString()}</span>
-              <CloseButton onClick={onClose} className="text-zinc-400 hover:text-white transition-colors" />
+              <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">{new Date().toLocaleDateString()}</span>
             </div>
           </div>
 
@@ -611,16 +405,15 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tasks</h3>
-                <button onClick={() => openTaskForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button onClick={() => onOpenTaskForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
                 {(() => {
-                  const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
-                  if (list.length === 0) {
+                  if (tasksOn.length === 0) {
                     return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
                   }
-                  return list.map(t => (
+                  return tasksOn.map(t => (
                     <div key={t.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10">
                       <PriorityCheckbox checked={t.done} priority={t.priority || 'p3'} onChange={() => toggleTask(t.id)} />
                       <div className="flex-1 min-w-0">
@@ -637,7 +430,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Signals</h3>
-                <button onClick={() => openSignalForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button onClick={() => onOpenSignalForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
@@ -655,7 +448,7 @@ export default function ChronosModal({
                         <div className="text-sm text-zinc-200 truncate">{s.title}</div>
                         <div className="text-[10px] text-zinc-500 font-mono">{new Date(s.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
-                      <CloseButton onClick={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }} className="opacity-0 group-hover:opacity-100" />
+                      <CloseButton onClick={() => deleteSignal(s.id)} className="opacity-0 group-hover:opacity-100" />
                     </div>
                   )
                 })}
@@ -663,11 +456,43 @@ export default function ChronosModal({
             </div>
           </div>
         </div>
+    );
+});
 
-        <div className="h-full bg-black/20 flex flex-col border-l border-white/5 relative overflow-hidden">
+const CalendarRightPanel = React.memo(({ view, setView, selectedDate, setSelectedDate, tasks, onOpenTaskForm }) => {
+    const today = useMemo(() => new Date(), []);
+    const scrollContainerRef = useRef(null);
 
-          {rightView === 'calendar' && (
-            <>
+    // Grid Calculation
+    const gridCells = useMemo(() => {
+        const monthStart = new Date(view.y, view.m, 1);
+        const monthEnd = new Date(view.y, view.m + 1, 0);
+        const startPad = (monthStart.getDay() + 6) % 7;
+        const daysInMonth = monthEnd.getDate();
+        const cells = [];
+        for (let i = 0; i < startPad; i++) cells.push(null);
+        for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(view.y, view.m, d));
+        while (cells.length < 42) cells.push(null);
+        return cells;
+    }, [view]);
+
+    // Helper for tasks on date
+    const tasksOn = useCallback((date) => {
+        return tasks.filter((t) => t.due && sameDay(new Date(t.due), date));
+    }, [tasks]);
+
+    // Auto-scroll logic
+    useLayoutEffect(() => {
+        if (selectedDate) {
+          const el = document.getElementById('timeline-hour-7');
+          if (el && scrollContainerRef.current) {
+            el.scrollIntoView({ block: 'start' });
+          }
+        }
+    }, [selectedDate]);
+
+    return (
+        <>
               <div className="p-6 pb-2 flex-none flex items-center justify-between">
                 <span className="text-lg font-medium text-white">
                   {new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
@@ -737,7 +562,7 @@ export default function ChronosModal({
                           key={hour}
                           id={`timeline-hour-${hour}`}
                           className="group flex border-b border-white/5 min-h-[60px] hover:bg-white/[0.02] cursor-pointer"
-                          onDoubleClick={() => openTaskForm(slotDate)}
+                          onDoubleClick={() => onOpenTaskForm(slotDate)}
                         >                        <div className="w-20 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-center justify-center shrink-0 group-hover:text-zinc-400">
                             {label}
                           </div>
@@ -758,14 +583,45 @@ export default function ChronosModal({
                   )}
                 </div>
               </div>
-            </>
-          )}
+        </>
+    );
+});
 
-          {rightView === 'task-form' && (
-            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+const TaskForm = React.memo(({ onClose, onCreate, initialDate }) => {
+    const toLocalInputValue = (date) => {
+        const pad = (n) => (n < 10 ? "0" + n : n);
+        return (
+          date.getFullYear() +
+          "-" +
+          pad(date.getMonth() + 1) +
+          "-" +
+          pad(date.getDate()) +
+          "T" +
+          pad(date.getHours()) +
+          ":" +
+          pad(date.getMinutes())
+        );
+    };
+
+    const [taskDraft, setTaskDraft] = useState({
+        title: "",
+        description: "",
+        priority: "p3",
+        repeating: "none",
+        at: initialDate ? toLocalInputValue(initialDate) : ""
+    });
+
+    const handleCreate = () => {
+        const title = taskDraft.title.trim();
+        if (!title || !taskDraft.at) return;
+        onCreate(title, new Date(taskDraft.at), taskDraft.description.trim() || undefined, taskDraft.priority);
+    };
+
+    return (
+        <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-semibold text-white">New Task</h2>
-                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                <button onClick={onClose} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
               </div>
 
               <div className="flex-1 space-y-6">
@@ -777,7 +633,7 @@ export default function ChronosModal({
                     placeholder="What needs to be done?"
                     value={taskDraft.title}
                     onChange={e => setTaskDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && createTask()}
+                    onKeyDown={e => e.key === 'Enter' && handleCreate()}
                   />
                 </div>
 
@@ -811,18 +667,87 @@ export default function ChronosModal({
               </div>
 
               <div className="flex justify-end pt-4">
-                <button onClick={createTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <button onClick={handleCreate} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
                   Create Task
                 </button>
               </div>
             </div>
-          )}
+    )
+});
 
-          {rightView === 'signal-form' && (
-            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+const SignalForm = React.memo(({ onClose, onCreate }) => {
+    const toLocalInputValue = (date) => {
+        const pad = (n) => (n < 10 ? "0" + n : n);
+        return (
+          date.getFullYear() +
+          "-" +
+          pad(date.getMonth() + 1) +
+          "-" +
+          pad(date.getDate()) +
+          "T" +
+          pad(date.getHours()) +
+          ":" +
+          pad(date.getMinutes())
+        );
+    };
+
+    const [signalDraft, setSignalDraft] = useState({
+        title: "",
+        description: "",
+        priority: "low",
+        mode: "in",
+        minutes: 15,
+        at: toLocalInputValue(new Date()),
+    });
+
+    const handleCreate = () => {
+        const title = signalDraft.title.trim();
+        if (!title) return;
+
+        const when =
+          signalDraft.mode === "in"
+            ? new Date(Date.now() + Number(signalDraft.minutes || 0) * 60000)
+            : new Date(signalDraft.at);
+        if (isNaN(when.getTime())) return;
+
+        onCreate(title, when, signalDraft.description, signalDraft.priority);
+    };
+
+    const handleInPresetChange = (val) => {
+        if (typeof val === 'number') {
+          setSignalDraft(d => ({ ...d, minutes: val }));
+        } else {
+          // Handle smart presets
+          let target = new Date();
+
+          switch (val) {
+            case 'tonight':
+              target.setHours(21, 0, 0, 0); // 9 PM
+              break;
+            case 'tm_morning':
+              target.setDate(target.getDate() + 1);
+              target.setHours(9, 0, 0, 0); // 9 AM
+              break;
+            case 'tm_noon':
+              target.setDate(target.getDate() + 1);
+              target.setHours(12, 0, 0, 0); // 12 PM
+              break;
+            default: break;
+          }
+
+          setSignalDraft(d => ({
+            ...d,
+            mode: 'at',
+            at: toLocalInputValue(target)
+          }));
+        }
+    };
+
+    return (
+        <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-semibold text-white">New Signal</h2>
-                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                <button onClick={onClose} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
               </div>
 
               <div className="flex-1 space-y-6">
@@ -834,7 +759,7 @@ export default function ChronosModal({
                     placeholder="Signal name..."
                     value={signalDraft.title}
                     onChange={e => setSignalDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && createSignal()}
+                    onKeyDown={e => e.key === 'Enter' && handleCreate()}
                   />
                 </div>
 
@@ -881,13 +806,154 @@ export default function ChronosModal({
               </div>
 
               <div className="flex justify-end pt-4">
-                <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <button onClick={handleCreate} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
                   Create Signal
                 </button>
               </div>
             </div>
-          )}
+    )
+});
 
+export default function ChronosModal({
+  onClose,
+  tasks,
+  setTasks,
+  reminders,
+  setReminders,
+  pushToast,
+}) {
+  const today = new Date();
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [rightView, setRightView] = useState("calendar");
+  const [prefillDate, setPrefillDate] = useState(null);
+
+  const containerRef = useRef(null);
+  const [rightWidth] = useState(() =>
+    Number(localStorage.getItem("pulse.rightWidth")) || 420
+  );
+
+  // Callbacks for forms
+  const openTaskForm = useCallback((prefill = null) => {
+      let base = prefill ? new Date(prefill) : (selectedDate ? new Date(selectedDate) : new Date());
+      if (!prefill && !selectedDate) base.setHours(9, 0, 0, 0);
+      else if (prefill) base = new Date(prefill);
+
+      setPrefillDate(base);
+      setRightView("task-form");
+  }, [selectedDate]);
+
+  const openSignalForm = useCallback(() => {
+      setRightView("signal-form");
+  }, []);
+
+  const closeForm = useCallback(() => {
+      setRightView("calendar");
+  }, []);
+
+  const addTask = useCallback((title, date = null, description, priority = "p3") => {
+    const t = (title || "").trim();
+    if (!t) return;
+    const dueIso = date ? new Date(date).toISOString() : null;
+    setTasks((prev) => [
+      { id: uid(), title: t, desc: description, done: false, createdAt: isoNow(), due: dueIso, priority },
+      ...prev,
+    ]);
+  }, [setTasks]);
+
+  const createTask = useCallback((title, date, description, priority) => {
+      addTask(title, date, description, priority);
+      closeForm();
+  }, [addTask, closeForm]);
+
+  const createSignal = useCallback((title, when, description, priority) => {
+    const id = uid();
+    const newSignal = {
+      id,
+      title,
+      scheduledAt: when.toISOString(),
+      createdAt: isoNow(),
+      delivered: false,
+      priority: priority
+    };
+
+    setReminders((prev) => [newSignal, ...prev]);
+    closeForm();
+
+    ensurePermission().then((ok) => {
+      if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
+    });
+    pushToast?.(`Signal set for ${when.toLocaleTimeString()}`);
+  }, [setReminders, closeForm, pushToast]);
+
+  const deleteSignal = useCallback((id) => {
+      clearScheduled(id);
+      setReminders(p => p.filter(x => x.id !== id));
+  }, [setReminders]);
+
+  const toggleTask = useCallback((id) => setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x))), [setTasks]);
+  const deleteTask = useCallback((id) => setTasks((prev) => prev.filter((x) => x.id !== id)), [setTasks]);
+
+  useEffect(() => {
+    rescheduleAll(reminders || []);
+  }, [reminders]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
+      <div
+        ref={containerRef}
+        className={cn(
+          "w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
+          "border border-white/10 bg-black/80 backdrop-blur-xl",
+          "grid"
+        )}
+        style={{ gridTemplateColumns: `minmax(0,1fr) ${rightWidth}px` }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <LeftPanel
+            tasks={tasks}
+            reminders={reminders}
+            selectedDate={selectedDate}
+            onOpenTaskForm={openTaskForm}
+            onOpenSignalForm={openSignalForm}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+            deleteSignal={deleteSignal}
+        />
+
+        <div className="h-full bg-black/20 flex flex-col border-l border-white/5 relative overflow-hidden">
+            {rightView === 'calendar' && (
+                <CalendarRightPanel
+                    view={view}
+                    setView={setView}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                    tasks={tasks}
+                    onOpenTaskForm={openTaskForm}
+                />
+            )}
+            {rightView === 'task-form' && (
+                <TaskForm
+                    onClose={closeForm}
+                    onCreate={createTask}
+                    initialDate={prefillDate}
+                />
+            )}
+            {rightView === 'signal-form' && (
+                <SignalForm
+                    onClose={closeForm}
+                    onCreate={createSignal}
+                />
+            )}
         </div>
       </div>
     </div>
