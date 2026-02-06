@@ -592,13 +592,13 @@ export default function ChronosModal({
         className={cn(
           "w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
           "border border-white/10 bg-black/80 backdrop-blur-xl",
-          "grid"
+          "grid grid-cols-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[minmax(0,1fr)_var(--right-width)]"
         )}
-        style={{ gridTemplateColumns: `minmax(0,1fr) ${rightWidth}px` }}
+        style={{ '--right-width': `${rightWidth}px` }}
         onClick={(e) => e.stopPropagation()}
       >
 
-        <div className="h-full flex flex-col overflow-hidden border-r border-white/5">
+        <div className="h-full flex flex-col overflow-hidden border-b border-white/5 md:border-b-0 md:border-r">
           <div className="flex-none px-8 py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-semibold text-white tracking-tight">Chronos</h2>
             <div className="flex items-center gap-6">
@@ -664,7 +664,7 @@ export default function ChronosModal({
           </div>
         </div>
 
-        <div className="h-full bg-black/20 flex flex-col border-l border-white/5 relative overflow-hidden">
+        <div className="h-full bg-black/20 flex flex-col md:border-l border-white/5 relative overflow-hidden">
 
           {rightView === 'calendar' && (
             <>
