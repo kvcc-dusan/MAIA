@@ -991,7 +991,6 @@ export default function ChronosModal({
     start: null,
     end: null,
     linkedTaskId: "none",
-    linkedTaskId: "none",
     linkedProjectId: "none"
   });
   const [gridDraft, setGridDraft] = useState(null); // { start, end } for on-grid creation
