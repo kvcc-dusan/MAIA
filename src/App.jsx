@@ -16,21 +16,21 @@ import {
   Search
 } from "lucide-react";
 
-import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
-import DecisionLedger from "./components/DecisionLedger.jsx";
 import GlassSurface from "./components/GlassSurface.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 
-// Pages
-import HomePage from "./pages/HomePage.jsx";
-import NotesPage from "./pages/NotesPage.jsx";
-import EditorPage from "./pages/EditorPage.jsx";
-import ProjectsPage from "./pages/ProjectsPage.jsx";
-import ReviewPage from "./pages/ReviewPage.jsx";
+// Lazy loaded components
+const ChronosModal = React.lazy(() => import("./components/ChronosModal.jsx"));
+const DecisionLedger = React.lazy(() => import("./components/DecisionLedger.jsx"));
 
-// Lazy loaded heavy pages
+// Lazy loaded pages
+const HomePage = React.lazy(() => import("./pages/HomePage.jsx"));
+const NotesPage = React.lazy(() => import("./pages/NotesPage.jsx"));
+const EditorPage = React.lazy(() => import("./pages/EditorPage.jsx"));
+const ProjectsPage = React.lazy(() => import("./pages/ProjectsPage.jsx"));
+const ReviewPage = React.lazy(() => import("./pages/ReviewPage.jsx"));
 const GraphPage = React.lazy(() => import("./pages/GraphPage.jsx"));
 const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
 const JournalPage = React.lazy(() => import("./pages/JournalPage.jsx"));
@@ -283,37 +283,39 @@ function AppContent() {
       </div>
 
       {/* Global Modals */}
-      {chronosOpen && (
-        <ChronosModal
-          onClose={handleCloseChronos}
-          tasks={tasks}
-          setTasks={setTasks}
-          reminders={reminders}
-          setReminders={setReminders}
-          sessions={sessions}
-          setSessions={setSessions}
-          projects={projects}
-          pushToast={pushToast}
-        />
-      )}
+      <React.Suspense fallback={null}>
+        {chronosOpen && (
+          <ChronosModal
+            onClose={handleCloseChronos}
+            tasks={tasks}
+            setTasks={setTasks}
+            reminders={reminders}
+            setReminders={setReminders}
+            sessions={sessions}
+            setSessions={setSessions}
+            projects={projects}
+            pushToast={pushToast}
+          />
+        )}
 
-      {/* Decision Ledger Modal */}
-      {ledgerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-5xl h-[85vh]">
-            <GlassSurface className="h-full w-full p-6 relative flex flex-col">
-              <button
-                onClick={handleCloseLedger}
-                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
-                aria-label="Close Ledger"
-              >
-                ✕
-              </button>
-              <DecisionLedger ledger={ledger} setLedger={setLedger} />
-            </GlassSurface>
+        {/* Decision Ledger Modal */}
+        {ledgerOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-5xl h-[85vh]">
+              <GlassSurface className="h-full w-full p-6 relative flex flex-col">
+                <button
+                  onClick={handleCloseLedger}
+                  className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
+                  aria-label="Close Ledger"
+                >
+                  ✕
+                </button>
+                <DecisionLedger ledger={ledger} setLedger={setLedger} />
+              </GlassSurface>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </React.Suspense>
 
       {/* Toast */}
       {toast && (
