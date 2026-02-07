@@ -31,7 +31,7 @@ import ProjectsPage from "./pages/ProjectsPage.jsx";
 import ReviewPage from "./pages/ReviewPage.jsx";
 
 // Lazy loaded heavy pages
-const GraphPage = React.lazy(() => import("./pages/GraphPage.jsx"));
+const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
 const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
 const JournalPage = React.lazy(() => import("./pages/JournalPage.jsx"));
 

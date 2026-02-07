@@ -1,8 +1,8 @@
 // @maia:graph-renderer
 import React, { useEffect, useRef } from "react";
 import { select, drag, zoom, zoomIdentity } from "d3";
-import { dottedBg } from "../../lib/theme.js";
-import { useGraphSimulation } from "../../hooks/useGraphSimulation.js";
+import { dottedBg } from "../../../lib/theme.js";
+import { useGraphSimulation } from "../hooks/useGraphSimulation.js";
 
 // Theme Constants
 const COLORS = [

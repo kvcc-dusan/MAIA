@@ -1,10 +1,10 @@
 // @maia:graph
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
-import { calculateVelocity, findClusters } from "../lib/analysis/index.js";
-import { GlassCard } from "../components/GlassCard";
-import GraphRenderer from "../components/Graph/GraphRenderer.jsx";
-import GraphControls from "../components/Graph/GraphControls.jsx";
+import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js";
+import { GlassCard } from "../../../components/GlassCard";
+import GraphRenderer from "../components/GraphRenderer.jsx";
+import GraphControls from "../components/GraphControls.jsx";
 
 /* -----------------------------------------
    Theme Constants
