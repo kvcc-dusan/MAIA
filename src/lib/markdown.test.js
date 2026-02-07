@@ -62,4 +62,10 @@ describe('Markdown Sanitization', () => {
       expect(output).toContain('width="100"');
       expect(output).toContain('height="200"');
   });
+
+  it('prevents XSS via attribute injection in postprocess', () => {
+    const input = '![alt](url){onerror=alert(1)}';
+    const output = md.render(input);
+    expect(output).not.toContain('onerror');
+  });
 });
