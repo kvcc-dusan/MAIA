@@ -53,6 +53,37 @@ const getPriorityColor = (p) => {
 const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none ring-0 focus:outline-none focus:ring-0 focus:border-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-all placeholder:text-zinc-600";
 const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
 
+// Helper: Format date for input type="datetime-local"
+const toLocalInputValue = (date) => {
+  const pad = (n) => (n < 10 ? "0" + n : n);
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes())
+  );
+};
+
+// Helper: Check if two time ranges overlap
+const checkOverlap = (start1, end1, start2, end2, excludeId = null) => {
+  const s1 = new Date(start1).getTime();
+  const e1 = new Date(end1).getTime();
+  const s2 = new Date(start2).getTime();
+  const e2 = new Date(end2).getTime();
+  return s1 < e2 && s2 < e1;
+};
+
+// Helper: Check if a time is in the past
+const isPastTime = (date) => {
+  return new Date(date) < new Date();
+};
+
+
 function Portal({ children }) {
   if (typeof window === "undefined") return null;
   return createPortal(children, document.body);
@@ -355,11 +386,6 @@ function DateTimePicker({ label, value, onChange, dateOnly = false }) {
     if (dateOnly) return dateStr;
     const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
     return `${dateStr} , ${timeStr}`;
-  };
-
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
   };
 
   return (
@@ -682,21 +708,6 @@ export default function ChronosModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return (
-      date.getFullYear() +
-      "-" +
-      pad(date.getMonth() + 1) +
-      "-" +
-      pad(date.getDate()) +
-      "T" +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
-    );
-  };
-
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
 
@@ -952,26 +963,12 @@ export default function ChronosModal({
   );
 
   // -- SESSIONS LOGIC --
-  // Helper: Check if two time ranges overlap
-  const checkOverlap = (start1, end1, start2, end2, excludeId = null) => {
-    const s1 = new Date(start1).getTime();
-    const e1 = new Date(end1).getTime();
-    const s2 = new Date(start2).getTime();
-    const e2 = new Date(end2).getTime();
-    return s1 < e2 && s2 < e1;
-  };
-
   // Helper: Check if a time slot overlaps with any existing session
   const hasOverlap = (start, end, excludeSessionId = null) => {
     return sessions.some(s => {
       if (excludeSessionId && s.id === excludeSessionId) return false;
       return checkOverlap(start, end, s.start, s.end);
     });
-  };
-
-  // Helper: Check if a time is in the past
-  const isPastTime = (date) => {
-    return new Date(date) < new Date();
   };
 
   // Auto-cleanup: Remove expired sessions
@@ -1890,5 +1887,3 @@ export default function ChronosModal({
     </div >
   );
 }
-
-
