@@ -64,15 +64,21 @@ export default function CommandPalette({
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex items-start justify-center pt-32 bg-black/60 backdrop-blur-sm transition-opacity" onMouseDown={onClose}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Command Palette"
+      className="fixed inset-0 z-[200] flex items-start justify-center pt-32 bg-black/60 backdrop-blur-sm transition-opacity"
+      onMouseDown={onClose}
+    >
       <div
-
         className="mx-auto mt-32 w-[90%] md:w-[600px] rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-white/10 bg-black/80 backdrop-blur-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-white/5">
           <input
             ref={inputRef}
+            aria-label="Search commands and notes"
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Type a command or search notes..."
