@@ -399,7 +399,7 @@ function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                     <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
                   </div>
                   <div className="grid grid-cols-7 text-center gap-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => <div key={d} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
                     {gridCells.map((d, i) => (
                       <div key={i} className="aspect-square">
                         {d && (
@@ -1149,7 +1149,7 @@ export default function ChronosModal({
 
               <div className="px-6 pb-6 flex-none">
                 <div className="grid grid-cols-7 mb-2">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => <div key={d} className="text-center text-[10px] font-bold text-zinc-600 py-1">{d}</div>)}
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-[10px] font-bold text-zinc-600 py-1">{d}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-1 auto-rows-fr">
                   {gridCells.map((d, i) => {
