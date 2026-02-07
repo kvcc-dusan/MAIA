@@ -1,5 +1,6 @@
 import React from 'react';
 import { GlassCard } from './GlassCard';
+import { logger } from '../lib/logger';
 
 export class GlassErrorBoundary extends React.Component {
     constructor(props) {
@@ -12,7 +13,8 @@ export class GlassErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.error("GlassErrorBoundary caught an error:", error, errorInfo);
+        logger.error("GlassErrorBoundary caught an error:", error);
+        if (errorInfo) logger.debug("Component Stack:", errorInfo.componentStack);
     }
 
     handleReload = () => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logger } from "../lib/logger";
 
 /**
  * Hook to persist state to localStorage.
@@ -12,14 +13,21 @@ export function useLocalStorage(key, initial) {
     try {
       const raw = localStorage.getItem(key);
       if (raw) return JSON.parse(raw);
-    } catch { /* ignore */ }
+    } catch (e) {
+      logger.error(`Failed to parse localStorage key "${key}"`, e);
+    }
     return typeof initial === "function" ? initial() : initial;
   });
 
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(state));
-    } catch { /* ignore */ }
+    } catch (e) {
+      logger.error(`Failed to write to localStorage key "${key}"`, e);
+      if (e.name === 'QuotaExceededError' || e.code === 22) {
+         window.dispatchEvent(new CustomEvent('maia:storage-error'));
+      }
+    }
   }, [key, state]);
 
   return [state, setState];
