@@ -6,32 +6,32 @@ import { parseContentMeta } from "../lib/parseContentMeta.js";
 const DataContext = createContext(null);
 
 const seedNotes = () => {
-    const n1c =
+    const noteContent1 =
         "# Intro\nThis is the first note. Link to [[Tagging System]].\n\n---\n\n- [ ] task\n- [x] done";
-    const n2c =
+    const noteContent2 =
         "**Bold** _italic_ ==highlight==\n\n> [!info] Callout box.\n\n#tags How I use #meta and #projects.";
-    const n3c = "## Goals\n\nSketching ideas.";
+    const noteContent3 = "## Goals\n\nSketching ideas.";
     const n1 = {
         id: uid(),
         title: "Introduction to My Notes",
-        content: n1c,
-        ...parseContentMeta(n1c),
+        content: noteContent1,
+        ...parseContentMeta(noteContent1),
         createdAt: isoNow(),
         project: null,
     };
     const n2 = {
         id: uid(),
         title: "Tagging System",
-        content: n2c,
-        ...parseContentMeta(n2c),
+        content: noteContent2,
+        ...parseContentMeta(noteContent2),
         createdAt: isoNow(),
         project: null,
     };
     const n3 = {
         id: uid(),
         title: "Long-Term Goals",
-        content: n3c,
-        ...parseContentMeta(n3c),
+        content: noteContent3,
+        ...parseContentMeta(noteContent3),
         createdAt: isoNow(),
         project: null,
     };

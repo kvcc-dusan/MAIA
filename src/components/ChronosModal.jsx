@@ -1,14 +1,17 @@
 // @maia:chronos-modal
-import ProjectIcon from "./ProjectIcon";
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+
 import * as Popover from "@radix-ui/react-popover";
 import * as ContextMenu from "@radix-ui/react-context-menu";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, X, CheckSquare, Folder } from "lucide-react";
+
+import ProjectIcon from "./ProjectIcon";
+
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, CheckSquare, Folder } from "lucide-react";
 
 // --- CONSTANTS ---
 const NEON_BLUE = '#0044FF';
