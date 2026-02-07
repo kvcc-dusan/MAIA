@@ -505,7 +505,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                 <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{task.title}</div>
                 {task.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
               </div>
-              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" />
+              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
             </div>
           </Popover.Trigger>
 
@@ -607,7 +607,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
                 <div className="text-sm text-zinc-200 truncate">{signal.title}</div>
                 <div className="text-[10px] text-zinc-500 font-mono">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
               </div>
-              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" />
+              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Signal" />
             </div>
           </Popover.Trigger>
 
@@ -1088,7 +1088,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tasks</h3>
-                <button onClick={() => openTaskForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
@@ -1115,7 +1115,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Signals</h3>
-                <button onClick={() => openSignalForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
