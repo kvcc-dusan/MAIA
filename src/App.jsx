@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
+import { ToastProvider, useToast } from "./context/ToastContext.jsx";
 import { rescheduleAll, ensurePermission } from "./utils/notify.js";
 
 // Components
@@ -59,14 +60,7 @@ function AppContent() {
   const [search] = useState("");
 
   // Toast
-  const [toast, setToast] = useState(null);
-  const pushToast = useCallback((msg) => {
-    setToast(msg);
-    // Clear previous timeout if any - storing ID on the function itself is a bit hacky in functional comp but works if ref is used.
-    // Better to just let it be or use a ref.
-    // Simplest: just set timeout. If overlap, multiple toasts might flicker or clear early. Acceptable for now.
-    setTimeout(() => setToast(null), 2200);
-  }, []);
+  const { show: pushToast } = useToast();
 
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
@@ -215,7 +209,6 @@ function AppContent() {
                   projects={projects}
                   journal={journal}
                   setJournal={setJournal}
-                  pushToast={pushToast}
                 />
               )}
 
@@ -252,7 +245,6 @@ function AppContent() {
                   setNotes={setNotes}
                   selectNote={selectItem}
                   targetProjectId={targetProjectId}
-                  pushToast={pushToast}
                   isCreateModalOpen={projectModalOpen}
                   setCreateModalOpen={setProjectModalOpen}
                 />
@@ -293,7 +285,6 @@ function AppContent() {
           sessions={sessions}
           setSessions={setSessions}
           projects={projects}
-          pushToast={pushToast}
         />
       )}
 
@@ -315,22 +306,6 @@ function AppContent() {
         </div>
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4">
-          <div className="px-4 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 text-zinc-200 text-sm shadow-2xl flex items-center gap-2 font-medium">
-            {typeof toast === 'string' ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                {toast}
-              </>
-            ) : (
-              toast
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Command Palette */}
       <CommandPalette
         open={cmdOpen}
@@ -348,8 +323,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <DataProvider>
-      <AppContent />
-    </DataProvider>
+    <ToastProvider>
+      <DataProvider>
+        <AppContent />
+      </DataProvider>
+    </ToastProvider>
   );
 }
