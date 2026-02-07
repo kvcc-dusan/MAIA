@@ -58,18 +58,19 @@ function Portal({ children }) {
   return createPortal(children, document.body);
 }
 
-function CloseButton({ onClick, className }) {
+function CloseButton({ onClick, className, ...props }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick && onClick(e); }}
       className={cn("w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20", className)}
+      {...props}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
   )
 }
 
-function PriorityCheckbox({ checked, onChange, priority }) {
+function PriorityCheckbox({ checked, onChange, priority, ...props }) {
   const color = getPriorityColor(priority);
 
   return (
@@ -81,6 +82,7 @@ function PriorityCheckbox({ checked, onChange, priority }) {
           ? "bg-white/20 text-white"
           : "bg-transparent hover:bg-white/5"
       )}
+      {...props}
     >
       {/* The Dot (Visible when not checked) */}
       <span
@@ -368,6 +370,7 @@ function DateTimePicker({ label, value, onChange, dateOnly = false }) {
       <button
         onClick={() => setOpen(!open)}
         className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
+        aria-label="Select Date and Time"
       >
         <div className="flex items-center gap-3 truncate">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -500,7 +503,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                 }
               }}
             >
-              <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} />
+              <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
               <div className="flex-1 min-w-0">
                 <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{task.title}</div>
                 {task.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
@@ -1080,7 +1083,7 @@ export default function ChronosModal({
             <h2 className="text-2xl font-semibold text-white tracking-tight">Chronos</h2>
             <div className="flex items-center gap-6">
               <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">{today.toLocaleDateString()}</span>
-              <CloseButton onClick={onClose} className="text-zinc-400 hover:text-white transition-colors" />
+              <CloseButton onClick={onClose} aria-label="Close Modal" className="text-zinc-400 hover:text-white transition-colors" />
             </div>
           </div>
 
