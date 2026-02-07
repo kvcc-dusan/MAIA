@@ -63,6 +63,7 @@ function CloseButton({ onClick, className }) {
     <button
       onClick={(e) => { e.stopPropagation(); onClick && onClick(e); }}
       className={cn("w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20", className)}
+      aria-label="Close"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
@@ -81,6 +82,7 @@ function PriorityCheckbox({ checked, onChange, priority }) {
           ? "bg-white/20 text-white"
           : "bg-transparent hover:bg-white/5"
       )}
+      aria-label={checked ? "Mark as incomplete" : "Mark as complete"}
     >
       {/* The Dot (Visible when not checked) */}
       <span
@@ -231,11 +233,20 @@ function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
         {hasValue ? (
           <div
             role="button"
+            tabIndex={0}
+            aria-label="Clear selection"
             onClick={(e) => {
               e.stopPropagation();
               onChange('none');
             }}
-            className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                e.preventDefault();
+                onChange('none');
+              }
+            }}
+            className="p-0.5 hover:bg-white/20 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
           >
             <X size={12} />
           </div>
@@ -394,9 +405,9 @@ function DateTimePicker({ label, value, onChange, dateOnly = false }) {
               {tab === 'date' && (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-white text-sm font-medium px-1">
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() - 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">‹</button>
+                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() - 1)))} aria-label="Previous month" className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">‹</button>
                     <span>{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
+                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} aria-label="Next month" className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
                   </div>
                   <div className="grid grid-cols-7 text-center gap-1">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => <div key={d} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
@@ -491,12 +502,19 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
         <Popover.Root open={open} onOpenChange={setOpen}>
           <Popover.Trigger asChild>
             <div
-              className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer"
+              tabIndex={0}
+              className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               onClick={(e) => {
                 // Prevent popover if clicking checkbox or delete
                 if (e.target.closest('button')) {
                   e.preventDefault();
                   return;
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setOpen(true);
                 }
               }}
             >
@@ -599,7 +617,16 @@ function SignalRow({ signal, onDelete, onEdit }) {
       <ContextMenu.Trigger className="block">
         <Popover.Root open={open} onOpenChange={setOpen}>
           <Popover.Trigger asChild>
-            <div className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer">
+            <div
+              tabIndex={0}
+              className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setOpen(true);
+                }
+              }}
+            >
               <div className="w-5 h-5 flex items-center justify-center shrink-0">
                 <span className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ backgroundColor: dotColor }}></span>
               </div>
@@ -1065,6 +1092,9 @@ export default function ChronosModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Chronos Dashboard"
         ref={containerRef}
         className={cn(
           "w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
@@ -1088,7 +1118,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tasks</h3>
-                <button onClick={() => openTaskForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button aria-label="Create new task" onClick={() => openTaskForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
@@ -1115,7 +1145,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Signals</h3>
-                <button onClick={() => openSignalForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
+                <button aria-label="Create new signal" onClick={() => openSignalForm()} className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">+</button>
               </div>
 
               <div className="space-y-2">
@@ -1142,8 +1172,8 @@ export default function ChronosModal({
                   {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </span>
                 <div className="flex gap-1">
-                  <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">‹</button>
-                  <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">›</button>
+                  <button aria-label="Previous month" onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">‹</button>
+                  <button aria-label="Next month" onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">›</button>
                 </div>
               </div>
 
