@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
+const REFRESH_INTERVAL = 10 * 60 * 1000;
+
 // "YYYY-MM-DDTHH:00" in UTC
 function localHourISO(date = new Date()) {
   return date.toISOString().slice(0, 13) + ":00";
@@ -169,7 +171,7 @@ export function useWeather() {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 10 * 60 * 1000);
+    const interval = setInterval(refresh, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [refresh]);
 

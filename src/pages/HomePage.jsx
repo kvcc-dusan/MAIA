@@ -1,10 +1,11 @@
 import React, { useMemo, useCallback } from "react";
 
+import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
+import { useWeather } from "../hooks/useWeather.js";
+
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import FocusWidget from "../components/FocusWidget.jsx";
-import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
-import { useWeather } from "../hooks/useWeather.js";
 
 
 /* -------------------------------------------
