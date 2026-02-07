@@ -974,15 +974,6 @@ export default function ChronosModal({
     return new Date(date) < new Date();
   };
 
-  // Auto-cleanup: Remove expired sessions
-  useEffect(() => {
-    const now = new Date();
-    const activeSessions = sessions.filter(s => new Date(s.end) > now);
-    if (activeSessions.length !== sessions.length) {
-      setSessions(activeSessions);
-    }
-  }, [selectedDate]); // Run when date changes
-
   // Sessions now come from props (persisted in DataContext)
   const [sessionDraft, setSessionDraft] = useState({
     id: null,
@@ -1272,9 +1263,14 @@ export default function ChronosModal({
                     const slots = Array.from({ length: 48 }, (_, i) => i);
                     const SLOT_HEIGHT = 40;
 
+                    // Day boundaries for logic
+                    const dayStart = new Date(selectedDate);
+                    dayStart.setHours(0, 0, 0, 0);
+                    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
                     // Helper to get slot info
                     const getSlotDate = (i) => {
-                      const d = new Date(selectedDate);
+                      const d = new Date(dayStart);
                       d.setHours(Math.floor(i / 2), (i % 2) * 30, 0, 0);
                       return d;
                     };
@@ -1352,6 +1348,15 @@ export default function ChronosModal({
                         const duration = new Date(dragSession.end) - new Date(dragSession.start);
                         const end = new Date(start.getTime() + duration);
 
+                        // Validation: Check overlap (exclude self) and past
+                        if (isPastTime(start) || hasOverlap(start, end, dragSession.id === 'draft' ? null : dragSession.id)) {
+                          setDragStart(null);
+                          setDragCurrent(null);
+                          setDragMode(null);
+                          setDragSession(null);
+                          return;
+                        }
+
                         if (dragSession.id === 'draft') {
                           setGridDraft({ start, end });
                           // Also update session draft time
@@ -1364,6 +1369,15 @@ export default function ChronosModal({
                         const start = new Date(dragSession.start);
                         let newEnd = new Date(current.getTime() + 30 * 60000);
                         if (newEnd <= start) newEnd = new Date(start.getTime() + 30 * 60000);
+
+                        // Validation: Check overlap
+                        if (hasOverlap(start, newEnd, dragSession.id === 'draft' ? null : dragSession.id)) {
+                          setDragStart(null);
+                          setDragCurrent(null);
+                          setDragMode(null);
+                          setDragSession(null);
+                          return;
+                        }
 
                         if (dragSession.id === 'draft') {
                           setGridDraft({ start, end: newEnd });
@@ -1380,10 +1394,9 @@ export default function ChronosModal({
                       setDragSession(null);
                     };
 
-                    // Filter sessions for this day
+                    // Filter sessions for this day (Overlap check)
                     const daySessions = sessions.filter(s => {
-                      const d = new Date(s.start);
-                      return sameDay(d, selectedDate);
+                      return checkOverlap(s.start, s.end, dayStart, dayEnd);
                     });
 
                     return (
@@ -1457,9 +1470,13 @@ export default function ChronosModal({
                         {daySessions.map(s => {
                           const start = new Date(s.start);
                           const end = new Date(s.end);
-                          const startMins = start.getHours() * 60 + start.getMinutes();
-                          const endMins = end.getHours() * 60 + end.getMinutes();
-                          const durationMins = (endMins - startMins) || 60;
+
+                          // Clip to day boundaries for rendering
+                          const renderStart = new Date(Math.max(start, dayStart));
+                          const renderEnd = new Date(Math.min(end, dayEnd));
+
+                          const startMins = renderStart.getHours() * 60 + renderStart.getMinutes();
+                          const durationMins = (renderEnd.getTime() - renderStart.getTime()) / 60000;
 
                           const top = (startMins / 30) * SLOT_HEIGHT;
                           const height = (durationMins / 30) * SLOT_HEIGHT;
