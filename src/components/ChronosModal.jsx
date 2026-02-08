@@ -946,7 +946,11 @@ export default function ChronosModal({
   const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
   const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date) && !t.deleted);
 
-  const toggleTask = (id) => setTasks((prev) => prev.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+  const toggleTask = (id) => setTasks((prev) => prev.map((x) => {
+    if (x.id !== id) return x;
+    const isDone = !x.done;
+    return { ...x, done: isDone, completedAt: isDone ? isoNow() : null };
+  }));
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
 
   const upcomingSignals = useMemo(

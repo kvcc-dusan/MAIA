@@ -107,7 +107,14 @@ export function DataProvider({ children }) {
         setNotes(prev => prev.map(n => {
             if (n.id !== noteId) return n;
             const ids = (n.projectIds || []).filter(id => id !== projectId);
-            return { ...n, projectIds: ids };
+            // Also clear legacy 'project' field if it matches (we can't easily check name matching here without project name, 
+            // but usually valid to just clear 'project' if we are explicitly unlinking). 
+            // However, to be safe, we should probably just clear it or we need the project object.
+            // Let's just clear it if it exists to be safe, assuming the user intention is "Unlink". 
+            // Or better, checking if we still need it. 
+            // Since we don't have project name here, we will just nullify `project` if it exists, 
+            // effectively migrating it to `projectIds` (which is empty now for this project).
+            return { ...n, projectIds: ids, project: null };
         }));
     }, [setNotes]);
 
@@ -137,16 +144,22 @@ export function DataProvider({ children }) {
             status: "Active",
             createdAt: isoNow(),
             description: "",
+            // OPUS Fields
+            objective: "",
+            successCriteria: [], // { id, text, done }
+            pinnedNoteIds: [],
+            links: [], // { id, title, url, type }
+            milestones: [], // { id, title, date, done }
         };
         setProjects((prev) => [p, ...prev]);
         return p;
     }, [setProjects]);
 
     // Tasks
-    const addTask = useCallback((title, due = null, desc = "") => {
+    const addTask = useCallback((title, due = null, desc = "", projectId = null) => {
         if (!title.trim()) return;
         setTasks((prev) => [
-            { id: uid(), title: title.trim(), desc, done: false, createdAt: isoNow(), due },
+            { id: uid(), title: title.trim(), desc, done: false, createdAt: isoNow(), due, projectId: projectId || null },
             ...prev,
         ]);
     }, [setTasks]);
@@ -156,6 +169,18 @@ export function DataProvider({ children }) {
         if (!title.trim()) return;
         setReminders((prev) => [{ id: uid(), title: title.trim(), scheduledAt, createdAt: isoNow(), delivered: false }, ...prev]);
     }, [setReminders]);
+
+    const toggleTask = useCallback((id) => {
+        setTasks((prev) => prev.map((t) => {
+            if (t.id !== id) return t;
+            const isDone = !t.done;
+            return {
+                ...t,
+                done: isDone,
+                completedAt: isDone ? isoNow() : null
+            };
+        }));
+    }, [setTasks]);
 
     const value = useMemo(() => ({
         notes, setNotes,
@@ -169,11 +194,11 @@ export function DataProvider({ children }) {
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject,
         addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject,
-        addTask, addReminder
+        addTask, toggleTask, addReminder
     }), [
         notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         createNote, updateNote, deleteNote, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
-        updateProject, deleteProject, createProject, addTask, addReminder
+        updateProject, deleteProject, createProject, addTask, toggleTask, addReminder
     ]);
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

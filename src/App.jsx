@@ -37,7 +37,12 @@ const JournalPage = React.lazy(() => import("./pages/JournalPage.jsx"));
 
 function AppContent() {
   // Pages
-  const [currentPage, setCurrentPage] = useState("home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger
+  // Pages
+  const [currentPage, setCurrentPage] = useState(() => localStorage.getItem("maia_current_view") || "home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger
+
+  useEffect(() => {
+    localStorage.setItem("maia_current_view", currentPage);
+  }, [currentPage]);
 
   // Data from Context
   const {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import GlassSurface from "./GlassSurface";
-import ProjectIcon, { IconPicker } from "./ProjectIcon";
+import { X } from "lucide-react"; import ProjectIcon, { IconPicker } from "./ProjectIcon";
 
 export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState("");
@@ -27,47 +27,54 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-md p-4">
-                <GlassSurface className="p-6 md:p-8 rounded-2xl relative z-10">
-                    <h2 className="text-xl font-bold text-white mb-6 font-mono tracking-tight text-center">Inception Protocol</h2>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+            <div className="w-full max-w-sm p-4" onClick={e => e.stopPropagation()}>
+                <div className="bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl p-5 space-y-5">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">New Mission</h2>
+                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="flex gap-4">
-                            <button
-                                type="button"
-                                className="w-14 h-14 flex items-center justify-center text-zinc-400 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:text-white transition-all shadow-sm group"
-                                onClick={() => setShowPicker(true)}
-                            >
-                                <ProjectIcon name={icon} size={28} className="group-hover:scale-110 transition-transform" />
-                            </button>
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Project Name..."
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-white placeholder:text-zinc-600 outline-none focus:border-white/20 transition-all font-mono"
-                            />
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="space-y-4">
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPicker(true)}
+                                    className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                                >
+                                    <ProjectIcon name={icon} size={20} />
+                                </button>
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Mission Name..."
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:bg-white/10 transition-colors"
+                                />
+                            </div>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="grid grid-cols-2 gap-3 pt-2">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 py-3 rounded-xl border border-white/5 text-zinc-400 hover:text-white hover:bg-white/5 transition-colors font-mono text-sm"
+                                className="py-2.5 rounded-xl text-xs font-medium text-zinc-500 hover:text-white hover:bg-white/5 transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="flex-1 py-3 rounded-xl bg-white text-black font-bold hover:bg-zinc-200 transition-colors font-mono text-sm"
+                                className="py-2.5 rounded-xl bg-white text-black text-xs font-bold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5"
                             >
-                                Initialize
+                                Create Mission
                             </button>
                         </div>
                     </form>
-                </GlassSurface>
+                </div>
             </div>
 
             {/* Nested Icon Picker */}

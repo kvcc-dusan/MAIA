@@ -1,0 +1,219 @@
+
+> maia@0.0.0 test
+> vitest src/components/ChronosModal.test.jsx --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/Users/dusankvcc/Desktop/maia[39m
+
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[90mstdout[2m | src/components/ChronosModal.test.jsx[2m > [22m[2mChronosModal[2m > [22m[2mrenders correctly (snapshot)
+[22m[39mCloseButton props: {}
+CloseButton props: { [32m'aria-label'[39m: [32m'Delete Signal'[39m }
+
+[90mstdout[2m | src/components/ChronosModal.test.jsx[2m > [22m[2mChronosModal[2m > [22m[2mrenders with close button having aria-label
+[22m[39mCloseButton props: {}
+CloseButton props: { [32m'aria-label'[39m: [32m'Delete Task'[39m }
+
+[90mstdout[2m | src/components/ChronosModal.test.jsx[2m > [22m[2mChronosModal[2m > [22m[2mrenders task close button with aria-label
+[22m[39mCloseButton props: {}
+CloseButton props: { [32m'aria-label'[39m: [32m'Delete Task'[39m }
+
+[90mstdout[2m | src/components/ChronosModal.test.jsx[2m > [22m[2mChronosModal[2m > [22m[2mrenders priority checkbox with aria-label
+[22m[39mCloseButton props: {}
+CloseButton props: { [32m'aria-label'[39m: [32m'Delete Task'[39m }
+
+[90mstdout[2m | src/components/ChronosModal.test.jsx[2m > [22m[2mChronosModal[2m > [22m[2mhandles Escape in DateTimePicker without closing modal
+[22m[39mCloseButton props: {}
+CloseButton props: { [32m'aria-label'[39m: [32m'Delete Task'[39m }
+
+ [31m❯[39m src/components/ChronosModal.test.jsx [2m([22m[2m5 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 5415[2mms[22m[39m
+     [32m✓[39m renders correctly (snapshot)[32m 136[2mms[22m[39m
+[31m     [31m×[31m renders with close button having aria-label[39m[32m 51[2mms[22m[39m
+     [32m✓[39m renders task close button with aria-label[32m 23[2mms[22m[39m
+[31m     [31m×[31m renders priority checkbox with aria-label[39m[32m 192[2mms[22m[39m
+[31m     [31m×[31m handles Escape in DateTimePicker without closing modal[39m[33m 5009[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 3 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/components/ChronosModal.test.jsx[2m > [22mChronosModal[2m > [22mrenders with close button having aria-label
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find a label with the text of: Close Modal
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-white/10 bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[minmax(0,1fr)_var(--right-width)]"[39m
+        [33mstyle[39m=[32m"--right-width: 420px;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"h-full flex flex-col overflow-hidden border-b border-white/5 md:border-b-0 md:border-r"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex-none px-8 py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"text-2xl font-semibold text-white tracking-tight"[39m
+            [36m>[39m
+              [0mChronos[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-6"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-xs font-mono text-zinc-500 uppercase tracking-widest"[39m
+              [36m>[39m
+                [0m2/6/2024[0m
+              [36m</span>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 text-zinc-400 hover:text-white transition-colors"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"14"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-linecap[39m=[32m"round"[39m
+                  [33mstroke-linejoin[39m=[32m"round"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"14"[39m
+                [36m>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"18"[39m
+                    [33mx2[39m=[32m"6"[39m
+                    [33my1[39m=[32m"6"[39m
+                    [33my2[39m=[32m"18"[39m
+                  [36m/>[39m
+                  [36m<line[39m
+                    [33mx1[39m=[32m"6"[39m
+                    [33mx2[39m=[32m"18"[39m
+                    [33my1[39m=[32m"6"[39m
+                    [33my2[39m=[32m"18"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex-1 overflow-y-auto custom-scrollbar p-8 pt-0 space-y-8"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-4"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center justify-between group py-2 pt-0"[39m
+              [36m>[39m
+                [36m<h3[39m
+                  [33mclass[39m=[32m"text-xs font-bold text-zinc-500 uppercase tracking-widest"[39m
+                [36m>[39m
+                  [0mTasks[0m
+                [36m</h3>[39m
+                [36m<button[39m
+                  [33maria-label[39m=[32m"Add Task"[39m
+                  [33mclass[39m=[32m"w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white"[39m
+                [36m>[39m
+                  [0m+[0m
+                [36m</button>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-2"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"block"[39m
+                  [33mdata-state[39m=[32m"closed"[39m
+                [36m>[39m
+                  [36m<div[39m
+                    [33maria-controls[39m=[32m"radix-«r1»"[39m
+                    [33maria-expanded[39m=[32m"false"[39m
+                    [33maria-haspopup[39m=[32m"dialog"[39m
+                    [33mclass[39m=[32m"group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer"[39m
+                    [33mdata-state[39m=[32m"closed"[39m
+                    [33mtype[39m=[32m"button"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative group bg-transparent hover:bg-white/5"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"absolute w-2 h-2 rounded-full transition-all duration-300 opacity-100 scale-100"[39m
+                        [33mstyle[39m=[32m"background-color: rgb(0, 68, 255); box-shadow: 0 0 6px #0044FF40;"[39m
+                      [36m/>[39m
+                      [36m<svg[39m
+                        [33mclass[39m=[32m"transition-all duration-300 relative z-10 opacity-0 scale-50"[39m
+                        [33mfill[39m=[32m"none"[39m
+                        [33mheight[39m=[32m"10"[39m
+                        [33mstroke[39m=[32m"currentColor"[39m
+                        [33mstroke-linecap[39m=[32m"round"[39m
+                        [33mstroke-linejoin[39m=[32m"round"[39m
+                        [33mstroke-width[39m=[32m"4"[39m
+                        [33mviewBox[39m=[32m"0 0 24 24"[39m
+                        [33mwidth[39m=[32m"10"[39m
+                      [36m>[39m
+                        [36m<polyline[39m
+                          [33mpoints[39m=[32m"20 6 9 17 4 12"[39m
+                        [36m/>[39m
+                      [36m</svg>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"absolute inset-0 rounded-full border border-white/0 group-hover:border-white/20 transition-colors"[39m
+                      [36m/>[39m
+                    [36m</button>[39m
+                    [36m<div[39m
+                      [33mclass[39m=[32m"flex-1 min-w-0"[39m
+                    [36m>[39m
+                      [36m<div[39m
+                        [33mclass[39m=[32m"text-sm font-medium transition-colors truncate text-zinc-200"[39m
+                      [36m>[39m
+                        [0mTest Task[0m
+                     ...
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getAllByLabelText node_modules/@testing-library/dom/dist/queries/label-text.js:[2m111:38[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m src/components/ChronosModal.test.jsx:[2m98:32[22m[39m
+    [90m 96| [39m    )[33m;[39m
+    [90m 97| [39m
+    [90m 98| [39m    [35mconst[39m closeButton [33m=[39m screen[33m.[39m[34mgetByLabelText[39m([32m'Close Modal'[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m 99| [39m    [34mexpect[39m(closeButton)[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m100| [39m  })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ChronosModal.test.jsx[2m > [22mChronosModal[2m > [22mrenders priority checkbox with aria-label
+[31m[1mError[22m: [2mexpect([22m[31mreceived[31m[2m).toBeInTheDocument()[22m
+
+[31mreceived[31m value must be an HTMLElement or an SVGElement.
+Received has type:  Undefined
+Received has value: [31mundefined[31m[39m
+[36m [2m❯[22m src/components/ChronosModal.test.jsx:[2m142:22[22m[39m
+    [90m140| [39m    [35mconst[39m buttons [33m=[39m screen[33m.[39m[34mgetAllByRole[39m([32m'button'[39m)[33m;[39m
+    [90m141| [39m    const checkbox = buttons.find(b => b.getAttribute('aria-label')?.i…
+    [90m142| [39m    [34mexpect[39m(checkbox)[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m   | [39m                     [31m^[39m
+    [90m143| [39m  })[33m;[39m
+    [90m144| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/components/ChronosModal.test.jsx[2m > [22mChronosModal[2m > [22mhandles Escape in DateTimePicker without closing modal
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m src/components/ChronosModal.test.jsx:[2m145:3[22m[39m
+    [90m143| [39m  })[33m;[39m
+    [90m144| [39m
+    [90m145| [39m  it('handles Escape in DateTimePicker without closing modal', async (…
+    [90m   | [39m  [31m^[39m
+    [90m146| [39m    [35mconst[39m tasks [33m=[39m [
+    [90m147| [39m      { id: '1', title: 'Test Task', done: false, priority: 'p1', due:…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 17:05:56
+[2m   Duration [22m 6.60s[2m (transform 409ms, setup 0ms, import 653ms, tests 5.41s, environment 306ms)[22m
+
