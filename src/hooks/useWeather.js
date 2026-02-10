@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "../lib/logger";
 
 // "YYYY-MM-DDTHH:00" in UTC
 function localHourISO(date = new Date()) {
@@ -156,7 +157,7 @@ export function useWeather() {
     } catch (err) {
       // Logic from HomePage: if error, set weather to null
       if (mountedRef.current) {
-        console.error(err);
+        logger.error("Weather fetch failed", err);
         setError(err);
         setWeather(null);
       }

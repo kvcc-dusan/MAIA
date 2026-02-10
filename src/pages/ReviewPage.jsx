@@ -2,9 +2,11 @@
 import React, { useState, useMemo } from "react";
 import { calculateVelocity, detectStaleness } from "../lib/analysis/index.js";
 import { uid, isoNow } from "../lib/ids.js";
+import { useToast } from "../context/ToastContext";
 import SignalCard from "../components/SignalCard.jsx";
 
-export default function ReviewPage({ notes, projects, journal, setJournal, pushToast }) {
+export default function ReviewPage({ notes, projects, journal, setJournal }) {
+    const { show: pushToast } = useToast();
     const [synthesis, setSynthesis] = useState("");
 
     // --- SIGNALS ---

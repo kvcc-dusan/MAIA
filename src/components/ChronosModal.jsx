@@ -7,6 +7,7 @@ import * as ContextMenu from "@radix-ui/react-context-menu";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
+import { useToast } from "../context/ToastContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, CheckSquare, Folder } from "lucide-react";
 
@@ -673,8 +674,8 @@ export default function ChronosModal({
   sessions,
   setSessions,
   projects = [],
-  pushToast,
 }) {
+  const { show: pushToast } = useToast();
   const today = new Date();
 
   useEffect(() => {
