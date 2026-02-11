@@ -54,7 +54,7 @@ function AppContent() {
     reminders, setReminders,
     sessions, setSessions,
     // Actions
-    createNote, updateNote, deleteNote, renameNote,
+    createNote, updateNote, deleteNote, deleteAllNotes, renameNote,
     moveNoteToProject
   } = useData();
 
@@ -237,6 +237,7 @@ function AppContent() {
                   notes={filteredNotes}
                   selectNote={selectItem}
                   onDelete={deleteNote}
+                  onDeleteAll={deleteAllNotes}
                   onRename={renameNote}
                   onMove={moveNoteToProject}
                   projects={projects}

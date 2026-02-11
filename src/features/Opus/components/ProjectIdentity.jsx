@@ -28,7 +28,7 @@ export default function ProjectIdentity({ project, updateProject, onDelete }) {
                     <input
                         value={project.name}
                         onChange={e => updateProject(project.id, { name: e.target.value })}
-                        className="bg-transparent text-4xl font-bold text-white w-full outline-none placeholder:text-zinc-700 tracking-tight"
+                        className="bg-transparent text-4xl font-bold font-sans text-white w-full outline-none placeholder:text-zinc-700 tracking-tight"
                         placeholder="Mission Name"
                     />
                 </div>
@@ -44,23 +44,26 @@ export default function ProjectIdentity({ project, updateProject, onDelete }) {
                         </button>
 
                         {showStatusMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-32 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                                {['Active', 'Paused', 'Done'].map(status => (
-                                    <button
-                                        key={status}
-                                        onClick={() => {
-                                            updateProject(project.id, { status });
-                                            setShowStatusMenu(false);
-                                        }}
-                                        className={cn(
-                                            "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                                            project.status === status ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5"
-                                        )}
-                                    >
-                                        {status === 'Done' ? 'Archived' : status}
-                                    </button>
-                                ))}
-                            </div>
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowStatusMenu(false)} />
+                                <div className="absolute top-full right-0 mt-2 w-32 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                    {['Active', 'Paused', 'Done'].map(status => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                updateProject(project.id, { status });
+                                                setShowStatusMenu(false);
+                                            }}
+                                            className={cn(
+                                                "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                                                project.status === status ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                            )}
+                                        >
+                                            {status === 'Done' ? 'Archived' : status}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
                         )}
                     </div>
 

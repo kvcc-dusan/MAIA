@@ -115,7 +115,7 @@ export default function Projects({
   }, [resize, stopResizing]);
 
   return (
-    <div className="h-full w-full flex relative overflow-hidden bg-black font-sans text-zinc-200">
+    <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-zinc-200">
 
 
       {/* Main Container */}
@@ -123,7 +123,7 @@ export default function Projects({
 
         {/* SIDEBAR: Project List */}
         <div
-          className="flex-none h-full border-r border-white/10 bg-[#09090b] pointer-events-auto flex flex-col relative group/sidebar"
+          className="flex-none h-full border-r border-white/10 bg-black pointer-events-auto flex flex-col relative group/sidebar"
           style={{ width: sidebarWidth }}
         >
           {/* Header */}

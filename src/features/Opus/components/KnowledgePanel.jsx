@@ -22,7 +22,7 @@ export default function KnowledgePanel({ project, selectNote }) {
     const recentNotes = linkedNotes.filter(n => !(project.pinnedNoteIds || []).includes(n.id));
 
     return (
-        <div className="flex flex-col h-full min-h-[300px] rounded-2xl bg-[#09090b] border border-white/10 shadow-2xl p-6">
+        <div className="flex flex-col h-full min-h-[300px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
                     <ProjectIcon name="brain" size={14} />

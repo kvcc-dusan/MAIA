@@ -6,33 +6,71 @@ export function useProjectVitality(project) {
     const { tasks, sessions } = useData();
 
     return useMemo(() => {
-        // Collect timestamps
+        // 1. Collect Valid Activity
         const timestamps = [];
+        const uniqueDays = new Set();
+        const toDateStr = (ts) => new Date(ts).toISOString().split('T')[0];
 
-        // Last completed task
-        const projectTasks = tasks.filter(t => t.projectId === project.id);
-        projectTasks.forEach(t => {
-            if (t.createdAt) timestamps.push(new Date(t.createdAt).getTime());
-            if (t.done && t.completedAt) timestamps.push(new Date(t.completedAt).getTime()); // Assuming we track completedAt
+        // Tasks
+        tasks.filter(t => t.projectId === project.id).forEach(t => {
+            if (t.createdAt) {
+                const ts = new Date(t.createdAt).getTime();
+                timestamps.push(ts);
+                uniqueDays.add(toDateStr(ts));
+            }
+            if (t.done && t.completedAt) {
+                const ts = new Date(t.completedAt).getTime();
+                timestamps.push(ts);
+                uniqueDays.add(toDateStr(ts));
+            }
         });
 
-        // Last session
-        const projectSessions = sessions.filter(s => s.projectId === project.id);
-        projectSessions.forEach(s => {
-            if (s.end) timestamps.push(new Date(s.end).getTime());
-            else if (s.start) timestamps.push(new Date(s.start).getTime());
+        // Sessions
+        sessions.filter(s => s.projectId === project.id).forEach(s => {
+            if (s.start) {
+                const ts = new Date(s.start).getTime();
+                timestamps.push(ts);
+                uniqueDays.add(toDateStr(ts));
+            }
         });
 
-        if (timestamps.length === 0) return { status: 'Dormant', color: 'text-zinc-600', bg: 'bg-zinc-600' };
+        // 2. State Machine Logic
+
+        // State: COLD (Default / Start)
+        // If no activity ever, it's Cold (User request: "When I create project it is called cold")
+        if (timestamps.length === 0) {
+            return { status: 'Cold', color: 'text-zinc-500', bg: 'bg-zinc-500' };
+        }
 
         const lastActive = Math.max(...timestamps);
-        const diffHours = (Date.now() - lastActive) / (1000 * 60 * 60);
+        const diffDays = (Date.now() - lastActive) / (1000 * 60 * 60 * 24);
 
-        if (diffHours < 24) return { status: 'High Tempo', color: 'text-emerald-400', bg: 'bg-emerald-400', animate: true };
-        if (diffHours < 24 * 7) return { status: 'Active', color: 'text-emerald-600', bg: 'bg-emerald-600' }; // Warm
-        if (diffHours < 24 * 30) return { status: 'Cold', color: 'text-amber-500', bg: 'bg-amber-500' };
+        // State: DORMANT (> 30 days inactivity)
+        if (diffDays > 30) {
+            return { status: 'Dormant', color: 'text-zinc-700', bg: 'bg-zinc-700' };
+        }
 
-        return { status: 'Dormant', color: 'text-zinc-600', bg: 'bg-zinc-600' };
+        // State: COLD (> 10 days inactivity)
+        if (diffDays > 10) {
+            return { status: 'Cold', color: 'text-zinc-500', bg: 'bg-zinc-500' };
+        }
+
+        // State: HIGH TEMPO (Active > 3 days)
+        // We define "Active" as recently touched. "More than 3 days" implies consistency.
+        // Let's check if there are activity on >= 3 unique days in the last 7 days.
+        const recentActivityDays = Array.from(uniqueDays)
+            .filter(pc => {
+                const pcDate = new Date(pc).getTime();
+                const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                return pcDate >= sevenDaysAgo;
+            });
+
+        if (recentActivityDays.length >= 3) {
+            return { status: 'High Tempo', color: 'text-orange-500', bg: 'bg-orange-500', animate: true };
+        }
+
+        // State: ACTIVE (Default if activity < 10 days ago but not high tempo)
+        return { status: 'Active', color: 'text-emerald-500', bg: 'bg-emerald-500' };
 
     }, [project, tasks, sessions]);
 }
