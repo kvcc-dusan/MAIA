@@ -1,6 +1,6 @@
 // @maia:chronos-modal
 import ProjectIcon from "./ProjectIcon";
-import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState, useLayoutEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import * as Popover from "@radix-ui/react-popover";
 import * as ContextMenu from "@radix-ui/react-context-menu";
@@ -70,7 +70,7 @@ function CloseButton({ onClick, className, ...props }) {
   )
 }
 
-function PriorityCheckbox({ checked, onChange, priority, ...props }) {
+const PriorityCheckbox = React.memo(function PriorityCheckbox({ checked, onChange, priority, ...props }) {
   const color = getPriorityColor(priority);
 
   return (
@@ -110,9 +110,9 @@ function PriorityCheckbox({ checked, onChange, priority, ...props }) {
       )}
     </button>
   )
-}
+});
 
-function CustomSelect({ label, value, options, onChange, placeholder = "Select..." }) {
+const CustomSelect = React.memo(function CustomSelect({ label, value, options, onChange, placeholder = "Select..." }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
@@ -184,11 +184,11 @@ function CustomSelect({ label, value, options, onChange, placeholder = "Select..
       </AnimatePresence>
     </div>
   )
-}
+});
 
 // Custom Date Time Picker Popover (12h Support + AM/PM Toggle)
 
-function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
+const PillSelect = React.memo(function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
@@ -273,10 +273,10 @@ function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
       </AnimatePresence>
     </div>
   )
-}
+});
 
 // Custom Date Time Picker Popover (12h Support + AM/PM Toggle)
-function DateTimePicker({ label, value, onChange, dateOnly = false }) {
+const DateTimePicker = React.memo(function DateTimePicker({ label, value, onChange, dateOnly = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const [tab, setTab] = useState('date');
@@ -477,11 +477,11 @@ function DateTimePicker({ label, value, onChange, dateOnly = false }) {
       </AnimatePresence>
     </div>
   )
-}
+});
 
 // --- POPUP & CONTEXT MENU ROW COMPONENTS ---
 
-function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
+const TaskRow = React.memo(function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
   const [open, setOpen] = useState(false);
 
   // Derived
@@ -591,9 +591,108 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});
 
-function SignalRow({ signal, onDelete, onEdit }) {
+const GridSlot = React.memo(({
+  i,
+  label,
+  isHourStart,
+  isPast,
+  isOccupied,
+  onMouseDown,
+  onMouseEnter,
+  onDoubleClick
+}) => {
+  return (
+    <div
+      id={isHourStart ? `timeline-hour-${Math.floor(i / 2)}` : undefined}
+      className="flex min-h-[40px] group select-none"
+    >
+      <div className={cn(
+        "w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
+        isHourStart ? "" : "border-b border-white/5"
+      )}>
+        {isHourStart && label}
+      </div>
+      <div
+        className={cn(
+          "flex-1 relative transition-colors",
+          isHourStart ? "border-b border-dashed border-white/5" : "border-b border-white/5",
+          isPast ? "opacity-30 cursor-not-allowed bg-zinc-900/20" :
+          isOccupied ? "opacity-50 cursor-not-allowed" :
+          "cursor-pointer hover:bg-white/[0.02]"
+        )}
+        onMouseDown={() => onMouseDown(i)}
+        onMouseEnter={() => onMouseEnter(i)}
+        onDoubleClick={() => onDoubleClick(i)}
+      >
+      </div>
+    </div>
+  );
+});
+
+const SessionItem = React.memo(({
+  session,
+  top,
+  height,
+  isBeingDragged,
+  isEditing,
+  isShort,
+  onDoubleClick,
+  onContextMenu,
+  onMouseDownMove,
+  onMouseDownResize
+}) => {
+  if (isEditing) return null;
+
+  const start = new Date(session.start);
+  const end = new Date(session.end);
+
+  return (
+    <div
+      className={cn(
+        "absolute left-28 right-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-white/5 px-3 overflow-hidden hover:bg-white/10 hover:border-white/10 transition-all z-10 select-none group",
+        isBeingDragged ? "opacity-30 pointer-events-none" : "cursor-move",
+        isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
+      )}
+      style={{ top: `${top}px`, height: `${height - 1}px` }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        onDoubleClick(session);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onContextMenu(e, session);
+      }}
+      onMouseDown={(e) => onMouseDownMove(e, session)}
+    >
+      <div className={cn("font-medium truncate text-white pointer-events-none", isShort ? "text-xs" : "text-xs")}>
+        {session.title}
+      </div>
+
+      {!isShort && session.description && (
+        <div className="text-[10px] text-zinc-500 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
+          {session.description}
+        </div>
+      )}
+
+      <div className={cn(
+        "text-[10px] text-zinc-500 font-mono tracking-tight pointer-events-none",
+        isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
+      )}>
+        {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+      </div>
+
+      <div
+        className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-white/10 cursor-s-resize flex justify-center items-end"
+        onMouseDown={(e) => onMouseDownResize(e, session)}
+      />
+    </div>
+  );
+});
+
+const SignalRow = React.memo(function SignalRow({ signal, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);
   const dotColor = getPriorityColor(signal.priority || 'low');
 
@@ -662,7 +761,22 @@ function SignalRow({ signal, onDelete, onEdit }) {
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});
+
+const toLocalInputValue = (date) => {
+  const pad = (n) => (n < 10 ? "0" + n : n);
+  return (
+    date.getFullYear() +
+    "-" +
+    pad(date.getMonth() + 1) +
+    "-" +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    ":" +
+    pad(date.getMinutes())
+  );
+};
 
 export default function ChronosModal({
   onClose,
@@ -684,21 +798,6 @@ export default function ChronosModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return (
-      date.getFullYear() +
-      "-" +
-      pad(date.getMonth() + 1) +
-      "-" +
-      pad(date.getDate()) +
-      "T" +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
-    );
-  };
 
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -742,7 +841,7 @@ export default function ChronosModal({
     due: ""
   });
 
-  const openTaskForm = (prefillDate = null, existingTask = null) => {
+  const openTaskForm = useCallback((prefillDate = null, existingTask = null) => {
     if (existingTask) {
       // Edit Mode
       setTaskDraft({
@@ -754,7 +853,7 @@ export default function ChronosModal({
       });
     } else {
       // Create Mode
-      let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
+      let base = prefillDate ? new Date(prefillDate) : (selectedDateRef.current ? new Date(selectedDateRef.current) : new Date());
 
       setTaskDraft({
         id: null,
@@ -765,9 +864,9 @@ export default function ChronosModal({
       });
     }
     setRightView("task-form");
-  };
+  }, []);
 
-  const openSignalForm = (existingSignal = null) => {
+  const openSignalForm = useCallback((existingSignal = null) => {
     if (existingSignal) {
       setSignalDraft({
         id: existingSignal.id,
@@ -789,13 +888,13 @@ export default function ChronosModal({
       });
     }
     setRightView("signal-form");
-  };
+  }, []);
 
   const closeForm = () => {
     setRightView("calendar");
   };
 
-  const saveTask = () => {
+  const saveTask = useCallback(() => {
     const title = taskDraft.title.trim();
     if (!title) return;
 
@@ -826,15 +925,15 @@ export default function ChronosModal({
       ]);
     }
     closeForm();
-  };
+  }, [taskDraft, setTasks]);
 
-  const assignTask = (id, projectId) => {
+  const assignTask = useCallback((id, projectId) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, projectId } : t));
     const projectTitle = projects.find(p => p.id === projectId)?.name || "Project";
     pushToast?.(`Assigned to ${projectTitle}`);
-  };
+  }, [setTasks, projects, pushToast]);
 
-  const createSignal = () => { // Actually 'saveSignal' now
+  const createSignal = useCallback(() => { // Actually 'saveSignal' now
     const title = signalDraft.title.trim();
     if (!title) return;
 
@@ -892,7 +991,7 @@ export default function ChronosModal({
       pushToast?.(toastContent(`Signal set for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
     }
     closeForm();
-  };
+  }, [signalDraft, setReminders, pushToast]);
 
   useEffect(() => {
     rescheduleAll(reminders || []);
@@ -934,24 +1033,45 @@ export default function ChronosModal({
     Number(localStorage.getItem("pulse.rightWidth")) || 420
   );
 
-  const monthStart = new Date(view.y, view.m, 1);
-  const monthEnd = new Date(view.y, view.m + 1, 0);
-  const startPad = (monthStart.getDay() + 6) % 7;
-  const daysInMonth = monthEnd.getDate();
-  const gridCells = [];
-  for (let i = 0; i < startPad; i++) gridCells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) gridCells.push(new Date(view.y, view.m, d));
-  while (gridCells.length < 42) gridCells.push(null);
+  const gridCells = useMemo(() => {
+    const monthStart = new Date(view.y, view.m, 1);
+    const monthEnd = new Date(view.y, view.m + 1, 0);
+    const startPad = (monthStart.getDay() + 6) % 7;
+    const daysInMonth = monthEnd.getDate();
+    const cells = [];
+    for (let i = 0; i < startPad; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(view.y, view.m, d));
+    while (cells.length < 42) cells.push(null);
+    return cells;
+  }, [view.y, view.m]);
 
   const sameDay = (a, b) => a && b && new Date(a).toDateString() === new Date(b).toDateString();
-  const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date) && !t.deleted);
 
-  const toggleTask = (id) => setTasks((prev) => prev.map((x) => {
+  const tasksByDate = useMemo(() => {
+    const map = {};
+    tasks.forEach(t => {
+      if (t.due && !t.deleted) {
+        const d = new Date(t.due).toDateString();
+        if (!map[d]) map[d] = [];
+        map[d].push(t);
+      }
+    });
+    return map;
+  }, [tasks]);
+
+  const tasksOn = useCallback((date) => {
+    if (!date) return [];
+    const dateStr = new Date(date).toDateString();
+    return tasksByDate[dateStr] || [];
+  }, [tasksByDate]);
+
+  const toggleTask = useCallback((id) => setTasks((prev) => prev.map((x) => {
     if (x.id !== id) return x;
     const isDone = !x.done;
     return { ...x, done: isDone, completedAt: isDone ? isoNow() : null };
-  }));
-  const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
+  })), [setTasks]);
+
+  const deleteTask = useCallback((id) => setTasks((prev) => prev.filter((x) => x.id !== id)), [setTasks]);
 
   const upcomingSignals = useMemo(
     () => reminders.filter((r) => !r.delivered).sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
@@ -959,27 +1079,140 @@ export default function ChronosModal({
   );
 
   // -- SESSIONS LOGIC --
+
+  // Refs for stable callbacks
+  const isDraggingRef = useRef(isDragging);
+  const selectedDateRef = useRef(selectedDate);
+  const sessionsRef = useRef(sessions);
+
+  useEffect(() => { isDraggingRef.current = isDragging; }, [isDragging]);
+  useEffect(() => { selectedDateRef.current = selectedDate; }, [selectedDate]);
+  useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
+
   // Helper: Check if two time ranges overlap
-  const checkOverlap = (start1, end1, start2, end2, excludeId = null) => {
+  const checkOverlap = useCallback((start1, end1, start2, end2) => {
     const s1 = new Date(start1).getTime();
     const e1 = new Date(end1).getTime();
     const s2 = new Date(start2).getTime();
     const e2 = new Date(end2).getTime();
     return s1 < e2 && s2 < e1;
-  };
+  }, []);
 
   // Helper: Check if a time slot overlaps with any existing session
-  const hasOverlap = (start, end, excludeSessionId = null) => {
+  const hasOverlap = useCallback((start, end, excludeSessionId = null) => {
     return sessions.some(s => {
       if (excludeSessionId && s.id === excludeSessionId) return false;
       return checkOverlap(start, end, s.start, s.end);
     });
-  };
+  }, [sessions, checkOverlap]);
 
   // Helper: Check if a time is in the past
-  const isPastTime = (date) => {
+  const isPastTime = useCallback((date) => {
     return new Date(date) < new Date();
-  };
+  }, []);
+
+  // Stable handlers for GridSlot
+  const handleSlotDownStable = useCallback((i) => {
+      const d = new Date(selectedDateRef.current);
+      d.setHours(Math.floor(i / 2), (i % 2) * 30, 0, 0);
+
+      if (new Date(d) < new Date()) return; // Inline isPastTime logic to avoid deps
+
+      const slotEnd = new Date(d.getTime() + 30 * 60000);
+
+      // Inline checkOverlap logic to avoid deps
+      const s1 = d.getTime();
+      const e1 = slotEnd.getTime();
+      const isOccupied = sessionsRef.current.some(s => {
+        const s2 = new Date(s.start).getTime();
+        const e2 = new Date(s.end).getTime();
+        return s1 < e2 && s2 < e1;
+      });
+
+      if (isOccupied) return;
+
+      setGridDraft(null);
+      setIsDragging(true);
+      setDragMode('create');
+      setDragStart(d);
+      setDragCurrent(d);
+  }, []);
+
+  const handleSlotEnterStable = useCallback((i) => {
+    if (isDraggingRef.current) {
+       const d = new Date(selectedDateRef.current);
+       d.setHours(Math.floor(i / 2), (i % 2) * 30, 0, 0);
+       setDragCurrent(d);
+    }
+  }, []);
+
+  const handleSlotDoubleStable = useCallback((i) => {
+      const d = new Date(selectedDateRef.current);
+      d.setHours(Math.floor(i / 2), (i % 2) * 30, 0, 0);
+
+      if (new Date(d) < new Date()) return;
+
+      const slotEnd = new Date(d.getTime() + 60 * 60000);
+
+      const s1 = d.getTime();
+      const e1 = slotEnd.getTime();
+      const isOccupied = sessionsRef.current.some(s => {
+        const s2 = new Date(s.start).getTime();
+        const e2 = new Date(s.end).getTime();
+        return s1 < e2 && s2 < e1;
+      });
+
+      if (isOccupied) return;
+
+      setGridDraft({ start: d, end: slotEnd });
+      setSessionDraft({
+        id: null,
+        title: "",
+        description: "",
+        start: d,
+        end: slotEnd,
+        linkedTaskId: "none",
+        linkedProjectId: "none"
+      });
+      setShowSessionPopover(true);
+  }, []);
+
+  const handleSessionMove = useCallback((e, s) => {
+      if (e.button !== 0) return;
+      e.stopPropagation();
+      setIsDragging(true);
+      setDragMode('move');
+      setDragSession(s);
+      setDragStart(new Date(s.start));
+      setDragCurrent(new Date(s.start));
+  }, []);
+
+  const handleSessionResize = useCallback((e, s) => {
+      if (e.button !== 0) return;
+      e.stopPropagation();
+      setIsDragging(true);
+      setDragMode('resize');
+      setDragSession(s);
+      setDragStart(new Date(s.start));
+      setDragCurrent(new Date(s.start));
+  }, []);
+
+  const handleSessionDoubleClick = useCallback((session) => {
+    setSessionDraft({
+      id: session.id,
+      title: session.title,
+      description: session.description,
+      start: new Date(session.start),
+      end: new Date(session.end),
+      linkedTaskId: session.linkedTaskId || "none",
+      linkedProjectId: session.linkedProjectId || "none"
+    });
+    setShowSessionPopover(true);
+  }, []);
+
+  const handleSessionContextMenu = useCallback((e, session) => {
+    setContextMenu({ x: e.clientX, y: e.clientY, session });
+  }, []);
 
   // Auto-cleanup: Remove expired sessions
   useEffect(() => {
@@ -1028,7 +1261,7 @@ export default function ChronosModal({
     setShowSessionPopover(true);
   };
 
-  const saveSession = () => {
+  const saveSession = useCallback(() => {
     if (!sessionDraft.title.trim()) return;
 
     // Prevent creating sessions in the past
@@ -1066,7 +1299,7 @@ export default function ChronosModal({
     setRightView('calendar'); // Just in case
     setShowSessionPopover(false);
     setGridDraft(null);
-  };
+  }, [sessionDraft, isPastTime, hasOverlap, setSessions, pushToast]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
@@ -1404,58 +1637,22 @@ export default function ChronosModal({
                           const h12 = hour % 12 || 12;
                           const label = isHourStart ? `${h12.toString().padStart(2, '0')}:00 ${isPm ? 'PM' : 'AM'}` : '';
 
+                          const isPast = isPastTime(slotDate);
+                          const slotEnd = new Date(slotDate.getTime() + 30 * 60000);
+                          const isOccupied = hasOverlap(slotDate, slotEnd);
+
                           return (
-                            <div
+                            <GridSlot
                               key={i}
-                              id={isHourStart ? `timeline-hour-${hour}` : undefined}
-                              className="flex min-h-[40px] group select-none"
-                            >
-                              {/* Left Column: Hour Label */}
-                              <div className={cn(
-                                "w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
-                                isHourStart ? "" : "border-b border-white/5" // Only border-b at end of hour (odd index)
-                              )}>
-                                {isHourStart && label}
-                              </div>
-
-                              {/* Right Column: Slot */}
-                              <div
-                                className={cn(
-                                  "flex-1 relative transition-colors",
-                                  isHourStart ? "border-b border-dashed border-white/5" : "border-b border-white/5", // Dashed at mid-hour, Solid at end-hour
-                                  (() => {
-                                    const slotEnd = new Date(slotDate.getTime() + 30 * 60000);
-                                    const isPast = isPastTime(slotDate);
-                                    const isOccupied = hasOverlap(slotDate, slotEnd);
-
-                                    if (isPast) return "opacity-30 cursor-not-allowed bg-zinc-900/20";
-                                    if (isOccupied) return "opacity-50 cursor-not-allowed";
-                                    return "cursor-pointer hover:bg-white/[0.02]";
-                                  })()
-                                )}
-                                onMouseDown={() => handleSlotDown(i)}
-                                onMouseEnter={() => handleSlotEnter(i)}
-                                onDoubleClick={() => {
-                                  // Prevent double-click on past or occupied slots
-                                  const slotEnd = new Date(slotDate.getTime() + 60 * 60000);
-                                  if (isPastTime(slotDate) || hasOverlap(slotDate, slotEnd)) return;
-
-                                  setGridDraft({ start: slotDate, end: slotEnd });
-                                  setSessionDraft({
-                                    id: null,
-                                    title: "",
-                                    description: "",
-                                    start: slotDate,
-                                    end: slotEnd,
-                                    linkedTaskId: "none",
-                                    linkedProjectId: "none"
-                                  });
-                                  setShowSessionPopover(true);
-                                }}
-                              >
-                                {/* Slot content */}
-                              </div>
-                            </div>
+                              i={i}
+                              label={label}
+                              isHourStart={isHourStart}
+                              isPast={isPast}
+                              isOccupied={isOccupied}
+                              onMouseDown={handleSlotDownStable}
+                              onMouseEnter={handleSlotEnterStable}
+                              onDoubleClick={handleSlotDoubleStable}
+                            />
                           )
                         })}
 
@@ -1474,59 +1671,20 @@ export default function ChronosModal({
                           const isEditing = showSessionPopover && sessionDraft.id === s.id;
                           const isShort = durationMins <= 30;
 
-                          if (isEditing) return null;
-
                           return (
-                            <div
+                            <SessionItem
                               key={s.id}
-                              className={cn(
-                                "absolute left-28 right-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-white/5 px-3 overflow-hidden hover:bg-white/10 hover:border-white/10 transition-all z-10 select-none group",
-                                isBeingDragged ? "opacity-30 pointer-events-none" : "cursor-move",
-                                isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
-                              )}
-                              style={{ top: `${top}px`, height: `${height - 1}px` }}
-                              onDoubleClick={(e) => {
-                                e.stopPropagation();
-                                setSessionDraft({
-                                  id: s.id,
-                                  title: s.title,
-                                  description: s.description,
-                                  start: start,
-                                  end: end,
-                                  linkedTaskId: s.linkedTaskId || "none",
-                                  linkedProjectId: s.linkedProjectId || "none"
-                                });
-                                setShowSessionPopover(true);
-                              }}
-                              onContextMenu={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setContextMenu({ x: e.clientX, y: e.clientY, session: s });
-                              }}
-                              onMouseDown={(e) => handleSessionMouseDown(e, s, 'move')}
-                            >
-                              <div className={cn("font-medium truncate text-white pointer-events-none", isShort ? "text-xs" : "text-xs")}>
-                                {s.title}
-                              </div>
-
-                              {!isShort && s.description && (
-                                <div className="text-[10px] text-zinc-500 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
-                                  {s.description}
-                                </div>
-                              )}
-
-                              <div className={cn(
-                                "text-[10px] text-zinc-500 font-mono tracking-tight pointer-events-none",
-                                isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
-                              )}>
-                                {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                              </div>
-
-                              <div
-                                className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-white/10 cursor-s-resize flex justify-center items-end"
-                                onMouseDown={(e) => handleSessionMouseDown(e, s, 'resize')}
-                              />
-                            </div>
+                              session={s}
+                              top={top}
+                              height={height}
+                              isBeingDragged={isBeingDragged}
+                              isEditing={isEditing}
+                              isShort={isShort}
+                              onDoubleClick={handleSessionDoubleClick}
+                              onContextMenu={handleSessionContextMenu}
+                              onMouseDownMove={handleSessionMove}
+                              onMouseDownResize={handleSessionResize}
+                            />
                           )
                         })}
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
@@ -106,8 +106,8 @@ export default function Editor({ note, updateNote }) {
               <EditorRich
                 value={local.content || ""}
                 editable={editable}
-                onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
-                onMetaChange={(meta) => setLocal((v) => ({ ...v, ...meta }))}
+                onChange={useCallback((md) => setLocal((v) => ({ ...v, content: md })), [])}
+                onMetaChange={useCallback((meta) => setLocal((v) => ({ ...v, ...meta })), [])}
                 className="maia-editor"
               />
             </div>

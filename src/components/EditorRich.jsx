@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
@@ -102,13 +102,35 @@ export default function EditorRich({
   className = "",
 }) {
   // Helper to emit meta + counts based on rendered text
-  function emitMeta(editor, onMetaChange) {
+  const emitMeta = useCallback((editor, onMetaChange) => {
     const raw = editor.getText();
     const meta = parseContentMeta(raw);
     const wordCount = countWords(raw);
     const charCount = raw.replace(/\n/g, "").length;
     onMetaChange?.({ ...meta, wordCount, charCount });
-  }
+  }, []);
+
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      heading: { levels: [1, 2, 3, 4] },
+      horizontalRule: false,
+    }),
+    TaskList,
+    TaskItem.configure({ nested: true }),
+    Highlight,
+    Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
+    HorizontalRule,
+    Markdown.configure({
+      html: false,
+      tightLists: true,
+      bulletListMarker: "-",
+      linkify: true,
+      breaks: false,
+      transformPastedText: true,
+      transformCopiedText: true,
+    }),
+    AutoMarkdownShortcuts,
+  ], []);
 
   const editor = useEditor({
     editable,
@@ -123,27 +145,7 @@ export default function EditorRich({
           "outline:none; -webkit-tap-highlight-color: transparent; caret-color: currentColor;",
       },
     },
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3, 4] },
-        horizontalRule: false,
-      }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight,
-      Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
-      HorizontalRule,
-      Markdown.configure({
-        html: false,
-        tightLists: true,
-        bulletListMarker: "-",
-        linkify: true,
-        breaks: false,
-        transformPastedText: true,
-        transformCopiedText: true,
-      }),
-      AutoMarkdownShortcuts,
-    ],
+    extensions,
     onCreate: ({ editor }) => {
       emitMeta(editor, onMetaChange);
     },
@@ -155,7 +157,7 @@ export default function EditorRich({
       // live meta + counts from rendered text
       emitMeta(editor, onMetaChange);
     },
-  });
+  }, [extensions]);
 
   // Sync editable flag
   useEffect(() => {
