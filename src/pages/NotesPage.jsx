@@ -208,9 +208,9 @@ export default function NotesOverview({
               <span className="text-xs font-bold uppercase tracking-wide">New</span>
             </button>
 
-            <div className="h-4 w-px bg-white/10 mx-1" />
 
-            {/* Sort Toggle */}
+
+
             <button
               onClick={() => setSort(s => s === 'recent' ? 'az' : 'recent')}
               className="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-zinc-400 font-mono transition-colors flex items-center gap-2"

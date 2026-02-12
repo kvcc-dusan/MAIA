@@ -7,11 +7,11 @@ import { rescheduleAll, ensurePermission } from "./utils/notify.js";
 // Components
 import { Dock } from "./components/ui/dock.jsx";
 import {
-  Home as HomeIcon,
+  CalendarDays,
   Sparkles,
   Library,
   Globe,
-  BookOpen,
+  Scale,
   Hourglass,
   Search
 } from "lucide-react";
@@ -28,17 +28,17 @@ import HomePage from "./pages/HomePage.jsx";
 import NotesPage from "./pages/NotesPage.jsx";
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
-import ReviewPage from "./pages/ReviewPage.jsx";
+
+import LedgerPage from "./pages/LedgerPage.jsx";
 
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
 const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
-const JournalPage = React.lazy(() => import("./pages/JournalPage.jsx"));
 
 function AppContent() {
   // Pages
   // Pages
-  const [currentPage, setCurrentPage] = useState(() => localStorage.getItem("maia_current_view") || "home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger
+  const [currentPage, setCurrentPage] = useState(() => localStorage.getItem("maia_current_view") || "home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger | ledgerPage
 
   useEffect(() => {
     localStorage.setItem("maia_current_view", currentPage);
@@ -48,7 +48,6 @@ function AppContent() {
   const {
     notes, setNotes,
     projects, setProjects,
-    journal, setJournal,
     ledger, setLedger,
     tasks, setTasks,
     reminders, setReminders,
@@ -193,11 +192,11 @@ function AppContent() {
       {/* Dock (Floating Navigation) */}
       <Dock
         items={[
-          { icon: HomeIcon, label: "Home", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
+          { icon: CalendarDays, label: "Today", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
           { icon: Sparkles, label: "Opus", onClick: () => handleNavigate("projects"), isActive: currentPage === "projects" },
           { icon: Library, label: "Codex", onClick: () => handleNavigate("overview"), isActive: currentPage === "overview" },
           { icon: Globe, label: "Conexa", onClick: () => handleNavigate("graph"), isActive: currentPage === "graph" },
-          { icon: BookOpen, label: "Journal", onClick: () => handleNavigate("journal"), isActive: currentPage === "journal" },
+          { icon: Scale, label: "Ledger", onClick: () => handleNavigate("ledgerPage"), isActive: currentPage === "ledgerPage" },
           { type: 'separator' },
           { icon: Hourglass, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
           { icon: Search, label: "Search", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
@@ -209,31 +208,18 @@ function AppContent() {
         <main className="h-full overflow-hidden min-h-0 relative">
           <GlassErrorBoundary>
             <React.Suspense fallback={<GlassSkeleton />}>
-              {currentPage === "journal" && (
-                <JournalPage
-                  journal={journal}
-                  setJournal={setJournal}
-                  ledger={ledger}
-                  setLedger={setLedger}
-                  onOpenLedger={handleOpenLedger}
-                />
-              )}
 
-              {currentPage === "review" && (
-                <ReviewPage
-                  notes={notes}
-                  projects={projects}
-                  journal={journal}
-                  setJournal={setJournal}
-                  pushToast={pushToast}
-                />
-              )}
 
               {currentPage === "home" && (
                 <HomePage
                   tasks={tasks}
-                  reminders={reminders}
+                  notes={notes}
+                  projects={projects}
+                  ledger={ledger}
+                  createNote={createNote}
+                  updateNote={updateNote}
                   onOpenPulse={handleOpenPulse}
+                  onOpenNote={selectItem}
                 />
               )}
 
@@ -288,6 +274,13 @@ function AppContent() {
                   onOpenNote={selectItem}
                 />
               )}
+
+              {currentPage === "ledgerPage" && (
+                <LedgerPage
+                  ledger={ledger}
+                  setLedger={setLedger}
+                />
+              )}
             </React.Suspense>
           </GlassErrorBoundary>
         </main>
@@ -308,7 +301,7 @@ function AppContent() {
         />
       )}
 
-      {/* Decision Ledger Modal */}
+      {/* Decision Ledger Modal (secondary access from command palette) */}
       {ledgerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-5xl h-[85vh]">

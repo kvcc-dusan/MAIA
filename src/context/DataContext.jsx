@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useCallback } from "react";
+import React, { createContext, useContext, useMemo, useCallback, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
@@ -11,8 +11,29 @@ export function DataProvider({ children }) {
     const [notes, setNotes] = useLocalStorage("maia.notes", []);
     const [projects, setProjects] = useLocalStorage("maia.projects", []);
 
-    // Strategic Journal
-    const [journal, setJournal] = useLocalStorage("maia.journal", []);
+    // --- One-time migration: clear legacy maia.journal from localStorage ---
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem("maia.journal");
+            if (raw) {
+                const entries = JSON.parse(raw);
+                if (Array.isArray(entries) && entries.length > 0) {
+                    const migrated = entries.map(entry => ({
+                        id: entry.id || uid(),
+                        title: `Journal — ${new Date(entry.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
+                        content: entry.content || "",
+                        tags: [...new Set([...(entry.tags || []), "journal"])],
+                        links: [],
+                        createdAt: entry.createdAt,
+                        project: null,
+                        projectIds: [],
+                    }));
+                    setNotes(prev => [...migrated, ...prev]);
+                }
+                localStorage.removeItem("maia.journal");
+            }
+        } catch { /* already migrated or corrupt — ignore */ }
+    }, []); // Run once on mount
 
     // Decision Ledger
     const [ledger, setLedger] = useLocalStorage("maia.ledger", []);
@@ -154,24 +175,52 @@ export function DataProvider({ children }) {
         }));
     }, [setTasks]);
 
+    // Decisions (Ledger)
+    const createDecision = useCallback((data) => {
+        const decision = {
+            id: uid(),
+            createdAt: isoNow(),
+            status: "open",
+            ...data
+        };
+        setLedger(prev => [decision, ...prev]);
+        return decision.id;
+    }, [setLedger]);
+
+    const reviewDecision = useCallback((id, result) => {
+        setLedger(prev => prev.map(d =>
+            d.id === id
+                ? { ...d, status: "reviewed", reviewedAt: isoNow(), outcome: result.outcome, outcomeStatus: result.status }
+                : d
+        ));
+    }, [setLedger]);
+
+    const deleteDecision = useCallback((id) => {
+        setLedger(prev => prev.filter(d => d.id !== id));
+    }, [setLedger]);
+
     const value = useMemo(() => ({
         notes, setNotes,
         projects, setProjects,
-        journal, setJournal,
         ledger, setLedger,
         tasks, setTasks,
         reminders, setReminders,
         sessions, setSessions,
-        // Actions
+        // Note Actions
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject,
         addProjectToNote, removeProjectFromNote,
+        // Project Actions
         updateProject, deleteProject, createProject,
+        // Task & Reminder Actions
         addTask, toggleTask, addReminder,
+        // Decision Actions
+        createDecision, reviewDecision, deleteDecision,
         generateSamples
     }), [
-        notes, setNotes, projects, setProjects, journal, setJournal, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
+        notes, setNotes, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject, addTask, toggleTask, addReminder,
+        createDecision, reviewDecision, deleteDecision,
         generateSamples
     ]);
 

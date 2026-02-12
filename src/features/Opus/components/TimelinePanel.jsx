@@ -5,7 +5,7 @@ import { useData } from "../../../context/DataContext";
 
 // A simple vertical timeline component
 export default function TimelinePanel({ project }) {
-    const { tasks, sessions, journal } = useData();
+    const { tasks, sessions, notes } = useData();
 
     // Aggregate events
     // 1. Completed Tasks (that belong to project)
@@ -30,15 +30,15 @@ export default function TimelinePanel({ project }) {
             icon: 'lightning'
         }));
 
-    // 3. Journal mentions
-    const journalEntries = journal
-        .filter(e => e.content.toLowerCase().includes(project.name.toLowerCase()))
-        .map(e => ({
-            id: e.id,
+    // 3. Journal notes that mention this project
+    const journalEntries = notes
+        .filter(n => (n.tags || []).some(t => t.toLowerCase() === 'journal') && (n.content || '').toLowerCase().includes(project.name.toLowerCase()))
+        .map(n => ({
+            id: n.id,
             type: 'journal',
-            date: new Date(e.createdAt),
+            date: new Date(n.createdAt),
             title: 'Journal Entry',
-            preview: e.content.slice(0, 50) + '...',
+            preview: (n.content || '').slice(0, 50) + '...',
             icon: 'book'
         }));
 

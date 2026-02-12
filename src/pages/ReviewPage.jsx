@@ -1,10 +1,9 @@
 // @maia:review
 import React, { useState, useMemo } from "react";
 import { calculateVelocity, detectStaleness } from "../lib/analysis/index.js";
-import { uid, isoNow } from "../lib/ids.js";
 import SignalCard from "../components/SignalCard.jsx";
 
-export default function ReviewPage({ notes, projects, journal, setJournal, pushToast }) {
+export default function ReviewPage({ notes, projects, createNote, updateNote, pushToast }) {
     const [synthesis, setSynthesis] = useState("");
 
     // --- SIGNALS ---
@@ -21,15 +20,16 @@ export default function ReviewPage({ notes, projects, journal, setJournal, pushT
     const handleCommit = () => {
         if (!synthesis.trim()) return;
 
-        const entry = {
-            id: uid(),
-            content: `#synthesis\n\n${synthesis}`,
-            createdAt: isoNow(),
-            tags: ["synthesis"],
-            type: "synthesis" // optional discriminator
-        };
+        const id = createNote?.();
+        if (id) {
+            updateNote?.({
+                id,
+                title: `Synthesis — ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
+                content: `#synthesis\n\n${synthesis}`,
+                tags: ["journal", "synthesis"],
+            });
+        }
 
-        setJournal([entry, ...journal]);
         setSynthesis("");
         pushToast?.("Synthesis Recorded");
     };
@@ -120,7 +120,7 @@ export default function ReviewPage({ notes, projects, journal, setJournal, pushT
                             disabled={!synthesis.trim()}
                             className="bg-zinc-100 hover:bg-white text-black px-8 py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-lg shadow-white/5"
                         >
-                            Commit to Journal
+                            Record Synthesis
                         </button>
                     </div>
                 </div>

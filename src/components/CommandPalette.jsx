@@ -27,8 +27,8 @@ export default function CommandPalette({
     { label: "Go to Opus", run: () => { onClose(); go?.("projects"); } },
     { label: "Go to Connexa", run: () => { onClose(); go?.("graph"); } },
     { label: "Go to Codex", run: () => { onClose(); go?.("overview"); } },
-    { label: "Go to Journal", run: () => { onClose(); go?.("journal"); } },
-    // { label: "Go to Ledger", run: () => { onClose(); go?.("ledger"); } }, // Merged into Journal
+    { label: "Go to Today", run: () => { onClose(); go?.("home"); } },
+    { label: "Go to Ledger", run: () => { onClose(); go?.("ledgerPage"); } },
     { label: "Go to Home", run: () => { onClose(); go?.("home"); } },
   ].map(a => ({ ...a, _type: "action" }));
 
