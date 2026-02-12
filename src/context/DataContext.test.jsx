@@ -84,13 +84,13 @@ describe('DataContext', () => {
             </DataProvider>
         );
 
-        // Initial counts (seed notes = 3, tasks = 0)
-        expect(screen.getByTestId('notes-count').textContent).toBe('3');
+        // Initial counts (seed notes = 0, tasks = 0)
+        expect(screen.getByTestId('notes-count').textContent).toBe('0');
         expect(screen.getByTestId('tasks-count').textContent).toBe('0');
 
         // Add Note
         await user.click(screen.getByText('Create Note'));
-        expect(screen.getByTestId('notes-count').textContent).toBe('4');
+        expect(screen.getByTestId('notes-count').textContent).toBe('1');
 
         // Add Task
         await user.click(screen.getByText('Add Task'));
@@ -104,6 +104,9 @@ describe('DataContext', () => {
                 <TestComponent />
             </DataProvider>
         );
+
+        // Create a Note first (since we expect 0 initially)
+        await user.click(screen.getByText('Create Note'));
 
         // 1. Create Project A
         await user.click(screen.getByText('Create Project A'));
