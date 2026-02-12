@@ -58,8 +58,13 @@ function AppContent() {
     moveNoteToProject
   } = useData();
 
-  // Local state for navigation/selection that doesn't need persistence yet
-  const [currentNoteId, setCurrentNoteId] = useState(null);
+  // Local state for navigation/selection
+  const [currentNoteId, _setCurrentNoteId] = useState(() => localStorage.getItem("maia_current_note_id") || null);
+  const setCurrentNoteId = useCallback((id) => {
+    _setCurrentNoteId(id);
+    if (id) localStorage.setItem("maia_current_note_id", id);
+    else localStorage.removeItem("maia_current_note_id");
+  }, []);
   const [targetProjectId, setTargetProjectId] = useState(null);
   const [search] = useState("");
 

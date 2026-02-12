@@ -1,16 +1,11 @@
 import { useEffect, useMemo } from 'react';
-import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide } from 'd3';
+import { forceSimulation, forceLink, forceManyBody, forceX, forceY, forceCollide } from 'd3';
 
 /**
  * Custom hook to run a D3 force simulation for a graph.
  *
- * @param {Object} params
- * @param {Array} params.nodes - List of node objects.
- * @param {Array} params.links - List of link objects.
- * @param {{w: number, h: number}} params.dims - Dimensions of the simulation area.
- * @param {number} params.repelForce - Strength of the charge force (repulsion).
- * @param {number} params.linkDistance - Desired distance between linked nodes.
- * @returns {Object} - The D3 simulation instance.
+ * Uses forceX/forceY instead of forceCenter so gravity strength is adjustable.
+ * This enables the "Entropy" slider to both expand AND contract the graph.
  */
 export function useGraphSimulation({
     nodes,
@@ -19,28 +14,55 @@ export function useGraphSimulation({
     repelForce,
     linkDistance,
 }) {
-    // Create a stable simulation instance
     const simulation = useMemo(() => forceSimulation(), []);
 
+    // 1. Initial Setup & Data Updates
     useEffect(() => {
-        // Measurements
-        const width = dims.w;
-        const height = dims.h;
+        const cx = dims.w / 2;
+        const cy = dims.h / 2;
 
-        // Configure simulation
         simulation.nodes(nodes);
 
+        // Entropy → Gravity mapping
+        const normalizedEntropy = Math.min(1, Math.max(0, repelForce / 800));
+        const gravityStrength = 0.05 + (1 - normalizedEntropy) * 0.95;
+
+        // Entanglement → reversed link distance
+        const reversedDistance = Math.max(10, 500 - linkDistance);
+
         simulation
-            .force("link", forceLink(links).id(d => d.id).distance(linkDistance).strength(0.5))
+            .force("link", forceLink(links).id(d => d.id).distance(reversedDistance).strength(0.5))
             .force("charge", forceManyBody().strength(-repelForce))
-            .force("center", forceCenter(width / 2, height / 2))
+            .force("gravityX", forceX(cx).strength(gravityStrength))
+            .force("gravityY", forceY(cy).strength(gravityStrength))
             .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
 
-        // Re-heat simulation to ensure layout settles
         simulation.alpha(1).restart();
 
         return () => simulation.stop();
-    }, [nodes, links, dims, repelForce, linkDistance, simulation]);
+    }, [simulation, nodes, links, dims]);
+
+    // 2. Update Physics Parameters (Dynamic)
+    useEffect(() => {
+        const cx = dims.w / 2;
+        const cy = dims.h / 2;
+
+        // Entanglement: High slider → short distance (closer)
+        const reversedDistance = Math.max(10, 500 - linkDistance);
+
+        // Entropy → Gravity (inverse relationship)
+        const normalizedEntropy = Math.min(1, Math.max(0, repelForce / 800));
+        const gravityStrength = 0.05 + (1 - normalizedEntropy) * 0.95;
+
+        // Apply forces
+        simulation.force("charge")?.strength(-repelForce);
+        simulation.force("gravityX")?.x(cx).strength(gravityStrength);
+        simulation.force("gravityY")?.y(cy).strength(gravityStrength);
+        simulation.force("link")?.distance(reversedDistance);
+
+        // Re-heat — use higher alpha so contraction is visible
+        simulation.alpha(0.5).alphaTarget(0).restart();
+    }, [simulation, repelForce, linkDistance, dims]);
 
     return simulation;
 }

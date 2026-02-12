@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 /** Inline placeholder exactly where line 1 starts */
 function InlinePlaceholder() {
   return (
-    <div className="absolute top-0 left-0 pt-[2px] text-zinc-600 select-none pointer-events-none">
+    <div className="absolute top-0 left-0 pt-[2px] text-zinc-600 select-none pointer-events-none font-mono text-sm">
       Start writing…
     </div>
   );
@@ -88,11 +88,10 @@ const AutoMarkdownShortcuts = Extension.create({
   },
 });
 
-/** Count “word” tokens robustly (letters/numbers), across spaces & newlines, no trailing space needed. */
+/** Count words: any whitespace-separated token with at least one letter or digit. */
 function countWords(text) {
-  // Unicode-friendly: letters + marks + numbers; keeps words like "don't" or "ime's" together.
-  const matches = text.match(/\p{L}[\p{L}\p{M}\p{N}'’_-]*/gu);
-  return matches ? matches.length : 0;
+  const tokens = text.split(/\s+/).filter(t => t.length > 0);
+  return tokens.filter(t => /[\p{L}\p{N}]/u.test(t)).length;
 }
 
 export default function EditorRich({
@@ -104,11 +103,10 @@ export default function EditorRich({
 }) {
   // Helper to emit meta + counts based on rendered text
   function emitMeta(editor, onMetaChange) {
-    // Use getText() to preserve newlines for accurate word counting
     const raw = editor.getText();
     const meta = parseContentMeta(raw);
     const wordCount = countWords(raw);
-    const charCount = raw.length; // includes newlines, which is what users expect visually
+    const charCount = raw.replace(/\n/g, "").length;
     onMetaChange?.({ ...meta, wordCount, charCount });
   }
 
@@ -184,7 +182,7 @@ export default function EditorRich({
       {showPlaceholder && <InlinePlaceholder />}
       <EditorContent
         editor={editor}
-        className="tiptap maia-editor outline-none min-h-full text-zinc-200 leading-relaxed max-w-3xl mx-auto"
+        className="tiptap maia-editor outline-none min-h-full text-zinc-200 leading-relaxed w-full font-mono text-sm"
       />
     </div>
   );

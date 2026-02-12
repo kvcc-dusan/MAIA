@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, CheckSquare, Folder } from "lucide-react";
 
 // --- CONSTANTS ---
-const NEON_BLUE = '#0044FF';
+const NEON_BLUE = '#3b82f6';
 const NEON_ORANGE = '#FF5930';
 const NEON_GREEN = '#ABFA54';
 

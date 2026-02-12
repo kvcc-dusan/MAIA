@@ -15,7 +15,7 @@ const THEME = {
     nodeActive: "#ffffff",
     nodeStroke: "none",
     link: "#27272a",
-    text: "#a1a1aa",
+    text: "#ffffff",
     textActive: "#f4f4f5",
 };
 
@@ -30,7 +30,7 @@ function GraphRenderer({
     fontSize,
     repelForce,
     linkDistance,
-    searchQuery,
+    query = "", // Renamed from searchQuery
     setHoveredNode,
     wrapperRef,
     svgRef,
@@ -38,6 +38,8 @@ function GraphRenderer({
     nodesRef,
     searchRef
 }) {
+    // Debug log
+    // console.log("GraphRenderer render", { nodes: nodes?.length, query });
 
     const gRef = useRef(null);
 
@@ -68,6 +70,17 @@ function GraphRenderer({
         // Clean old
         const svg = select(svgRef.current);
         svg.selectAll("*").remove();
+
+        if (!nodes || nodes.length === 0) {
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height / 2)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#666")
+                .attr("font-family", "monospace")
+                .text("No nodes (0)");
+            return;
+        }
 
         // Layers
         const g = svg.append("g");
@@ -115,7 +128,8 @@ function GraphRenderer({
             .attr("opacity", 0.7)
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
-            .attr("class", "label-element");
+            .attr("class", "label-element")
+            .style("font-family", "var(--font-mono)"); // Ensure mono font
 
 
         // Interactions using Stable Refs
@@ -153,7 +167,7 @@ function GraphRenderer({
             .on("mouseout", () => {
                 setHoveredNodeRef.current?.(null);
 
-                const q = searchRef.current.toLowerCase().trim();
+                const q = searchRef.current ? searchRef.current.toLowerCase().trim() : "";
                 const isSearchActive = q.length > 0;
 
                 if (isSearchActive) {
@@ -170,7 +184,7 @@ function GraphRenderer({
                 } else {
                     link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
                     node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                    label.attr("opacity", d => (d.val > 2) ? 1 : 0);
+                    label.attr("opacity", 0.7);
                 }
             });
 
@@ -179,9 +193,8 @@ function GraphRenderer({
             link.attr("d", d => {
                 const dx = d.target.x - d.source.x;
                 const dy = d.target.y - d.source.y;
-                const dr = Math.sqrt(dx * dx + dy * dy) * 1.5;
-                if (dr === 0) return "";
-                return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+                // STRAIGHT LINES
+                return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
             });
             node.attr("cx", d => d.x).attr("cy", d => d.y);
             label.attr("x", d => d.x).attr("y", d => d.y);
@@ -199,9 +212,18 @@ function GraphRenderer({
                         const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0;
                     }
-                    if (k > 1.5) return 1;
-                    if (k < 0.7 && d.val < 2) return 0.1;
-                    return 0.5;
+
+                    // ZOOM VISIBILITY LOGIC
+                    // Keep text visible longer.
+                    // > 0.8: Full opacity
+                    // < 0.2: Fade out
+                    // Interpolate in between? Or just steps.
+                    // User request: "When I unzoom... text disappears... I want it valid until I'm fully unzoomed"
+
+                    if (k > 0.8) return 1;
+                    if (k < 0.25) return 0; // Disappear when very far out
+                    if (d.val > 2) return 1; // Projects/Large nodes always visible until very far
+                    return 0.7; // Intermediate visibility
                 });
             });
 
@@ -219,7 +241,32 @@ function GraphRenderer({
             // Detach listener
             simulation.on("tick", null);
         };
-    }, [simulation, nodes, links, dims, nodeSize, linkThickness, fontSize, repelForce, linkDistance, nodesRef, searchRef, svgRef, zoomRef]); // Removed callback deps (onOpenNote, etc)
+    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef]); // Re-run only on structure change
+
+    // --- VISUAL UPDATES (No Re-render) ---
+    useEffect(() => {
+        if (!svgRef.current) return;
+        const svg = select(svgRef.current);
+
+        // Update Node Size
+        svg.selectAll(".node-element")
+            .transition().duration(300)
+            .attr("r", d => {
+                const base = d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3));
+                return base * nodeSize;
+            });
+
+        // Update Link Thickness
+        svg.selectAll(".link-element")
+            .transition().duration(300)
+            .attr("stroke-width", linkThickness);
+
+        // Update Font Size
+        svg.selectAll(".label-element")
+            .transition().duration(300)
+            .attr("font-size", d => (10 + d.val) * fontSize);
+
+    }, [nodeSize, linkThickness, fontSize, svgRef]);
 
     // --- SEARCH EFFECT ---
     useEffect(() => {
@@ -228,16 +275,16 @@ function GraphRenderer({
         const node = svg.selectAll(".node-element");
         const label = svg.selectAll(".label-element");
         const link = svg.selectAll(".link-element");
-        const q = searchQuery.toLowerCase().trim();
+        const qStr = (query || "").toLowerCase().trim(); // Safe check
 
-        if (q) {
+        if (qStr) {
             node.style("opacity", d => {
-                const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
+                const match = (d.title || "").toLowerCase().includes(qStr) || (d.tags || []).some(t => t.toLowerCase().includes(qStr));
                 return match ? 1 : 0.1;
             });
             link.style("opacity", 0.1);
             label.style("opacity", d => {
-                const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
+                const match = (d.title || "").toLowerCase().includes(qStr) || (d.tags || []).some(t => t.toLowerCase().includes(qStr));
                 return match ? 1 : 0;
             });
         } else {
@@ -245,7 +292,7 @@ function GraphRenderer({
             link.style("opacity", 1).attr("stroke-opacity", 0.6);
             label.style("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : (d.val > 2 ? 1 : 0.5));
         }
-    }, [searchQuery, activeCluster, nodes, svgRef]);
+    }, [query, activeCluster, nodes, svgRef]);
 
 
     function createDrag(simulation) {

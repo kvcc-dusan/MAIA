@@ -36,7 +36,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const [dims, setDims] = useState({ w: 800, h: 600 });
   const [hoveredNode, setHoveredNode] = useState(null);
   const [activeCluster, setActiveCluster] = useState(null);
-  const [showSignals, setShowSignals] = useState(true);
 
   // Search & Filter State
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -45,14 +44,19 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const [showOrphans, setShowOrphans] = useState(true);
   const [showGhostNodes, setShowGhostNodes] = useState(false);
 
-  // Display
-  const [nodeSize, setNodeSize] = useState(1); // multiplier 0.5 - 2
-  const [linkThickness, setLinkThickness] = useState(1.5); // px 0.5 - 5
-  const [fontSize, setFontSize] = useState(1); // multiplier 0.5 - 2
+  // Display & Physics with Persistence
+  const [nodeSize, setNodeSize] = useState(() => parseFloat(localStorage.getItem('maia_graph_nodeSize')) || 1);
+  const [linkThickness, setLinkThickness] = useState(() => parseFloat(localStorage.getItem('maia_graph_linkThickness')) || 1.5);
+  const [fontSize, setFontSize] = useState(() => parseFloat(localStorage.getItem('maia_graph_fontSize')) || 1);
+  const [repelForce, setRepelForce] = useState(() => parseInt(localStorage.getItem('maia_graph_repelForce')) || 150);
+  const [linkDistance, setLinkDistance] = useState(() => parseInt(localStorage.getItem('maia_graph_linkDistance')) || 100);
 
-  // Physics
-  const [repelForce, setRepelForce] = useState(150); // Entropy
-  const [linkDistance, setLinkDistance] = useState(100); // Entanglement
+  // Persistence Effects
+  useEffect(() => localStorage.setItem('maia_graph_nodeSize', nodeSize), [nodeSize]);
+  useEffect(() => localStorage.setItem('maia_graph_linkThickness', linkThickness), [linkThickness]);
+  useEffect(() => localStorage.setItem('maia_graph_fontSize', fontSize), [fontSize]);
+  useEffect(() => localStorage.setItem('maia_graph_repelForce', repelForce), [repelForce]);
+  useEffect(() => localStorage.setItem('maia_graph_linkDistance', linkDistance), [linkDistance]);
 
   // Refs for access inside D3 closures without re-running effects
   const searchRef = useRef("");
@@ -231,6 +235,8 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     return () => obs.disconnect();
   }, []);
 
+  console.log("GraphPage: Nodes", nodes.length, "Links", links.length); // Debug log
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
 
@@ -239,14 +245,13 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         links={links}
         dims={dims}
         activeCluster={activeCluster}
-        showSignals={showSignals}
         onOpenNote={onOpenNote}
         nodeSize={nodeSize}
         linkThickness={linkThickness}
         fontSize={fontSize}
         repelForce={repelForce}
         linkDistance={linkDistance}
-        searchQuery={searchQuery}
+        query={searchQuery} // Pass as query
         setHoveredNode={setHoveredNode}
         wrapperRef={wrapperRef}
         svgRef={svgRef}
@@ -268,8 +273,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         setShowOrphans={setShowOrphans}
         showGhostNodes={showGhostNodes}
         setShowGhostNodes={setShowGhostNodes}
-        showSignals={showSignals}
-        setShowSignals={setShowSignals}
         nodeSize={nodeSize}
         setNodeSize={setNodeSize}
         linkThickness={linkThickness}
@@ -286,27 +289,22 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         clusters={analysis.rawClusters}
       />
 
-      {/* Hover Info (Keep it here or move to separate component, lightweight enough) */}
+      {/* Hover Info Card */}
       {hoveredNode && (
-        <GlassCard
-          className="absolute pointer-events-none z-20 min-w-[200px]"
+        <div
+          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl font-mono"
           style={{ top: 80, right: 24 }}
         >
-          <div className="flex items-start gap-3">
-            <div className="w-3 h-3 rounded-full mt-1" style={{ background: hoveredNode.color }} />
-            <div>
-              <div className="text-white font-medium text-sm leading-tight">{hoveredNode.title}</div>
-              <div className="text-xs text-zinc-500 mt-2 flex flex-wrap gap-1">
-                {hoveredNode.tags.length > 0
-                  ? hoveredNode.tags.map(t => <span key={t} className="bg-white/5 px-1 rounded">#{t}</span>)
-                  : <span className="italic opacity-50">No tags</span>}
-              </div>
-              <div className="mt-3 pt-2 border-t border-white/5 text-[10px] text-zinc-500 uppercase tracking-widest">
-                Click to open
-              </div>
-            </div>
+          <div className="text-white font-medium text-xs leading-tight">{hoveredNode.title}</div>
+          <div className="text-[10px] text-zinc-500 mt-2 flex flex-wrap gap-1">
+            {hoveredNode.tags.length > 0
+              ? hoveredNode.tags.map(t => <span key={t} className="bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">#{t}</span>)
+              : <span className="italic opacity-50">No tags</span>}
           </div>
-        </GlassCard>
+          <div className="mt-3 pt-2 border-t border-white/5 text-[10px] text-zinc-600 uppercase tracking-widest font-bold">
+            Click to open
+          </div>
+        </div>
       )}
     </div>
   );
