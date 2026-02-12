@@ -141,7 +141,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                     <div
                       class="text-[10px] text-zinc-500 font-mono"
                     >
-                      02:00 PM
+                      01:00 PM
                     </div>
                   </div>
                   <button
@@ -971,7 +971,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   12:00 PM
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
                 />
               </div>
               <div
@@ -981,7 +981,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
                 />
                 <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
                 />
               </div>
               <div

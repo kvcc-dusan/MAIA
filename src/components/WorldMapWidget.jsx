@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { getOrdinalSuffix } from "@/lib/utils";
 
 export const MapVisual = React.memo(({ coords, topology }) => {
     // D3 Map Logic
@@ -102,15 +103,6 @@ export default function WorldMapWidget({ weather }) {
     }, []);
 
     // Formatters
-    const getOrdinalSuffix = (i) => {
-        const j = i % 10,
-            k = i % 100;
-        if (j === 1 && k !== 11) return "st";
-        if (j === 2 && k !== 12) return "nd";
-        if (j === 3 && k !== 13) return "rd";
-        return "th";
-    };
-
     const dayName = now.toLocaleDateString("en-US", { weekday: 'long' });
     const monthName = now.toLocaleDateString("en-US", { month: 'long' });
     const dayNum = now.getDate();

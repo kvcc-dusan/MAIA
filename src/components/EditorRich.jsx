@@ -9,7 +9,7 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Extension } from "@tiptap/core";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
-import { cn } from "@/lib/utils";
+import { cn, countWords } from "@/lib/utils";
 
 /** Inline placeholder exactly where line 1 starts */
 function InlinePlaceholder() {
@@ -87,12 +87,6 @@ const AutoMarkdownShortcuts = Extension.create({
     };
   },
 });
-
-/** Count words: any whitespace-separated token with at least one letter or digit. */
-function countWords(text) {
-  const tokens = text.split(/\s+/).filter(t => t.length > 0);
-  return tokens.filter(t => /[\p{L}\p{N}]/u.test(t)).length;
-}
 
 export default function EditorRich({
   value = "",

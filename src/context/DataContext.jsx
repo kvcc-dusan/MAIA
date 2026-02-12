@@ -3,13 +3,14 @@ import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { generateDummyData } from "../utils/dummyData.js";
+import { STORAGE_KEYS } from "../lib/constants.js";
 
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
     // Notes & Projects
-    const [notes, setNotes] = useLocalStorage("maia.notes", []);
-    const [projects, setProjects] = useLocalStorage("maia.projects", []);
+    const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
+    const [projects, setProjects] = useLocalStorage(STORAGE_KEYS.PROJECTS, []);
 
     // --- One-time migration: clear legacy maia.journal from localStorage ---
     useEffect(() => {
@@ -36,12 +37,12 @@ export function DataProvider({ children }) {
     }, []); // Run once on mount
 
     // Decision Ledger
-    const [ledger, setLedger] = useLocalStorage("maia.ledger", []);
+    const [ledger, setLedger] = useLocalStorage(STORAGE_KEYS.LEDGER, []);
 
     // Tasks & Reminders
-    const [tasks, setTasks] = useLocalStorage("maia.tasks", []);
-    const [reminders, setReminders] = useLocalStorage("maia.reminders", []);
-    const [sessions, setSessions] = useLocalStorage("maia.sessions", []);
+    const [tasks, setTasks] = useLocalStorage(STORAGE_KEYS.TASKS, []);
+    const [reminders, setReminders] = useLocalStorage(STORAGE_KEYS.REMINDERS, []);
+    const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.SESSIONS, []);
 
     // --- Actions ---
 
