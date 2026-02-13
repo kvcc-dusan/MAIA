@@ -38,9 +38,6 @@ function GraphRenderer({
     nodesRef,
     searchRef
 }) {
-    // Debug log
-    // console.log("GraphRenderer render", { nodes: nodes?.length, query });
-
     const gRef = useRef(null);
 
     // Stable Refs for Callbacks to avoid effect re-runs (Performance Optimization)
