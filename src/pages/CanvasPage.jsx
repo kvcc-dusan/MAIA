@@ -363,6 +363,7 @@ export default function CanvasBoard({ goHome }) {
           onClick={() => goHome?.()}
           className="h-8 px-3 rounded-full text-zinc-300 hover:text-zinc-100 hover:bg-white/5"
           title="Back"
+          aria-label="Back"
         >
           ←
         </button>
