@@ -84,13 +84,13 @@ describe('DataContext', () => {
             </DataProvider>
         );
 
-        // Initial counts (seed notes = 3, tasks = 0)
-        expect(screen.getByTestId('notes-count').textContent).toBe('3');
+        // Initial counts (localStorage is cleared in beforeEach, so both start at 0)
+        expect(screen.getByTestId('notes-count').textContent).toBe('0');
         expect(screen.getByTestId('tasks-count').textContent).toBe('0');
 
         // Add Note
         await user.click(screen.getByText('Create Note'));
-        expect(screen.getByTestId('notes-count').textContent).toBe('4');
+        expect(screen.getByTestId('notes-count').textContent).toBe('1');
 
         // Add Task
         await user.click(screen.getByText('Add Task'));
@@ -104,6 +104,10 @@ describe('DataContext', () => {
                 <TestComponent />
             </DataProvider>
         );
+
+        // 0. Create a Note first (none exist after localStorage.clear)
+        await user.click(screen.getByText('Create Note'));
+        expect(screen.getByTestId('notes-count').textContent).toBe('1');
 
         // 1. Create Project A
         await user.click(screen.getByText('Create Project A'));
@@ -134,8 +138,9 @@ describe('DataContext', () => {
     });
 
     it('localStorage sync works as expected', async () => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
         const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
-        const user = userEvent.setup();
+        const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
         render(
             <DataProvider>
@@ -145,9 +150,12 @@ describe('DataContext', () => {
 
         await user.click(screen.getByText('Create Note'));
 
+        // Advance past the 1-second debounce in useLocalStorage
+        await vi.advanceTimersByTimeAsync(1100);
+
         // Expect 'maia.notes' to be updated with new data
-        // setItem is called multiple times (initial render + update)
-        // We check if it was called with the key
         expect(setItemSpy).toHaveBeenCalledWith('maia.notes', expect.stringContaining('Untitled'));
+
+        vi.useRealTimers();
     });
 });

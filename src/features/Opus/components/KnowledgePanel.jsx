@@ -11,7 +11,6 @@ export default function KnowledgePanel({ project, selectNote }) {
     const linkedNotes = notes
         .filter(n => {
             if (n.projectIds && n.projectIds.includes(project.id)) return true;
-            if (n.project && n.project.toLowerCase() === project.name.toLowerCase()) return true;
             return false;
         })
         // Mock updatedAt for now since not all notes might have it, falling back to createdAt or now

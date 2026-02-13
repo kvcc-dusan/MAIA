@@ -104,7 +104,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         isHot: analysis.isHot(n),
         tags: n.tags || [],
         val: 1 + (n.content?.length || 0) / 1000, // Size by content length
-        project: n.project || null,
         projectIds: n.projectIds || [],
       };
     });
@@ -168,8 +167,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
 
       // Note -> Project
       projects.forEach(p => {
-        const isLinked = (n.projectIds && n.projectIds.includes(p.id)) ||
-          (n.project && normalize(n.project) === normalize(p.name));
+        const isLinked = n.projectIds && n.projectIds.includes(p.id);
         if (isLinked) {
           d3Links.push({ source: sourceId, target: `proj-${p.id}` });
           hasLinks = true;

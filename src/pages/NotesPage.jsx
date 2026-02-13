@@ -18,6 +18,7 @@ export default function NotesOverview({
   onDeleteAll,
   onRename,
   onCreateNote,
+  projects = [],
 }) {
   const { generateSamples } = useData();
 
@@ -130,11 +131,15 @@ export default function NotesOverview({
       arr = arr.filter((n) => {
         const title = (n.title || "").toLowerCase();
         const tags = (n.tags || []).map((t) => (t || "").toLowerCase());
-        const proj = (n.project || "").toLowerCase();
+        // Resolve project names from projectIds for filtering
+        const noteProjectNames = (n.projectIds || []).map(pid => {
+          const p = projects.find(proj => proj.id === pid);
+          return p ? p.name.toLowerCase() : "";
+        });
 
         const titleOk = title.includes(parsedFilter.q.replace(/#\w+|project\s*:[^#]+/gi, "").trim());
         const tagOk = parsedFilter.tag ? tags.includes(parsedFilter.tag) : true;
-        const projOk = parsedFilter.project ? proj === parsedFilter.project : true;
+        const projOk = parsedFilter.project ? noteProjectNames.some(name => name === parsedFilter.project) : true;
 
         const onlySpecial =
           parsedFilter.q.replace(/#\w+|project\s*:[^#]+/gi, "").trim().length === 0;
@@ -332,11 +337,14 @@ export default function NotesOverview({
                     </span>
 
                     {/* Project Pill (Moved to Footer) */}
-                    {n.project && (
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis">
-                        {n.project}
-                      </span>
-                    )}
+                    {(n.projectIds || []).length > 0 && (() => {
+                      const linkedProject = projects.find(p => p.id === n.projectIds[0]);
+                      return linkedProject ? (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis">
+                          {linkedProject.name}
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">

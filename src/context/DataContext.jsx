@@ -80,13 +80,33 @@ export function DataProvider({ children }) {
     }, [setNotes]);
 
     const moveNoteToProject = useCallback((id, name) => {
+        if (!name) {
+            // Clear project association
+            setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, project: null, projectIds: [] } : n)));
+            return;
+        }
+
         setProjects(prevProjects => {
-            if (name && !prevProjects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-                return [...prevProjects, { id: uid(), name: name.trim() }];
+            const existing = prevProjects.find((p) => p.name.toLowerCase() === name.toLowerCase());
+            if (existing) {
+                // Project exists — add its ID to the note's projectIds
+                setNotes((prev) => prev.map((n) => {
+                    if (n.id !== id) return n;
+                    const ids = Array.from(new Set([...(n.projectIds || []), existing.id]));
+                    return { ...n, projectIds: ids, project: null };
+                }));
+                return prevProjects;
+            } else {
+                // Create a new project and link it
+                const newProject = { id: uid(), name: name.trim() };
+                setNotes((prev) => prev.map((n) => {
+                    if (n.id !== id) return n;
+                    const ids = Array.from(new Set([...(n.projectIds || []), newProject.id]));
+                    return { ...n, projectIds: ids, project: null };
+                }));
+                return [...prevProjects, newProject];
             }
-            return prevProjects;
         });
-        setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, project: name || null } : n)));
     }, [setProjects, setNotes]);
 
     const addProjectToNote = useCallback((noteId, projectId) => {

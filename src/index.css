@@ -529,3 +529,17 @@ body {
 .maia-editor .ProseMirror {
   cursor: text;
 }
+
+/* Placeholder — rendered via CSS ::before, perfectly aligned with caret */
+.maia-editor .ProseMirror.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: #52525b;
+  /* zinc-600 */
+  pointer-events: none;
+  float: left;
+  height: 0;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: inherit;
+}

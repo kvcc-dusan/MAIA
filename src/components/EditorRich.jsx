@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
@@ -11,13 +11,25 @@ import { Extension } from "@tiptap/core";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn } from "@/lib/utils";
 
-/** Inline placeholder exactly where line 1 starts */
-function InlinePlaceholder() {
-  return (
-    <div className="absolute top-0 left-0 pt-[2px] text-zinc-600 select-none pointer-events-none font-mono text-sm">
-      Start writing…
-    </div>
-  );
+const PLACEHOLDER_TEXT = 'Start writing…';
+
+/** Toggle placeholder classes/attributes on the editor DOM based on content */
+function updatePlaceholder(editor) {
+  if (!editor?.view?.dom) return;
+  const dom = editor.view.dom;
+  const doc = editor.state.doc;
+  // Truly empty = single empty paragraph with no text at all
+  const isEmpty = doc.childCount === 1
+    && doc.firstChild?.isTextblock
+    && doc.firstChild?.content.size === 0;
+
+  if (isEmpty && editor.isEditable) {
+    dom.setAttribute('data-placeholder', PLACEHOLDER_TEXT);
+    dom.classList.add('is-editor-empty');
+  } else {
+    dom.removeAttribute('data-placeholder');
+    dom.classList.remove('is-editor-empty');
+  }
 }
 
 /** Auto Markdown Shortcuts on SPACE at line start */
@@ -146,6 +158,7 @@ export default function EditorRich({
     ],
     onCreate: ({ editor }) => {
       emitMeta(editor, onMetaChange);
+      updatePlaceholder(editor);
     },
     onUpdate: ({ editor }) => {
       // markdown out (persisted upstream)
@@ -154,6 +167,7 @@ export default function EditorRich({
 
       // live meta + counts from rendered text
       emitMeta(editor, onMetaChange);
+      updatePlaceholder(editor);
     },
   });
 
@@ -173,13 +187,21 @@ export default function EditorRich({
     }
   }, [value, editor, onMetaChange]);
 
+  // Click anywhere in the editor area to focus
+  const handleWrapperClick = useCallback((e) => {
+    if (!editor || !editor.isEditable) return;
+    // Don't steal focus from the editor itself
+    if (e.target.closest('.tiptap')) return;
+    editor.commands.focus('end');
+  }, [editor]);
+
   if (!editor) return null;
 
-  const showPlaceholder = editor.isEmpty && editor.isEditable;
-
   return (
-    <div className={cn("relative", className)}>
-      {showPlaceholder && <InlinePlaceholder />}
+    <div
+      className={cn("relative min-h-full cursor-text", className)}
+      onClick={handleWrapperClick}
+    >
       <EditorContent
         editor={editor}
         className="tiptap maia-editor outline-none min-h-full text-zinc-200 leading-relaxed w-full font-mono text-sm"

@@ -15,7 +15,7 @@ function preprocess(src) {
   const withWiki = withoutComments.replace(wikilinkRE, (_m, target, alias) => {
     const text = (alias || target).trim();
     const title = target.trim().replace(/"/g, "&quot;");
-    const safe = text.replace(/[&<>"]/g, s => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[s]));
+    const safe = text.replace(/[&<>"]/g, s => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[s]));
     return `<a href="#" data-internal-link="${title}">${safe}</a>`;
   });
 
@@ -56,11 +56,14 @@ export function makeMarkdown() {
     render(src) {
       const pre = preprocess(src);
       const rawHtml = md.render(pre);
-      const sanitized = DOMPurify.sanitize(rawHtml, {
-        ADD_ATTR: ["data-internal-link", "target", "id"], // Allow wikilinks, external links, and footnote IDs
+      // IMPORTANT: postprocess MUST run before sanitization.
+      // postprocess injects attributes (width/height on <img>, classes on callouts)
+      // so DOMPurify must sanitize the final result to strip anything malicious.
+      const processed = postprocess(rawHtml);
+      return DOMPurify.sanitize(processed, {
+        ADD_ATTR: ["data-internal-link", "target", "id", "width", "height", "class"], // Allow wikilinks, external links, footnote IDs, image dimensions, and callout classes
         ADD_TAGS: ["input"], // Allow checkbox inputs for task lists
       });
-      return postprocess(sanitized);
     }
   };
 }

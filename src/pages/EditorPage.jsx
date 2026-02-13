@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
@@ -16,6 +16,19 @@ export default function Editor({ note, updateNote }) {
     return "edit";
   });
   const [wide, setWide] = useState(() => localStorage.getItem(widthKey()) === "true");
+  const editorContainerRef = useRef(null);
+
+  // Click anywhere in the scrollable editor area → focus the TipTap editor
+  const handleContainerClick = useCallback((e) => {
+    // Only handle clicks directly on the container or its padding wrapper,
+    // not on the editor itself or other interactive elements.
+    const clickedEl = e.target;
+    if (clickedEl.closest('.tiptap') || clickedEl.closest('input') || clickedEl.closest('button')) return;
+    const pm = editorContainerRef.current?.querySelector('.ProseMirror');
+    if (pm && pm.getAttribute('contenteditable') === 'true') {
+      pm.focus();
+    }
+  }, []);
 
   const toggleWide = () => {
     setWide(prev => {
@@ -101,7 +114,11 @@ export default function Editor({ note, updateNote }) {
           </div>
 
           {/* Editor Container */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+          <div
+            ref={editorContainerRef}
+            className="flex-1 overflow-y-auto custom-scrollbar relative cursor-text"
+            onClick={handleContainerClick}
+          >
             <div className="min-h-full px-6 py-6 pb-32">
               <EditorRich
                 value={local.content || ""}
