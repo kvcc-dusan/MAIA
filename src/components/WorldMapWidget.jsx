@@ -18,16 +18,17 @@ export const MapVisual = React.memo(({ coords, topology }) => {
 
         // Europe Focus (Zoomed Out to 500)
         // Dynamically center on User Location (e.g. Maribor)
+        const validCoords = coords && typeof coords.lon === 'number' && typeof coords.lat === 'number';
         const projection = geoEquirectangular()
             .scale(500)
-            .center(coords ? [coords.lon, coords.lat] : [15, 48])
+            .center(validCoords ? [coords.lon, coords.lat] : [15, 48])
             .translate([width / 2, height / 2]);
 
         const pathGenerator = geoPath().projection(projection);
         const pathD = mapData ? pathGenerator(mapData) : "";
 
         let dotPos = null;
-        if (coords) {
+        if (validCoords) {
             const [x, y] = projection([coords.lon, coords.lat]);
             // Check bounds just in case, but fitSize should ensure it's generally in view
             if (x >= 0 && x <= width && y >= 0 && y <= height) {
@@ -88,10 +89,14 @@ export default function WorldMapWidget({ weather }) {
     // Lazy load map data
     const [topology, setTopology] = useState(null);
     useEffect(() => {
+        let mounted = true;
         // Dynamic import for bundle optimization
         import("world-atlas/land-110m.json?json")
-            .then((mod) => setTopology(mod.default || mod))
+            .then((mod) => {
+                if (mounted) setTopology(mod.default || mod);
+            })
             .catch((err) => console.error("Failed to load map topology:", err));
+        return () => { mounted = false; };
     }, []);
 
     // Real-time clock

@@ -84,13 +84,13 @@ describe('DataContext', () => {
             </DataProvider>
         );
 
-        // Initial counts (seed notes = 3, tasks = 0)
-        expect(screen.getByTestId('notes-count').textContent).toBe('3');
+        // Initial counts (notes = 0, tasks = 0)
+        expect(screen.getByTestId('notes-count').textContent).toBe('0');
         expect(screen.getByTestId('tasks-count').textContent).toBe('0');
 
         // Add Note
         await user.click(screen.getByText('Create Note'));
-        expect(screen.getByTestId('notes-count').textContent).toBe('4');
+        expect(screen.getByTestId('notes-count').textContent).toBe('1');
 
         // Add Task
         await user.click(screen.getByText('Add Task'));
@@ -115,6 +115,10 @@ describe('DataContext', () => {
         expect(projectAItem).toBeDefined();
         const projectId = projectAItem.textContent.split(':')[1];
         expect(projectId).toBeTruthy();
+
+        // 1b. Create a Note to link
+        await user.click(screen.getByText('Create Note'));
+        expect(screen.getByTestId('notes-count').textContent).toBe('1');
 
         // 2. Link Project A to the first note (N1)
         await user.click(screen.getByText('Link P1 to N1'));

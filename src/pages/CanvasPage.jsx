@@ -14,6 +14,7 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 
 function worldPointer(stage) {
   const p = stage.getPointerPosition();
+  if (!p) return { x: 0, y: 0 };
   const scale = stage.scaleX();
   return {
     x: (p.x - stage.x()) / scale,
@@ -30,7 +31,7 @@ function deepClone(v) {
 ------------------------------------------- */
 export default function CanvasBoard({ goHome }) {
   // layout
-  const [wrapRef, size] = useSize();
+  const [wrapRef, size, wrapEl] = useSize();
   const stageRef = useRef(null);
 
   // view (pan & zoom)
@@ -290,7 +291,7 @@ export default function CanvasBoard({ goHome }) {
      Drag/drop images
   ------------------------------------------- */
   useEffect(() => {
-    const el = wrapRef.current;
+    const el = wrapEl;
     if (!el) return;
     const onPrevent = (e) => {
       e.preventDefault();
@@ -328,7 +329,7 @@ export default function CanvasBoard({ goHome }) {
       ["dragenter", "dragover"].forEach((t) => el.removeEventListener(t, onPrevent));
       el.removeEventListener("drop", onDrop);
     };
-  }, [wrapRef, pushHistory]);
+  }, [wrapEl, pushHistory]);
 
   /* -------------------------------------------
      UI actions
@@ -563,10 +564,14 @@ export default function CanvasBoard({ goHome }) {
 function URLImage({ id, x, y, w, h, src, selected, draggable, onDragMove, onSelect }) {
   const [image, setImage] = useState(null);
   useEffect(() => {
+    let mounted = true;
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.src = src;
-    img.onload = () => setImage(img);
+    img.onload = () => {
+      if (mounted) setImage(img);
+    };
+    return () => { mounted = false; };
   }, [src]);
 
   return (

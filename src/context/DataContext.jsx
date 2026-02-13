@@ -81,7 +81,7 @@ export function DataProvider({ children }) {
 
     const moveNoteToProject = useCallback((id, name) => {
         setProjects(prevProjects => {
-            if (name && !prevProjects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+            if (name && !prevProjects.some((p) => p.name?.toLowerCase() === name.toLowerCase())) {
                 return [...prevProjects, { id: uid(), name: name.trim() }];
             }
             return prevProjects;

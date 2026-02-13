@@ -1,23 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useLayoutEffect, useCallback } from "react";
 
 /**
  * Custom hook to track the size of an element.
  * Uses ResizeObserver to update dimensions.
  *
- * @returns {[React.MutableRefObject, {w: number, h: number}]} - Ref to attach to the element, and its size.
+ * @returns {[Function, {w: number, h: number}, HTMLElement]} - Ref callback to attach to the element, its size, and the element itself.
  */
 export function useSize() {
-  const ref = useRef(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  const [element, setElement] = useState(null);
 
-  useEffect(() => {
-    const ro = new ResizeObserver(() => {
-      const el = ref.current;
-      if (el) setSize({ w: el.clientWidth, h: el.clientHeight });
-    });
-    if (ref.current) ro.observe(ref.current);
-    return () => ro.disconnect();
+  const ref = useCallback((node) => {
+    setElement(node);
   }, []);
 
-  return [ref, size];
+  useLayoutEffect(() => {
+    if (!element) return;
+    const ro = new ResizeObserver(() => {
+      setSize({ w: element.clientWidth, h: element.clientHeight });
+    });
+    ro.observe(element);
+    return () => ro.disconnect();
+  }, [element]);
+
+  return [ref, size, element];
 }
