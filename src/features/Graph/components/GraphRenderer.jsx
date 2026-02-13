@@ -5,10 +5,6 @@ import { dottedBg } from "../../../lib/theme.js";
 import { useGraphSimulation } from "../hooks/useGraphSimulation.js";
 
 // Theme Constants
-const COLORS = [
-    "#2dd4bf", "#f472b6", "#fbbf24", "#818cf8", "#34d399", "#a78bfa",
-];
-
 const THEME = {
     bg: "#000000",
     nodeFill: "#e4e4e7",
@@ -30,7 +26,7 @@ function GraphRenderer({
     fontSize,
     repelForce,
     linkDistance,
-    query = "", // Renamed from searchQuery
+    query = "",
     setHoveredNode,
     wrapperRef,
     svgRef,
@@ -38,19 +34,16 @@ function GraphRenderer({
     nodesRef,
     searchRef
 }) {
-    // Debug log
-    // console.log("GraphRenderer render", { nodes: nodes?.length, query });
-
     const gRef = useRef(null);
+    const initialZoomDone = useRef(false);
 
-    // Stable Refs for Callbacks to avoid effect re-runs (Performance Optimization)
+    // Stable Refs for Callbacks
     const onOpenNoteRef = useRef(onOpenNote);
     useEffect(() => { onOpenNoteRef.current = onOpenNote; }, [onOpenNote]);
 
     const setHoveredNodeRef = useRef(setHoveredNode);
     useEffect(() => { setHoveredNodeRef.current = setHoveredNode; }, [setHoveredNode]);
 
-    // Use the custom simulation hook (Refactor)
     const simulation = useGraphSimulation({
         nodes,
         links,
@@ -63,39 +56,50 @@ function GraphRenderer({
     useEffect(() => {
         if (!svgRef.current || !simulation) return;
 
-        // Measurements
         const width = dims.w;
         const height = dims.h;
-
-        // Clean old
         const svg = select(svgRef.current);
-        svg.selectAll("*").remove();
 
-        if (!nodes || nodes.length === 0) {
-            svg.append("text")
+        // Initialize layers only once
+        if (!gRef.current) {
+            const g = svg.append("g");
+            gRef.current = g;
+            g.append("g").attr("class", "links");
+            g.append("g").attr("class", "nodes");
+            g.append("g").attr("class", "labels");
+
+            // Initial "No nodes" text
+             svg.append("text")
+                .attr("class", "empty-state")
                 .attr("x", width / 2)
                 .attr("y", height / 2)
                 .attr("text-anchor", "middle")
                 .attr("fill", "#666")
                 .attr("font-family", "monospace")
-                .text("No nodes (0)");
-            return;
+                .style("pointer-events", "none");
         }
 
-        // Layers
-        const g = svg.append("g");
-        gRef.current = g;
+        const g = gRef.current;
 
-        const linkLayer = g.append("g").attr("class", "links");
-        const nodeLayer = g.append("g").attr("class", "nodes");
-        const labelLayer = g.append("g").attr("class", "labels");
+        // Empty state handling
+        if (!nodes || nodes.length === 0) {
+            svg.select(".empty-state").text("No nodes (0)").style("opacity", 1);
+            g.style("opacity", 0);
+            return;
+        } else {
+            svg.select(".empty-state").style("opacity", 0);
+            g.style("opacity", 1);
+        }
 
-        // Update ref for Zoom access
+        const linkLayer = g.select(".links");
+        const nodeLayer = g.select(".nodes");
+        const labelLayer = g.select(".labels");
+
         nodesRef.current = nodes;
 
-        // Elements
+        // JOIN pattern for efficient updates
         const link = linkLayer.selectAll("path")
-            .data(links)
+            .data(links, d => d.id) // Use key function for stability
             .join("path")
             .attr("fill", "none")
             .attr("stroke", THEME.link)
@@ -104,7 +108,7 @@ function GraphRenderer({
             .attr("class", "link-element");
 
         const node = nodeLayer.selectAll("circle")
-            .data(nodes)
+            .data(nodes, d => d.id)
             .join("circle")
             .attr("r", d => {
                 const base = d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3));
@@ -118,7 +122,7 @@ function GraphRenderer({
             .call(createDrag(simulation));
 
         const label = labelLayer.selectAll("text")
-            .data(nodes)
+            .data(nodes, d => d.id)
             .join("text")
             .text(d => d.title)
             .attr("font-size", d => (10 + d.val) * fontSize)
@@ -129,10 +133,9 @@ function GraphRenderer({
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element")
-            .style("font-family", "var(--font-mono)"); // Ensure mono font
+            .style("font-family", "var(--font-mono)");
 
-
-        // Interactions using Stable Refs
+        // Interactions
         node
             .on("click", (e, d) => {
                 const cb = onOpenNoteRef.current;
@@ -144,58 +147,56 @@ function GraphRenderer({
             })
             .on("mouseover", (e, d) => {
                 setHoveredNodeRef.current?.(d);
-
-                // Highlight connections
                 link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
                     .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
-                node
-                    .attr("opacity", n => {
-                        const isConnected = links.some(l =>
-                            (l.source.id === d.id && l.target.id === n.id) ||
-                            (l.target.id === d.id && l.source.id === n.id)
-                        );
-                        return (n.id === d.id || isConnected) ? 1 : 0.1;
-                    })
-                    .attr("fill", n => {
-                        if (n.id === d.id) return THEME.nodeActive;
-                        if (n.type === "project") return n.color;
-                        return THEME.nodeFill;
-                    });
+                node.attr("opacity", n => {
+                    const isConnected = links.some(l =>
+                        (l.source.id === d.id && l.target.id === n.id) ||
+                        (l.target.id === d.id && l.source.id === n.id)
+                    );
+                    return (n.id === d.id || isConnected) ? 1 : 0.1;
+                }).attr("fill", n => {
+                    if (n.id === d.id) return THEME.nodeActive;
+                    if (n.type === "project") return n.color;
+                    return THEME.nodeFill;
+                });
                 label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
             })
             .on("mouseout", () => {
                 setHoveredNodeRef.current?.(null);
-
-                const q = searchRef.current ? searchRef.current.toLowerCase().trim() : "";
-                const isSearchActive = q.length > 0;
-
-                if (isSearchActive) {
-                    node.attr("opacity", n => {
-                        const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
-                        return match ? 1 : 0.1;
-                    });
-                    node.attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                    link.attr("stroke", THEME.link).attr("stroke-opacity", 0.1);
-                    label.attr("opacity", n => {
-                        const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
-                        return match ? 1 : 0;
-                    });
-                } else {
-                    link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
-                    node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                    label.attr("opacity", 0.7);
-                }
+                updateSearchStyle(); // Restore search or default style
             });
 
-        // Simulation Tick Linkage
+        // Shared style update logic
+        const updateSearchStyle = () => {
+            const q = searchRef.current ? searchRef.current.toLowerCase().trim() : "";
+            const isSearchActive = q.length > 0;
+
+            if (isSearchActive) {
+                node.attr("opacity", n => {
+                    const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
+                    return match ? 1 : 0.1;
+                });
+                node.attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
+                link.attr("stroke", THEME.link).attr("stroke-opacity", 0.1);
+                label.attr("opacity", n => {
+                    const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
+                    return match ? 1 : 0;
+                });
+            } else {
+                link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
+                node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
+                label.attr("opacity", 0.7); // Reset to default opacity
+            }
+        };
+
+        // Run immediately to apply initial/search styles
+        updateSearchStyle();
+
+        // Simulation Tick
         simulation.on("tick", () => {
-            link.attr("d", d => {
-                const dx = d.target.x - d.source.x;
-                const dy = d.target.y - d.source.y;
-                // STRAIGHT LINES
-                return `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`;
-            });
+            link.attr("d", d => `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`);
             node.attr("cx", d => d.x).attr("cy", d => d.y);
             label.attr("x", d => d.x).attr("y", d => d.y);
         });
@@ -212,43 +213,37 @@ function GraphRenderer({
                         const match = (d.title || "").toLowerCase().includes(q) || (d.tags || []).some(t => t.toLowerCase().includes(q));
                         return match ? 1 : 0;
                     }
-
-                    // ZOOM VISIBILITY LOGIC
-                    // Keep text visible longer.
-                    // > 0.8: Full opacity
-                    // < 0.2: Fade out
-                    // Interpolate in between? Or just steps.
-                    // User request: "When I unzoom... text disappears... I want it valid until I'm fully unzoomed"
-
                     if (k > 0.8) return 1;
-                    if (k < 0.25) return 0; // Disappear when very far out
-                    if (d.val > 2) return 1; // Projects/Large nodes always visible until very far
-                    return 0.7; // Intermediate visibility
+                    if (k < 0.25) return 0;
+                    if (d.val > 2) return 1;
+                    return 0.7;
                 });
             });
 
         zoomRef.current = zoomBehavior;
         svg.call(zoomBehavior);
 
-        setTimeout(() => {
-            svg.transition().duration(750).call(
-                zoomBehavior.transform,
-                zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
-            );
-        }, 500);
+        // Initial Zoom only once
+        if (!initialZoomDone.current) {
+            setTimeout(() => {
+                svg.transition().duration(750).call(
+                    zoomBehavior.transform,
+                    zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2)
+                );
+            }, 500);
+            initialZoomDone.current = true;
+        }
 
         return () => {
-            // Detach listener
             simulation.on("tick", null);
         };
-    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef]); // Re-run only on structure change
+    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef]);
 
     // --- VISUAL UPDATES (No Re-render) ---
     useEffect(() => {
         if (!svgRef.current) return;
         const svg = select(svgRef.current);
 
-        // Update Node Size
         svg.selectAll(".node-element")
             .transition().duration(300)
             .attr("r", d => {
@@ -256,12 +251,10 @@ function GraphRenderer({
                 return base * nodeSize;
             });
 
-        // Update Link Thickness
         svg.selectAll(".link-element")
             .transition().duration(300)
             .attr("stroke-width", linkThickness);
 
-        // Update Font Size
         svg.selectAll(".label-element")
             .transition().duration(300)
             .attr("font-size", d => (10 + d.val) * fontSize);
@@ -275,7 +268,7 @@ function GraphRenderer({
         const node = svg.selectAll(".node-element");
         const label = svg.selectAll(".label-element");
         const link = svg.selectAll(".link-element");
-        const qStr = (query || "").toLowerCase().trim(); // Safe check
+        const qStr = (query || "").toLowerCase().trim();
 
         if (qStr) {
             node.style("opacity", d => {
