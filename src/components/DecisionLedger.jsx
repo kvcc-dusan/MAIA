@@ -26,7 +26,7 @@ function NewDecisionModal({ onClose, onSubmit }) {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm grid place-items-center z-[100] p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-lg">
                 <GlassCard variant="dark" className="p-6 relative">
-                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white">✕</button>
+                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white" aria-label="Close">✕</button>
 
                     <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2 tracking-tight">
                         <ProjectIcon name="flag" size={20} className="text-blue-500" />
@@ -124,7 +124,7 @@ function ReviewModal({ decision, onClose, onReview }) {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm grid place-items-center z-[100] p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-lg">
                 <GlassCard variant="dark" className="p-6 relative">
-                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white">✕</button>
+                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white" aria-label="Close">✕</button>
 
                     <h2 className="text-lg font-bold text-white mb-6">Review Outcome</h2>
 

@@ -130,7 +130,7 @@ export function IconPicker({ currentIcon, onSelect, onClose }) {
                 <div className="bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl p-5 space-y-5">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Select Icon</h3>
-                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                        <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors" aria-label="Close">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
@@ -141,6 +141,7 @@ export function IconPicker({ currentIcon, onSelect, onClose }) {
                             return (
                                 <button
                                     key={iconName}
+                                    aria-label={iconName}
                                     onClick={() => {
                                         onSelect(iconName);
                                         onClose();

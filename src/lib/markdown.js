@@ -56,11 +56,11 @@ export function makeMarkdown() {
     render(src) {
       const pre = preprocess(src);
       const rawHtml = md.render(pre);
-      const sanitized = DOMPurify.sanitize(rawHtml, {
-        ADD_ATTR: ["data-internal-link", "target", "id"], // Allow wikilinks, external links, and footnote IDs
+      const processed = postprocess(rawHtml);
+      return DOMPurify.sanitize(processed, {
+        ADD_ATTR: ["data-internal-link", "target", "id", "class", "width", "height"], // Allow wikilinks, external links, footnote IDs, and layout attributes
         ADD_TAGS: ["input"], // Allow checkbox inputs for task lists
       });
-      return postprocess(sanitized);
     }
   };
 }

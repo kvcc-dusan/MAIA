@@ -62,4 +62,13 @@ describe('Markdown Sanitization', () => {
       expect(output).toContain('width="100"');
       expect(output).toContain('height="200"');
   });
+
+  it('sanitizes post-process injection attempts', () => {
+      // This attempts to bypass sanitization by injecting attributes via the postprocess step
+      // If postprocess runs after sanitization, "onerror" will be injected and remain.
+      // If postprocess runs before sanitization, "onerror" will be injected but then stripped by DOMPurify.
+      const input = '![alt](x){onerror=alert(1)}';
+      const output = md.render(input);
+      expect(output).not.toContain('onerror');
+  });
 });
