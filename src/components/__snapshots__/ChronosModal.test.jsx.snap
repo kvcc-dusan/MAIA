@@ -82,11 +82,84 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
             <div
               class="space-y-2"
             >
-              <div
-                class="py-8 text-center text-sm text-zinc-600 italic"
+              <span
+                class="block"
+                data-state="closed"
               >
-                No tasks for this day.
-              </div>
+                <div
+                  aria-controls="radix-«r0»"
+                  aria-expanded="false"
+                  aria-haspopup="dialog"
+                  class="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer"
+                  data-state="closed"
+                  type="button"
+                >
+                  <button
+                    aria-label="Mark as done"
+                    class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative group bg-transparent hover:bg-white/5"
+                  >
+                    <span
+                      class="absolute w-2 h-2 rounded-full transition-all duration-300 opacity-100 scale-100"
+                      style="background-color: rgb(59, 130, 246); box-shadow: 0 0 6px #3b82f640;"
+                    />
+                    <svg
+                      class="transition-all duration-300 relative z-10 opacity-0 scale-50"
+                      fill="none"
+                      height="10"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="4"
+                      viewBox="0 0 24 24"
+                      width="10"
+                    >
+                      <polyline
+                        points="20 6 9 17 4 12"
+                      />
+                    </svg>
+                    <span
+                      class="absolute inset-0 rounded-full border border-white/0 group-hover:border-white/20 transition-colors"
+                    />
+                  </button>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <div
+                      class="text-sm font-medium transition-colors truncate text-zinc-200"
+                    >
+                      Task 1
+                    </div>
+                  </div>
+                  <button
+                    aria-label="Delete Task"
+                    class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 opacity-0 group-hover:opacity-100"
+                  >
+                    <svg
+                      fill="none"
+                      height="14"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="14"
+                    >
+                      <line
+                        x1="18"
+                        x2="6"
+                        y1="6"
+                        y2="18"
+                      />
+                      <line
+                        x1="6"
+                        x2="18"
+                        y1="6"
+                        y2="18"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </span>
             </div>
           </div>
           <div
@@ -115,7 +188,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 data-state="closed"
               >
                 <div
-                  aria-controls="radix-«r0»"
+                  aria-controls="radix-«r1»"
                   aria-expanded="false"
                   aria-haspopup="dialog"
                   class="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer"
@@ -141,7 +214,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                     <div
                       class="text-[10px] text-zinc-500 font-mono"
                     >
-                      02:00 PM
+                      01:00 PM
                     </div>
                   </div>
                   <button
@@ -971,7 +1044,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   12:00 PM
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
                 />
               </div>
               <div
@@ -981,7 +1054,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
                 />
                 <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
                 />
               </div>
               <div

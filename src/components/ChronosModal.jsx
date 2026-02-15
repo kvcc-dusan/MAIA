@@ -8,7 +8,7 @@ import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, CheckSquare, Folder } from "lucide-react";
+import { Plus, X, Folder } from "lucide-react";
 
 // --- CONSTANTS ---
 const NEON_BLUE = '#3b82f6';

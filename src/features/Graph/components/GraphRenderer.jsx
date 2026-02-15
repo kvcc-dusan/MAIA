@@ -39,7 +39,6 @@ function GraphRenderer({
     searchRef
 }) {
     // Debug log
-    // console.log("GraphRenderer render", { nodes: nodes?.length, query });
 
     const gRef = useRef(null);
 
