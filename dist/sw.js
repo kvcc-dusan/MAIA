@@ -1,9 +1,1 @@
-self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(self.clients.matchAll({ type: "window" }).then(clients => {
-    const client = clients[0];
-    if (client) client.focus();
-  }));
-});
+if(!self.define){let e,s={};const i=(i,n)=>(i=new URL(i+".js",n).href,s[i]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=s,document.head.appendChild(e)}else e=i,importScripts(i),s()}).then(()=>{let e=s[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e}));self.define=(n,r)=>{const l=e||("document"in self?document.currentScript.src:"")||location.href;if(s[l])return;let o={};const t=e=>i(e,l),d={module:{uri:l},exports:o,require:t};s[l]=Promise.all(n.map(e=>d[e]||t(e))).then(e=>(r(...e),o))}}define(["./workbox-8c29f6e4"],function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"registerSW.js",revision:"68b5037d0b028e376acd21065657a33a"},{url:"index.html",revision:"2896339a8f7480c5dc0ace9b68e59a3b"},{url:"assets/land-110m-BmLvwWb6.js",revision:null},{url:"assets/index-DeiV62mu.css",revision:null},{url:"assets/index-Cf2U_GS2.js",revision:null},{url:"assets/GraphPage-C-pipTTs.js",revision:null},{url:"assets/CanvasPage-CiiJgj7m.js",revision:null},{url:"maia-logo.png",revision:"6a632136e61157dd75d1917e0ec52fa2"},{url:"pwa-192x192.png",revision:"1bb7c37b28ed91502bf87eb5edbfd3cd"},{url:"pwa-512x512.png",revision:"1bb7c37b28ed91502bf87eb5edbfd3cd"},{url:"manifest.webmanifest",revision:"c38525abd337a45cb401fb6e5eacf1ea"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html")))});
