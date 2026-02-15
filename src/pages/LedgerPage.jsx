@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { cn } from "@/lib/utils";
-import { Plus, ListFilter, Settings, Trash2, Scale } from "lucide-react";
+import { Plus, ListFilter, Settings, Trash2, Scale, Pin, PenLine, Circle, MousePointer2 } from "lucide-react";
+import { JudgmentOverview } from "@/features/Ledger/components/JudgmentOverview";
 
 /* ──────────────────────────────────────────────────────────
    LedgerPage  –  Polished & Unified Design
@@ -241,7 +242,7 @@ function ReviewModal({ decision, onClose, onReview }) {
 
 // ─── Decision Card ───
 
-function DecisionCard({ d, onReview }) {
+function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContextMenu, isPinned }) {
     const dateObj = new Date(d.createdAt);
     const now = new Date();
     const isToday = dateObj.getDate() === now.getDate() && dateObj.getMonth() === now.getMonth() && dateObj.getFullYear() === now.getFullYear();
@@ -258,12 +259,30 @@ function DecisionCard({ d, onReview }) {
     };
 
     return (
-        <div className={cn(
-            "group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-default overflow-hidden font-mono",
-            isReviewed
-                ? "h-auto min-h-[220px] bg-black border-white/10 opacity-70 hover:opacity-100"
-                : "h-auto min-h-[220px] bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
-        )}>
+        <div
+            onClick={(e) => {
+                if (selectMode) {
+                    onToggle(d.id);
+                    e.stopPropagation();
+                }
+            }}
+            onContextMenu={(e) => {
+                onContextMenu(e, d.id);
+            }}
+            className={cn(
+                "group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-default overflow-hidden font-mono",
+                isSelected
+                    ? "bg-zinc-900 border-white/50" // Selected state: distinct focus
+                    : isReviewed
+                        ? "h-auto min-h-[220px] bg-black border-white/10 opacity-70 hover:opacity-100" // Low focus for reviewed
+                        : "h-auto min-h-[220px] bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl" // Interactivity for open
+            )}
+        >
+            {/* Pinned Indicator (White Dot) */}
+            {isPinned && (
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-white z-20" />
+            )}
+
             {/* Header */}
             <div className="z-10 mb-4">
                 <div className="flex justify-between items-start mb-3 gap-4">
@@ -294,7 +313,10 @@ function DecisionCard({ d, onReview }) {
             </div>
 
             {/* Assumptions */}
-            <div className="flex-1 relative overflow-hidden z-10 mb-4">
+            <div
+                className="flex-1 relative overflow-hidden z-10 mb-4"
+                style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
+            >
                 {assumptions.length > 0 ? (
                     <div className="space-y-1.5 pl-3 border-l-2 border-white/5 group-hover:border-white/10 transition-colors">
                         {assumptions.slice(0, 3).map((a, i) => (
@@ -332,9 +354,16 @@ function DecisionCard({ d, onReview }) {
                             {d.outcomeStatus}
                         </span>
                     ) : (
+                        /* Review Button (Text only, fixed height to prevent layout shift) */
                         <button
-                            onClick={(e) => { e.stopPropagation(); onReview?.(d.id); }}
-                            className="opacity-0 group-hover:opacity-100 transition-all text-[9px] font-bold uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!selectMode) onReview?.(d.id);
+                            }}
+                            className={cn(
+                                "text-[9px] font-bold uppercase tracking-wider px-2 py-1 text-zinc-500 hover:text-white transition-colors",
+                                selectMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"
+                            )}
                         >
                             Review
                         </button>
@@ -352,6 +381,14 @@ export default function LedgerPage({ ledger = [], setLedger }) {
     const [reviewingId, setReviewingId] = useState(null);
     const [sort, setSort] = useState("recent");
     const [showSettings, setShowSettings] = useState(false);
+
+    // Multi-select & Context Menu State
+    const [selectMode, setSelectMode] = useState(false);
+    const [selected, setSelected] = useState(new Set());
+    const [pinned, setPinned] = useState(new Set()); // Persist this ideally, simplified for now
+    const [menu, setMenu] = useState({ open: false, x: 0, y: 0, id: null });
+    const menuRef = useRef(null);
+    const settingsRef = useRef(null);
 
     const addDecision = useCallback((data) => {
         const newDecision = {
@@ -373,6 +410,131 @@ export default function LedgerPage({ ledger = [], setLedger }) {
         setReviewingId(null);
     }, [setLedger, reviewingId]);
 
+    const onDelete = useCallback((id) => {
+        setLedger(prev => prev.filter(d => d.id !== id));
+    }, [setLedger]);
+
+    const onRename = useCallback((id, newTitle) => {
+        setLedger(prev => prev.map(d => d.id === id ? { ...d, title: newTitle } : d));
+    }, [setLedger]);
+
+    const toggleSelected = useCallback((id) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            if (next.size === 0) setSelectMode(false);
+            return next;
+        });
+    }, []);
+
+    const exitSelectMode = useCallback(() => {
+        setSelectMode(false);
+        setSelected(new Set());
+    }, []);
+
+    const handleContextMenu = useCallback((e, id) => {
+        e.preventDefault();
+        setMenu({
+            open: true,
+            x: e.clientX,
+            y: e.clientY,
+            id
+        });
+    }, []);
+
+    // SEED DATA (Temporary)
+    const seedData = () => {
+        const stakes = ['low', 'medium', 'high'];
+        const reversibilities = ['reversible', 'costly', 'irreversible'];
+        const outcomeStatuses = ['success', 'mixed', 'failure'];
+
+        const newDecisions = Array.from({ length: 50 }).map((_, i) => {
+            const isReviewed = Math.random() > 0.3;
+            const date = new Date();
+            date.setDate(date.getDate() - Math.floor(Math.random() * 90)); // Last 90 days
+
+            // Correlate confidence with success slightly for realism
+            let confidence = Math.floor(Math.random() * 10) * 10 + 10; // 10-100
+            let outcomeStatus = 'mixed';
+
+            if (isReviewed) {
+                const roll = Math.random();
+                // Higher confidence = higher chance of success (but not guaranteed)
+                const successChance = confidence / 150 + 0.2;
+                if (roll < successChance) outcomeStatus = 'success';
+                else if (roll < successChance + 0.3) outcomeStatus = 'mixed';
+                else outcomeStatus = 'failure';
+            }
+
+            return {
+                id: uid(),
+                createdAt: date.toISOString(),
+                title: `Decision #${i + 1} - ${Math.random().toString(36).substring(7)}`,
+                stakes: stakes[Math.floor(Math.random() * stakes.length)],
+                reversibility: reversibilities[Math.floor(Math.random() * reversibilities.length)],
+                confidence,
+                assumptions: ["Assumption 1", "Assumption 2"],
+                status: isReviewed ? 'reviewed' : 'open',
+                reviewedAt: isReviewed ? new Date().toISOString() : null,
+                outcome: isReviewed ? "This was the outcome..." : null,
+                outcomeStatus: isReviewed ? outcomeStatus : null
+            };
+        });
+
+        if (window.confirm("Replace current ledger with 50 random decisions?")) {
+            setLedger(newDecisions);
+        }
+    };
+
+    // Close menu/settings on click outside
+    useEffect(() => {
+        const handleClick = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setMenu(m => ({ ...m, open: false }));
+            }
+            if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+                setShowSettings(false);
+            }
+        };
+        window.addEventListener("click", handleClick);
+        return () => window.removeEventListener("click", handleClick);
+    }, []);
+
+    // Escape listener
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") exitSelectMode();
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [exitSelectMode]);
+
+    // Bulk Actions
+    const bulkDelete = () => {
+        if (window.confirm(`Delete ${selected.size} decisions?`)) {
+            setLedger(prev => prev.filter(d => !selected.has(d.id)));
+            exitSelectMode();
+        }
+    };
+
+    const bulkPin = () => {
+        setPinned(prev => {
+            const next = new Set(prev);
+            selected.forEach(id => next.add(id));
+            return next;
+        });
+        exitSelectMode();
+    };
+
+    const bulkUnpin = () => {
+        setPinned(prev => {
+            const next = new Set(prev);
+            selected.forEach(id => next.delete(id));
+            return next;
+        });
+        exitSelectMode();
+    };
+
     const deleteAll = useCallback(() => {
         if (window.confirm(`Delete all ${ledger.length} decisions?`)) {
             setLedger([]);
@@ -381,20 +543,40 @@ export default function LedgerPage({ ledger = [], setLedger }) {
 
     const openDecisions = useMemo(() => {
         let arr = ledger.filter(d => d.status === "open");
-        if (sort === "az") arr.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-        else arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Sort by pinned first, then by sort criteria
+        arr.sort((a, b) => {
+            const aPinned = pinned.has(a.id) ? 1 : 0;
+            const bPinned = pinned.has(b.id) ? 1 : 0;
+            if (aPinned !== bPinned) return bPinned - aPinned;
+
+            if (sort === "az") return (a.title || "").localeCompare(b.title || "");
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
         return arr;
-    }, [ledger, sort]);
+    }, [ledger, sort, pinned]);
 
     const reviewedDecisions = useMemo(() => {
         let arr = ledger.filter(d => d.status === "reviewed");
-        if (sort === "az") arr.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-        else arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Sort by pinned first
+        arr.sort((a, b) => {
+            const aPinned = pinned.has(a.id) ? 1 : 0;
+            const bPinned = pinned.has(b.id) ? 1 : 0;
+            if (aPinned !== bPinned) return bPinned - aPinned;
+
+            if (sort === "az") return (a.title || "").localeCompare(b.title || "");
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
         return arr;
-    }, [ledger, sort]);
+    }, [ledger, sort, pinned]);
 
     return (
-        <div className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar">
+        <div
+            className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar"
+            onClick={(e) => {
+                // Exit selection on any background click (even if bubbling)
+                if (selectMode) exitSelectMode();
+            }}
+        >
             <div className="w-full px-6 md:px-8 py-8 flex flex-col gap-8">
 
                 {/* Header (Aligned with Codex) */}
@@ -423,7 +605,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             <ListFilter size={14} />
                         </button>
 
-                        <div className="relative">
+                        <div ref={settingsRef} className="relative">
                             <button
                                 onClick={() => setShowSettings(!showSettings)}
                                 className={cn(
@@ -447,6 +629,13 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                             <span className="text-xs font-mono">Delete All</span>
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => { seedData(); setShowSettings(false); }}
+                                        className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center gap-3 text-zinc-400 hover:text-white transition-colors border-t border-white/5"
+                                    >
+                                        <Scale size={14} />
+                                        <span className="text-xs font-mono">Seed Data</span>
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -454,11 +643,20 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 </div>
             </div>
 
+            {/* Stats Overview */}
+            <div className="px-6 md:px-8">
+                <JudgmentOverview ledger={ledger} />
+            </div>
+
             {/* Grid */}
             <div className="flex-1 min-h-0 px-6 md:px-8">
-                {/* Removed "Open Loops" label to reduce clutter as requested */}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-12">
+                {/* 4 Cards per row on Large screens, 6 on 2XL */}
+                <div
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-12"
+                    onClick={(e) => {
+                        if (selectMode) exitSelectMode(); // redundant but safe
+                    }}
+                >
                     {/* Empty State */}
                     {ledger.length === 0 && (
                         <div className="col-span-full py-24 flex flex-col items-center justify-center text-zinc-600 opacity-50 select-none">
@@ -469,12 +667,29 @@ export default function LedgerPage({ ledger = [], setLedger }) {
 
                     {/* Open Decisions first */}
                     {openDecisions.map(d => (
-                        <DecisionCard key={d.id} d={d} onReview={setReviewingId} />
+                        <DecisionCard
+                            key={d.id}
+                            d={d}
+                            onReview={setReviewingId}
+                            isSelected={selected.has(d.id)}
+                            selectMode={selectMode}
+                            onToggle={toggleSelected}
+                            onContextMenu={handleContextMenu}
+                            isPinned={pinned.has(d.id)}
+                        />
                     ))}
 
                     {/* Reviewed Decisions second (with opacity) */}
                     {reviewedDecisions.map(d => (
-                        <DecisionCard key={d.id} d={d} />
+                        <DecisionCard
+                            key={d.id}
+                            d={d}
+                            isSelected={selected.has(d.id)}
+                            selectMode={selectMode}
+                            onToggle={toggleSelected}
+                            onContextMenu={handleContextMenu}
+                            isPinned={pinned.has(d.id)}
+                        />
                     ))}
                 </div>
 
@@ -488,6 +703,97 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     onClose={() => setReviewingId(null)}
                     onReview={completeReview}
                 />
+            )}
+
+            {/* Context Menu */}
+            {menu.open && (
+                <div
+                    ref={menuRef}
+                    className="fixed z-[100] w-48 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                    style={{ top: menu.y, left: menu.x }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {selectMode ? (
+                        <>
+                            <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-zinc-500 font-bold border-b border-white/5 mb-1">
+                                {selected.size} Selected
+                            </div>
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                onClick={() => { bulkPin(); setMenu({ ...menu, open: false }); }}
+                            >
+                                <Pin size={14} />
+                                Pin All
+                            </button>
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                onClick={() => { bulkUnpin(); setMenu({ ...menu, open: false }); }}
+                            >
+                                <Pin size={14} className="opacity-50" />
+                                Unpin All
+                            </button>
+                            <div className="h-px bg-white/10 my-1" />
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                                onClick={() => { bulkDelete(); setMenu({ ...menu, open: false }); }}
+                            >
+                                <Trash2 size={14} />
+                                Delete All
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                onClick={() => {
+                                    setPinned(prev => {
+                                        const next = new Set(prev);
+                                        if (next.has(menu.id)) next.delete(menu.id); else next.add(menu.id);
+                                        return next;
+                                    });
+                                    setMenu({ ...menu, open: false });
+                                }}
+                            >
+                                <Pin size={14} />
+                                {pinned.has(menu.id) ? "Unpin Decision" : "Pin Decision"}
+                            </button>
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                onClick={() => {
+                                    const d = ledger.find(d => d.id === menu.id);
+                                    const newTitle = window.prompt("Rename decision", d?.title || "");
+                                    if (newTitle) onRename(menu.id, newTitle.trim());
+                                    setMenu({ ...menu, open: false });
+                                }}
+                            >
+                                <PenLine size={14} />
+                                Rename
+                            </button>
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                                onClick={() => {
+                                    setSelectMode(true);
+                                    setSelected(new Set([menu.id]));
+                                    setMenu({ ...menu, open: false });
+                                }}
+                            >
+                                <Circle size={14} />
+                                Select
+                            </button>
+                            <div className="h-px bg-white/10 my-1" />
+                            <button
+                                className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                                onClick={() => {
+                                    if (window.confirm("Delete this decision?")) onDelete(menu.id);
+                                    setMenu({ ...menu, open: false });
+                                }}
+                            >
+                                <Trash2 size={14} />
+                                Delete
+                            </button>
+                        </>
+                    )}
+                </div>
             )}
         </div>
     );

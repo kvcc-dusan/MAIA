@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProjectIcon from "../components/ProjectIcon";
 import { useData } from "../context/DataContext";
-import { Plus, Settings, Trash2, Sparkles, ListFilter } from "lucide-react";
+import { Plus, Settings, Trash2, Sparkles, ListFilter, Pin } from "lucide-react";
 
 /**
  * NotesOverview (Codex)
@@ -36,6 +36,27 @@ export default function NotesOverview({
   // settings menu
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
+
+  // multi-select mode
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+
+  const toggleSelected = useCallback((id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      // Auto-exit selection mode if nothing is selected
+      if (next.size === 0) {
+        setSelectMode(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelected(new Set());
+  }, []);
 
   // close settings on click outside
   useEffect(() => {
@@ -87,6 +108,11 @@ export default function NotesOverview({
     };
     const onEsc = (e) => {
       if (e.key === "Escape") {
+        if (selectMode) {
+          e.preventDefault();
+          exitSelectMode();
+          return;
+        }
         if (showFilter) {
           setShowFilter(false);
           setFilter("");
@@ -107,7 +133,7 @@ export default function NotesOverview({
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onEsc);
     };
-  }, [showFilter]);
+  }, [showFilter, selectMode, exitSelectMode]);
 
   // filter parsing
   const parsedFilter = useMemo(() => {
@@ -188,8 +214,45 @@ export default function NotesOverview({
     setShowDeleteConfirm(false);
   };
 
+  // Bulk actions for multi-select
+  const bulkDelete = () => {
+    if (selected.size === 0) return;
+    if (window.confirm(`Delete ${selected.size} note${selected.size > 1 ? 's' : ''}?`)) {
+      selected.forEach(id => onDelete(id));
+      exitSelectMode();
+    }
+  };
+
+  const bulkPin = () => {
+    if (selected.size === 0) return;
+    setPinnedArr(prev => {
+      const next = [...prev];
+      selected.forEach(id => {
+        if (!next.includes(id) && next.length < PIN_LIMIT) {
+          next.push(id);
+        }
+      });
+      return next;
+    });
+    exitSelectMode();
+  };
+
+  const bulkUnpin = () => {
+    if (selected.size === 0) return;
+    setPinnedArr(prev => prev.filter(id => !selected.has(id)));
+    exitSelectMode();
+  };
+
   return (
-    <div className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar">
+    <div
+      className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar"
+      onClick={(e) => {
+        // Exit selection mode when clicking empty space (not on a card)
+        if (selectMode && e.target === e.currentTarget) {
+          exitSelectMode();
+        }
+      }}
+    >
 
       <div className="w-full px-6 md:px-8 py-8 flex flex-col gap-8">
 
@@ -212,9 +275,6 @@ export default function NotesOverview({
               <Plus size={14} strokeWidth={3} />
               <span className="text-xs font-bold uppercase tracking-wide">New</span>
             </button>
-
-
-
 
             <button
               onClick={() => setSort(s => s === 'recent' ? 'az' : 'recent')}
@@ -271,8 +331,18 @@ export default function NotesOverview({
       </div>
 
       {/* Grid Container */}
-      <div className="flex-1 min-h-0">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 pb-24">
+      <div
+        className="flex-1 min-h-0 px-6 md:px-8"
+        onClick={(e) => {
+          if (selectMode && e.target === e.currentTarget) exitSelectMode();
+        }}
+      >
+        <div
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 pb-24"
+          onClick={(e) => {
+            if (selectMode && e.target === e.currentTarget) exitSelectMode();
+          }}
+        >
 
           {viewNotes.map(n => {
             // Smart Date Logic
@@ -290,42 +360,48 @@ export default function NotesOverview({
             const previewText = hasContent ? n.content : "No additional text...";
             const isShort = !hasContent;
 
+            const isSelected = selectMode && selected.has(n.id);
+
             return (
               <div
                 key={n.id}
-                onClick={() => selectNote?.(n.id)}
+                onClick={() => {
+                  if (selectMode) {
+                    toggleSelected(n.id);
+                  } else {
+                    selectNote?.(n.id);
+                  }
+                }}
                 onContextMenu={e => openMenu(e, n.id)}
                 className={`
                     group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
                     ${isShort ? "h-40" : "h-64"}
-                    ${isPinned(n.id)
-                    ? "bg-[#121214] border-emerald-500/20 shadow-[0_0_30px_-10px_rgba(16,185,129,0.1)]"
+                    ${isSelected
+                    ? "bg-white/5 border-white/40 ring-1 ring-white/20"
                     : "bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
                   }
                   `}
               >
+                {/* Pinned indicator — white dot top-right */}
+                {isPinned(n.id) && (
+                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-white z-20" />
+                )}
+
                 {/* Header: Title (Consistent top spacing, no divider) */}
                 <div className="z-10 mb-5">
-                  <h3 className={`text-lg font-bold font-sans leading-tight line-clamp-2 ${isPinned(n.id) ? "text-white" : "text-zinc-200 group-hover:text-white transition-colors"}`}>
+                  <h3 className={`text-lg font-bold font-sans leading-tight line-clamp-2 text-zinc-200 group-hover:text-white transition-colors`}>
                     {n.title || "Untitled Note"}
                   </h3>
                 </div>
 
                 {/* Body: Preview (Taller) */}
-                <div className="flex-1 relative overflow-hidden z-10 mb-2">
+                <div
+                  className="flex-1 relative overflow-hidden z-10 mb-2"
+                  style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
+                >
                   <p className={`text-[10px] font-mono text-zinc-500 leading-relaxed opacity-80 ${isShort ? "line-clamp-4" : "line-clamp-[8]"}`}>
                     {previewText}
                   </p>
-
-                  {/* Fade out mask - Layer 1 (Default: Black or Pinned Color) - Always visible */}
-                  <div className={`absolute bottom-0 left-0 w-full h-8 pointer-events-none bg-gradient-to-t to-transparent
-                        ${isPinned(n.id) ? "from-[#121214] via-[#121214]/80" : "from-black via-black/80"}
-                    `} />
-
-                  {/* Fade out mask - Layer 2 (Hover Gray) - Only for unpinned */}
-                  {!isPinned(n.id) && (
-                    <div className="absolute bottom-0 left-0 w-full h-8 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-transparent" />
-                  )}
                 </div>
 
                 {/* Footer: Date & Project Pill & Menu */}
@@ -348,8 +424,6 @@ export default function NotesOverview({
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {isPinned(n.id) && <ProjectIcon name="star" size={10} className="text-emerald-500" />}
-
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -392,45 +466,108 @@ export default function NotesOverview({
             onContextMenu={(e) => e.preventDefault()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                togglePin(menu.id);
-                setMenu(m => ({ ...m, open: false }));
-              }}
-            >
-              <ProjectIcon name={isPinned(menu.id) ? "trash" : "star"} size={14} />
-              <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
-            </button>
+            {selectMode ? (
+              /* Selection mode context menu */
+              <>
+                <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                  {selected.size} selected
+                </div>
 
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                const curr = notes.find(x => x.id === menu.id);
-                const title = window.prompt("Rename note", curr?.title || "");
-                if (title != null) onRename(menu.id, title.trim());
-                setMenu(m => ({ ...m, open: false }));
-              }}
-            >
-              <ProjectIcon name="quill" size={14} />
-              Rename
-            </button>
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    bulkPin();
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <Pin size={14} />
+                  Pin All
+                </button>
 
-            <div className="h-px bg-white/10 my-1" />
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    bulkUnpin();
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <Pin size={14} className="opacity-50" />
+                  Unpin All
+                </button>
 
-            <button
-              className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                if (window.confirm("Delete this note?")) onDelete(menu.id);
-                setMenu(m => ({ ...m, open: false }));
-              }}
-            >
-              <ProjectIcon name="trash" size={14} />
-              Delete
-            </button>
+                <div className="h-px bg-white/10 my-1" />
+
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    bulkDelete();
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <Trash2 size={14} />
+                  Delete All
+                </button>
+              </>
+            ) : (
+              /* Normal context menu */
+              <>
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    togglePin(menu.id);
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <Pin size={14} />
+                  <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
+                </button>
+
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const curr = notes.find(x => x.id === menu.id);
+                    const title = window.prompt("Rename note", curr?.title || "");
+                    if (title != null) onRename(menu.id, title.trim());
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <ProjectIcon name="quill" size={14} />
+                  Rename
+                </button>
+
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSelectMode(true);
+                    setSelected(new Set([menu.id]));
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <ProjectIcon name="circle" size={14} />
+                  Select
+                </button>
+
+                <div className="h-px bg-white/10 my-1" />
+
+                <button
+                  className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (window.confirm("Delete this note?")) onDelete(menu.id);
+                    setMenu(m => ({ ...m, open: false }));
+                  }}
+                >
+                  <ProjectIcon name="trash" size={14} />
+                  Delete
+                </button>
+              </>
+            )}
           </div>
         )
       }

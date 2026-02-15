@@ -18,7 +18,7 @@ export default function FocusTaskItem({ task }) {
   const dotColor = getPriorityColor(task.priority || 'p3');
 
   return (
-    <li className="flex items-center gap-2 text-sm text-card-foreground font-medium">
+    <li className="flex items-center gap-2 text-sm text-card-foreground font-mono font-medium">
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{

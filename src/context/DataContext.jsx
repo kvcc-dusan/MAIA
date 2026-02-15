@@ -46,7 +46,7 @@ export function DataProvider({ children }) {
     // --- Actions ---
 
     // Notes
-    const createNote = useCallback(() => {
+    const createNote = useCallback((overrides = {}) => {
         const n = {
             id: uid(),
             title: "Untitled",
@@ -56,6 +56,7 @@ export function DataProvider({ children }) {
             createdAt: isoNow(),
             project: null,
             projectIds: [],
+            ...overrides,
         };
         setNotes((prev) => [n, ...prev]);
         return n.id;

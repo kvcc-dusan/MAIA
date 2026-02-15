@@ -124,7 +124,13 @@ export default function Editor({ note, updateNote }) {
                 value={local.content || ""}
                 editable={editable}
                 onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
-                onMetaChange={(meta) => setLocal((v) => ({ ...v, ...meta }))}
+                onMetaChange={(meta) => setLocal((v) => {
+                  // Merge content-derived tags with existing tags (preserves programmatic tags like "journal")
+                  const merged = meta.tags
+                    ? [...new Set([...(v.tags || []), ...meta.tags])]
+                    : v.tags;
+                  return { ...v, ...meta, tags: merged };
+                })}
                 className="maia-editor"
               />
             </div>

@@ -94,6 +94,9 @@ const icons = {
     collapse: (
         <path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     ),
+    pin: (
+        <path d="M9 4v6l-2 4v2h4v5l1 1 1-1v-5h4v-2l-2-4V4M9 4h6M9 4H7M15 4h2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    ),
 };
 
 export default function ProjectIcon({ name, size = 20, className = "" }) {

@@ -714,10 +714,21 @@ export default function ChronosModal({
 
   const scrollContainerRef = useRef(null);
 
-  // Auto-scroll to 7 AM when selectedDate changes or modal opens
+  // Auto-scroll to the next available time slot when selectedDate changes or modal opens
   useLayoutEffect(() => {
     if (selectedDate && rightView === 'calendar') {
-      const el = document.getElementById('timeline-hour-7');
+      const now = new Date();
+      // If selected date is today, scroll to the next available hour
+      const isSelectedToday = sameDay(selectedDate, now);
+      let scrollHour;
+      if (isSelectedToday) {
+        // Next available: if we're at 10:34, next slot is 11:00
+        scrollHour = now.getMinutes() > 0 ? now.getHours() + 1 : now.getHours();
+        if (scrollHour > 23) scrollHour = 23;
+      } else {
+        scrollHour = 7; // Non-today dates default to 7 AM
+      }
+      const el = document.getElementById(`timeline-hour-${scrollHour}`);
       if (el && scrollContainerRef.current) {
         el.scrollIntoView({ block: 'start' });
       }
@@ -753,15 +764,14 @@ export default function ChronosModal({
         due: existingTask.due ? toLocalInputValue(new Date(existingTask.due)) : ""
       });
     } else {
-      // Create Mode
-      let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
-
+      // Create Mode — tasks are never auto-assigned to the selected calendar day.
+      // The user can set a deadline explicitly via the date picker in the form.
       setTaskDraft({
         id: null,
         title: "",
         description: "",
         priority: "p3",
-        due: toLocalInputValue(base),
+        due: "",
       });
     }
     setRightView("task-form");
@@ -1100,9 +1110,9 @@ export default function ChronosModal({
 
               <div className="space-y-2">
                 {(() => {
-                  const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
+                  const list = tasks.filter(t => !t.done && !t.deleted);
                   if (list.length === 0) {
-                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
+                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks yet.</div>;
                   }
                   return list.map(t => (
                     <TaskRow

@@ -123,7 +123,7 @@ export default function WorldMapWidget({ weather }) {
             <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
                 <div className="flex flex-col items-start text-left">
-                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
+                    <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
                         {dayName}
                     </div>
                     <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
@@ -133,7 +133,7 @@ export default function WorldMapWidget({ weather }) {
 
                 {/* Right: Location */}
                 <div className="flex flex-col items-end text-right">
-                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
+                    <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
                     <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">

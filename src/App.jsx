@@ -216,6 +216,8 @@ function AppContent() {
                   notes={notes}
                   projects={projects}
                   ledger={ledger}
+                  sessions={sessions}
+                  reminders={reminders}
                   createNote={createNote}
                   updateNote={updateNote}
                   onOpenPulse={handleOpenPulse}

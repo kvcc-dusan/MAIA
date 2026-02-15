@@ -75,8 +75,8 @@ export function generateDummyData() {
         milestones: [],
     }));
 
-    // 2. Generate Notes (100 notes)
-    const notes = Array.from({ length: 100 }).map((_, i) => {
+    // 2. Generate Notes (1000 notes)
+    const notes = Array.from({ length: 1000 }).map((_, i) => {
         const titleRoot = NOTE_TITLES[i % NOTE_TITLES.length];
         const title = `${titleRoot} ${i + 1}`;
 
