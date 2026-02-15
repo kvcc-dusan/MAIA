@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProjectIcon from "../components/ProjectIcon";
 import { useData } from "../context/DataContext";
-import { Plus, Settings, Trash2, Sparkles, ListFilter, Pin } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 /**
  * NotesOverview (Codex)
@@ -18,6 +18,7 @@ export default function NotesOverview({
   onDeleteAll,
   onRename,
   onCreateNote,
+  onCreateJournal,
   projects = [],
 }) {
   const { generateSamples } = useData();
@@ -267,13 +268,24 @@ export default function NotesOverview({
 
           <div className="flex items-center gap-3">
             {/* New Note Button (Header) */}
+            {/* New Note Button (Header) */}
             <button
               onClick={onCreateNote}
               className="h-8 px-3 rounded-lg bg-white text-black hover:bg-zinc-200 flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-95"
               title="Create New Note"
             >
-              <Plus size={14} strokeWidth={3} />
-              <span className="text-xs font-bold uppercase tracking-wide">New</span>
+              <ProjectIcon name="plus" size={14} strokeWidth={3} />
+              <span className="text-xs font-bold uppercase tracking-wide">Note</span>
+            </button>
+
+            {/* New Journal Button */}
+            <button
+              onClick={onCreateJournal}
+              className="h-8 px-3 rounded-lg bg-black text-white border border-zinc-700 hover:bg-zinc-800 flex items-center justify-center transition-all gap-2 active:scale-95"
+              title="Create New Journal"
+            >
+              <ProjectIcon name="plus" size={14} strokeWidth={3} />
+              <span className="text-xs font-bold uppercase tracking-wide">Journal</span>
             </button>
 
             <button
@@ -281,7 +293,7 @@ export default function NotesOverview({
               className="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-zinc-400 font-mono transition-colors flex items-center gap-2"
             >
               {sort === 'recent' ? 'RECENT' : 'A-Z'}
-              <ListFilter size={14} />
+              <ProjectIcon name="filter" size={14} />
             </button>
 
             {/* Settings Dropdown (Delete All, Seed) */}
@@ -290,7 +302,7 @@ export default function NotesOverview({
                 onClick={() => setShowSettings(!showSettings)}
                 className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors border ${showSettings ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/5 text-zinc-400 hover:text-white hover:bg-white/10'}`}
               >
-                <Settings size={16} />
+                <ProjectIcon name="settings" size={16} />
               </button>
 
               {showSettings && (
@@ -318,7 +330,7 @@ export default function NotesOverview({
                       onClick={() => { handleDeleteAll(); setShowSettings(false); }}
                       className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center gap-3 text-red-400 group transition-colors"
                     >
-                      <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
+                      <ProjectIcon name="trash_empty" size={14} className="group-hover:scale-110 transition-transform" />
                       <span className="text-xs font-mono">Delete All</span>
                     </button>
                   )}
@@ -412,6 +424,13 @@ export default function NotesOverview({
                       {dateDisplay}
                     </span>
 
+                    {/* Journal Pill */}
+                    {(n.tags || []).includes("journal") && (
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 bg-[#121214] px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
+                        Journal
+                      </span>
+                    )}
+
                     {/* Project Pill (Moved to Footer) */}
                     {(n.projectIds || []).length > 0 && (() => {
                       const linkedProject = projects.find(p => p.id === n.projectIds[0]);
@@ -481,7 +500,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <Pin size={14} />
+                  <ProjectIcon name="pin_note" size={14} />
                   Pin All
                 </button>
 
@@ -493,7 +512,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <Pin size={14} className="opacity-50" />
+                  <ProjectIcon name="pin_note" size={14} className="opacity-50" />
                   Unpin All
                 </button>
 
@@ -507,7 +526,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <Trash2 size={14} />
+                  <ProjectIcon name="trash_empty" size={14} />
                   Delete All
                 </button>
               </>
@@ -522,7 +541,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <Pin size={14} />
+                  <ProjectIcon name="pin_note" size={14} />
                   <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
                 </button>
 
@@ -536,7 +555,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="quill" size={14} />
+                  <ProjectIcon name="edit_pencil" size={14} />
                   Rename
                 </button>
 
@@ -549,7 +568,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="circle" size={14} />
+                  <ProjectIcon name="checkbox_fill" size={14} />
                   Select
                 </button>
 
@@ -563,7 +582,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="trash" size={14} />
+                  <ProjectIcon name="trash_empty" size={14} />
                   Delete
                 </button>
               </>

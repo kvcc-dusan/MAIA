@@ -38,7 +38,7 @@ export function JudgmentOverview({ ledger }) {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#93FD23] animate-pulse shadow-[0_0_10px_rgba(147,253,35,0.5)]"></span>
                         Judgment Overview
                     </h2>
                     <p className="text-[10px] text-zinc-500 font-mono mt-1 uppercase tracking-wider">
@@ -79,9 +79,9 @@ export function JudgmentOverview({ ledger }) {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[240px]">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[240px]">
                 {/* 1. Calibration */}
-                <div className="bg-[#09090b] border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
+                <div className="lg:col-span-2 bg-black border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Confidence Calibration</h3>
                         <span className="text-[9px] text-zinc-600 font-mono">EXP VS ACT</span>
@@ -93,7 +93,7 @@ export function JudgmentOverview({ ledger }) {
                 </div>
 
                 {/* 2. Velocity */}
-                <div className="bg-[#09090b] border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
+                <div className="lg:col-span-2 bg-black border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Decision Velocity</h3>
                         <span className="text-[9px] text-zinc-600 font-mono">WEEKLY VOLUME</span>
@@ -104,7 +104,7 @@ export function JudgmentOverview({ ledger }) {
                 </div>
 
                 {/* 3. Outcomes */}
-                <div className="bg-[#09090b] border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
+                <div className="lg:col-span-1 bg-black border border-white/10 rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Outcome Scorecard</h3>
                         <span className="text-[9px] text-zinc-600 font-mono">REVIEWED ONLY</span>

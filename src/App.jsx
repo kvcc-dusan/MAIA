@@ -131,6 +131,16 @@ function AppContent() {
     setCurrentPage("editor");
   }, [createNote]);
 
+  const handleCreateJournal = useCallback(() => {
+    const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const id = createNote({
+      title: `Journal — ${dateStr}`,
+      tags: ["journal"]
+    });
+    setCurrentNoteId(id);
+    setCurrentPage("editor");
+  }, [createNote]);
+
   // Handlers for Dock/Modals
   const handleNavigate = useCallback((page) => setCurrentPage(page), []);
   const handleOpenTool = useCallback((tool) => {
@@ -235,6 +245,7 @@ function AppContent() {
                   onMove={moveNoteToProject}
                   projects={projects}
                   onCreateNote={handleCreateNote}
+                  onCreateJournal={handleCreateJournal}
                   onBack={handleGoHome}
                 />
               )}

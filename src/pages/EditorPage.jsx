@@ -99,7 +99,7 @@ export default function Editor({ note, updateNote }) {
                 className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
                 title={wide ? "Narrow View" : "Wide View"}
               >
-                <ProjectIcon name={wide ? "collapse" : "expand"} size={16} />
+                <ProjectIcon name={wide ? "shrink_arrow" : "expand_arrow"} size={16} />
               </button>
 
               {/* Mode Toggle */}
@@ -108,7 +108,7 @@ export default function Editor({ note, updateNote }) {
                 className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
                 title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
               >
-                <ProjectIcon name={editable ? "book" : "quill"} size={16} />
+                <ProjectIcon name={editable ? "book_open" : "edit_pencil"} size={16} />
               </button>
             </div>
           </div>

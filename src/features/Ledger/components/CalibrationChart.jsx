@@ -1,24 +1,22 @@
 import React, { useMemo } from 'react';
-import { ResponsiveContainer, ComposedChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Cell } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { cn } from "@/lib/utils";
+
+
 
 export function CalibrationChart({ data }) {
     const chartData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        // 1. Filter for reviewed decisions only
         const reviewed = data.filter(d => d.status === 'reviewed' && typeof d.confidence === 'number');
         if (reviewed.length === 0) return [];
 
-        // 2. Bucket by confidence (e.g., 10% buckets: 50-60, 60-70...)
         const buckets = {};
         for (let i = 0; i <= 100; i += 10) {
             buckets[i] = { total: 0, successful: 0, confidenceSum: 0 };
         }
 
         reviewed.forEach(d => {
-            // Round to nearest 10 for bucketing, or floor? 
-            // Let's floor to 10s: 75 -> 70. 
             const bucketKey = Math.floor(d.confidence / 10) * 10;
             if (buckets[bucketKey]) {
                 buckets[bucketKey].total++;
@@ -29,20 +27,18 @@ export function CalibrationChart({ data }) {
             }
         });
 
-        // 3. Calculate actual success rate per bucket
         return Object.keys(buckets)
             .map(k => {
                 const b = buckets[k];
                 if (b.total === 0) return null;
                 return {
-                    bucket: Number(k),
                     avgConfidence: Math.round(b.confidenceSum / b.total),
                     actualSuccess: Math.round((b.successful / b.total) * 100),
                     count: b.total
                 };
             })
             .filter(Boolean)
-            .sort((a, b) => a.bucket - b.bucket);
+            .sort((a, b) => a.avgConfidence - b.avgConfidence);
 
     }, [data]);
 
@@ -54,10 +50,12 @@ export function CalibrationChart({ data }) {
         );
     }
 
+
+
     return (
         <div className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
+                <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.2} vertical={false} />
                     <XAxis
                         dataKey="avgConfidence"
@@ -88,11 +86,7 @@ export function CalibrationChart({ data }) {
                                             <span className="text-zinc-500">Exp:</span>
                                             <span className="font-bold">{d.avgConfidence}%</span>
                                             <span className="text-zinc-500">Act:</span>
-                                            <span className={cn(
-                                                "font-bold",
-                                                d.actualSuccess < d.avgConfidence - 10 ? "text-red-400" :
-                                                    d.actualSuccess > d.avgConfidence + 10 ? "text-emerald-400" : "text-yellow-400"
-                                            )}>{d.actualSuccess}%</span>
+                                            <span className="font-bold text-zinc-300">{d.actualSuccess}%</span>
                                         </div>
                                     </div>
                                 );
@@ -103,16 +97,15 @@ export function CalibrationChart({ data }) {
                     {/* Perfect Calibration Line */}
                     <ReferenceLine segment={[{ x: 0, y: 0 }, { x: 100, y: 100 }]} stroke="#52525b" strokeDasharray="3 3" opacity={0.5} />
 
-                    <Scatter name="Decisions" dataKey="actualSuccess" fill="#fff">
-                        {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={
-                                entry.actualSuccess < entry.avgConfidence - 15 ? '#ef4444' : // Overconfident (Red)
-                                    entry.actualSuccess > entry.avgConfidence + 15 ? '#10b981' : // Underconfident (Green)
-                                        '#facc15' // Calibrated (Yellow)
-                            } />
-                        ))}
-                    </Scatter>
-                </ComposedChart>
+                    <Line
+                        type="monotone"
+                        dataKey="actualSuccess"
+                        stroke="#71717a"
+                        strokeWidth={1.5}
+                        dot={{ fill: '#71717a', r: 4, strokeWidth: 0 }}
+                        activeDot={{ fill: '#71717a', r: 6, strokeWidth: 0 }}
+                    />
+                </LineChart>
             </ResponsiveContainer>
         </div>
     );

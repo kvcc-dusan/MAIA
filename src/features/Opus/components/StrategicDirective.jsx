@@ -5,7 +5,7 @@ import { uid } from "../../../lib/ids";
 import { cn } from "@/lib/utils";
 
 export default function StrategicDirective({ project, updateProject }) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
     const [newCriteria, setNewCriteria] = useState("");
 
     const addCriteria = () => {

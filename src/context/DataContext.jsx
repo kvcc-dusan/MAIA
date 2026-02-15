@@ -158,6 +158,7 @@ export function DataProvider({ children }) {
             pinnedNoteIds: [],
             links: [], // { id, title, url, type }
             milestones: [], // { id, title, date, done }
+            assets: [], // { id, name, type, dataUrl, createdAt }
         };
         setProjects((prev) => [p, ...prev]);
         return p;
@@ -170,12 +171,37 @@ export function DataProvider({ children }) {
     }, [setProjects, setNotes]);
 
     // Tasks
-    const addTask = useCallback((title, due = null, desc = "", projectId = null) => {
+    const addTask = useCallback((title, due = null, desc = "", projectId = null, extras = {}) => {
         if (!title.trim()) return;
-        setTasks((prev) => [
-            { id: uid(), title: title.trim(), desc, done: false, createdAt: isoNow(), due, projectId: projectId || null },
-            ...prev,
-        ]);
+        const task = {
+            id: uid(),
+            title: title.trim(),
+            desc,
+            done: false,
+            createdAt: isoNow(),
+            due,
+            projectId: projectId || null,
+            isNextAction: false,
+            status: null, // null | 'blocked'
+            ...extras,
+        };
+        setTasks((prev) => [task, ...prev]);
+        return task.id;
+    }, [setTasks]);
+
+    const updateTask = useCallback((id, patch) => {
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    }, [setTasks]);
+
+    const deleteTask = useCallback((id) => {
+        setTasks((prev) => prev.filter((t) => t.id !== id));
+    }, [setTasks]);
+
+    const setNextAction = useCallback((taskId, projectId) => {
+        setTasks((prev) => prev.map((t) => {
+            if (t.projectId !== projectId) return t;
+            return { ...t, isNextAction: t.id === taskId };
+        }));
     }, [setTasks]);
 
     // Reminders
@@ -233,14 +259,14 @@ export function DataProvider({ children }) {
         // Project Actions
         updateProject, deleteProject, createProject,
         // Task & Reminder Actions
-        addTask, toggleTask, addReminder,
+        addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
         // Decision Actions
         createDecision, reviewDecision, deleteDecision,
         generateSamples
     }), [
         notes, setNotes, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
-        updateProject, deleteProject, createProject, addTask, toggleTask, addReminder,
+        updateProject, deleteProject, createProject, addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
         createDecision, reviewDecision, deleteDecision,
         generateSamples
     ]);

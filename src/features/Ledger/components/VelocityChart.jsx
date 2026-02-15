@@ -74,7 +74,7 @@ export function VelocityChart({ data }) {
                     />
                     <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                         {chartData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.count > 0 ? '#3f3f46' : '#27272a'} />
+                            <Cell key={`cell-${index}`} fill={entry.count > 0 ? '#71717a' : '#27272a'} />
                         ))}
                     </Bar>
                 </BarChart>

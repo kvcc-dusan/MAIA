@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { cn } from "@/lib/utils";
 
 const COLORS = {
-    success: '#10b981', // emerald-500
-    mixed: '#face15',   // yellow-400
-    failure: '#ef4444'  // red-500
+    success: '#93FD23',
+    mixed: '#FEEE08',
+    failure: '#FE083D'
 };
 
 export function OutcomeDistribution({ data }) {
-    const chartData = useMemo(() => {
-        if (!data || data.length === 0) return [];
+    const { chartData, total } = useMemo(() => {
+        if (!data || data.length === 0) return { chartData: [], total: 0 };
 
         const counts = { success: 0, mixed: 0, failure: 0 };
         let total = 0;
@@ -24,13 +24,16 @@ export function OutcomeDistribution({ data }) {
             }
         });
 
-        if (total === 0) return [];
+        if (total === 0) return { chartData: [], total: 0 };
 
-        return Object.keys(counts).map(key => ({
-            name: key,
+        const chartData = Object.keys(counts).map(key => ({
+            subject: key.charAt(0).toUpperCase() + key.slice(1),
             value: counts[key],
-            percent: Math.round((counts[key] / total) * 100)
-        })).filter(d => d.value > 0);
+            percent: Math.round((counts[key] / total) * 100),
+            fullMark: total
+        }));
+
+        return { chartData, total };
 
     }, [data]);
 
@@ -43,57 +46,45 @@ export function OutcomeDistribution({ data }) {
     }
 
     return (
-        <div className="h-full w-full flex items-center gap-4">
-            {/* Simple Donut */}
-            <div className="h-full aspect-square relative">
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                        <Pie
-                            data={chartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={"60%"}
-                            outerRadius={"90%"}
-                            paddingAngle={5}
-                            dataKey="value"
-                            stroke="none"
-                        >
-                            {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[entry.name]} />
-                            ))}
-                        </Pie>
-                        <Tooltip
-                            content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                    const d = payload[0].payload;
-                                    return (
-                                        <div className="bg-black/90 border border-white/10 rounded-lg px-2 py-1 text-[10px] shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-white">
-                                            {d.name}: {d.value}
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            }}
-                        />
-                    </PieChart>
-                </ResponsiveContainer>
-                {/* Center Label (Total) */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="text-xs font-bold text-zinc-500 font-mono">
-                        {chartData.reduce((acc, curr) => acc + curr.value, 0)}
-                    </span>
-                </div>
-            </div>
+        <div className="h-full w-full relative">
+            {/* Radar Chart - fills full height */}
+            <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="55%" outerRadius="85%" data={chartData}>
+                    <PolarGrid stroke="#333" opacity={0.3} />
+                    <PolarAngleAxis
+                        dataKey="subject"
+                        tick={{ fill: '#71717a', fontSize: 8, fontFamily: 'monospace' }}
+                    />
+                    <Radar
+                        dataKey="value"
+                        stroke="#d4d4d8"
+                        strokeWidth={1.5}
+                        fill="#d4d4d8"
+                        fillOpacity={0.08}
+                        dot={{ fill: '#d4d4d8', r: 3 }}
+                    />
+                    <Tooltip
+                        content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                                const d = payload[0].payload;
+                                return (
+                                    <div className="bg-black/90 border border-white/10 rounded-lg px-2 py-1 text-[10px] shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-white">
+                                        {d.subject}: {d.value}
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
+                    />
+                </RadarChart>
+            </ResponsiveContainer>
 
-            {/* Legend */}
-            <div className="flex flex-col gap-2 justify-center flex-1">
+            {/* Legend - absolute overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-4">
                 {chartData.map(d => (
-                    <div key={d.name} className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider">
-                        <div className="flex items-center gap-2 text-zinc-400">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[d.name] }} />
-                            {d.name}
-                        </div>
-                        <div className="text-white font-bold">{d.percent}%</div>
+                    <div key={d.subject} className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider">
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[d.subject.toLowerCase()] }} />
+                        <span className="text-white font-bold">{d.percent}%</span>
                     </div>
                 ))}
             </div>

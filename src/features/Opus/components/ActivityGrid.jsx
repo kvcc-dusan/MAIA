@@ -3,7 +3,7 @@ import { useData } from "../../../context/DataContext";
 import { cn } from "@/lib/utils";
 
 /**
- * ActivityGrid: A GitHub-style contribution graph roughly visualizing momentum over the last 60 days.
+ * ActivityGrid: A GitHub-style contribution graph visualizing momentum over the past year.
  */
 export default function ActivityGrid({ project }) {
     const { tasks, sessions } = useData();
@@ -17,22 +17,55 @@ export default function ActivityGrid({ project }) {
         return `${year}-${month}-${day}`;
     };
 
-    // 1. Generate last 84 days (approx 3 months or 12 weeks for better grid)
-    const days = useMemo(() => {
-        const d = [];
+    // Generate last 365 days, aligned to start on a Sunday (like GitHub)
+    const { weeks, monthLabels } = useMemo(() => {
         const today = new Date();
-        for (let i = 83; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - i);
-            d.push({
+        const dayOfWeek = today.getDay(); // 0=Sun
+        // Go back 52 full weeks + remaining days to start on Sunday
+        const totalDays = 52 * 7 + dayOfWeek + 1;
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - totalDays + 1);
+
+        const allDays = [];
+        for (let i = 0; i < totalDays; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            allDays.push({
                 date,
                 iso: toDateKey(date),
+                dayOfWeek: date.getDay(),
             });
         }
-        return d;
+
+        // Group into weeks (columns)
+        const weeks = [];
+        let currentWeek = [];
+        for (const day of allDays) {
+            currentWeek.push(day);
+            if (day.dayOfWeek === 6) { // Saturday = end of week
+                weeks.push(currentWeek);
+                currentWeek = [];
+            }
+        }
+        if (currentWeek.length > 0) weeks.push(currentWeek);
+
+        // Generate month labels
+        const monthLabels = [];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let lastMonth = -1;
+        weeks.forEach((week, weekIdx) => {
+            const firstDay = week[0];
+            const month = firstDay.date.getMonth();
+            if (month !== lastMonth) {
+                monthLabels.push({ weekIdx, label: monthNames[month] });
+                lastMonth = month;
+            }
+        });
+
+        return { weeks, monthLabels };
     }, []);
 
-    // 2. Aggregate Activity
+    // Aggregate Activity
     const activityMap = useMemo(() => {
         const map = {};
         tasks.filter(t => t.projectId === project.id && t.done && t.completedAt).forEach(t => {
@@ -51,24 +84,12 @@ export default function ActivityGrid({ project }) {
         const todayKey = toDateKey(new Date());
         if (activityMap[todayKey] > 0) s++;
 
-        // Check yesterday and back
-        for (let i = 1; i < 90; i++) {
+        for (let i = 1; i < 365; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
             const key = toDateKey(d);
-
             if (activityMap[key] > 0) s++;
-            else if (i === 1 && s === 0) {
-                // If today is 0, but yesterday is active, allow streak to start from yesterday
-                // But wait, standard streak logic:
-                // If I did something yesterday (1) and nothing today (0), my streak is 1.
-                // My loop logic:
-                // todayKey (0) -> s=0.
-                // i=1 (yesterday) -> activity > 0 -> s++ -> s=1.
-                // i=2 (day before) -> no activity -> break.
-                // Result: 1. Correct.
-                // So simple check is fine.
-            }
+            else if (i === 1 && s === 0) continue; // allow streak from yesterday
             else break;
         }
         return s;
@@ -81,44 +102,70 @@ export default function ActivityGrid({ project }) {
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                     <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
-                        <span className={cn("w-1.5 h-1.5 rounded-full", streak > 0 ? "bg-emerald-500 animate-pulse" : "bg-zinc-700")} />
+                        <span className={cn("w-1.5 h-1.5 rounded-full", streak > 0 ? "bg-[#93FD23] animate-pulse" : "bg-zinc-700")} />
                         Momentum
                     </span>
-                    <span className="text-[10px] text-emerald-500/80 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/10">
+                    <span className="text-[10px] text-[#93FD23]/80 font-mono bg-[#93FD23]/10 px-1.5 py-0.5 rounded border border-[#93FD23]/10">
                         {streak} day streak
                     </span>
                 </div>
                 <div className="text-[10px] text-zinc-600 font-mono">
-                    {totalActions} actions (last 90d)
+                    {totalActions} actions
                 </div>
             </div>
 
-            {/* Heatmap Grid */}
-            <div className="flex-1 min-h-[60px] flex flex-wrap content-start gap-1">
-                {days.map((day) => {
-                    const count = activityMap[day.iso] || 0;
-                    // Heatmap Color Scale (Subtle)
-                    let bgClass = "bg-white/5 border-transparent";
-                    if (count >= 1) bgClass = "bg-emerald-900/40 border-emerald-500/20";
-                    if (count >= 2) bgClass = "bg-emerald-800/60 border-emerald-500/30";
-                    if (count >= 4) bgClass = "bg-emerald-600/80 border-emerald-400/40";
-                    if (count >= 6) bgClass = "bg-emerald-400 border-emerald-300 shadow-[0_0_4px_theme(colors.emerald.500)]";
-
-                    return (
-                        <div
-                            key={day.iso}
-                            className={cn(
-                                "w-3 h-3 rounded-[2px] border transition-all duration-300 hover:scale-125 hover:z-10 relative group cursor-default",
-                                bgClass
-                            )}
+            {/* Month Labels */}
+            <div className="flex mb-1 ml-0">
+                <div className="flex relative w-full" style={{ height: '12px' }}>
+                    {monthLabels.map((m, i) => (
+                        <span
+                            key={i}
+                            className="absolute text-[8px] text-zinc-600 font-mono"
+                            style={{ left: `${(m.weekIdx / weeks.length) * 100}%` }}
                         >
-                            {/* Tooltip */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-zinc-200 text-[10px] rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: {count} actions
-                            </div>
+                            {m.label}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            {/* Heatmap Grid - 7 rows × N columns */}
+            <div className="flex-1 min-h-[70px] overflow-x-auto custom-scrollbar">
+                <div className="flex gap-[2px]" style={{ width: 'max-content' }}>
+                    {weeks.map((week, weekIdx) => (
+                        <div key={weekIdx} className="flex flex-col gap-[2px]">
+                            {/* Fill empty slots for incomplete first week */}
+                            {week[0].dayOfWeek !== 0 && weekIdx === 0 && (
+                                Array.from({ length: week[0].dayOfWeek }).map((_, i) => (
+                                    <div key={`empty-${i}`} className="w-[10px] h-[10px]" />
+                                ))
+                            )}
+                            {week.map((day) => {
+                                const count = activityMap[day.iso] || 0;
+                                let bgClass = "bg-white/5";
+                                if (count >= 1) bgClass = "bg-[#93FD23]/15";
+                                if (count >= 2) bgClass = "bg-[#93FD23]/30";
+                                if (count >= 4) bgClass = "bg-[#93FD23]/50";
+                                if (count >= 6) bgClass = "bg-[#93FD23]/80 shadow-[0_0_3px_rgba(147,253,35,0.4)]";
+
+                                return (
+                                    <div
+                                        key={day.iso}
+                                        className={cn(
+                                            "w-[10px] h-[10px] rounded-[2px] transition-all duration-200 hover:scale-150 hover:z-10 relative group cursor-default",
+                                            bgClass
+                                        )}
+                                    >
+                                        {/* Tooltip */}
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-zinc-200 text-[10px] rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                            {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: {count} actions
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    );
-                })}
+                    ))}
+                </div>
             </div>
         </div>
     );

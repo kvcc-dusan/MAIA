@@ -215,7 +215,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                                     className={cn(
                                         "px-4 py-2 rounded-lg text-[10px] font-bold font-mono uppercase tracking-wider transition-all",
                                         status === s
-                                            ? (s === 'success' ? 'bg-emerald-500/10 text-emerald-400' : s === 'failure' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400')
+                                            ? (s === 'success' ? 'bg-[#93FD23]/10 text-[#93FD23]' : s === 'failure' ? 'bg-[#FE083D]/10 text-[#FE083D]' : 'bg-[#FEEE08]/10 text-[#FEEE08]')
                                             : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/5'
                                     )}
                                 >
@@ -240,9 +240,106 @@ function ReviewModal({ decision, onClose, onReview }) {
     );
 }
 
+// ─── Decision Detail Modal (Read-Only) ───
+
+function DecisionDetailModal({ decision, onClose }) {
+    if (!decision) return null;
+
+    const STATUS_COLORS = {
+        success: 'bg-[#93FD23]/10 text-[#93FD23] border-[#93FD23]/20',
+        mixed: 'bg-[#FEEE08]/10 text-[#FEEE08] border-[#FEEE08]/20',
+        failure: 'bg-[#FE083D]/10 text-[#FE083D] border-[#FE083D]/20'
+    };
+
+    const STAKES_COLORS = {
+        high: "bg-[#FE083D]/10 text-[#FE083D] border-[#FE083D]/20",
+        medium: "bg-[#FEEE08]/10 text-[#FEEE08] border-[#FEEE08]/20",
+        low: "bg-[#0885FE]/10 text-[#0885FE] border-[#0885FE]/20"
+    };
+
+    return (
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-lg bg-black/90 backdrop-blur-xl border border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-8 pt-8 pb-4">
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono">Decision Review</h2>
+                    <CloseButton onClick={onClose} />
+                </div>
+
+                <div className="px-8 pb-8 space-y-6">
+                    {/* Decision Title & Tags */}
+                    <div>
+                        <div className="text-xl font-medium text-zinc-200 font-mono mb-3">{decision.title}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className={cn(
+                                "text-[9px] px-2 py-1 rounded-md border uppercase tracking-wider font-bold font-mono",
+                                STAKES_COLORS[decision.stakes] || STAKES_COLORS.low
+                            )}>
+                                {decision.stakes}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 bg-white/5 px-2 py-1 rounded-md border border-white/5 uppercase tracking-wider font-bold font-mono">
+                                {decision.reversibility}
+                            </span>
+                            <span className="text-[9px] text-zinc-600 bg-white/5 px-2 py-1 rounded-md border border-white/5 uppercase tracking-wider font-bold font-mono">
+                                {decision.confidence}% Conf
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Assumptions */}
+                    {decision.assumptions && decision.assumptions.length > 0 && (
+                        <div className="pt-4 border-t border-white/5">
+                            <div className={LABEL_CLASS}>Assumptions</div>
+                            <div className="space-y-1.5 pl-3 border-l-2 border-white/10">
+                                {decision.assumptions.map((a, i) => (
+                                    <div key={i} className="text-xs font-mono text-zinc-500 leading-relaxed">• {a}</div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Outcome */}
+                    {decision.outcome && (
+                        <div className="pt-4 border-t border-white/5">
+                            <div className={LABEL_CLASS}>Actual Outcome</div>
+                            <div className="text-sm text-zinc-300 font-mono leading-relaxed whitespace-pre-wrap">{decision.outcome}</div>
+                        </div>
+                    )}
+
+                    {/* Result Assessment */}
+                    {decision.outcomeStatus && (
+                        <div className="pt-4 border-t border-white/5">
+                            <div className={LABEL_CLASS}>Result Assessment</div>
+                            <span className={cn(
+                                "text-[10px] font-bold font-mono uppercase tracking-wider px-4 py-2 rounded-lg border inline-block",
+                                STATUS_COLORS[decision.outcomeStatus] || STATUS_COLORS.mixed
+                            )}>
+                                {decision.outcomeStatus}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Reviewed Date */}
+                    {decision.reviewedAt && (
+                        <div className="text-[10px] text-zinc-600 font-mono uppercase tracking-wider pt-2">
+                            Reviewed {new Date(decision.reviewedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ─── Decision Card ───
 
-function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContextMenu, isPinned }) {
+function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, onContextMenu, isPinned }) {
     const dateObj = new Date(d.createdAt);
     const now = new Date();
     const isToday = dateObj.getDate() === now.getDate() && dateObj.getMonth() === now.getMonth() && dateObj.getFullYear() === now.getFullYear();
@@ -253,9 +350,9 @@ function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContext
 
     // Tag styles matched to Chronos aesthetics
     const STAKES_COLORS = {
-        high: "bg-red-500/10 text-red-400 border-red-500/20",
-        medium: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-        low: "bg-blue-500/10 text-blue-400 border-blue-500/20"
+        high: "bg-[#FE083D]/10 text-[#FE083D] border-[#FE083D]/20",
+        medium: "bg-[#FEEE08]/10 text-[#FEEE08] border-[#FEEE08]/20",
+        low: "bg-[#0885FE]/10 text-[#0885FE] border-[#0885FE]/20"
     };
 
     return (
@@ -264,13 +361,19 @@ function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContext
                 if (selectMode) {
                     onToggle(d.id);
                     e.stopPropagation();
+                } else if (isReviewed) {
+                    e.stopPropagation();
+                    onView?.(d.id);
+                } else {
+                    e.stopPropagation();
+                    onReview?.(d.id);
                 }
             }}
             onContextMenu={(e) => {
                 onContextMenu(e, d.id);
             }}
             className={cn(
-                "group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-default overflow-hidden font-mono",
+                "group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden font-mono",
                 isSelected
                     ? "bg-zinc-900 border-white/50" // Selected state: distinct focus
                     : isReviewed
@@ -331,14 +434,14 @@ function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContext
 
             {/* Outcome (reviewed only) */}
             {isReviewed && d.outcome && (
-                <div className="bg-white/5 border-t border-white/5 -mx-5 -mb-5 px-5 py-4 mt-2">
+                <div className="pt-4 mt-4">
                     <div className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold mb-1.5">Outcome</div>
                     <div className="text-zinc-400 text-[10px] leading-relaxed line-clamp-3">{d.outcome}</div>
                 </div>
             )}
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-3 z-10 border-t border-white/5">
+            <div className="flex items-center justify-between mt-auto pt-5 z-10">
                 <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-wider">
                     {dateStr}
                 </span>
@@ -347,9 +450,9 @@ function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContext
                     {isReviewed ? (
                         <span className={cn(
                             "text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border",
-                            d.outcomeStatus === 'success' ? 'border-emerald-500/20 text-emerald-400 bg-emerald-500/10' :
-                                d.outcomeStatus === 'failure' ? 'border-red-500/20 text-red-400 bg-red-500/10' :
-                                    'border-yellow-500/20 text-yellow-400 bg-yellow-500/10'
+                            d.outcomeStatus === 'success' ? 'border-[#93FD23]/20 text-[#93FD23] bg-[#93FD23]/10' :
+                                d.outcomeStatus === 'failure' ? 'border-[#FE083D]/20 text-[#FE083D] bg-[#FE083D]/10' :
+                                    'border-[#FEEE08]/20 text-[#FEEE08] bg-[#FEEE08]/10'
                         )}>
                             {d.outcomeStatus}
                         </span>
@@ -379,6 +482,7 @@ function DecisionCard({ d, onReview, isSelected, selectMode, onToggle, onContext
 export default function LedgerPage({ ledger = [], setLedger }) {
     const [isCreating, setIsCreating] = useState(false);
     const [reviewingId, setReviewingId] = useState(null);
+    const [viewingId, setViewingId] = useState(null);
     const [sort, setSort] = useState("recent");
     const [showSettings, setShowSettings] = useState(false);
 
@@ -671,6 +775,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             key={d.id}
                             d={d}
                             onReview={setReviewingId}
+                            onView={setViewingId}
                             isSelected={selected.has(d.id)}
                             selectMode={selectMode}
                             onToggle={toggleSelected}
@@ -684,6 +789,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                         <DecisionCard
                             key={d.id}
                             d={d}
+                            onView={setViewingId}
                             isSelected={selected.has(d.id)}
                             selectMode={selectMode}
                             onToggle={toggleSelected}
@@ -702,6 +808,12 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     decision={ledger.find(d => d.id === reviewingId)}
                     onClose={() => setReviewingId(null)}
                     onReview={completeReview}
+                />
+            )}
+            {viewingId && (
+                <DecisionDetailModal
+                    decision={ledger.find(d => d.id === viewingId)}
+                    onClose={() => setViewingId(null)}
                 />
             )}
 

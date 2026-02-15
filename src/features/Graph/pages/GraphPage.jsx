@@ -103,7 +103,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         color: clusterColor,
         isHot: analysis.isHot(n),
         tags: n.tags || [],
-        val: 1 + (n.content?.length || 0) / 1000, // Size by content length
+        val: 1, // Fixed base size (content length sizing disabled)
         projectIds: n.projectIds || [],
       };
     });
