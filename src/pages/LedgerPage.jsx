@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { cn } from "@/lib/utils";
-import { Plus, ListFilter, Settings, Trash2, Scale, Pin, PenLine, Circle, MousePointer2 } from "lucide-react";
+import { Plus, ListFilter, Settings, Trash2, Scale, Pin, PenLine, Circle } from "lucide-react";
 import { JudgmentOverview } from "@/features/Ledger/components/JudgmentOverview";
 
 /* ──────────────────────────────────────────────────────────

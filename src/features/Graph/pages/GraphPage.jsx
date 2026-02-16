@@ -233,8 +233,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     return () => obs.disconnect();
   }, []);
 
-  console.log("GraphPage: Nodes", nodes.length, "Links", links.length); // Debug log
-
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
 
