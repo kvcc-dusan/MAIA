@@ -10,6 +10,8 @@ import TaskItem from "@tiptap/extension-task-item";
 import { Extension } from "@tiptap/core";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn } from "@/lib/utils";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 const PLACEHOLDER_TEXT = 'Start writing…';
 
@@ -100,6 +102,49 @@ const AutoMarkdownShortcuts = Extension.create({
   },
 });
 
+/** WikiLink Highlighting: [[Title]] or [[Title|Alias]] */
+const WikiLinkExtension = Extension.create({
+  name: "wikiLink",
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('wiki-link-highlight'),
+        props: {
+          decorations: (state) => {
+            const { doc } = state;
+            const decorations = [];
+
+            doc.descendants((node, pos) => {
+              if (node.isText) {
+                const text = node.text;
+                // Regex for [[...]]
+                const regex = /\[\[([\s\S]+?)\]\]/g;
+                let match;
+
+                while ((match = regex.exec(text)) !== null) {
+                  const from = pos + match.index;
+                  const to = from + match[0].length;
+
+                  decorations.push(
+                    Decoration.inline(from, to, {
+                      style: 'color: #0044FF; font-weight: bold;',
+                      class: 'maia-wikilink'
+                    })
+                  );
+                }
+              }
+            });
+
+            return DecorationSet.create(doc, decorations);
+          }
+        }
+      })
+    ];
+  }
+});
+
+
 /** Count words: any whitespace-separated token with at least one letter or digit. */
 function countWords(text) {
   const tokens = text.split(/\s+/).filter(t => t.length > 0);
@@ -155,6 +200,7 @@ export default function EditorRich({
         transformCopiedText: true,
       }),
       AutoMarkdownShortcuts,
+      WikiLinkExtension,
     ],
     onCreate: ({ editor }) => {
       emitMeta(editor, onMetaChange);

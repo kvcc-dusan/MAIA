@@ -5,7 +5,7 @@ const NEON_BLUE = '#0044FF';
 const NEON_ORANGE = '#FF5930';
 const NEON_GREEN = '#ABFA54';
 
-export default function FocusTaskItem({ task }) {
+export default function FocusTaskItem({ task, onClick }) {
   const getPriorityColor = (p) => {
     switch (p) {
       case 'high': case 'p1': return NEON_BLUE;
@@ -18,18 +18,23 @@ export default function FocusTaskItem({ task }) {
   const dotColor = getPriorityColor(task.priority || 'p3');
 
   return (
-    <li className="flex items-center gap-2 text-sm text-card-foreground font-mono font-medium">
+    <li
+      onClick={onClick}
+      className="flex items-center gap-3 text-sm text-card-foreground hover:text-white/50 font-mono font-medium cursor-pointer rounded px-2 py-1 transition-colors -mx-2"
+    >
       <span
-        className="w-1.5 h-1.5 rounded-full shrink-0"
+        className="w-1.5 h-1.5 rounded-full shrink-0 transition-opacity"
         style={{
           backgroundColor: task.done ? 'currentColor' : dotColor,
           opacity: task.done ? 0.5 : 1,
           boxShadow: task.done ? 'none' : `0 0 4px ${dotColor}`
         }}
       />
-      <span className={`truncate ${task.done ? "line-through text-muted-foreground" : ""}`}>
-        {task.title}
-      </span>
+      <div className="flex flex-col min-w-0">
+        <span className={`truncate ${task.done ? "line-through text-muted-foreground" : ""}`}>
+          {task.title}
+        </span>
+      </div>
     </li>
   );
 }
@@ -40,4 +45,5 @@ FocusTaskItem.propTypes = {
     title: PropTypes.string.isRequired,
     done: PropTypes.bool,
   }).isRequired,
+  onClick: PropTypes.func,
 };

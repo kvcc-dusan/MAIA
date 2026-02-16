@@ -12,6 +12,7 @@ export default function FocusWidget({
   sessions = [],
   signals = { velocity: [], staleness: [] },
   onOpenPulse,
+  onTaskClick,
 }) {
   const [momentumOpen, setMomentumOpen] = useState(false);
 
@@ -40,16 +41,16 @@ export default function FocusWidget({
           {/* ── TASKS ── */}
           {todayTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-4 text-center font-mono text-[10px] italic uppercase tracking-widest text-muted-foreground">
-              no tasks for today.
+              No focus tasks.
             </div>
           ) : (
-            <ul className="space-y-2 py-1">
-              {todayTasks.slice(0, 3).map((task) => (
-                <FocusTaskItem key={task.id} task={task} />
+            <ul className="space-y-1 py-1">
+              {todayTasks.slice(0, 4).map((task) => (
+                <FocusTaskItem key={task.id} task={task} onClick={() => onTaskClick?.(task)} />
               ))}
-              {todayTasks.length > 3 && (
+              {todayTasks.length > 4 && (
                 <li className="pt-1 text-[10px] text-muted-foreground font-mono">
-                  +{todayTasks.length - 3} more
+                  +{todayTasks.length - 4} more
                 </li>
               )}
             </ul>
@@ -91,8 +92,8 @@ export default function FocusWidget({
                       <div key={v.tag} className="flex items-center justify-between">
                         <span className="text-xs text-zinc-400 font-mono">#{v.tag}</span>
                         <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-emerald-500/10 text-emerald-400" :
-                            v.velocity < 0 ? "bg-red-500/10 text-red-400" :
-                              "bg-zinc-800/50 text-zinc-600"
+                          v.velocity < 0 ? "bg-red-500/10 text-red-400" :
+                            "bg-zinc-800/50 text-zinc-600"
                           }`}>
                           {v.velocity > 0 ? "+" : ""}{v.velocity}
                         </span>

@@ -134,7 +134,7 @@ export default function ExecutionPanel({ project }) {
                     value={newTaskTitle}
                     onChange={e => setNewTaskTitle(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                    className="w-full bg-white/5 hover:bg-white/8 focus:bg-white/8 border border-white/5 focus:border-white/15 rounded-xl py-2.5 pl-9 pr-4 text-sm text-zinc-200 placeholder:text-zinc-700 outline-none transition-all"
+                    className="w-full bg-transparent border-none focus:border-none focus:ring-0 rounded-xl py-2.5 pl-9 pr-4 text-sm text-zinc-500 placeholder:text-zinc-700 hover:text-zinc-200 focus:text-white outline-none transition-colors"
                     placeholder="Add task..."
                 />
             </div>

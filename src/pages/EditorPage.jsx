@@ -6,7 +6,7 @@ import { useDebounced } from "../hooks/useDebounced.js";
 const modeKey = (id) => `maia:note-mode:${id}`;
 const widthKey = () => `maia:editor-wide`;
 
-export default function Editor({ note, updateNote }) {
+export default function Editor({ note, updateNote, projects = [] }) {
   const [local, setLocal] = useState(note);
   const [mode, setMode] = useState(() => {
     if (note?.id) {
@@ -125,11 +125,32 @@ export default function Editor({ note, updateNote }) {
                 editable={editable}
                 onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
                 onMetaChange={(meta) => setLocal((v) => {
-                  // Merge content-derived tags with existing tags (preserves programmatic tags like "journal")
-                  const merged = meta.tags
-                    ? [...new Set([...(v.tags || []), ...meta.tags])]
-                    : v.tags;
-                  return { ...v, ...meta, tags: merged };
+                  // 1. Tags: Replace duplicative merging with direct set (fixes #k #ks #ksva bug)
+                  const newTags = meta.tags || [];
+
+                  // 2. WikiLinks -> Projects
+                  // Map [[Project Name]] to project IDs
+                  let newProjectIds = [];
+                  let newProjectName = null;
+
+                  if (meta.links && meta.links.length > 0) {
+                    // Find all projects mentioned in links
+                    const linkedProjects = projects.filter(p =>
+                      meta.links.some(link => link.toLowerCase() === p.name.toLowerCase())
+                    );
+
+                    if (linkedProjects.length > 0) {
+                      newProjectIds = linkedProjects.map(p => p.id);
+                      newProjectName = linkedProjects[0].name; // Use first found for legacy display
+                    }
+                  }
+
+                  return {
+                    ...v, ...meta,
+                    tags: newTags,
+                    projectIds: newProjectIds,
+                    project: newProjectName || null
+                  };
                 })}
                 className="maia-editor"
               />

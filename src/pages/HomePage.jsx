@@ -38,8 +38,36 @@ export default function TodayPage({
 
   // Today's tasks (for FocusWidget)
   const todayTasks = useMemo(() => {
-    return tasks.filter((t) => t.due && new Date(t.due).toDateString() === todayStr);
-  }, [tasks, todayStr]);
+    // 1. Next Actions from ACTIVE Projects
+    // Sort projects by their order in the list (assuming user order implies priority)
+    const activeProjects = projects.filter(p => p.status === "Active");
+
+    let actions = [];
+    activeProjects.forEach(p => {
+      const pTask = tasks.find(t => t.projectId === p.id && t.isNextAction && !t.done);
+      if (pTask) {
+        actions.push({ ...pTask, isProject: true, contextLabel: p.name });
+      }
+    });
+
+    // 2. Global Inbox Tasks (Newest First)
+    const inboxTasks = tasks
+      .filter((t) => !t.done && !t.projectId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .map((t) => ({ ...t, isProject: false, contextLabel: "Inbox" }));
+
+    return [...actions, ...inboxTasks];
+  }, [tasks, projects]);
+
+  const handleTaskClick = useCallback((task) => {
+    if (task.isProject && task.projectId) {
+      // Navigate to Project
+      onOpenNote?.(task.projectId, "project");
+    } else {
+      // Open Chronos for global tasks
+      onOpenPulse?.();
+    }
+  }, [onOpenNote, onOpenPulse]);
 
   // Recent #journal notes (today)
   const todayEntries = useMemo(() => {
@@ -70,7 +98,7 @@ export default function TodayPage({
   }, [captureContent, createNote]);
 
   return (
-    <div className="relative flex flex-col h-full w-full overflow-hidden bg-midnight font-sans text-white selection:bg-white/20">
+    <div className="relative flex flex-col h-full w-full overflow-hidden bg-black font-sans text-white selection:bg-white/20">
 
       {/* Single-screen hero — greeting + widgets */}
       <div className="flex-1 w-full">
@@ -106,6 +134,7 @@ export default function TodayPage({
               sessions={sessions}
               signals={signals}
               onOpenPulse={openPulse}
+              onTaskClick={handleTaskClick}
             />
 
             {/* 3. Quick Capture — journal entry */}
