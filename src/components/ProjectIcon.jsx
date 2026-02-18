@@ -225,6 +225,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                     <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono">Select Icon</h3>
                         <button
+                            aria-label="Close"
                             onClick={onClose}
                             className="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/5 hover:text-zinc-300 transition-colors"
                         >
@@ -279,6 +280,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                                 <button
                                     key={iconName}
                                     onClick={() => setSelectedIcon(iconName)}
+                                    aria-label={iconName}
                                     className={`
                                         aspect-square rounded-xl flex items-center justify-center transition-all duration-200
                                         ${isActive
