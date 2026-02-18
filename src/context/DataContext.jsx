@@ -88,7 +88,7 @@ export function DataProvider({ children }) {
         }
 
         setProjects(prevProjects => {
-            const existing = prevProjects.find((p) => p.name.toLowerCase() === name.toLowerCase());
+            const existing = prevProjects.find((p) => p.name?.toLowerCase() === name.toLowerCase());
             if (existing) {
                 // Project exists — add its ID to the note's projectIds
                 setNotes((prev) => prev.map((n) => {

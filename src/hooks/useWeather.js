@@ -127,12 +127,15 @@ export function useWeather() {
 
       // Which hour is "now" in returned local timeline
       const nowKey = localHourISO(new Date());
-      const idx = (w.hourly?.time || []).findIndex((t) => t.startsWith(nowKey));
+      const times = w.hourly?.time || [];
+      const idx = times.findIndex((t) => t.startsWith(nowKey));
 
       const next2 = [];
-      for (let i = 0; i < 2; i++) {
-        const v = w.hourly?.precipitation_probability?.[idx + i] ?? 0;
-        next2.push(Number(v) || 0);
+      if (idx !== -1) {
+        for (let i = 0; i < 2; i++) {
+          const v = w.hourly?.precipitation_probability?.[idx + i] ?? 0;
+          next2.push(Number(v) || 0);
+        }
       }
 
       let place = null;
@@ -145,8 +148,8 @@ export function useWeather() {
 
       if (mountedRef.current) {
         setWeather({
-          temp: w.hourly?.temperature_2m?.[idx],
-          condition: getWeatherLabel(w.hourly?.weathercode?.[idx]),
+          temp: idx !== -1 ? w.hourly?.temperature_2m?.[idx] : undefined,
+          condition: idx !== -1 ? getWeatherLabel(w.hourly?.weathercode?.[idx]) : undefined,
           next2hProb: next2,
           place: place || undefined,
           coords,

@@ -1041,6 +1041,12 @@ export default function ChronosModal({
   const saveSession = () => {
     if (!sessionDraft.title.trim()) return;
 
+    // Validate dates
+    if (isNaN(new Date(sessionDraft.start).getTime()) || isNaN(new Date(sessionDraft.end).getTime())) {
+      pushToast && pushToast("Invalid session times");
+      return;
+    }
+
     // Prevent creating sessions in the past
     if (isPastTime(sessionDraft.start)) {
       pushToast && pushToast("Cannot create sessions in the past");
