@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { GlassCard } from "../../../components/GlassCard";
 import { Plus, Play, Circle, CheckCircle2 } from "lucide-react";
 import ProjectIcon from "../../../components/ProjectIcon";
 import { useData } from "../../../context/DataContext";
 
 export default function ActivityPanel({ project }) {
-    const { tasks, sessions, addTask, toggleTask, sessions: allSessions } = useData();
+    const { tasks, sessions, addTask, toggleTask } = useData();
     const [newTaskTitle, setNewTaskTitle] = useState("");
 
     // Filter Active Tasks for this project
     // Logic: task.projectId === project.id AND !task.done
-    const activeTasks = tasks
+    const activeTasks = useMemo(() => tasks
         .filter(t => t.projectId === project.id && !t.done)
         .sort((a, b) => {
             // Sort by priority (p1 > p2 > p3)
             const pMap = { p1: 3, p2: 2, p3: 1 };
             return (pMap[b.priority] || 1) - (pMap[a.priority] || 1);
         })
-        .slice(0, 5); // Take top 5
+        .slice(0, 5), [tasks, project.id]);
 
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
@@ -26,9 +26,9 @@ export default function ActivityPanel({ project }) {
     };
 
     // Get next session if any
-    const nextSession = sessions
+    const nextSession = useMemo(() => sessions
         .filter(s => s.projectId === project.id && new Date(s.start) > new Date())
-        .sort((a, b) => new Date(a.start) - new Date(b.start))[0];
+        .sort((a, b) => new Date(a.start) - new Date(b.start))[0], [sessions, project.id]);
 
     return (
         <div className="flex flex-col h-full min-h-[300px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">

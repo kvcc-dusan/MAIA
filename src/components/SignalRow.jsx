@@ -6,7 +6,9 @@ import { cn, getPriorityColor } from "@/lib/utils";
 import { POPOVER_CLASS } from "@/lib/constants";
 import { CloseButton } from "./ui/CloseButton";
 
-export default function SignalRow({ signal, onDelete, onEdit }) {
+export default React.memo(SignalRow);
+
+function SignalRow({ signal, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);
   const dotColor = getPriorityColor(signal.priority || 'low');
 

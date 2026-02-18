@@ -37,3 +37,12 @@ export const STORAGE_KEYS = {
 
 export const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none ring-0 focus:outline-none focus:ring-0 focus:border-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-all placeholder:text-zinc-600";
 export const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
+
+export const getPriorityColor = (p) => {
+  switch (p) {
+    case 'p1': return NEON_BLUE;
+    case 'p2': return NEON_ORANGE;
+    case 'p3': return NEON_GREEN;
+    default: return NEON_GREEN;
+  }
+};

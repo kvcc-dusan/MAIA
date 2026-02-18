@@ -8,7 +8,9 @@ import ProjectIcon from "./ProjectIcon";
 import { CloseButton } from "./ui/CloseButton";
 import { PriorityCheckbox } from "./ui/PriorityCheckbox";
 
-export default function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
+export default React.memo(TaskRow);
+
+function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
   const [open, setOpen] = useState(false);
 
   // Derived

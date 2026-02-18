@@ -680,7 +680,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
             </span>
           </div>
           <div
-            class="flex-1 overflow-y-auto custom-scrollbar p-0"
+            class="flex-1 overflow-y-auto custom-scrollbar p-0 relative"
           >
             <div
               class="relative h-full"
