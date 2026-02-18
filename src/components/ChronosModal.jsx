@@ -1,668 +1,32 @@
 // @maia:chronos-modal
-import ProjectIcon from "./ProjectIcon";
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
-import { createPortal } from "react-dom";
-import * as Popover from "@radix-ui/react-popover";
-import * as ContextMenu from "@radix-ui/react-context-menu";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, CheckSquare, Folder } from "lucide-react";
+import { Folder } from "lucide-react";
 
-// --- CONSTANTS ---
-const NEON_BLUE = '#3b82f6';
-const NEON_ORANGE = '#FF5930';
-const NEON_GREEN = '#ABFA54';
+import { CloseButton } from "./ui/CloseButton";
+import { CustomSelect } from "./ui/CustomSelect";
+import { PillSelect } from "./ui/PillSelect";
+import { DateTimePicker } from "./ui/DateTimePicker";
+import { Portal } from "./ui/portal";
+import TaskRow from "./TaskRow";
+import SignalRow from "./SignalRow";
 
-const TASK_PRIORITIES = [
-  { value: 'p1', label: 'High Priority', color: NEON_BLUE },
-  { value: 'p2', label: 'Medium Priority', color: NEON_ORANGE },
-  { value: 'p3', label: 'Normal Priority', color: NEON_GREEN }
-];
+import {
+  TASK_PRIORITIES,
+  SIGNAL_PRIORITIES,
+  IN_PRESETS,
+  INPUT_CLASS
+} from "@/lib/constants";
 
-const SIGNAL_PRIORITIES = [
-  { value: 'p1', label: 'High Priority', color: NEON_BLUE },
-  { value: 'p2', label: 'Medium Priority', color: NEON_ORANGE },
-  { value: 'p3', label: 'Normal Priority', color: NEON_GREEN }
-];
+import {
+  toLocalInputValue,
+  isPastTime,
+  hasOverlap
+} from "@/lib/time";
 
-const IN_PRESETS = [
-  { value: 5, label: '5 m' },
-  { value: 10, label: '10 m' },
-  { value: 15, label: '15 m' },
-  { value: 30, label: '30 m' },
-  { value: 60, label: '1 h' },
-  { value: 240, label: 'Later today (4h)' },
-  { value: 'tonight', label: 'Tonight (9pm)' },
-  { value: 'tm_morning', label: 'Tomorrow Morning (9am)' },
-  { value: 'tm_noon', label: 'Tomorrow (12pm)' }
-];
-
-const getPriorityColor = (p) => {
-  switch (p) {
-    case 'p1': return NEON_BLUE;
-    case 'p2': return NEON_ORANGE;
-    case 'p3': return NEON_GREEN;
-    default: return NEON_GREEN;
-  }
-};
-
-// --- HELPERS ---
-
-const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none ring-0 focus:outline-none focus:ring-0 focus:border-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-all placeholder:text-zinc-600";
-const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
-
-function Portal({ children }) {
-  if (typeof window === "undefined") return null;
-  return createPortal(children, document.body);
-}
-
-function CloseButton({ onClick, className, ...props }) {
-  return (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClick && onClick(e); }}
-      className={cn("w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20", className)}
-      {...props}
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-    </button>
-  )
-}
-
-function PriorityCheckbox({ checked, onChange, priority, ...props }) {
-  const color = getPriorityColor(priority);
-
-  return (
-    <button
-      onClick={(e) => { e.stopPropagation(); onChange && onChange(); }}
-      className={cn(
-        "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative group",
-        checked
-          ? "bg-white/20 text-white"
-          : "bg-transparent hover:bg-white/5"
-      )}
-      {...props}
-    >
-      {/* The Dot (Visible when not checked) */}
-      <span
-        className={cn(
-          "absolute w-2 h-2 rounded-full transition-all duration-300",
-          checked ? "opacity-0 scale-0" : "opacity-100 scale-100"
-        )}
-        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}40` }}
-      />
-
-      {/* The Checkmark (Visible when checked) */}
-      <svg
-        width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
-        className={cn(
-          "transition-all duration-300 relative z-10",
-          checked ? "opacity-100 scale-100" : "opacity-0 scale-50"
-        )}
-      >
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-
-      {/* Hover Hint (Empty circle ring on hover when not checked) */}
-      {!checked && (
-        <span className="absolute inset-0 rounded-full border border-white/0 group-hover:border-white/20 transition-colors" />
-      )}
-    </button>
-  )
-}
-
-function CustomSelect({ label, value, options, onChange, placeholder = "Select..." }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-
-  useEffect(() => {
-    const globalClick = (e) => {
-      if (open && ref.current && !ref.current.contains(e.target) && !e.target.closest('.custom-portal-content')) {
-        setOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", globalClick);
-    return () => window.removeEventListener("mousedown", globalClick);
-  }, [open]);
-
-  useLayoutEffect(() => {
-    if (open && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-  }, [open]);
-
-  const selectedIdx = options.findIndex(o => o.value == value);
-  const selectedOption = selectedIdx >= 0 ? options[selectedIdx] : null;
-
-  return (
-    <div className="relative space-y-2 h-full flex flex-col min-w-0" ref={ref}>
-      {label && <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">{label}</label>}
-      <button
-        onClick={() => setOpen(!open)}
-        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          {selectedOption?.color && (
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: selectedOption.color }} />
-          )}
-          <span className="truncate">{selectedOption?.label || value || placeholder}</span>
-        </div>
-        <span className="text-zinc-500 text-xs shrink-0 ml-1">▼</span>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <Portal>
-            <motion.div
-              initial={{ opacity: 0, y: -5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.98 }} transition={{ duration: 0.1 }}
-              className={cn(POPOVER_CLASS, "fixed z-[9999] py-1 max-h-56 overflow-y-auto custom-scrollbar custom-portal-content")}
-              style={{ top: coords.top, left: coords.left, width: coords.width }}
-            >
-              {options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { onChange(opt.value); setOpen(false); }}
-                  className={cn(
-                    "w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-3",
-                    opt.value == value ? "bg-white/5 text-white" : "text-zinc-400"
-                  )}
-                >
-                  {opt.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}
-                  <span className={cn(opt.value == value ? "font-medium" : "")}>{opt.label}</span>
-                </button>
-              ))}
-            </motion.div>
-          </Portal>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// Custom Date Time Picker Popover (12h Support + AM/PM Toggle)
-
-function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-
-  useEffect(() => {
-    const globalClick = (e) => {
-      if (open && ref.current && !ref.current.contains(e.target) && !e.target.closest('.custom-portal-content')) {
-        setOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", globalClick);
-    return () => window.removeEventListener("mousedown", globalClick);
-  }, [open]);
-
-  useLayoutEffect(() => {
-    if (open && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-  }, [open]);
-
-  const selectedOption = options.find(o => o.value == value);
-  const hasValue = value && value !== 'none';
-
-  return (
-    <div className="relative w-full" ref={ref}>
-      <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className={cn(
-          "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-full border transition-all text-xs font-medium",
-          hasValue ? "bg-zinc-900/50 border-zinc-700 text-white hover:bg-zinc-800/50" : "bg-zinc-900/30 border-zinc-700/50 text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-300"
-        )}
-      >
-        <div className="flex items-center gap-2 overflow-hidden">
-          {Icon && <Icon size={14} className={cn("shrink-0", hasValue ? "text-white" : "text-zinc-500")} />}
-          <span className="truncate">{selectedOption?.label || placeholder}</span>
-        </div>
-        {hasValue ? (
-          <div
-            role="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange('none');
-            }}
-            className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
-          >
-            <X size={12} />
-          </div>
-        ) : (
-          <Plus size={12} className="opacity-50" />
-        )}
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <Portal>
-            <motion.div
-              initial={{ opacity: 0, y: -5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.98 }} transition={{ duration: 0.1 }}
-              className={cn(POPOVER_CLASS, "fixed z-[9999] py-1 max-h-56 overflow-y-auto custom-scrollbar custom-portal-content")}
-              style={{ top: coords.top, left: coords.left, width: coords.width }}
-            >
-              {options.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { onChange(opt.value); setOpen(false); }}
-                  className={cn(
-                    "w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-3",
-                    opt.value == value ? "bg-white/5 text-white" : "text-zinc-400"
-                  )}
-                >
-                  {opt.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}
-                  <span className={cn(opt.value == value ? "font-medium" : "")}>{opt.label}</span>
-                </button>
-              ))}
-            </motion.div>
-          </Portal>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// Custom Date Time Picker Popover (12h Support + AM/PM Toggle)
-function DateTimePicker({ label, value, onChange, dateOnly = false }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const [tab, setTab] = useState('date');
-  const [coords, setCoords] = useState({ top: 0, left: 0 });
-
-  const dateObj = value ? new Date(value) : new Date();
-  const [viewDate, setViewDate] = useState(new Date(dateObj));
-
-  // Derived 12h values
-  const hours24 = dateObj.getHours();
-  const isPm = hours24 >= 12;
-  const hours12 = hours24 % 12 || 12; // 0 becomes 12
-  const minutes = dateObj.getMinutes();
-
-  useEffect(() => {
-    const globalClick = (e) => {
-      if (open && ref.current && !ref.current.contains(e.target) && !e.target.closest('.custom-portal-content')) {
-        setOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", globalClick);
-    return () => window.removeEventListener("mousedown", globalClick);
-  }, [open]);
-
-  useLayoutEffect(() => {
-    if (open && ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left
-      });
-    }
-  }, [open]);
-
-  const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-  const monthEnd = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0);
-  const startPad = (monthStart.getDay() + 6) % 7;
-  const daysInMonth = monthEnd.getDate();
-  const gridCells = [];
-  for (let i = 0; i < startPad; i++) gridCells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) gridCells.push(new Date(viewDate.getFullYear(), viewDate.getMonth(), d));
-
-  const setDatePart = (d) => {
-    const newDate = new Date(dateObj);
-    newDate.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
-    onChange(toLocalInputValue(newDate));
-    if (!dateOnly) setTab('time');
-    else setOpen(false);
-  };
-
-  const setTimePart = (field, val) => {
-    // field: 'hour' (1-12), 'min' (0-59), 'ampm' ('AM'|'PM')
-    let newH = hours24;
-    let newM = minutes;
-
-    if (field === 'hour') {
-      const isP = newH >= 12;
-      if (val === 12) newH = isP ? 12 : 0;
-      else newH = isP ? val + 12 : val;
-    } else if (field === 'min') {
-      newM = val;
-    } else if (field === 'ampm') {
-      if (val === 'AM' && newH >= 12) newH -= 12;
-      if (val === 'PM' && newH < 12) newH += 12;
-    }
-
-    const newDate = new Date(dateObj);
-    newDate.setHours(newH, newM);
-    onChange(toLocalInputValue(newDate));
-  };
-
-  const formatDisplay = (d) => {
-    if (!d) return dateOnly ? "Select Date..." : "Select Time...";
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return "Invalid Date";
-    // Format: Feb 6 , 2:23 PM (Without year, matching user pref)
-    const dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    if (dateOnly) return dateStr;
-    const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-    return `${dateStr} , ${timeStr}`;
-  };
-
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
-  };
-
-  return (
-    <div className="relative space-y-2 h-full flex flex-col min-w-0" ref={ref}>
-      {label && <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">{label}</label>}
-      <button
-        onClick={() => setOpen(!open)}
-        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
-        aria-label="Select Date and Time"
-      >
-        <div className="flex items-center gap-3 truncate">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span className="truncate flex-1">{formatDisplay(value)}</span>
-        </div>
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <Portal>
-            <motion.div
-              initial={{ opacity: 0, y: -5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.98 }} transition={{ duration: 0.1 }}
-              className={cn(POPOVER_CLASS, "fixed z-[9999] p-4 custom-portal-content w-80")}
-              style={{ top: coords.top, left: coords.left }}
-            >
-              {/* Tabs */}
-              {!dateOnly && (
-                <div className="flex bg-white/5 p-1 rounded-xl mb-4">
-                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-lg font-medium transition-colors", tab === 'date' ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:text-white")}>Date</button>
-                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-lg font-medium transition-colors", tab === 'time' ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:text-white")}>Time</button>
-                </div>
-              )}
-
-              {tab === 'date' && (
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center text-white text-sm font-medium px-1">
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() - 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white" aria-label="Previous Month">‹</button>
-                    <span>{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white" aria-label="Next Month">›</button>
-                  </div>
-                  <div className="grid grid-cols-7 text-center gap-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
-                    {gridCells.map((d, i) => (
-                      <div key={i} className="aspect-square">
-                        {d && (
-                          <button
-                            onClick={() => setDatePart(d)}
-                            className={cn(
-                              "w-full h-full text-xs rounded-lg hover:bg-white/10 flex items-center justify-center transition-all",
-                              d.toDateString() === dateObj.toDateString() ? "bg-white text-black font-bold shadow-lg scale-110" : "text-zinc-400"
-                            )}
-                          >
-                            {d.getDate()}
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tab === 'time' && !dateOnly && (
-                <div className="flex flex-col gap-2">
-                  {/* Lists: Hours | Mins */}
-                  <div className="h-52 grid grid-cols-2 gap-2 overflow-hidden pb-1">
-                    <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 border-r border-white/5">
-                      <div className="text-[10px] text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Hour</div>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
-                        <button
-                          key={h}
-                          onClick={() => setTimePart('hour', h)}
-                          className={cn("text-xs py-2 rounded-lg hover:bg-white/10 shrink-0 transition-colors", h === hours12 ? "bg-white/20 text-white font-bold" : "text-zinc-400")}
-                        >
-                          {h}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1">
-                      <div className="text-[10px] text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Min</div>
-                      {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
-                        <button
-                          key={m}
-                          onClick={() => setTimePart('min', m)}
-                          className={cn("text-xs py-2 rounded-lg hover:bg-white/10 shrink-0 transition-colors", m === minutes ? "bg-white/20 text-white font-bold" : "text-zinc-400")}
-                        >
-                          {m.toString().padStart(2, '0')}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* AM/PM Toggle Footer - DISTINCT STYLE */}
-                  <div className="flex justify-center pt-1">
-                    <div className="grid grid-cols-2 gap-0 bg-black p-0.5 rounded-lg border border-white/20 w-fit">
-                      <button
-                        onClick={() => setTimePart('ampm', 'AM')}
-                        className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-zinc-300")}
-                      >
-                        AM
-                      </button>
-                      <button
-                        onClick={() => setTimePart('ampm', 'PM')}
-                        className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-zinc-300")}
-                      >
-                        PM
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </Portal>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-// --- POPUP & CONTEXT MENU ROW COMPONENTS ---
-
-function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
-  const [open, setOpen] = useState(false);
-
-  // Derived
-  const priorityLabel = TASK_PRIORITIES.find(p => p.value === (task.priority || 'p3'))?.label || 'Normal';
-  const priorityColor = getPriorityColor(task.priority || 'p3');
-
-  return (
-    <ContextMenu.Root>
-      <ContextMenu.Trigger className="block">
-        <Popover.Root open={open} onOpenChange={setOpen}>
-          <Popover.Trigger asChild>
-            <div
-              className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 cursor-pointer"
-              onClick={(e) => {
-                // Prevent popover if clicking checkbox or delete
-                if (e.target.closest('button')) {
-                  e.preventDefault();
-                  return;
-                }
-              }}
-            >
-              <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
-              <div className="flex-1 min-w-0">
-                <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{task.title}</div>
-                {task.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
-              </div>
-              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
-            </div>
-          </Popover.Trigger>
-
-          <AnimatePresence>
-            {open && (
-              <Popover.Portal>
-                <Popover.Content
-                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
-                  sideOffset={5}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-semibold text-white text-sm leading-tight">{task.title}</h4>
-                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      </Popover.Close>
-                    </div>
-                    {task.desc && <p className="text-xs text-zinc-400 leading-relaxed">{task.desc}</p>}
-
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priorityColor }} />
-                        <span className="text-[10px] font-medium text-zinc-300">{priorityLabel}</span>
-                      </div>
-                      {task.due && (
-                        <div className="text-[10px] text-zinc-500 font-mono">
-                          {new Date(task.due).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Popover.Arrow className="fill-[#09090b]" />
-                </Popover.Content>
-              </Popover.Portal>
-            )}
-          </AnimatePresence>
-        </Popover.Root>
-      </ContextMenu.Trigger>
-
-      <ContextMenu.Portal>
-        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
-            onSelect={onEdit}
-          >
-            <span>Edit Task</span>
-          </ContextMenu.Item>
-
-          <ContextMenu.Sub>
-            <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors">
-              Assign to Project
-              <span>›</span>
-            </ContextMenu.SubTrigger>
-            <ContextMenu.Portal>
-              <ContextMenu.SubContent className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 ml-1")}>
-                {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-zinc-600 italic">No projects</div>}
-                {projects.map(p => (
-                  <ContextMenu.Item
-                    key={p.id}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
-                    onSelect={() => onAssign(p.id)}
-                  >
-                    <ProjectIcon name={p.icon} size={14} className="text-zinc-500 group-hover:text-white" />
-                    <span className="truncate">{p.name}</span>
-                  </ContextMenu.Item>
-                ))}
-              </ContextMenu.SubContent>
-            </ContextMenu.Portal>
-          </ContextMenu.Sub>
-
-          <ContextMenu.Separator className="h-px bg-white/10 my-1" />
-
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded cursor-pointer outline-none transition-colors"
-            onSelect={onDelete}
-          >
-            Delete Task
-          </ContextMenu.Item>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
-    </ContextMenu.Root>
-  );
-}
-
-function SignalRow({ signal, onDelete, onEdit }) {
-  const [open, setOpen] = useState(false);
-  const dotColor = getPriorityColor(signal.priority || 'low');
-
-  return (
-    <ContextMenu.Root>
-      <ContextMenu.Trigger className="block">
-        <Popover.Root open={open} onOpenChange={setOpen}>
-          <Popover.Trigger asChild>
-            <div className="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer">
-              <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                <span className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ backgroundColor: dotColor }}></span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-zinc-200 truncate">{signal.title}</div>
-                <div className="text-[10px] text-zinc-500 font-mono">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-              </div>
-              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Signal" />
-            </div>
-          </Popover.Trigger>
-
-          <AnimatePresence>
-            {open && (
-              <Popover.Portal>
-                <Popover.Content
-                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
-                  sideOffset={5}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-semibold text-white text-sm leading-tight">{signal.title}</h4>
-                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      </Popover.Close>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <div className="text-[10px] text-zinc-400 font-mono">
-                        Scheduled for {new Date(signal.scheduledAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  </div>
-                  <Popover.Arrow className="fill-[#09090b]" />
-                </Popover.Content>
-              </Popover.Portal>
-            )}
-          </AnimatePresence>
-        </Popover.Root>
-      </ContextMenu.Trigger>
-
-      <ContextMenu.Portal>
-        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200")}>
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
-            onSelect={onEdit}
-          >
-            Edit Signal
-          </ContextMenu.Item>
-          <ContextMenu.Separator className="h-px bg-white/10 my-1" />
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded cursor-pointer outline-none transition-colors"
-            onSelect={onDelete}
-          >
-            Cancel Signal
-          </ContextMenu.Item>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
-    </ContextMenu.Root>
-  );
-}
 
 export default function ChronosModal({
   onClose,
@@ -685,21 +49,6 @@ export default function ChronosModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const toLocalInputValue = (date) => {
-    const pad = (n) => (n < 10 ? "0" + n : n);
-    return (
-      date.getFullYear() +
-      "-" +
-      pad(date.getMonth() + 1) +
-      "-" +
-      pad(date.getDate()) +
-      "T" +
-      pad(date.getHours()) +
-      ":" +
-      pad(date.getMinutes())
-    );
-  };
-
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
 
@@ -714,21 +63,10 @@ export default function ChronosModal({
 
   const scrollContainerRef = useRef(null);
 
-  // Auto-scroll to the next available time slot when selectedDate changes or modal opens
+  // Auto-scroll to 7 AM when selectedDate changes or modal opens
   useLayoutEffect(() => {
     if (selectedDate && rightView === 'calendar') {
-      const now = new Date();
-      // If selected date is today, scroll to the next available hour
-      const isSelectedToday = sameDay(selectedDate, now);
-      let scrollHour;
-      if (isSelectedToday) {
-        // Next available: if we're at 10:34, next slot is 11:00
-        scrollHour = now.getMinutes() > 0 ? now.getHours() + 1 : now.getHours();
-        if (scrollHour > 23) scrollHour = 23;
-      } else {
-        scrollHour = 7; // Non-today dates default to 7 AM
-      }
-      const el = document.getElementById(`timeline-hour-${scrollHour}`);
+      const el = document.getElementById('timeline-hour-7');
       if (el && scrollContainerRef.current) {
         el.scrollIntoView({ block: 'start' });
       }
@@ -764,14 +102,15 @@ export default function ChronosModal({
         due: existingTask.due ? toLocalInputValue(new Date(existingTask.due)) : ""
       });
     } else {
-      // Create Mode — tasks are never auto-assigned to the selected calendar day.
-      // The user can set a deadline explicitly via the date picker in the form.
+      // Create Mode
+      let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
+
       setTaskDraft({
         id: null,
         title: "",
         description: "",
         priority: "p3",
-        due: "",
+        due: toLocalInputValue(base),
       });
     }
     setRightView("task-form");
@@ -968,29 +307,6 @@ export default function ChronosModal({
     [reminders]
   );
 
-  // -- SESSIONS LOGIC --
-  // Helper: Check if two time ranges overlap
-  const checkOverlap = (start1, end1, start2, end2, excludeId = null) => {
-    const s1 = new Date(start1).getTime();
-    const e1 = new Date(end1).getTime();
-    const s2 = new Date(start2).getTime();
-    const e2 = new Date(end2).getTime();
-    return s1 < e2 && s2 < e1;
-  };
-
-  // Helper: Check if a time slot overlaps with any existing session
-  const hasOverlap = (start, end, excludeSessionId = null) => {
-    return sessions.some(s => {
-      if (excludeSessionId && s.id === excludeSessionId) return false;
-      return checkOverlap(start, end, s.start, s.end);
-    });
-  };
-
-  // Helper: Check if a time is in the past
-  const isPastTime = (date) => {
-    return new Date(date) < new Date();
-  };
-
   // Auto-cleanup: Remove expired sessions
   useEffect(() => {
     const now = new Date();
@@ -1041,12 +357,6 @@ export default function ChronosModal({
   const saveSession = () => {
     if (!sessionDraft.title.trim()) return;
 
-    // Validate dates
-    if (isNaN(new Date(sessionDraft.start).getTime()) || isNaN(new Date(sessionDraft.end).getTime())) {
-      pushToast && pushToast("Invalid session times");
-      return;
-    }
-
     // Prevent creating sessions in the past
     if (isPastTime(sessionDraft.start)) {
       pushToast && pushToast("Cannot create sessions in the past");
@@ -1054,7 +364,7 @@ export default function ChronosModal({
     }
 
     // Check for overlaps (exclude current session if editing)
-    if (hasOverlap(sessionDraft.start, sessionDraft.end, sessionDraft.id)) {
+    if (hasOverlap(sessionDraft.start, sessionDraft.end, sessions, sessionDraft.id)) {
       pushToast && pushToast("Time slot is already occupied");
       return;
     }
@@ -1116,9 +426,9 @@ export default function ChronosModal({
 
               <div className="space-y-2">
                 {(() => {
-                  const list = tasks.filter(t => !t.done && !t.deleted);
+                  const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
                   if (list.length === 0) {
-                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks yet.</div>;
+                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
                   }
                   return list.map(t => (
                     <TaskRow
@@ -1165,8 +475,8 @@ export default function ChronosModal({
                   {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </span>
                 <div className="flex gap-1">
-                  <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Previous Month">‹</button>
-                  <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white" aria-label="Next Month">›</button>
+                  <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">‹</button>
+                  <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">›</button>
                 </div>
               </div>
 
@@ -1310,7 +620,7 @@ export default function ChronosModal({
 
                       // Prevent interaction with occupied slots
                       const slotEnd = new Date(d.getTime() + 30 * 60000);
-                      if (hasOverlap(d, slotEnd)) return;
+                      if (hasOverlap(d, slotEnd, sessions)) return;
 
                       setGridDraft(null);
                       setIsDragging(true);
@@ -1347,7 +657,7 @@ export default function ChronosModal({
                         const end = new Date(Math.max(dragStart, current) + 30 * 60000);
 
                         // Prevent creating in past or overlapping slots
-                        if (isPastTime(start) || hasOverlap(start, end)) {
+                        if (isPastTime(start) || hasOverlap(start, end, sessions)) {
                           // Reset drag state without creating
                           setDragStart(null);
                           setDragCurrent(null);
@@ -1442,7 +752,7 @@ export default function ChronosModal({
                                   (() => {
                                     const slotEnd = new Date(slotDate.getTime() + 30 * 60000);
                                     const isPast = isPastTime(slotDate);
-                                    const isOccupied = hasOverlap(slotDate, slotEnd);
+                                    const isOccupied = hasOverlap(slotDate, slotEnd, sessions);
 
                                     if (isPast) return "opacity-30 cursor-not-allowed bg-zinc-900/20";
                                     if (isOccupied) return "opacity-50 cursor-not-allowed";
@@ -1454,7 +764,7 @@ export default function ChronosModal({
                                 onDoubleClick={() => {
                                   // Prevent double-click on past or occupied slots
                                   const slotEnd = new Date(slotDate.getTime() + 60 * 60000);
-                                  if (isPastTime(slotDate) || hasOverlap(slotDate, slotEnd)) return;
+                                  if (isPastTime(slotDate) || hasOverlap(slotDate, slotEnd, sessions)) return;
 
                                   setGridDraft({ start: slotDate, end: slotEnd });
                                   setSessionDraft({
@@ -1913,5 +1223,3 @@ export default function ChronosModal({
     </div >
   );
 }
-
-
