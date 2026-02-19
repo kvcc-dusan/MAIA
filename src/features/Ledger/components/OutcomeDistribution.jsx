@@ -2,11 +2,6 @@ import React, { useMemo } from 'react';
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
 import { cn } from "@/lib/utils";
 
-const COLORS = {
-    success: '#93FD23',
-    mixed: '#FEEE08',
-    failure: '#FE083D'
-};
 
 export function OutcomeDistribution({ data }) {
     const { chartData, total } = useMemo(() => {
@@ -50,18 +45,18 @@ export function OutcomeDistribution({ data }) {
             {/* Radar Chart - fills full height */}
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="55%" outerRadius="85%" data={chartData}>
-                    <PolarGrid stroke="#333" opacity={0.3} />
+                    <PolarGrid stroke="#27272a" opacity={0.6} />
                     <PolarAngleAxis
                         dataKey="subject"
-                        tick={{ fill: '#71717a', fontSize: 8, fontFamily: 'monospace' }}
+                        tick={{ fill: '#52525b', fontSize: 8, fontFamily: 'monospace' }}
                     />
                     <Radar
                         dataKey="value"
-                        stroke="#d4d4d8"
+                        stroke="#93FD23"
                         strokeWidth={1.5}
-                        fill="#d4d4d8"
-                        fillOpacity={0.08}
-                        dot={{ fill: '#d4d4d8', r: 3 }}
+                        fill="#93FD23"
+                        fillOpacity={0.06}
+                        dot={{ fill: '#93FD23', r: 3, filter: 'drop-shadow(0 0 3px #93FD23)' }}
                     />
                     <Tooltip
                         content={({ active, payload }) => {
@@ -80,11 +75,11 @@ export function OutcomeDistribution({ data }) {
             </ResponsiveContainer>
 
             {/* Legend - absolute overlay at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-4">
+            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-5">
                 {chartData.map(d => (
-                    <div key={d.subject} className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[d.subject.toLowerCase()] }} />
-                        <span className="text-white font-bold">{d.percent}%</span>
+                    <div key={d.subject} className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider uppercase">
+                        <span className="text-zinc-600 font-bold">{d.subject}</span>
+                        <span className="text-zinc-600">{d.percent}%</span>
                     </div>
                 ))}
             </div>

@@ -3,7 +3,6 @@ import { CalibrationChart } from './CalibrationChart';
 import { VelocityChart } from './VelocityChart';
 import { OutcomeDistribution } from './OutcomeDistribution';
 import { cn } from "@/lib/utils";
-import { ListFilter } from 'lucide-react';
 
 export function JudgmentOverview({ ledger }) {
     const [timeRange, setTimeRange] = useState('all'); // '30d', '90d', 'all'

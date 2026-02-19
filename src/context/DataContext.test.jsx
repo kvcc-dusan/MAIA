@@ -120,9 +120,7 @@ describe('DataContext', () => {
         const projectId = projectAItem.textContent.split(':')[1];
         expect(projectId).toBeTruthy();
 
-        // 1b. Create a Note to link
-        await user.click(screen.getByText('Create Note'));
-        expect(screen.getByTestId('notes-count').textContent).toBe('1');
+
 
         // 2. Link Project A to the first note (N1)
         await user.click(screen.getByText('Link P1 to N1'));

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
@@ -16,19 +16,6 @@ export default function Editor({ note, updateNote, projects = [] }) {
     return "edit";
   });
   const [wide, setWide] = useState(() => localStorage.getItem(widthKey()) === "true");
-  const editorContainerRef = useRef(null);
-
-  // Click anywhere in the scrollable editor area → focus the TipTap editor
-  const handleContainerClick = useCallback((e) => {
-    // Only handle clicks directly on the container or its padding wrapper,
-    // not on the editor itself or other interactive elements.
-    const clickedEl = e.target;
-    if (clickedEl.closest('.tiptap') || clickedEl.closest('input') || clickedEl.closest('button')) return;
-    const pm = editorContainerRef.current?.querySelector('.ProseMirror');
-    if (pm && pm.getAttribute('contenteditable') === 'true') {
-      pm.focus();
-    }
-  }, []);
 
   const toggleWide = () => {
     setWide(prev => {
@@ -115,16 +102,14 @@ export default function Editor({ note, updateNote, projects = [] }) {
 
           {/* Editor Container */}
           <div
-            ref={editorContainerRef}
             className="flex-1 overflow-y-auto custom-scrollbar relative cursor-text"
-            onClick={handleContainerClick}
           >
             <div className="min-h-full px-6 py-6 pb-32">
               <EditorRich
                 value={local.content || ""}
                 editable={editable}
-                onChange={(md) => setLocal((v) => ({ ...v, content: md }))}
-                onMetaChange={(meta) => setLocal((v) => {
+                onChange={useCallback((md) => setLocal((v) => ({ ...v, content: md })), [])}
+                onMetaChange={useCallback((meta) => setLocal((v) => {
                   // 1. Tags: Replace duplicative merging with direct set (fixes #k #ks #ksva bug)
                   const newTags = meta.tags || [];
 
@@ -151,7 +136,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                     projectIds: newProjectIds,
                     project: newProjectName || null
                   };
-                })}
+                }), [projects])}
                 className="maia-editor"
               />
             </div>

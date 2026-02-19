@@ -1,22 +1,16 @@
 // @maia:chronos-modal
-import ProjectIcon from "./ProjectIcon";
-import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
-import * as Popover from "@radix-ui/react-popover";
-import * as ContextMenu from "@radix-ui/react-context-menu";
+import React, { useEffect, useMemo, useState } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
-import { AnimatePresence } from "framer-motion";
 import { Folder } from "lucide-react";
 
-import { NEON_BLUE, NEON_ORANGE, NEON_GREEN, TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, getPriorityColor, INPUT_CLASS, POPOVER_CLASS } from "../lib/constants";
-import { sameDay, toLocalInputValue } from "../lib/time";
+import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, INPUT_CLASS } from "../lib/constants";
+import { sameDay, toLocalInputValue, isPastTime, hasOverlap } from "../lib/time";
 import { CloseButton } from "./ui/CloseButton";
-import { PriorityCheckbox } from "./ui/PriorityCheckbox";
 import { CustomSelect } from "./ui/CustomSelect";
 import { DateTimePicker } from "./ui/DateTimePicker";
 import { PillSelect } from "./ui/PillSelect";
-import { Portal } from "./ui/portal";
 import TaskRow from "./TaskRow";
 import SignalRow from "./SignalRow";
 import DailyTimeline from "./DailyTimeline";
@@ -112,6 +106,58 @@ export default function ChronosModal({
       });
     }
     setRightView("signal-form");
+  };
+
+  const [sessionDraft, setSessionDraft] = useState({
+    id: null,
+    title: "",
+    description: "",
+    start: null,
+    end: null,
+    linkedProjectId: "none"
+  });
+
+  const openSessionForm = (draft) => {
+    setSessionDraft({
+      id: draft.id || null,
+      title: draft.title || "",
+      description: draft.description || "",
+      start: draft.start ? new Date(draft.start) : null,
+      end: draft.end ? new Date(draft.end) : null,
+      linkedProjectId: draft.linkedProjectId || "none"
+    });
+    setRightView("session-form");
+  };
+
+  const saveSession = () => {
+    const title = sessionDraft.title.trim();
+    if (!title || !sessionDraft.start || !sessionDraft.end) return;
+
+    if (isPastTime(sessionDraft.start)) {
+      pushToast?.("Cannot create sessions in the past");
+      return;
+    }
+
+    if (hasOverlap(sessionDraft.start, sessionDraft.end, sessions, sessionDraft.id)) {
+      pushToast?.("Time slot is already occupied");
+      return;
+    }
+
+    const newSession = {
+      id: sessionDraft.id || uid(),
+      title,
+      description: sessionDraft.description.trim(),
+      start: sessionDraft.start.toISOString(),
+      end: sessionDraft.end.toISOString(),
+      linkedProjectId: sessionDraft.linkedProjectId === 'none' ? null : sessionDraft.linkedProjectId
+    };
+
+    if (sessionDraft.id) {
+      setSessions(prev => prev.map(s => s.id === sessionDraft.id ? newSession : s));
+    } else {
+      setSessions(prev => [...prev, newSession]);
+    }
+    closeForm();
   };
 
   const closeForm = () => {
@@ -226,7 +272,6 @@ export default function ChronosModal({
       setSignalDraft(d => ({ ...d, minutes: val }));
     } else {
       // Handle smart presets
-      const now = new Date();
       let target = new Date();
 
       switch (val) {
@@ -252,20 +297,37 @@ export default function ChronosModal({
     }
   };
 
-  const [rightWidth, setRightWidth] = useState(() =>
-    Number(localStorage.getItem("pulse.rightWidth")) || 420
-  );
+  const rightWidth = Number(localStorage.getItem("pulse.rightWidth")) || 420;
 
-  const monthStart = new Date(view.y, view.m, 1);
-  const monthEnd = new Date(view.y, view.m + 1, 0);
-  const startPad = (monthStart.getDay() + 6) % 7;
-  const daysInMonth = monthEnd.getDate();
-  const gridCells = [];
-  for (let i = 0; i < startPad; i++) gridCells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) gridCells.push(new Date(view.y, view.m, d));
-  while (gridCells.length < 42) gridCells.push(null);
+  // Memoized Grid Cells
+  const gridCells = useMemo(() => {
+    const monthStart = new Date(view.y, view.m, 1);
+    const monthEnd = new Date(view.y, view.m + 1, 0);
+    const startPad = (monthStart.getDay() + 6) % 7;
+    const daysInMonth = monthEnd.getDate();
+    const cells = [];
+    for (let i = 0; i < startPad; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(view.y, view.m, d));
+    while (cells.length < 42) cells.push(null);
+    return cells;
+  }, [view.y, view.m]);
 
-  const tasksOn = (date) => tasks.filter((t) => t.due && sameDay(new Date(t.due), date) && !t.deleted);
+  // Memoized Task Lookup
+  const tasksByDate = useMemo(() => {
+    const map = {};
+    tasks.forEach(t => {
+      if (t.deleted || !t.due) return;
+      const key = new Date(t.due).toDateString();
+      if (!map[key]) map[key] = [];
+      map[key].push(t);
+    });
+    return map;
+  }, [tasks]);
+
+  const tasksOn = React.useCallback((date) => {
+    if (!date) return [];
+    return tasksByDate[date.toDateString()] || [];
+  }, [tasksByDate]);
 
   const toggleTask = (id) => setTasks((prev) => prev.map((x) => {
     if (x.id !== id) return x;
@@ -416,8 +478,8 @@ export default function ChronosModal({
                   sessions={sessions}
                   setSessions={setSessions}
                   selectedDate={selectedDate}
-                  projects={projects}
-                  pushToast={pushToast}
+                  onOpenSessionForm={openSessionForm}
+                  editingSessionId={rightView === 'session-form' ? sessionDraft.id : null}
                 />
               </div>
             </>
@@ -548,6 +610,71 @@ export default function ChronosModal({
               <div className="flex justify-end pt-4">
                 <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
                   {signalDraft.id ? "Save Changes" : "Create Signal"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {rightView === 'session-form' && (
+            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-semibold text-white">
+                  {sessionDraft.id ? "Edit Session" : "New Session"}
+                </h2>
+                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+              </div>
+
+              <div className="flex-1 space-y-6">
+                <div className="space-y-4">
+                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
+                  <input
+                    autoFocus
+                    className={cn(INPUT_CLASS, "w-full p-4")}
+                    placeholder="Deep work session..."
+                    value={sessionDraft.title}
+                    onChange={e => setSessionDraft(d => ({ ...d, title: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && saveSession()}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-2">
+                    <DateTimePicker
+                      label="Start"
+                      value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
+                      onChange={val => setSessionDraft(d => ({ ...d, start: new Date(val) }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <DateTimePicker
+                      label="End"
+                      value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
+                      onChange={val => setSessionDraft(d => ({ ...d, end: new Date(val) }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Project</label>
+                  <PillSelect
+                    value={sessionDraft.linkedProjectId}
+                    options={projects.map(p => ({ value: p.id, label: p.name }))}
+                    onChange={val => setSessionDraft(d => ({ ...d, linkedProjectId: val }))}
+                    placeholder="Link Project"
+                    icon={Folder}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
+                  <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                  {sessionDraft.id ? "Save Changes" : "Create Session"}
                 </button>
               </div>
             </div>

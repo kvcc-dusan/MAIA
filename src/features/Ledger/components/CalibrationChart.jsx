@@ -1,8 +1,5 @@
 import React, { useMemo } from 'react';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
-import { cn } from "@/lib/utils";
-
-
+import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
 
 export function CalibrationChart({ data }) {
     const chartData = useMemo(() => {
@@ -39,54 +36,47 @@ export function CalibrationChart({ data }) {
             })
             .filter(Boolean)
             .sort((a, b) => a.avgConfidence - b.avgConfidence);
-
     }, [data]);
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex flex-col items-center justify-center text-zinc-700 font-mono text-[10px] uppercase tracking-wider">
-                <span>Not enough data</span>
+            <div className="h-full w-full flex items-center justify-center text-zinc-700 font-mono text-[10px] uppercase tracking-wider">
+                Not enough data
             </div>
         );
     }
 
-
-
     return (
         <div className="h-full w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.2} vertical={false} />
+                <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+                    <defs>
+                        <linearGradient id="calibrationGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#93FD23" stopOpacity={0.12} />
+                            <stop offset="100%" stopColor="#93FD23" stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
                     <XAxis
                         dataKey="avgConfidence"
                         type="number"
-                        domain={[0, 100]}
-                        ticks={[0, 20, 40, 60, 80, 100]}
-                        tick={{ fill: '#52525b', fontSize: 9, fontFamily: 'monospace' }}
-                        tickLine={false}
-                        axisLine={{ stroke: '#333', opacity: 0.2 }}
-                    />
-                    <YAxis
-                        type="number"
-                        domain={[0, 100]}
-                        ticks={[0, 50, 100]}
+                        domain={[10, 100]}
+                        ticks={[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
+                        tickFormatter={(v) => `${v}%`}
                         tick={{ fill: '#52525b', fontSize: 9, fontFamily: 'monospace' }}
                         tickLine={false}
                         axisLine={false}
                     />
                     <Tooltip
-                        cursor={{ stroke: '#52525b', strokeWidth: 1, strokeDasharray: '3 3' }}
+                        cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 1 }}
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-white/10 rounded-lg p-3 text-[10px] shadow-2xl backdrop-blur-md">
-                                        <div className="text-zinc-400 mb-1 font-mono uppercase tracking-wider">{d.count} Decisions</div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-zinc-200">
-                                            <span className="text-zinc-500">Exp:</span>
-                                            <span className="font-bold">{d.avgConfidence}%</span>
-                                            <span className="text-zinc-500">Act:</span>
-                                            <span className="font-bold text-zinc-300">{d.actualSuccess}%</span>
+                                    <div className="bg-black/90 border border-white/10 rounded-lg px-3 py-2 text-[10px] shadow-xl backdrop-blur-md">
+                                        <div className="text-zinc-500 mb-1">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
+                                        <div className="flex gap-3 text-white">
+                                            <span className="text-zinc-500">Exp <span className="text-white font-bold">{d.avgConfidence}%</span></span>
+                                            <span className="text-zinc-500">Act <span className="text-white font-bold">{d.actualSuccess}%</span></span>
                                         </div>
                                     </div>
                                 );
@@ -94,18 +84,16 @@ export function CalibrationChart({ data }) {
                             return null;
                         }}
                     />
-                    {/* Perfect Calibration Line */}
-                    <ReferenceLine segment={[{ x: 0, y: 0 }, { x: 100, y: 100 }]} stroke="#52525b" strokeDasharray="3 3" opacity={0.5} />
-
-                    <Line
+                    <Area
                         type="monotone"
                         dataKey="actualSuccess"
-                        stroke="#71717a"
+                        stroke="#93FD23"
                         strokeWidth={1.5}
-                        dot={{ fill: '#71717a', r: 4, strokeWidth: 0 }}
-                        activeDot={{ fill: '#71717a', r: 6, strokeWidth: 0 }}
+                        fill="url(#calibrationGradient)"
+                        dot={{ fill: '#93FD23', r: 2, strokeWidth: 0 }}
+                        activeDot={{ fill: '#93FD23', r: 4, strokeWidth: 0, filter: 'drop-shadow(0 0 4px #93FD23)' }}
                     />
-                </LineChart>
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
