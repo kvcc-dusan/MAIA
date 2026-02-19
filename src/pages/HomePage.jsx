@@ -102,26 +102,26 @@ export default function TodayPage({
 
       {/* Single-screen hero — greeting + widgets */}
       <div className="flex-1 w-full">
-        <div className="grid h-full w-full grid-cols-1 items-center gap-12 p-4 md:p-8 lg:grid-cols-2 lg:px-16">
+        <div className="grid h-full w-full grid-cols-1 items-center gap-6 sm:gap-8 lg:gap-12 p-4 md:p-8 lg:px-16 pb-24 lg:grid-cols-2">
 
           {/* LEFT ZONE: Greeting */}
           <div className="flex flex-col items-start justify-center space-y-6">
             <div className="space-y-4 text-left">
               <h1
-                className="whitespace-nowrap text-4xl font-semibold tracking-tight mix-blend-difference grayscale md:text-5xl lg:text-6xl"
+                className="whitespace-nowrap text-fluid-2xl sm:text-fluid-3xl font-semibold tracking-tight mix-blend-difference grayscale"
                 style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
               >
                 <span className="text-white/50">{greeting}</span>{" "}
                 <span className="text-white">{userName || "Dušan"}.</span>
               </h1>
-              <p className="max-w-xl text-base font-normal italic leading-relaxed text-white/90 mix-blend-difference grayscale md:text-lg">
+              <p className="max-w-xl text-fluid-xs sm:text-fluid-sm font-normal italic leading-relaxed text-white/90 mix-blend-difference grayscale">
                 "{quote}"
               </p>
             </div>
           </div>
 
           {/* RIGHT ZONE: 3 Vertically-Centered Glass Widgets */}
-          <div className="mx-auto flex w-full max-w-sm flex-col items-center justify-center space-y-5 lg:ml-auto lg:mx-0 lg:items-end">
+          <div className="mx-auto flex w-full max-w-sm sm:max-w-md lg:max-w-sm flex-col items-center justify-center space-y-5 lg:ml-auto lg:mx-0 lg:items-end">
 
             {/* 1. World Map & Weather Widget */}
             <GlassErrorBoundary>

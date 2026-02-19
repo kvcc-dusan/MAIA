@@ -15,9 +15,9 @@ export default function ReviewModal({ decision, onClose, onReview }) {
                     <h2 className="text-lg font-bold text-white mb-6">Review Outcome</h2>
 
                     <GlassCard variant="default" className="mb-6">
-                        <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-1">Decision</div>
+                        <div className="text-fluid-3xs uppercase tracking-widest text-zinc-500 mb-1">Decision</div>
                         <div className="text-zinc-200 font-medium">{decision.title}</div>
-                        <div className="mt-3 text-[10px] uppercase tracking-widest text-zinc-500 mb-1">Assumptions</div>
+                        <div className="mt-3 text-fluid-3xs uppercase tracking-widest text-zinc-500 mb-1">Assumptions</div>
                         <ul className="list-disc list-inside text-zinc-400 text-xs space-y-0.5">
                             {decision.assumptions.map((a, i) => <li key={i}>{a}</li>)}
                         </ul>
@@ -25,7 +25,7 @@ export default function ReviewModal({ decision, onClose, onReview }) {
 
                     <div className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Actual Outcome</label>
+                            <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Actual Outcome</label>
                             <GlassTextarea
                                 className="min-h-[100px]"
                                 autoFocus
@@ -34,7 +34,7 @@ export default function ReviewModal({ decision, onClose, onReview }) {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Result Assessment</label>
+                            <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Result Assessment</label>
                             <div className="flex bg-white/5 rounded-lg border border-white/5 p-1 gap-1">
                                 {['success', 'mixed', 'failure'].map(s => (
                                     <button

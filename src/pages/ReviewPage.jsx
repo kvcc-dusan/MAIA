@@ -63,7 +63,7 @@ export default function ReviewPage({ notes, projects, createNote, updateNote, pu
                                         <span className="text-zinc-300 text-sm">#{v.tag}</span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-emerald-400 text-xs font-mono">+{v.velocity}</span>
-                                            <span className="text-zinc-600 text-[10px]">({v.recent})</span>
+                                            <span className="text-zinc-600 text-fluid-3xs">({v.recent})</span>
                                         </div>
                                     </div>
                                 ))}
@@ -80,7 +80,7 @@ export default function ReviewPage({ notes, projects, createNote, updateNote, pu
                                 {signals.staleness.map(s => (
                                     <div key={s.project.id} className="flex flex-col">
                                         <div className="text-zinc-300 text-sm truncate">{s.project.name}</div>
-                                        <div className="text-red-400/80 text-[10px] font-mono">
+                                        <div className="text-red-400/80 text-fluid-3xs font-mono">
                                             Untouched for {s.lastActivityDays} days
                                         </div>
                                     </div>

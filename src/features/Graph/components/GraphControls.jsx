@@ -73,7 +73,7 @@ export default function GraphControls({
                 <div className="flex-none p-5 border-b border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">ConneXa</span>
-                        <span className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-zinc-600">Controls</span>
+                        <span className="text-fluid-3xs bg-white/5 px-1.5 py-0.5 rounded text-zinc-600">Controls</span>
                     </div>
                 </div>
 
@@ -81,7 +81,7 @@ export default function GraphControls({
 
                     {/* SEARCH */}
                     <div className="space-y-3">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Search</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Search</div>
                         <div className="relative">
                             <ProjectIcon name="search" size={14} className="absolute left-3 top-2.5 text-zinc-500" />
                             <GlassInput
@@ -107,7 +107,7 @@ export default function GraphControls({
 
                     {/* FILTERS */}
                     <div className="space-y-3">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Filters</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Filters</div>
 
                         <div className="space-y-1">
                             <label className="flex items-center justify-between py-2 text-xs text-zinc-400 cursor-pointer group hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
@@ -127,11 +127,11 @@ export default function GraphControls({
 
                     {/* DISPLAY */}
                     <div className="space-y-4">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Display</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Display</div>
 
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                                <div className="flex justify-between text-fluid-3xs text-zinc-500 font-mono">
                                     <span>Node Size</span>
                                     <span>{nodeSize}x</span>
                                 </div>
@@ -145,7 +145,7 @@ export default function GraphControls({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                                <div className="flex justify-between text-fluid-3xs text-zinc-500 font-mono">
                                     <span>Link Thickness</span>
                                     <span>{linkThickness}px</span>
                                 </div>
@@ -159,7 +159,7 @@ export default function GraphControls({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                                <div className="flex justify-between text-fluid-3xs text-zinc-500 font-mono">
                                     <span>Text Size</span>
                                     <span>{fontSize}x</span>
                                 </div>
@@ -176,12 +176,12 @@ export default function GraphControls({
 
                     {/* PHYSICS */}
                     <div className="space-y-4">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Physics</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Physics</div>
 
                         <div className="space-y-4">
                             {/* Entropy (Repel) */}
                             <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                                <div className="flex justify-between text-fluid-3xs text-zinc-500 font-mono">
                                     <span>Entropy</span>
                                     <span>{repelForce}</span>
                                 </div>
@@ -196,7 +196,7 @@ export default function GraphControls({
 
                             {/* Entanglement (Link Distance) */}
                             <div className="space-y-2">
-                                <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
+                                <div className="flex justify-between text-fluid-3xs text-zinc-500 font-mono">
                                     <span>Entanglement</span>
                                     <span>{linkDistance}</span>
                                 </div>
@@ -213,10 +213,10 @@ export default function GraphControls({
 
                     {/* MOMENTUM */}
                     <div className="space-y-3">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Momentum</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Momentum</div>
                         <div className="flex flex-wrap gap-2">
                             {Array.from(hotTags).slice(0, 10).map(tag => (
-                                <span key={tag} className="text-[10px] bg-white/5 border border-white/10 text-zinc-400 px-2.5 py-1 rounded-full hover:bg-white/10 hover:text-white transition-colors cursor-default font-mono">
+                                <span key={tag} className="text-fluid-3xs bg-white/5 border border-white/10 text-zinc-400 px-2.5 py-1 rounded-full hover:bg-white/10 hover:text-white transition-colors cursor-default font-mono">
                                     #{tag}
                                 </span>
                             ))}
@@ -228,7 +228,7 @@ export default function GraphControls({
 
                     {/* GROUPS (Analysis) */}
                     <div className="space-y-3 pb-8">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Clusters</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Clusters</div>
                         <div className="space-y-1">
                             {clusters.slice(0, 5).map((c, i) => (
                                 <button
@@ -243,7 +243,7 @@ export default function GraphControls({
                                         <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                                         <span className="truncate max-w-[120px] font-mono">{c.name}</span>
                                     </div>
-                                    <span className="text-zinc-600 font-mono text-[10px]">{c.size}</span>
+                                    <span className="text-zinc-600 font-mono text-fluid-3xs">{c.size}</span>
                                 </button>
                             ))}
                         </div>

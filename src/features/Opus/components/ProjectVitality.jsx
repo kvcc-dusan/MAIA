@@ -86,7 +86,7 @@ export default function ProjectVitality({ project }) {
                 animate && "animate-pulse shadow-[0_0_8px_currentColor]"
             )} />
             <span className={cn(
-                "text-[10px] font-bold uppercase tracking-wider",
+                "text-fluid-3xs font-bold uppercase tracking-wider",
                 color
             )}>
                 {status}

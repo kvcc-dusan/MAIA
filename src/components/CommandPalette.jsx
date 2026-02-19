@@ -67,7 +67,7 @@ export default function CommandPalette({
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity" onMouseDown={onClose}>
       <div
 
-        className="mx-auto w-[90%] md:w-[600px] rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-white/10 bg-black/80 backdrop-blur-xl"
+        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-white/10 bg-black/80 backdrop-blur-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-white/5">
@@ -79,7 +79,7 @@ export default function CommandPalette({
             className="w-full bg-transparent px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 font-medium"
           />
         </div>
-        <div className="max-h-[360px] overflow-auto p-2 space-y-1 custom-scrollbar">
+        <div className="max-h-[min(360px,calc(100dvh-200px))] overflow-auto p-2 space-y-1 custom-scrollbar">
           {items.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-600">No matching commands or notes.</div>
           )}
@@ -95,18 +95,18 @@ export default function CommandPalette({
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-colors shrink-0",
+                  "w-8 h-8 rounded-lg flex items-center justify-center text-fluid-3xs font-bold transition-colors shrink-0",
                   i === idx ? "bg-white text-black" : "bg-white/5 text-zinc-500 group-hover:bg-white/10 group-hover:text-zinc-300"
                 )}>
                   {it._type === 'action' ? 'CMD' : 'DOC'}
                 </div>
                 <span>{it.label}</span>
               </div>
-              {it._type === 'note' && <span className="text-[10px] opacity-40 uppercase font-medium">Note</span>}
+              {it._type === 'note' && <span className="text-fluid-3xs opacity-40 uppercase font-medium">Note</span>}
             </button>
           ))}
         </div>
-        <div className="px-4 py-3 border-t border-white/5 bg-black/40 text-[10px] text-zinc-600 flex justify-between uppercase tracking-widest font-bold">
+        <div className="px-4 py-3 border-t border-white/5 bg-black/40 text-fluid-3xs text-zinc-600 flex justify-between uppercase tracking-widest font-bold">
           <span>Search, Navigate, Act</span>
           <span>ESC to close</span>
         </div>

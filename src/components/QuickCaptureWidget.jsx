@@ -54,11 +54,11 @@ export default function QuickCaptureWidget({
 
                 {/* HEADER */}
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
-                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <CardTitle className="text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground">
                         Quick Capture
                     </CardTitle>
                     {todayEntries.length > 0 && (
-                        <span className="text-[10px] font-mono text-muted-foreground">
+                        <span className="text-fluid-3xs font-mono text-muted-foreground">
                             {todayEntries.length} today
                         </span>
                     )}
@@ -81,7 +81,7 @@ export default function QuickCaptureWidget({
                     <button
                         ref={btnRef}
                         onClick={() => setShowEntries((v) => !v)}
-                        className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+                        className="text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
                     >
                         Entries
                     </button>
@@ -90,7 +90,7 @@ export default function QuickCaptureWidget({
                     <button
                         onClick={handleCapture}
                         disabled={!captureContent?.trim()}
-                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <span>Capture</span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -113,7 +113,7 @@ export default function QuickCaptureWidget({
                     }}
                 >
                     {todayEntries.length === 0 ? (
-                        <div className="text-[10px] text-muted-foreground font-mono italic text-center py-2">
+                        <div className="text-fluid-3xs text-muted-foreground font-mono italic text-center py-2">
                             No entries yet today.
                         </div>
                     ) : (
@@ -127,7 +127,7 @@ export default function QuickCaptureWidget({
                                     }}
                                     className="w-full text-left pl-3 border-l border-white/10 hover:border-white/30 transition-colors"
                                 >
-                                    <div className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">
+                                    <div className="text-fluid-3xs text-muted-foreground font-mono uppercase tracking-wider">
                                         {new Date(entry.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </div>
                                     <div className="text-xs text-zinc-400 font-mono leading-snug line-clamp-1 hover:text-zinc-200 transition-colors">

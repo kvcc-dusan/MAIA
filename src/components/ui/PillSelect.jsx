@@ -23,11 +23,24 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
   useLayoutEffect(() => {
     if (open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left,
-        width: rect.width
-      });
+      const dropdownHeight = 224; // max-h-56 = 14rem = 224px
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      let top = rect.bottom + 8;
+      let left = rect.left;
+
+      // Flip above if overflowing bottom
+      if (top + dropdownHeight > vh - 8) {
+        top = rect.top - dropdownHeight - 8;
+      }
+      // Clamp horizontal
+      if (left + rect.width > vw - 8) {
+        left = vw - rect.width - 8;
+      }
+      if (left < 8) left = 8;
+
+      setCoords({ top, left, width: rect.width });
     }
   }, [open]);
 

@@ -8,11 +8,11 @@ const JournalHistoryList = React.memo(({ entries }) => {
     return (
         <div className='flex-1 relative min-h-0 w-full'>
             <div className='absolute inset-0 overflow-y-auto custom-scrollbar space-y-5 pb-8'>
-                <div className='text-[10px] font-bold text-zinc-600 uppercase tracking-widest sticky top-0 z-10 py-2 mb-3 font-mono backdrop-blur-sm'>History</div>
+                <div className='text-fluid-3xs font-bold text-zinc-600 uppercase tracking-widest sticky top-0 z-10 py-2 mb-3 font-mono backdrop-blur-sm'>History</div>
                 {entries.map(entry => (
                     <div key={entry.id} className='group relative pl-5 border-l border-white/10 hover:border-white/20 transition-colors'>
                         <div className='absolute -left-[3px] top-2 w-1.5 h-1.5 rounded-full bg-zinc-700 group-hover:bg-white transition-colors' />
-                        <div className='text-[10px] text-zinc-600 font-mono mb-1.5 flex justify-between uppercase tracking-wider'>
+                        <div className='text-fluid-3xs text-zinc-600 font-mono mb-1.5 flex justify-between uppercase tracking-wider'>
                             <span>{new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             <span className='opacity-0 group-hover:opacity-100 transition-opacity'>{new Date(entry.createdAt).toLocaleDateString()}</span>
                         </div>
@@ -59,7 +59,7 @@ export default function Journal({ journal = [], setJournal, onOpenLedger }) {
                             <div className='text-2xl md:text-3xl font-bold text-white tracking-tight'>
                                 {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
                             </div>
-                            <div className='text-[10px] text-zinc-500 font-mono uppercase tracking-widest'>
+                            <div className='text-fluid-3xs text-zinc-500 font-mono uppercase tracking-widest'>
                                 Daily Log • {new Date().toLocaleDateString(undefined, { weekday: 'long' })}
                             </div>
                         </div>
@@ -89,7 +89,7 @@ export default function Journal({ journal = [], setJournal, onOpenLedger }) {
                                     <button
                                         onClick={handleSubmit}
                                         disabled={!content.trim()}
-                                        className='text-[10px] font-bold uppercase tracking-widest px-5 py-2 bg-white rounded-lg text-black hover:bg-zinc-200 transition-all font-mono disabled:opacity-30 disabled:cursor-not-allowed'
+                                        className='text-fluid-3xs font-bold uppercase tracking-widest px-5 py-2 bg-white rounded-lg text-black hover:bg-zinc-200 transition-all font-mono disabled:opacity-30 disabled:cursor-not-allowed'
                                     >
                                         Capture
                                     </button>
@@ -108,7 +108,7 @@ export default function Journal({ journal = [], setJournal, onOpenLedger }) {
             <div className={`absolute top-0 right-0 h-full w-72 z-50 transform transition-all duration-300 ease-out ${isDrawerOpen ? 'translate-x-0 visible' : 'translate-x-full invisible'}`}>
                 <div className='h-full w-full bg-black/95 backdrop-blur-2xl border-l border-white/10 flex flex-col shadow-2xl'>
                     <div className='flex items-center justify-between px-5 py-4 border-b border-white/5'>
-                        <span className='text-[10px] font-bold uppercase tracking-widest text-zinc-500 font-mono'>Search</span>
+                        <span className='text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500 font-mono'>Search</span>
                         <button onClick={() => setIsDrawerOpen(false)} className='w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-white hover:bg-white/10 transition-all'>
                             <ProjectIcon name='x' size={14} />
                         </button>

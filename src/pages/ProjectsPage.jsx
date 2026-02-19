@@ -1,5 +1,5 @@
 // @maia:projects
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { uid } from "../lib/ids.js";
 import GlassSurface from "../components/GlassSurface";
 import CreateProjectModal from "../components/CreateProjectModal";
@@ -104,24 +104,41 @@ export default function Projects({
   // Fixed widths: 320px expanded, 56px collapsed
   const effectiveWidth = isCollapsed ? 56 : 320;
 
+  // Mobile sidebar overlay
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+
   return (
     <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-zinc-200">
 
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors backdrop-blur-md"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      {/* Mobile sidebar backdrop */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMobile} />
+      )}
 
       {/* Main Container */}
       <div className="relative z-10 w-full h-full flex pointer-events-none">
 
-        {/* SIDEBAR: Project List */}
+        {/* SIDEBAR: Project List — hidden on mobile, overlay when mobileOpen */}
         <div
-          className="flex-none h-full border-r border-white/10 bg-black pointer-events-auto flex flex-col relative group/sidebar transition-[width] duration-300 ease-in-out"
-          style={{ width: effectiveWidth }}
+          className={`flex-none h-full border-r border-white/10 bg-black pointer-events-auto flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
+            ${mobileOpen ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'hidden md:flex'}`}
+          style={{ width: mobileOpen ? 320 : effectiveWidth }}
         >
           {/* Header */}
           {/* Header */}
           <div className={`flex-none p-6 border-b border-white/5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-2 overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
               <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Projects</span>
-              <span className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-zinc-600 font-mono">OPUS</span>
+              <span className="text-fluid-3xs bg-white/5 px-1.5 py-0.5 rounded text-zinc-600 font-mono">OPUS</span>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -145,7 +162,7 @@ export default function Projects({
             {activeList.map(p => (
               <button
                 key={p.id}
-                onClick={() => setActiveId(p.id)}
+                onClick={() => { setActiveId(p.id); closeMobile(); }}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border ${p.id === activeId
                   ? isCollapsed
                     ? "bg-transparent border-transparent shadow-none" // Collapsed active: icon only
@@ -163,7 +180,7 @@ export default function Projects({
 
             {otherList.length > 0 && effectiveWidth > 120 && (
               <div className="pt-4 mt-4 border-t border-white/5">
-                <div className="px-3 mb-2 text-[10px] text-zinc-600 uppercase tracking-widest font-bold">Archived</div>
+                <div className="px-3 mb-2 text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Archived</div>
                 {otherList.map(p => (
                   <button
                     key={p.id}

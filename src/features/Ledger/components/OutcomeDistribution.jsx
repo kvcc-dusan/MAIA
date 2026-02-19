@@ -34,7 +34,7 @@ export function OutcomeDistribution({ data }) {
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-zinc-700 text-[10px] uppercase font-mono tracking-wider">
+            <div className="h-full w-full flex items-center justify-center text-zinc-700 text-fluid-3xs uppercase font-mono tracking-wider">
                 No reviews yet
             </div>
         );
@@ -63,7 +63,7 @@ export function OutcomeDistribution({ data }) {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-white/10 rounded-lg px-2 py-1 text-[10px] shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-white">
+                                    <div className="bg-black/90 border border-white/10 rounded-lg px-2 py-1 text-fluid-3xs shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-white">
                                         {d.subject}: {d.value}
                                     </div>
                                 );
@@ -77,7 +77,7 @@ export function OutcomeDistribution({ data }) {
             {/* Legend - absolute overlay at bottom */}
             <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-5">
                 {chartData.map(d => (
-                    <div key={d.subject} className="flex items-center gap-1.5 text-[9px] font-mono tracking-wider uppercase">
+                    <div key={d.subject} className="flex items-center gap-1.5 text-fluid-3xs font-mono tracking-wider uppercase">
                         <span className="text-zinc-600 font-bold">{d.subject}</span>
                         <span className="text-zinc-600">{d.percent}%</span>
                     </div>

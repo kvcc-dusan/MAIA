@@ -33,7 +33,7 @@ export default function NewDecisionModal({ onClose, onSubmit }) {
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Decision Title</label>
+                            <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Decision Title</label>
                             <GlassInput
                                 autoFocus
                                 placeholder="e.g. Migration to Postgres"
@@ -44,7 +44,7 @@ export default function NewDecisionModal({ onClose, onSubmit }) {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Stakes</label>
+                                <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Stakes</label>
                                 <div className="relative">
                                     <select
                                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-zinc-300 outline-none appearance-none focus:bg-white/10 cursor-pointer"
@@ -61,7 +61,7 @@ export default function NewDecisionModal({ onClose, onSubmit }) {
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Reversibility</label>
+                                <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Reversibility</label>
                                 <div className="relative">
                                     <select
                                         className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-zinc-300 outline-none appearance-none focus:bg-white/10 cursor-pointer"
@@ -80,7 +80,7 @@ export default function NewDecisionModal({ onClose, onSubmit }) {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Key Assumptions (Lines)</label>
+                            <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Key Assumptions (Lines)</label>
                             <GlassTextarea
                                 className="min-h-[100px]"
                                 placeholder="- Zero downtime required&#10;- Cost under $50/mo"
@@ -91,7 +91,7 @@ export default function NewDecisionModal({ onClose, onSubmit }) {
 
                         <div className="space-y-1.5">
                             <div className="flex justify-between">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Confidence</label>
+                                <label className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500">Confidence</label>
                                 <span className="text-xs font-mono text-zinc-300">{draft.confidence}%</span>
                             </div>
                             <input

@@ -355,7 +355,7 @@ export default function ChronosModal({
 
       <div
         className={cn(
-          "w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
+          "w-full max-w-5xl h-[calc(100dvh-2rem)] sm:h-[80vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
           "border border-white/10 bg-black/80 backdrop-blur-xl",
           "grid grid-cols-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[minmax(0,1fr)_var(--right-width)]"
         )}
@@ -437,7 +437,7 @@ export default function ChronosModal({
 
               <div className="px-6 pb-6 flex-none">
                 <div className="grid grid-cols-7 mb-2">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-[10px] font-bold text-zinc-600 py-1">{d}</div>)}
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-fluid-3xs font-bold text-zinc-600 py-1">{d}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-1 auto-rows-fr">
                   {gridCells.map((d, i) => {

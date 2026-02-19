@@ -1,6 +1,17 @@
 import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { extendTailwindMerge } from "tailwind-merge"
 import { NEON_BLUE, NEON_ORANGE, NEON_GREEN } from "./constants"
+
+const twMerge = extendTailwindMerge({
+    extend: {
+        classGroups: {
+            'font-size': [
+                'text-fluid-3xs', 'text-fluid-2xs', 'text-fluid-xs', 'text-fluid-sm',
+                'text-fluid-base', 'text-fluid-lg', 'text-fluid-xl', 'text-fluid-2xl', 'text-fluid-3xl',
+            ],
+        },
+    },
+});
 
 export function cn(...inputs) {
     return twMerge(clsx(inputs))

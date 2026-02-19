@@ -54,7 +54,7 @@ export default function ObjectiveBlock({ project, updateProject }) {
 
                 {/* Success Criteria */}
                 <div className="space-y-3 pt-4 border-t border-white/5">
-                    <label className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold">Success Criteria</label>
+                    <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold">Success Criteria</label>
 
                     <div className="space-y-2">
                         {(project.successCriteria || []).map(c => (

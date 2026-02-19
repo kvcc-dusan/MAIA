@@ -52,14 +52,14 @@ export default function ProjectContext({ project, updateProject }) {
             >
                 <div className="flex items-center gap-2">
                     <span className="w-1 h-1 bg-zinc-700 rounded-full" />
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">
+                    <span className="text-fluid-3xs uppercase tracking-widest text-zinc-600 font-bold">
                         Project Context
                     </span>
                 </div>
                 <div className="flex items-center gap-4">
                     {/* Compact metadata when collapsed */}
                     {!isExpanded && (
-                        <div className="flex items-center gap-4 text-[10px] text-zinc-700 font-mono">
+                        <div className="flex items-center gap-4 text-fluid-3xs text-zinc-700 font-mono">
                             {project.description && (
                                 <span className="max-w-[200px] truncate text-zinc-600">{project.description}</span>
                             )}
@@ -75,7 +75,7 @@ export default function ProjectContext({ project, updateProject }) {
                 <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-2 duration-300 space-y-6">
                     {/* Strategic Directive */}
                     <div>
-                        <label className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold mb-2 block">
+                        <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-2 block">
                             Strategic Directive
                         </label>
                         <textarea
@@ -88,7 +88,7 @@ export default function ProjectContext({ project, updateProject }) {
 
                     {/* Success Criteria */}
                     <div className="pt-4 border-t border-white/5">
-                        <label className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold mb-3 block">
+                        <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-3 block">
                             Success Criteria
                         </label>
                         <div className="space-y-2 mb-3">
@@ -127,7 +127,7 @@ export default function ProjectContext({ project, updateProject }) {
                     {/* Metadata */}
                     <div className="pt-4 border-t border-white/5 grid grid-cols-3 gap-4">
                         <div>
-                            <div className="text-[10px] text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Calendar size={10} /> Created
                             </div>
                             <div className="text-sm text-zinc-500 font-mono">
@@ -135,7 +135,7 @@ export default function ProjectContext({ project, updateProject }) {
                             </div>
                         </div>
                         <div>
-                            <div className="text-[10px] text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Hash size={10} /> Tasks
                             </div>
                             <div className="text-sm text-zinc-500 font-mono">
@@ -143,7 +143,7 @@ export default function ProjectContext({ project, updateProject }) {
                             </div>
                         </div>
                         <div>
-                            <div className="text-[10px] text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Layers size={10} /> Sessions
                             </div>
                             <div className="text-sm text-zinc-500 font-mono">

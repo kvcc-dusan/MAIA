@@ -33,7 +33,7 @@ export function VelocityChart({ data }) {
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-zinc-700 text-[10px] uppercase font-mono tracking-wider">
+            <div className="h-full w-full flex items-center justify-center text-zinc-700 text-fluid-3xs uppercase font-mono tracking-wider">
                 No activity
             </div>
         );
@@ -63,7 +63,7 @@ export function VelocityChart({ data }) {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-white/10 rounded-lg px-3 py-2 text-[10px] shadow-xl backdrop-blur-md">
+                                    <div className="bg-black/90 border border-white/10 rounded-lg px-3 py-2 text-fluid-3xs shadow-xl backdrop-blur-md">
                                         <div className="text-zinc-500 mb-1">{d.label}</div>
                                         <div className="text-white font-bold">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
                                     </div>

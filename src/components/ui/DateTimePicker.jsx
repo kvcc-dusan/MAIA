@@ -33,10 +33,25 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
   useLayoutEffect(() => {
     if (open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 8,
-        left: rect.left
-      });
+      const popoverWidth = 320; // w-80 = 20rem = 320px
+      const popoverHeight = 340; // approximate max height
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      let top = rect.bottom + 8;
+      let left = rect.left;
+
+      // Flip above if overflowing bottom
+      if (top + popoverHeight > vh - 8) {
+        top = rect.top - popoverHeight - 8;
+      }
+      // Clamp horizontal
+      if (left + popoverWidth > vw - 8) {
+        left = vw - popoverWidth - 8;
+      }
+      if (left < 8) left = 8;
+
+      setCoords({ top, left });
     }
   }, [open]);
 
@@ -126,7 +141,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                     <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
                   </div>
                   <div className="grid grid-cols-7 text-center gap-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-[10px] uppercase font-bold text-zinc-600 py-1">{d}</div>)}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-fluid-3xs uppercase font-bold text-zinc-600 py-1">{d}</div>)}
                     {gridCells.map((d, i) => (
                       <div key={i} className="aspect-square">
                         {d && (
@@ -151,7 +166,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                   {/* Lists: Hours | Mins */}
                   <div className="h-52 grid grid-cols-2 gap-2 overflow-hidden pb-1">
                     <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 border-r border-white/5">
-                      <div className="text-[10px] text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Hour</div>
+                      <div className="text-fluid-3xs text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Hour</div>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
                         <button
                           key={h}
@@ -163,7 +178,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                       ))}
                     </div>
                     <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1">
-                      <div className="text-[10px] text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Min</div>
+                      <div className="text-fluid-3xs text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Min</div>
                       {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
                         <button
                           key={m}

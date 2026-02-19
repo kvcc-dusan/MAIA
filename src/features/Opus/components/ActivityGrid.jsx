@@ -105,11 +105,11 @@ export default function ActivityGrid({ project }) {
                         <span className={cn("w-1.5 h-1.5 rounded-full", streak > 0 ? "bg-[#93FD23] animate-pulse" : "bg-zinc-700")} />
                         Momentum
                     </span>
-                    <span className="text-[10px] text-[#93FD23]/80 font-mono bg-[#93FD23]/10 px-1.5 py-0.5 rounded border border-[#93FD23]/10">
+                    <span className="text-fluid-3xs text-[#93FD23]/80 font-mono bg-[#93FD23]/10 px-1.5 py-0.5 rounded border border-[#93FD23]/10">
                         {streak} day streak
                     </span>
                 </div>
-                <div className="text-[10px] text-zinc-600 font-mono">
+                <div className="text-fluid-3xs text-zinc-600 font-mono">
                     {totalActions} actions
                 </div>
             </div>
@@ -157,7 +157,7 @@ export default function ActivityGrid({ project }) {
                                         )}
                                     >
                                         {/* Tooltip */}
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-zinc-200 text-[10px] rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-800 text-zinc-200 text-fluid-3xs rounded border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                                             {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: {count} actions
                                         </div>
                                     </div>

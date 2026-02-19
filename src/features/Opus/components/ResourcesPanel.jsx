@@ -47,7 +47,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                 </h3>
                 <button
                     onClick={() => setIsAdding(true)}
-                    className="text-[10px] p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
+                    className="text-fluid-3xs p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
                 >
                     <Plus size={14} />
                 </button>
@@ -68,7 +68,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                             </div>
                             <div className="min-w-0">
                                 <div className="text-sm text-zinc-300 group-hover:text-blue-300 font-medium truncate">{link.title}</div>
-                                <div className="text-[10px] text-zinc-600 truncate">{link.url}</div>
+                                <div className="text-fluid-3xs text-zinc-600 truncate">{link.url}</div>
                             </div>
                         </a>
                         <button

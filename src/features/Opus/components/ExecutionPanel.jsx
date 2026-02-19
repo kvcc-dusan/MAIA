@@ -59,7 +59,14 @@ export default function ExecutionPanel({ project }) {
             className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors relative"
             onContextMenu={(e) => {
                 e.preventDefault();
-                setContextMenu({ taskId: task.id, x: e.clientX, y: e.clientY });
+                const menuW = 192, menuH = 160;
+                const vw = window.innerWidth, vh = window.innerHeight;
+                let x = e.clientX, y = e.clientY;
+                if (x + menuW > vw - 8) x = vw - menuW - 8;
+                if (y + menuH > vh - 8) y = vh - menuH - 8;
+                if (x < 8) x = 8;
+                if (y < 8) y = 8;
+                setContextMenu({ taskId: task.id, x, y });
             }}
         >
             <button
@@ -80,7 +87,7 @@ export default function ExecutionPanel({ project }) {
                     {task.title}
                 </span>
                 {task.due && !task.done && (
-                    <span className="text-[10px] text-zinc-600 font-mono">
+                    <span className="text-fluid-3xs text-zinc-600 font-mono">
                         Due {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                 )}
@@ -106,10 +113,10 @@ export default function ExecutionPanel({ project }) {
                     isOpen ? <ChevronDown size={12} className="text-zinc-600" /> : <ChevronRight size={12} className="text-zinc-600" />
                 )}
                 {Icon && <Icon size={12} className={color || "text-zinc-600"} />}
-                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                <span className="text-fluid-3xs uppercase tracking-widest text-zinc-500 font-bold">
                     {label}
                 </span>
-                <span className="text-[10px] text-zinc-700 font-mono">
+                <span className="text-fluid-3xs text-zinc-700 font-mono">
                     {count}
                 </span>
             </button>

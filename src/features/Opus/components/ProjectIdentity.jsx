@@ -51,7 +51,7 @@ export default function ProjectIdentity({ project, updateProject, onDelete }) {
                             <div className="absolute top-full right-0 mt-2 w-44 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl p-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                                 {/* Phase Selector */}
                                 <div className="px-3 py-1.5">
-                                    <span className="text-[9px] uppercase tracking-widest text-zinc-600 font-bold">Phase</span>
+                                    <span className="text-fluid-3xs uppercase tracking-widest text-zinc-600 font-bold">Phase</span>
                                 </div>
                                 {['Active', 'Paused', 'Done'].map(status => (
                                     <button

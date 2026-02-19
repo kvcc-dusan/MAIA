@@ -64,7 +64,7 @@ export default function AssetsPanel({ project }) {
                 </h3>
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-[10px] p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
+                    className="text-fluid-3xs p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
                 >
                     <Upload size={14} />
                 </button>

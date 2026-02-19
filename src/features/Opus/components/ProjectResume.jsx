@@ -73,7 +73,7 @@ export default function ProjectResume({ project }) {
             )}>
                 <div className="flex items-center gap-2 mb-4">
                     <Target size={14} className={nextAction ? "text-[#93FD23]" : "text-zinc-600"} />
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                    <span className="text-fluid-3xs uppercase tracking-widest text-zinc-500 font-bold">
                         Next Decisive Action
                     </span>
                 </div>
@@ -92,7 +92,7 @@ export default function ProjectResume({ project }) {
                             <div className="text-lg font-medium text-white mb-1">
                                 {nextAction.title}
                             </div>
-                            <div className="flex items-center gap-3 text-[10px] font-mono text-zinc-600">
+                            <div className="flex items-center gap-3 text-fluid-3xs font-mono text-zinc-600">
                                 {nextAction.status === 'blocked' && (
                                     <span className="text-red-400 flex items-center gap-1">
                                         <AlertCircle size={10} />
@@ -142,11 +142,11 @@ export default function ProjectResume({ project }) {
             {openLoops.length > 0 && (
                 <div className="mt-4 px-2">
                     <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold">
+                        <span className="text-fluid-3xs uppercase tracking-widest text-zinc-600 font-bold">
                             Open Loops
                         </span>
                         {blockedCount > 0 && (
-                            <span className="text-[9px] font-mono text-red-400/80 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/10">
+                            <span className="text-fluid-3xs font-mono text-red-400/80 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/10">
                                 {blockedCount} blocked
                             </span>
                         )}
@@ -171,7 +171,7 @@ export default function ProjectResume({ project }) {
                                 </span>
                                 <button
                                     onClick={() => handlePromoteToNext(task.id)}
-                                    className="opacity-0 group-hover:opacity-100 text-[10px] text-zinc-600 hover:text-[#93FD23] transition-all flex items-center gap-1"
+                                    className="opacity-0 group-hover:opacity-100 text-fluid-3xs text-zinc-600 hover:text-[#93FD23] transition-all flex items-center gap-1"
                                     title="Set as next action"
                                 >
                                     <ChevronRight size={10} />

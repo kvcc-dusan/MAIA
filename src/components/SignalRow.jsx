@@ -23,7 +23,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-zinc-200 truncate">{signal.title}</div>
-                <div className="text-[10px] text-zinc-500 font-mono">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                <div className="text-fluid-3xs text-zinc-500 font-mono">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
               </div>
               <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Signal" />
             </div>
@@ -45,7 +45,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
                     </div>
 
                     <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <div className="text-[10px] text-zinc-400 font-mono">
+                      <div className="text-fluid-3xs text-zinc-400 font-mono">
                         Scheduled for {new Date(signal.scheduledAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                       </div>
                     </div>

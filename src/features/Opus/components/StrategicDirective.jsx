@@ -44,7 +44,7 @@ export default function StrategicDirective({ project, updateProject }) {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                        <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Strategic Directive</span>
+                        <span className="text-fluid-3xs uppercase tracking-widest text-zinc-500 font-bold">Strategic Directive</span>
                     </div>
 
                     {/* Collapsed View: Just the first line or placeholder */}
@@ -77,7 +77,7 @@ export default function StrategicDirective({ project, updateProject }) {
             {/* Expanded Content: Success Criteria */}
             {isExpanded && (
                 <div className="mt-6 pt-6 border-t border-white/5 animate-in fade-in duration-500">
-                    <label className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold mb-3 block">Success Criteria</label>
+                    <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-3 block">Success Criteria</label>
 
                     <div className="space-y-2 mb-4">
                         {(project.successCriteria || []).map(c => (

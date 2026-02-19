@@ -89,16 +89,53 @@ export default function NotesOverview({
   // helpers
   const isPinned = useCallback((id) => pinned.has(id), [pinned]);
 
-  // open context menu at cursor
+  // open context menu at cursor (with viewport boundary checking)
   const openMenu = (e, id) => {
     e.preventDefault();
 
-    // We need global coordinates since the menu is fixed
-    const x = e.clientX;
-    const y = e.clientY;
+    const menuWidth = 192;
+    const menuHeight = 240;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let x = e.clientX;
+    let y = e.clientY;
+
+    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
+    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
+    if (x < 8) x = 8;
+    if (y < 8) y = 8;
 
     setMenu({ open: true, x, y, id, sub: false });
   };
+
+  // Long-press for touch context menu on note cards
+  const longPressTimer = useRef(null);
+  const handleCardTouchStart = useCallback((e, id) => {
+    const touch = e.touches[0];
+    const startPos = { x: touch.clientX, y: touch.clientY };
+    longPressTimer.current = { id, startPos, timer: setTimeout(() => {
+      longPressTimer.current = null;
+      if (navigator.vibrate) navigator.vibrate(50);
+      openMenu({ clientX: startPos.x, clientY: startPos.y, preventDefault: () => {} }, id);
+    }, 500) };
+  }, []);
+  const handleCardTouchMove = useCallback((e) => {
+    if (!longPressTimer.current) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - longPressTimer.current.startPos.x;
+    const dy = touch.clientY - longPressTimer.current.startPos.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      clearTimeout(longPressTimer.current.timer);
+      longPressTimer.current = null;
+    }
+  }, []);
+  const handleCardTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current.timer);
+      longPressTimer.current = null;
+    }
+  }, []);
 
   // close menu on outside/esc/scroll/resize
   useEffect(() => {
@@ -258,10 +295,10 @@ export default function NotesOverview({
       <div className="w-full px-6 md:px-8 py-8 flex flex-col gap-8">
 
         {/* Header: Full Width, Opus Style */}
-        <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2">
+        <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-3 flex-wrap">
           <div className="flex items-center gap-4">
             <span className="text-sm uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Codex</span>
-            <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-zinc-500 font-mono">
+            <span className="text-fluid-3xs bg-white/5 px-2 py-0.5 rounded-full text-zinc-500 font-mono">
               {viewNotes.length}
             </span>
           </div>
@@ -307,7 +344,7 @@ export default function NotesOverview({
 
               {showSettings && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-[#121214] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
-                  <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-zinc-600 font-bold border-b border-white/5 mb-1">
+                  <div className="px-4 py-2 text-fluid-3xs uppercase tracking-widest text-zinc-600 font-bold border-b border-white/5 mb-1">
                     Actions
                   </div>
                   {/* Seed Data */}
@@ -385,6 +422,9 @@ export default function NotesOverview({
                   }
                 }}
                 onContextMenu={e => openMenu(e, n.id)}
+                onTouchStart={e => handleCardTouchStart(e, n.id)}
+                onTouchMove={handleCardTouchMove}
+                onTouchEnd={handleCardTouchEnd}
                 className={`
                     group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
                     ${isShort ? "h-40" : "h-64"}
@@ -411,7 +451,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className={`text-[10px] font-mono text-zinc-500 leading-relaxed opacity-80 ${isShort ? "line-clamp-4" : "line-clamp-[8]"}`}>
+                  <p className={`text-fluid-3xs font-mono text-zinc-500 leading-relaxed opacity-80 ${isShort ? "line-clamp-4" : "line-clamp-[8]"}`}>
                     {previewText}
                   </p>
                 </div>
@@ -420,13 +460,13 @@ export default function NotesOverview({
                 <div className="flex items-center justify-between mt-auto pt-3 z-10">
                   <div className="flex items-center gap-3 overflow-hidden">
                     {/* Date */}
-                    <span className="text-[10px] font-mono font-medium text-zinc-600 uppercase tracking-wider flex-shrink-0">
+                    <span className="text-fluid-3xs font-mono font-medium text-zinc-600 uppercase tracking-wider flex-shrink-0">
                       {dateDisplay}
                     </span>
 
                     {/* Journal Pill */}
                     {(n.tags || []).includes("journal") && (
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-300 bg-[#121214] px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
+                      <span className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-300 bg-[#121214] px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
                         Journal
                       </span>
                     )}
@@ -435,7 +475,7 @@ export default function NotesOverview({
                     {(n.projectIds || []).length > 0 && (() => {
                       const linkedProject = projects.find(p => p.id === n.projectIds[0]);
                       return linkedProject ? (
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis">
                           {linkedProject.name}
                         </span>
                       ) : null;
@@ -488,7 +528,7 @@ export default function NotesOverview({
             {selectMode ? (
               /* Selection mode context menu */
               <>
-                <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+                <div className="px-4 py-2 text-fluid-3xs uppercase tracking-widest text-zinc-500 font-bold">
                   {selected.size} selected
                 </div>
 

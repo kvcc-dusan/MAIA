@@ -23,17 +23,17 @@ const DockIconButton = React.forwardRef(
                 whileTap={{ scale: 0.95 }}
                 onClick={onClick}
                 className={cn(
-                    "relative group p-3 rounded-xl", // rounded-xl for icons matched to 24 rounded dock
+                    "relative group p-2 sm:p-3 rounded-xl",
                     "hover:bg-white/10 transition-colors",
                     isActive ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white",
                     className
                 )}
             >
-                {Icon ? <Icon className="w-5 h-5" /> : <div className="w-5 h-5 bg-red-500/20 rounded-full" />}
+                {Icon ? <Icon className="w-4 h-4 sm:w-5 sm:h-5" /> : <div className="w-4 h-4 sm:w-5 sm:h-5 bg-red-500/20 rounded-full" />}
                 <span
                     className={cn(
                         "absolute -top-10 left-1/2 -translate-x-1/2",
-                        "px-2 py-1 rounded-md text-[10px] font-medium uppercase tracking-widest",
+                        "px-2 py-1 rounded-md text-fluid-3xs font-medium uppercase tracking-widest",
                         "bg-zinc-900 border border-white/10 text-white shadow-xl backdrop-blur-md",
                         "opacity-0 group-hover:opacity-100",
                         "transition-opacity whitespace-nowrap pointer-events-none"
@@ -52,12 +52,12 @@ const Dock = React.forwardRef(({ items, className }, ref) => {
     return (
         <div
             ref={ref}
-            className={cn("fixed bottom-6 left-0 right-0 z-50 flex items-center justify-center pointer-events-none", className)}
+            className={cn("fixed bottom-4 sm:bottom-6 left-0 right-0 z-50 flex items-center justify-center pointer-events-none safe-bottom", className)}
         >
             <div className="w-fit flex items-center justify-center relative pointer-events-auto">
                 <motion.div
                     className={cn(
-                        "flex items-center gap-2 p-2 px-3 rounded-[24px]", // The requested 24px radius
+                        "flex items-center gap-1 sm:gap-2 p-1.5 px-2 sm:p-2 sm:px-3 rounded-[20px] sm:rounded-[24px]",
                         "backdrop-blur-sm border border-white/10 shadow-lg",
                         "bg-card/80", // Glass effect matching widgets
                         "hover:shadow-2xl transition-shadow duration-300"

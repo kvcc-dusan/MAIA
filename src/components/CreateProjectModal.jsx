@@ -38,7 +38,7 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg bg-black/90 backdrop-blur-xl border border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}

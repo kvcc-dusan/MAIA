@@ -35,7 +35,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
               <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
               <div className="flex-1 min-w-0">
                 <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-zinc-500 line-through" : "text-zinc-200")}>{task.title}</div>
-                {task.due && <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+                {task.due && <div className="text-fluid-3xs text-zinc-500 font-mono mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
               </div>
               <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
             </div>
@@ -60,10 +60,10 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                     <div className="flex items-center gap-2 pt-2 border-t border-white/5">
                       <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5">
                         <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priorityColor }} />
-                        <span className="text-[10px] font-medium text-zinc-300">{priorityLabel}</span>
+                        <span className="text-fluid-3xs font-medium text-zinc-300">{priorityLabel}</span>
                       </div>
                       {task.due && (
-                        <div className="text-[10px] text-zinc-500 font-mono">
+                        <div className="text-fluid-3xs text-zinc-500 font-mono">
                           {new Date(task.due).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                         </div>
                       )}

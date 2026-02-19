@@ -195,8 +195,8 @@ function AppContent() {
   ----------------------------------------- */
   return (
     <div
-      className="h-screen w-full bg-black text-zinc-200 grid min-h-0 relative"
-      style={{ gridTemplateRows: "1fr" }}
+      className="w-full bg-black text-zinc-200 grid min-h-0 relative"
+      style={{ gridTemplateRows: "1fr", height: "calc(var(--vh, 1vh) * 100)" }}
     >
       {/* Dock (Floating Navigation) */}
       {/* Dock (Floating Navigation) */}
@@ -334,7 +334,7 @@ function AppContent() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4">
           <div className="px-4 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 text-zinc-200 text-sm shadow-2xl flex items-center gap-2 font-medium">
             {typeof toast === 'string' ? (
               <>

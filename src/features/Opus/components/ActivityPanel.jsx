@@ -40,7 +40,7 @@ export default function ActivityPanel({ project }) {
                 {/* Placeholder for "Start Session" - in real app would trigger Chronos */}
                 <button
                     onClick={() => alert("Enter Focus Mode: Filters Kronos to this project.")}
-                    className="text-[10px] flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 transition-all"
+                    className="text-fluid-3xs flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 hover:text-blue-300 rounded border border-blue-500/20 transition-all"
                     title="Enter Focus Mode"
                 >
                     <Play size={10} fill="currentColor" />
@@ -82,7 +82,7 @@ export default function ActivityPanel({ project }) {
                                 <div className="flex-1 min-w-0">
                                     <div className="text-sm text-zinc-300 truncate group-hover:text-white transition-colors">{t.title}</div>
                                     {t.due && (
-                                        <div className="text-[10px] text-zinc-600">
+                                        <div className="text-fluid-3xs text-zinc-600">
                                             Due {new Date(t.due).toLocaleDateString()}
                                         </div>
                                     )}
@@ -98,7 +98,7 @@ export default function ActivityPanel({ project }) {
                 {/* Next Session Preview */}
                 {nextSession && (
                     <div className="mt-auto pt-4 border-t border-white/5">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-600 font-bold mb-2">Upcoming Session</div>
+                        <div className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-2">Upcoming Session</div>
                         <div className="p-3 bg-white/5 rounded-lg border border-white/5 flex items-center justify-between">
                             <div>
                                 <div className="text-sm font-medium text-white">{nextSession.title || "Focus Session"}</div>

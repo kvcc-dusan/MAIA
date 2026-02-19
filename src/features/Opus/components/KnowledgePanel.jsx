@@ -27,7 +27,7 @@ export default function KnowledgePanel({ project, selectNote }) {
                     <ProjectIcon name="brain" size={14} />
                     Intel
                 </h3>
-                <span className="text-[10px] text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full">{linkedNotes.length}</span>
+                <span className="text-fluid-3xs text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full">{linkedNotes.length}</span>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
@@ -35,7 +35,7 @@ export default function KnowledgePanel({ project, selectNote }) {
                 {/* Pinned Section */}
                 {pinnedNotes.length > 0 && (
                     <div className="space-y-2">
-                        <div className="text-[10px] text-zinc-600 uppercase tracking-wider font-bold px-1">Pinned</div>
+                        <div className="text-fluid-3xs text-zinc-600 uppercase tracking-wider font-bold px-1">Pinned</div>
                         {pinnedNotes.map(n => (
                             <NoteRow
                                 key={n.id}
@@ -51,7 +51,7 @@ export default function KnowledgePanel({ project, selectNote }) {
 
                 {/* Recent Section */}
                 <div className="space-y-2">
-                    {pinnedNotes.length > 0 && <div className="text-[10px] text-zinc-600 uppercase tracking-wider font-bold px-1 mt-2">Recent</div>}
+                    {pinnedNotes.length > 0 && <div className="text-fluid-3xs text-zinc-600 uppercase tracking-wider font-bold px-1 mt-2">Recent</div>}
                     {recentNotes.length === 0 && pinnedNotes.length === 0 ? (
                         <div className="text-zinc-700 text-xs italic text-center py-8">
                             No linked knowledge found. <br /> Use <span className="text-blue-500 font-mono">[[{project.name}]]</span> in your notes.
@@ -96,7 +96,7 @@ function NoteRow({ note, onClick, pinned, onRemove, onDelete }) {
                         {note.title || "Untitled Note"}
                     </div>
                 </div>
-                <div className="text-[10px] text-zinc-500 truncate font-mono">
+                <div className="text-fluid-3xs text-zinc-500 truncate font-mono">
                     {note.content?.slice(0, 60).replace(/[#*`]/g, '') || "No content..."}
                 </div>
             </button>

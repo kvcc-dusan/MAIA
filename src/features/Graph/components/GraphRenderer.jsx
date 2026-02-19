@@ -307,7 +307,7 @@ function GraphRenderer({
     }
 
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden" ref={wrapperRef}>
+        <div className="relative w-full h-full bg-black overflow-hidden touch-none" ref={wrapperRef}>
             <div className="absolute inset-0 opacity-20 pointer-events-none" style={dottedBg} />
             <svg ref={svgRef} className="w-full h-full block" />
         </div>

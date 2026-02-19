@@ -62,7 +62,7 @@ export default function TimelinePanel({ project }) {
                         <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-zinc-800 border-2 border-black group-hover:bg-blue-500 group-hover:border-blue-500/30 transition-all shadow-black shadow-lg z-10" />
 
                         <div className="flex flex-col">
-                            <span className="text-zinc-500 text-[10px] font-mono mb-0.5">
+                            <span className="text-zinc-500 text-fluid-3xs font-mono mb-0.5">
                                 {item.date.toLocaleDateString()} • {item.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                             <span className="text-zinc-300 text-sm group-hover:text-white transition-colors">

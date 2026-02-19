@@ -22,7 +22,7 @@ const GridSlot = memo(({
       className="flex min-h-[40px] group select-none"
     >
       <div className={cn(
-        "w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
+        "w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
         isHourStart ? "" : "border-b border-white/5"
       )}>
         {isHourStart && label}
@@ -54,17 +54,43 @@ const SessionItem = memo(({
   onDoubleClick,
   onContextMenu,
   onMouseDownMove,
-  onMouseDownResize
+  onMouseDownResize,
+  onLongPress
 }) => {
+  const longPressRef = useRef(null);
+
   if (isEditing) return null;
 
   const start = new Date(session.start);
   const end = new Date(session.end);
 
+  const handleTouchStart = (e) => {
+    longPressRef.current = setTimeout(() => {
+      longPressRef.current = null;
+      if (navigator.vibrate) navigator.vibrate(50);
+      const touch = e.touches[0];
+      onLongPress(touch, session);
+    }, 500);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+  };
+
   return (
     <div
       className={cn(
-        "absolute left-28 right-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-white/5 px-3 overflow-hidden hover:bg-white/10 hover:border-white/10 transition-all z-10 select-none group",
+        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-white/5 px-3 overflow-hidden hover:bg-white/10 hover:border-white/10 transition-all z-10 select-none group",
         isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
         isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
       )}
@@ -79,17 +105,20 @@ const SessionItem = memo(({
         onContextMenu(e, session);
       }}
       onMouseDown={(e) => onMouseDownMove(e, session)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       <div className={cn("font-medium truncate text-white pointer-events-none", isShort ? "text-xs" : "text-xs")}>
         {session.title}
       </div>
       {!isShort && session.description && (
-        <div className="text-[10px] text-zinc-500 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
+        <div className="text-fluid-3xs text-zinc-500 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
           {session.description}
         </div>
       )}
       <div className={cn(
-        "text-[10px] text-zinc-500 font-mono tracking-tight pointer-events-none",
+        "text-fluid-3xs text-zinc-500 font-mono tracking-tight pointer-events-none",
         isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
         {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
@@ -264,11 +293,80 @@ function DailyTimeline({
   }, [openForm]);
 
   const onSessionContext = useCallback((e, s) => {
-    setContextMenu({ x: e.clientX, y: e.clientY, session: s });
+    const menuWidth = 192; // w-48 = 12rem = 192px
+    const menuHeight = 120; // approximate height
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let x = e.clientX;
+    let y = e.clientY;
+
+    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
+    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
+    if (x < 8) x = 8;
+    if (y < 8) y = 8;
+
+    setContextMenu({ x, y, session: s });
   }, []);
 
   const onSessionMove = useCallback((e, s) => handleSessionMouseDown(e, s, 'move'), [handleSessionMouseDown]);
   const onSessionResize = useCallback((e, s) => handleSessionMouseDown(e, s, 'resize'), [handleSessionMouseDown]);
+
+  // Long-press handler for touch context menu on sessions
+  const onSessionLongPress = useCallback((touch, s) => {
+    const menuWidth = 192;
+    const menuHeight = 120;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let x = touch.clientX;
+    let y = touch.clientY;
+
+    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
+    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
+    if (x < 8) x = 8;
+    if (y < 8) y = 8;
+
+    setContextMenu({ x, y, session: s });
+  }, []);
+
+  // Touch handlers for creating sessions on the grid
+  const getSlotFromY = useCallback((clientY) => {
+    if (!scrollContainerRef.current) return 0;
+    const rect = scrollContainerRef.current.getBoundingClientRect();
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const y = clientY - rect.top + scrollTop;
+    return Math.max(0, Math.min(47, Math.floor(y / SLOT_HEIGHT)));
+  }, []);
+
+  const handleGridTouchStart = useCallback((e) => {
+    const touch = e.touches[0];
+    const i = getSlotFromY(touch.clientY);
+    const d = getSlotDate(i);
+    if (isPastTime(d)) return;
+
+    const slotEnd = new Date(d.getTime() + 30 * 60000);
+    if (hasOverlap(d, slotEnd, sessions)) return;
+
+    e.preventDefault();
+    setGridDraft(null);
+    setIsDragging(true);
+    setDragMode('create');
+    setDragStart(d);
+    setDragCurrent(d);
+  }, [getSlotFromY, getSlotDate, sessions]);
+
+  const handleGridTouchMove = useCallback((e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const i = getSlotFromY(touch.clientY);
+    setDragCurrent(getSlotDate(i));
+  }, [isDragging, getSlotFromY, getSlotDate]);
+
+  const handleGridTouchEnd = useCallback(() => {
+    if (isDragging) handleMouseUp();
+  }, [isDragging, handleMouseUp]);
 
   if (!selectedDate) {
     return (
@@ -280,7 +378,15 @@ function DailyTimeline({
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar p-0 relative" ref={scrollContainerRef}>
-      <div className="relative h-full" onMouseUp={handleMouseUp} onMouseLeave={() => isDragging && handleMouseUp()}>
+      <div
+        className="relative h-full"
+        style={isDragging ? { touchAction: 'none' } : undefined}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={() => isDragging && handleMouseUp()}
+        onTouchStart={handleGridTouchStart}
+        onTouchMove={handleGridTouchMove}
+        onTouchEnd={handleGridTouchEnd}
+      >
         {slots.map((i) => {
           const slotDate = getSlotDate(i);
           const hour = Math.floor(i / 2);
@@ -332,6 +438,7 @@ function DailyTimeline({
               onContextMenu={onSessionContext}
               onMouseDownMove={onSessionMove}
               onMouseDownResize={onSessionResize}
+              onLongPress={onSessionLongPress}
             />
           )
         })}
@@ -352,7 +459,7 @@ function DailyTimeline({
           return (
             <div
               className={cn(
-                "absolute left-28 right-4 rounded-md bg-zinc-800/80 border border-white/20 px-3 py-2 text-xs text-zinc-200 overflow-hidden shadow-sm z-20 select-none",
+                "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-zinc-800/80 border border-white/20 px-3 py-2 text-xs text-zinc-200 overflow-hidden shadow-sm z-20 select-none",
                 isBeingDragged ? "opacity-50" : "cursor-move"
               )}
               style={{ top: `${top}px`, height: `${height - 1}px` }}
@@ -363,7 +470,7 @@ function DailyTimeline({
               }}
             >
               <div className="font-medium truncate italic text-white/70">New Session</div>
-              <div className="text-[10px] text-zinc-500 truncate">
+              <div className="text-fluid-3xs text-zinc-500 truncate">
                 {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </div>
               <div
@@ -386,7 +493,7 @@ function DailyTimeline({
 
           return (
             <div
-              className="absolute left-24 right-4 rounded-md bg-white/10 border border-white/20 z-20 pointer-events-none"
+              className="absolute left-16 sm:left-20 lg:left-24 right-2 sm:right-4 rounded-md bg-white/10 border border-white/20 z-20 pointer-events-none"
               style={{ top: `${top}px`, height: `${height - 1}px` }}
             />
           )
@@ -403,7 +510,7 @@ function DailyTimeline({
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="px-3 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider border-b border-white/5 mb-1 bg-white/[0.02]">
+              <div className="px-3 py-2 text-fluid-3xs font-bold text-zinc-500 uppercase tracking-wider border-b border-white/5 mb-1 bg-white/[0.02]">
                 Session Options
               </div>
               <button

@@ -292,12 +292,12 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
           style={{ top: 80, right: 24 }}
         >
           <div className="text-white font-medium text-xs leading-tight">{hoveredNode.title}</div>
-          <div className="text-[10px] text-zinc-500 mt-2 flex flex-wrap gap-1">
+          <div className="text-fluid-3xs text-zinc-500 mt-2 flex flex-wrap gap-1">
             {hoveredNode.tags.length > 0
               ? hoveredNode.tags.map(t => <span key={t} className="bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">#{t}</span>)
               : <span className="italic opacity-50">No tags</span>}
           </div>
-          <div className="mt-3 pt-2 border-t border-white/5 text-[10px] text-zinc-600 uppercase tracking-widest font-bold">
+          <div className="mt-3 pt-2 border-t border-white/5 text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">
             Click to open
           </div>
         </div>

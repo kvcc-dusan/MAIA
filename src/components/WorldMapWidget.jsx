@@ -123,7 +123,7 @@ export default function WorldMapWidget({ weather }) {
                     <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
                         {dayName}
                     </div>
-                    <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
+                    <div className="mt-1.5 font-mono text-fluid-3xs leading-none uppercase tracking-widest text-muted-foreground">
                         {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
                     </div>
                 </div>
@@ -133,7 +133,7 @@ export default function WorldMapWidget({ weather }) {
                     <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
-                    <div className="mt-1.5 font-mono text-[10px] leading-none uppercase tracking-widest text-muted-foreground">
+                    <div className="mt-1.5 font-mono text-fluid-3xs leading-none uppercase tracking-widest text-muted-foreground">
                         EUROPE/LJUBLJANA
                     </div>
                 </div>

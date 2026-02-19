@@ -52,7 +52,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
     <div className="h-full w-full relative flex flex-col items-center bg-black">
 
       {/* Main Content Area */}
-      <div className={`w-full h-full flex flex-col min-h-0 z-10 transition-all duration-300 ${wide ? 'max-w-full px-4 md:px-8' : 'max-w-4xl'}`}>
+      <div className={`w-full h-full flex flex-col min-h-0 z-10 transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
 
         {/* Clean Dark Panel */}
         <div className="flex flex-col w-full h-full relative overflow-hidden bg-black/90 border border-white/10 rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
@@ -64,10 +64,10 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
                 placeholder="Untitled Note"
-                className="bg-transparent outline-none text-2xl md:text-3xl font-bold text-white placeholder:text-zinc-600 tracking-tight"
+                className="bg-transparent outline-none text-fluid-lg font-bold text-white placeholder:text-zinc-600 tracking-tight"
                 style={{ fontFamily: "var(--font-sans, 'Inter', system-ui, sans-serif)" }}
               />
-              <div className="flex items-center gap-3 text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+              <div className="flex items-center gap-3 text-fluid-3xs text-zinc-500 font-mono uppercase tracking-widest">
                 <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 {local.project && (
                   <>
@@ -144,8 +144,8 @@ export default function Editor({ note, updateNote, projects = [] }) {
         </div>
 
         {/* Status Pill (Floating above dock) */}
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-[10px] text-zinc-500 font-mono shadow-2xl pointer-events-auto">
+        <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-fluid-3xs text-zinc-500 font-mono shadow-2xl pointer-events-auto">
             <div className="flex items-center gap-3 pr-3 border-r border-white/10">
               <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
               <span className="text-zinc-700">•</span>
