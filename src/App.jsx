@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
-import { rescheduleAll, ensurePermission } from "./utils/notify.js";
+import { rescheduleAll } from "./utils/notify.js";
 
 // Components
 import { Dock } from "./components/ui/dock.jsx";

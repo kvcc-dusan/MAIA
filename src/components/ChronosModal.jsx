@@ -1,22 +1,16 @@
 // @maia:chronos-modal
 import ProjectIcon from "./ProjectIcon";
 import React, { useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
-import * as Popover from "@radix-ui/react-popover";
-import * as ContextMenu from "@radix-ui/react-context-menu";
 import { uid, isoNow } from "../lib/ids.js";
 import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
 import { cn } from "@/lib/utils";
-import { AnimatePresence } from "framer-motion";
 import { Folder } from "lucide-react";
 
-import { NEON_BLUE, NEON_ORANGE, NEON_GREEN, TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, getPriorityColor, INPUT_CLASS, POPOVER_CLASS } from "../lib/constants";
+import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, getPriorityColor, INPUT_CLASS, POPOVER_CLASS } from "../lib/constants";
 import { sameDay, toLocalInputValue } from "../lib/time";
 import { CloseButton } from "./ui/CloseButton";
-import { PriorityCheckbox } from "./ui/PriorityCheckbox";
 import { CustomSelect } from "./ui/CustomSelect";
 import { DateTimePicker } from "./ui/DateTimePicker";
-import { PillSelect } from "./ui/PillSelect";
-import { Portal } from "./ui/portal";
 import TaskRow from "./TaskRow";
 import SignalRow from "./SignalRow";
 import DailyTimeline from "./DailyTimeline";
