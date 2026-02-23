@@ -436,11 +436,11 @@ export default function ChronosModal({
                   </div>
                 </div>
 
-                <div className="px-6 pb-6 flex-none">
+                <div className="px-4 pb-4 flex-none">
                   <div className="grid grid-cols-7 mb-2">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-fluid-3xs font-bold text-zinc-600 py-1">{d}</div>)}
                   </div>
-                  <div className="grid grid-cols-7 gap-1 auto-rows-fr">
+                  <div className="grid grid-cols-7 gap-y-0.5">
                     {gridCells.map((d, i) => {
                       const isToday = d && sameDay(d, today);
                       const isSel = d && sameDay(d, selectedDate);
@@ -448,7 +448,7 @@ export default function ChronosModal({
                       const isPast = d && d < today && !sameDay(d, today);
 
                       return (
-                        <div key={i} className="aspect-square">
+                        <div key={i} className="h-8">
                           {d && (
                             <button
                               onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}

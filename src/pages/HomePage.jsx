@@ -108,8 +108,8 @@ export default function TodayPage({
           <div className="flex flex-col items-start justify-center space-y-4 md:space-y-6">
             <div className="space-y-1 text-left">
               <h1
-                className="lg:whitespace-nowrap text-fluid-xl md:text-fluid-2xl lg:text-fluid-3xl font-semibold tracking-tight mix-blend-difference grayscale"
-                style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
+                className="whitespace-nowrap font-semibold tracking-tight mix-blend-difference grayscale"
+                style={{ fontSize: 'clamp(0.9rem, 3.5vw, 3.5rem)', textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
               >
                 <span className="text-white/50">{greeting}</span>{" "}
                 <span className="text-white">{userName || "Dušan"}.</span>
