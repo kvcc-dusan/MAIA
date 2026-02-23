@@ -98,37 +98,38 @@ export default function TodayPage({
   }, [captureContent, createNote]);
 
   return (
-    <div className="relative flex flex-col h-full w-full overflow-hidden bg-black font-sans text-white selection:bg-white/20">
+    <div className="relative flex flex-col h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-black font-sans text-white selection:bg-white/20">
 
       {/* Single-screen hero — greeting + widgets */}
-      <div className="flex-1 w-full">
-        <div className="grid h-full w-full grid-cols-1 items-center gap-6 sm:gap-8 lg:gap-12 p-4 md:p-8 lg:px-16 pb-24 lg:grid-cols-2">
+      <div className="flex-1 w-full relative">
+        <div className="grid min-h-full w-full grid-cols-1 md:grid-cols-2 items-center gap-fluid-gap px-fluid-page py-8 md:py-12 pb-8">
 
           {/* LEFT ZONE: Greeting */}
-          <div className="flex flex-col items-start justify-center space-y-6">
-            <div className="space-y-4 text-left">
+          <div className="flex flex-col items-start justify-center space-y-4 md:space-y-6">
+            <div className="space-y-1 text-left">
               <h1
-                className="whitespace-nowrap text-fluid-2xl sm:text-fluid-3xl font-semibold tracking-tight mix-blend-difference grayscale"
+                className="lg:whitespace-nowrap text-fluid-xl md:text-fluid-2xl lg:text-fluid-3xl font-semibold tracking-tight mix-blend-difference grayscale"
                 style={{ textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
               >
                 <span className="text-white/50">{greeting}</span>{" "}
                 <span className="text-white">{userName || "Dušan"}.</span>
               </h1>
-              <p className="max-w-xl text-fluid-xs sm:text-fluid-sm font-normal italic leading-relaxed text-white/90 mix-blend-difference grayscale">
-                "{quote}"
+              {/* Quote — always visible, scaled by breakpoint */}
+              <p className="max-w-xl text-fluid-xs md:text-fluid-sm font-normal italic leading-relaxed text-white/40 md:text-white/70 md:mix-blend-difference md:grayscale mt-1 md:mt-1.5">
+                &ldquo;{quote}&rdquo;
               </p>
             </div>
           </div>
 
-          {/* RIGHT ZONE: 3 Vertically-Centered Glass Widgets */}
-          <div className="mx-auto flex w-full max-w-sm sm:max-w-md lg:max-w-sm flex-col items-center justify-center space-y-5 lg:ml-auto lg:mx-0 lg:items-end">
+          {/* RIGHT ZONE: Glass Widgets — capped at max-w-sm on desktop */}
+          <div className="flex w-full flex-col items-center md:items-end justify-center space-y-4 md:space-y-5 md:max-w-sm lg:max-w-sm xl:max-w-md ml-auto">
 
             {/* 1. World Map & Weather Widget */}
             <GlassErrorBoundary>
               <WorldMapWidget weather={weather} />
             </GlassErrorBoundary>
 
-            {/* 2. Today's Focus — tasks, sessions, momentum */}
+            {/* 2. Today's Focus */}
             <FocusWidget
               todayTasks={todayTasks}
               sessions={sessions}
@@ -137,7 +138,7 @@ export default function TodayPage({
               onTaskClick={handleTaskClick}
             />
 
-            {/* 3. Quick Capture — journal entry */}
+            {/* 3. Quick Capture */}
             <QuickCaptureWidget
               captureContent={captureContent}
               setCaptureContent={setCaptureContent}
@@ -152,3 +153,4 @@ export default function TodayPage({
     </div>
   );
 }
+

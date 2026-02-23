@@ -355,16 +355,16 @@ export default function ChronosModal({
 
       <div
         className={cn(
-          "w-full max-w-5xl h-[calc(100dvh-2rem)] sm:h-[80vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
+          "w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
           "border border-white/10 bg-black/80 backdrop-blur-xl",
-          "grid grid-cols-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[minmax(0,1fr)_var(--right-width)]"
+          "grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
         )}
         style={{ '--right-width': `${rightWidth}px` }}
         onClick={(e) => e.stopPropagation()}
       >
 
-        <div className="h-full flex flex-col overflow-hidden border-b border-white/5 md:border-b-0 md:border-r">
-          <div className="flex-none px-8 py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
+        <div className="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r">
+          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-semibold text-white tracking-tight">Chronos</h2>
             <div className="flex items-center gap-6">
               <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">{today.toLocaleDateString()}</span>
@@ -372,7 +372,7 @@ export default function ChronosModal({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-0 space-y-8">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Tasks</h3>
@@ -421,264 +421,266 @@ export default function ChronosModal({
           </div>
         </div>
 
-        <div className="h-full bg-black/20 flex flex-col md:border-l border-white/5 relative overflow-hidden">
+        <div className="h-full bg-black/20 flex flex-col lg:border-l border-white/5 relative overflow-hidden">
+          <div className="h-full flex flex-col">
 
-          {rightView === 'calendar' && (
-            <>
-              <div className="p-6 pb-2 flex-none flex items-center justify-between">
-                <span className="text-sm font-medium text-white">
-                  {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                </span>
-                <div className="flex gap-1">
-                  <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">‹</button>
-                  <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">›</button>
+            {rightView === 'calendar' && (
+              <>
+                <div className="p-6 pb-2 flex-none flex items-center justify-between">
+                  <span className="text-sm font-medium text-white">
+                    {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <div className="flex gap-1">
+                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">‹</button>
+                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">›</button>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6 flex-none">
+                  <div className="grid grid-cols-7 mb-2">
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-fluid-3xs font-bold text-zinc-600 py-1">{d}</div>)}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 auto-rows-fr">
+                    {gridCells.map((d, i) => {
+                      const isToday = d && sameDay(d, today);
+                      const isSel = d && sameDay(d, selectedDate);
+                      const hasTasks = d && tasksOn(d).length > 0;
+                      const isPast = d && d < today && !sameDay(d, today);
+
+                      return (
+                        <div key={i} className="aspect-square">
+                          {d && (
+                            <button
+                              onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}
+                              className={cn(
+                                "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                                isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-zinc-600 hover:bg-white/5 hover:text-zinc-500" : "text-zinc-400 hover:bg-white/5 hover:text-white",
+                                isToday && !isSel ? "bg-white/10 text-white border border-white/10" : ""
+                              )}
+                            >
+                              <span className="text-xs">{d.getDate()}</span>
+                              {hasTasks && <span className={cn("absolute bottom-1.5 w-1 h-1 rounded-full", isSel ? "bg-black" : "bg-zinc-500")} />}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden">
+                  <div className="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10">
+                    <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
+                      SESSIONS
+                    </span>
+                  </div>
+
+                  <DailyTimeline
+                    sessions={sessions}
+                    setSessions={setSessions}
+                    selectedDate={selectedDate}
+                    onOpenSessionForm={openSessionForm}
+                    editingSessionId={rightView === 'session-form' ? sessionDraft.id : null}
+                  />
+                </div>
+              </>
+            )}
+
+            {rightView === 'task-form' && (
+              <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-semibold text-white">
+                    {taskDraft.id ? "Edit Task" : "New Task"}
+                  </h2>
+                  <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                </div>
+
+                <div className="flex-1 space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
+                    <input
+                      autoFocus
+                      className={cn(INPUT_CLASS, "w-full p-4")}
+                      placeholder="What needs to be done?"
+                      value={taskDraft.title}
+                      onChange={e => setTaskDraft(d => ({ ...d, title: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && saveTask()}
+                    />
+                  </div>
+
+
+
+                  <div className="flex flex-col gap-4">
+                    <div className="space-y-2">
+                      <CustomSelect
+                        label="Priority"
+                        value={taskDraft.priority}
+                        options={TASK_PRIORITIES}
+                        onChange={val => setTaskDraft(d => ({ ...d, priority: val }))}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <DateTimePicker
+                        label="Deadline"
+                        value={taskDraft.due}
+                        dateOnly={true}
+                        onChange={val => setTaskDraft(d => ({ ...d, due: val }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
+                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-40 resize-none custom-scrollbar")} placeholder="Add details..." value={taskDraft.description} onChange={e => setTaskDraft(d => ({ ...d, description: e.target.value }))} />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    {taskDraft.id ? "Save Changes" : "Create Task"}
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="px-6 pb-6 flex-none">
-                <div className="grid grid-cols-7 mb-2">
-                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-fluid-3xs font-bold text-zinc-600 py-1">{d}</div>)}
+            {rightView === 'signal-form' && (
+              <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-semibold text-white">
+                    {signalDraft.id ? "Edit Signal" : "New Signal"}
+                  </h2>
+                  <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
                 </div>
-                <div className="grid grid-cols-7 gap-1 auto-rows-fr">
-                  {gridCells.map((d, i) => {
-                    const isToday = d && sameDay(d, today);
-                    const isSel = d && sameDay(d, selectedDate);
-                    const hasTasks = d && tasksOn(d).length > 0;
-                    const isPast = d && d < today && !sameDay(d, today);
 
-                    return (
-                      <div key={i} className="aspect-square">
-                        {d && (
-                          <button
-                            onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}
-                            className={cn(
-                              "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                              isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-zinc-600 hover:bg-white/5 hover:text-zinc-500" : "text-zinc-400 hover:bg-white/5 hover:text-white",
-                              isToday && !isSel ? "bg-white/10 text-white border border-white/10" : ""
-                            )}
-                          >
-                            <span className="text-xs">{d.getDate()}</span>
-                            {hasTasks && <span className={cn("absolute bottom-1.5 w-1 h-1 rounded-full", isSel ? "bg-black" : "bg-zinc-500")} />}
-                          </button>
+                <div className="flex-1 space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
+                    <input
+                      autoFocus
+                      className={cn(INPUT_CLASS, "w-full p-4")}
+                      placeholder="Signal name..."
+                      value={signalDraft.title}
+                      onChange={e => setSignalDraft(d => ({ ...d, title: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && createSignal()}
+                    />
+                  </div>
+
+                  <div className="space-y-6">
+
+                    <div className="space-y-2">
+                      <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">Time</label>
+                      <div className="grid grid-cols-[100px_1fr] gap-3 h-[46px]">
+                        <div className="grid grid-cols-2 gap-1 bg-white/5 rounded-xl p-1 border border-white/10">
+                          <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-lg text-xs font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>In</button>
+                          <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-lg text-xs font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>At</button>
+                        </div>
+
+                        {signalDraft.mode === 'in' ? (
+                          <CustomSelect
+                            value={signalDraft.minutes}
+                            options={IN_PRESETS}
+                            onChange={handleInPresetChange}
+                            placeholder="Duration"
+                          />
+                        ) : (
+                          <DateTimePicker
+                            value={signalDraft.at}
+                            onChange={val => setSignalDraft(d => ({ ...d, at: val }))}
+                          />
                         )}
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
+                    </div>
 
-              <div className="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden">
-                <div className="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10">
-                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                    SESSIONS
-                  </span>
-                </div>
-
-                <DailyTimeline
-                  sessions={sessions}
-                  setSessions={setSessions}
-                  selectedDate={selectedDate}
-                  onOpenSessionForm={openSessionForm}
-                  editingSessionId={rightView === 'session-form' ? sessionDraft.id : null}
-                />
-              </div>
-            </>
-          )}
-
-          {rightView === 'task-form' && (
-            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-semibold text-white">
-                  {taskDraft.id ? "Edit Task" : "New Task"}
-                </h2>
-                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
-              </div>
-
-              <div className="flex-1 space-y-6">
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
-                  <input
-                    autoFocus
-                    className={cn(INPUT_CLASS, "w-full p-4")}
-                    placeholder="What needs to be done?"
-                    value={taskDraft.title}
-                    onChange={e => setTaskDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && saveTask()}
-                  />
-                </div>
-
-
-
-                <div className="flex flex-col gap-4">
-                  <div className="space-y-2">
-                    <CustomSelect
-                      label="Priority"
-                      value={taskDraft.priority}
-                      options={TASK_PRIORITIES}
-                      onChange={val => setTaskDraft(d => ({ ...d, priority: val }))}
-                    />
+                    <div className="space-y-2">
+                      <CustomSelect
+                        label="Priority"
+                        value={signalDraft.priority}
+                        options={SIGNAL_PRIORITIES}
+                        onChange={val => setSignalDraft(d => ({ ...d, priority: val }))}
+                      />
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <DateTimePicker
-                      label="Deadline"
-                      value={taskDraft.due}
-                      dateOnly={true}
-                      onChange={val => setTaskDraft(d => ({ ...d, due: val }))}
-                    />
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
+                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-40 resize-none custom-scrollbar")} placeholder="Signal details..." value={signalDraft.description} onChange={e => setSignalDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
-                  <textarea className={cn(INPUT_CLASS, "w-full p-4 h-40 resize-none custom-scrollbar")} placeholder="Add details..." value={taskDraft.description} onChange={e => setTaskDraft(d => ({ ...d, description: e.target.value }))} />
+                <div className="flex justify-end pt-4">
+                  <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    {signalDraft.id ? "Save Changes" : "Create Signal"}
+                  </button>
                 </div>
               </div>
+            )}
 
-              <div className="flex justify-end pt-4">
-                <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  {taskDraft.id ? "Save Changes" : "Create Task"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {rightView === 'signal-form' && (
-            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-semibold text-white">
-                  {signalDraft.id ? "Edit Signal" : "New Signal"}
-                </h2>
-                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
-              </div>
-
-              <div className="flex-1 space-y-6">
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
-                  <input
-                    autoFocus
-                    className={cn(INPUT_CLASS, "w-full p-4")}
-                    placeholder="Signal name..."
-                    value={signalDraft.title}
-                    onChange={e => setSignalDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && createSignal()}
-                  />
+            {rightView === 'session-form' && (
+              <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-semibold text-white">
+                    {sessionDraft.id ? "Edit Session" : "New Session"}
+                  </h2>
+                  <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
                 </div>
 
-                <div className="space-y-6">
+                <div className="flex-1 space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
+                    <input
+                      autoFocus
+                      className={cn(INPUT_CLASS, "w-full p-4")}
+                      placeholder="Deep work session..."
+                      value={sessionDraft.title}
+                      onChange={e => setSessionDraft(d => ({ ...d, title: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && saveSession()}
+                    />
+                  </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">Time</label>
-                    <div className="grid grid-cols-[100px_1fr] gap-3 h-[46px]">
-                      <div className="grid grid-cols-2 gap-1 bg-white/5 rounded-xl p-1 border border-white/10">
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-lg text-xs font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>In</button>
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-lg text-xs font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>At</button>
-                      </div>
+                  <div className="flex flex-col gap-4">
+                    <div className="space-y-2">
+                      <DateTimePicker
+                        label="Start"
+                        value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
+                        onChange={val => setSessionDraft(d => ({ ...d, start: new Date(val) }))}
+                      />
+                    </div>
 
-                      {signalDraft.mode === 'in' ? (
-                        <CustomSelect
-                          value={signalDraft.minutes}
-                          options={IN_PRESETS}
-                          onChange={handleInPresetChange}
-                          placeholder="Duration"
-                        />
-                      ) : (
-                        <DateTimePicker
-                          value={signalDraft.at}
-                          onChange={val => setSignalDraft(d => ({ ...d, at: val }))}
-                        />
-                      )}
+                    <div className="space-y-2">
+                      <DateTimePicker
+                        label="End"
+                        value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
+                        onChange={val => setSessionDraft(d => ({ ...d, end: new Date(val) }))}
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <CustomSelect
-                      label="Priority"
-                      value={signalDraft.priority}
-                      options={SIGNAL_PRIORITIES}
-                      onChange={val => setSignalDraft(d => ({ ...d, priority: val }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
-                  <textarea className={cn(INPUT_CLASS, "w-full p-4 h-40 resize-none custom-scrollbar")} placeholder="Signal details..." value={signalDraft.description} onChange={e => setSignalDraft(d => ({ ...d, description: e.target.value }))} />
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  {signalDraft.id ? "Save Changes" : "Create Signal"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {rightView === 'session-form' && (
-            <div className="h-full flex flex-col p-8 animate-in slide-in-from-right-4 duration-300">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-semibold text-white">
-                  {sessionDraft.id ? "Edit Session" : "New Session"}
-                </h2>
-                <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
-              </div>
-
-              <div className="flex-1 space-y-6">
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Title</label>
-                  <input
-                    autoFocus
-                    className={cn(INPUT_CLASS, "w-full p-4")}
-                    placeholder="Deep work session..."
-                    value={sessionDraft.title}
-                    onChange={e => setSessionDraft(d => ({ ...d, title: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && saveSession()}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <div className="space-y-2">
-                    <DateTimePicker
-                      label="Start"
-                      value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
-                      onChange={val => setSessionDraft(d => ({ ...d, start: new Date(val) }))}
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Project</label>
+                    <PillSelect
+                      value={sessionDraft.linkedProjectId}
+                      options={projects.map(p => ({ value: p.id, label: p.name }))}
+                      onChange={val => setSessionDraft(d => ({ ...d, linkedProjectId: val }))}
+                      placeholder="Link Project"
+                      icon={Folder}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <DateTimePicker
-                      label="End"
-                      value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
-                      onChange={val => setSessionDraft(d => ({ ...d, end: new Date(val) }))}
-                    />
+                  <div className="space-y-4">
+                    <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
+                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Project</label>
-                  <PillSelect
-                    value={sessionDraft.linkedProjectId}
-                    options={projects.map(p => ({ value: p.id, label: p.name }))}
-                    onChange={val => setSessionDraft(d => ({ ...d, linkedProjectId: val }))}
-                    placeholder="Link Project"
-                    icon={Folder}
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1">Description</label>
-                  <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
+                <div className="flex justify-end pt-4">
+                  <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    {sessionDraft.id ? "Save Changes" : "Create Session"}
+                  </button>
                 </div>
               </div>
-
-              <div className="flex justify-end pt-4">
-                <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-                  {sessionDraft.id ? "Save Changes" : "Create Session"}
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div >

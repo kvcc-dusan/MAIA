@@ -49,7 +49,7 @@ export default function TimelinePanel({ project }) {
 
     return (
         <div className="flex flex-col gap-4 mt-8">
-            <h3 className="text-xs uppercase tracking-widest text-zinc-600 font-bold px-1">Recent Activity</h3>
+            <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-600 font-bold px-1">Recent Activity</h3>
 
             <div className="relative border-l border-white/10 ml-3 space-y-6 pb-2">
                 {timeline.length === 0 && (

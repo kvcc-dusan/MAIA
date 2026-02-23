@@ -144,7 +144,10 @@ export default function Editor({ note, updateNote, projects = [] }) {
         </div>
 
         {/* Status Pill (Floating above dock) */}
-        <div className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          style={{ bottom: 'calc(var(--dock-h) + 0.75rem)' }}
+        >
           <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-fluid-3xs text-zinc-500 font-mono shadow-2xl pointer-events-auto">
             <div className="flex items-center gap-3 pr-3 border-r border-white/10">
               <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>

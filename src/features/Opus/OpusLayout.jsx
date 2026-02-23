@@ -27,7 +27,7 @@ export default function OpusLayout({ projectId, selectNote, onDeleteProject }) {
     if (!project) return null;
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 md:p-8 flex flex-col gap-6 bg-transparent min-h-screen pb-24 sm:pb-28">
+        <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 md:p-8 flex flex-col gap-6 bg-transparent min-h-screen" style={{ paddingBottom: 'calc(var(--dock-h) + 2rem)' }}>
 
             {/* HEADER: Identity & Activity Summary */}
             <ProjectIdentity
@@ -43,7 +43,7 @@ export default function OpusLayout({ projectId, selectNote, onDeleteProject }) {
             <ExecutionPanel project={project} />
 
             {/* LAYER 3: RESOURCES — Intel | Assets | Uplinks */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
                 <KnowledgePanel project={project} selectNote={selectNote} />
                 <AssetsPanel project={project} />
                 <ResourcesPanel project={project} updateProject={updateProject} />

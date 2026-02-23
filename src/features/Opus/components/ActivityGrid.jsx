@@ -101,7 +101,7 @@ export default function ActivityGrid({ project }) {
         <div className="h-full flex flex-col p-6 rounded-2xl bg-black border border-white/10 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
-                    <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
+                    <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
                         <span className={cn("w-1.5 h-1.5 rounded-full", streak > 0 ? "bg-[#93FD23] animate-pulse" : "bg-zinc-700")} />
                         Momentum
                     </span>

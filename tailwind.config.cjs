@@ -49,6 +49,7 @@ module.exports = {
       },
       fontFamily: {
         mono: ['var(--font-mono)'],
+        sans: ['var(--font-sans)'],
       },
       fontSize: {
         'fluid-3xs': 'var(--fluid-3xs)',
@@ -67,6 +68,11 @@ module.exports = {
         'fluid-md': 'clamp(0.75rem, 0.5rem + 0.8vw, 1.25rem)',
         'fluid-lg': 'clamp(1rem, 0.7rem + 1vw, 1.75rem)',
         'fluid-xl': 'clamp(1.5rem, 1rem + 1.5vw, 2.5rem)',
+        'fluid-page': 'var(--space-fluid-page)',
+        'fluid-section': 'var(--space-fluid-section)',
+        'fluid-gap': 'var(--space-fluid-gap)',
+        'dock': 'var(--dock-h)',
+        'dock-desktop': 'var(--dock-h-desktop)',
       }
     }
   },

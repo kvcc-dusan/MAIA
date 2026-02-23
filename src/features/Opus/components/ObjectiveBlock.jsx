@@ -36,7 +36,7 @@ export default function ObjectiveBlock({ project, updateProject }) {
             {/* Decorative background element */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold mb-4 flex items-center gap-2">
                 <span className="w-1 h-1 bg-zinc-500 rounded-full" />
                 Strategic Directive
             </h3>

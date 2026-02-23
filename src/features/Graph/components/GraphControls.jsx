@@ -72,7 +72,7 @@ export default function GraphControls({
                 {/* Header */}
                 <div className="flex-none p-5 border-b border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">ConneXa</span>
+                        <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">ConneXa</span>
                         <span className="text-fluid-3xs bg-white/5 px-1.5 py-0.5 rounded text-zinc-600">Controls</span>
                     </div>
                 </div>

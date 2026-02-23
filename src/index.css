@@ -129,6 +129,15 @@
 
   /* === VIEWPORT HEIGHT FIX (iOS Safari) === */
   --vh: 1dvh;
+
+  /* === DOCK / NAVIGATION === */
+  --dock-h: 56px;               /* mobile tab bar height */
+  --dock-h-desktop: 68px;       /* desktop pill dock height (approx) */
+
+  /* === FLUID SPACING (page-level) === */
+  --space-fluid-page: clamp(1rem, 4vw, 4rem);       /* horizontal page padding */
+  --space-fluid-section: clamp(1.5rem, 5vw, 6rem);  /* vertical section gaps */
+  --space-fluid-gap: clamp(1rem, 2.5vw, 2rem);      /* standard component gap */
 }
 
 @supports not (height: 1dvh) {
@@ -542,7 +551,7 @@ body {
 /* 📝 EDITOR (ProseMirror wrapper)                                            */
 /* ========================================================================== */
 :root {
-  --maia-footer-h: 56px;
+  --maia-footer-h: var(--dock-h);
 }
 
 .maia-editor {

@@ -114,11 +114,13 @@ export default function NotesOverview({
   const handleCardTouchStart = useCallback((e, id) => {
     const touch = e.touches[0];
     const startPos = { x: touch.clientX, y: touch.clientY };
-    longPressTimer.current = { id, startPos, timer: setTimeout(() => {
-      longPressTimer.current = null;
-      if (navigator.vibrate) navigator.vibrate(50);
-      openMenu({ clientX: startPos.x, clientY: startPos.y, preventDefault: () => {} }, id);
-    }, 500) };
+    longPressTimer.current = {
+      id, startPos, timer: setTimeout(() => {
+        longPressTimer.current = null;
+        if (navigator.vibrate) navigator.vibrate(50);
+        openMenu({ clientX: startPos.x, clientY: startPos.y, preventDefault: () => { } }, id);
+      }, 500)
+    };
   }, []);
   const handleCardTouchMove = useCallback((e) => {
     if (!longPressTimer.current) return;
@@ -285,17 +287,16 @@ export default function NotesOverview({
     <div
       className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar"
       onClick={(e) => {
-        // Exit selection mode when clicking empty space (not on a card)
         if (selectMode && e.target === e.currentTarget) {
           exitSelectMode();
         }
       }}
     >
 
-      <div className="w-full px-6 md:px-8 py-8 flex flex-col gap-8">
+      <div className="w-full px-fluid-page py-8 flex flex-col gap-8">
 
         {/* Header: Full Width, Opus Style */}
-        <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-3 flex-wrap">
+        <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
             <span className="text-sm uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Codex</span>
             <span className="text-fluid-3xs bg-white/5 px-2 py-0.5 rounded-full text-zinc-500 font-mono">
@@ -381,13 +382,13 @@ export default function NotesOverview({
 
       {/* Grid Container */}
       <div
-        className="flex-1 min-h-0 px-6 md:px-8"
+        className="flex-1 min-h-0 px-fluid-page"
         onClick={(e) => {
           if (selectMode && e.target === e.currentTarget) exitSelectMode();
         }}
       >
         <div
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 pb-24"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 pb-24"
           onClick={(e) => {
             if (selectMode && e.target === e.currentTarget) exitSelectMode();
           }}
@@ -405,9 +406,7 @@ export default function NotesOverview({
             if (isYesterday) dateDisplay = "YESTERDAY";
 
             // Preview Logic
-            const hasContent = n.content && n.content.trim().length > 0;
-            const previewText = hasContent ? n.content : "No additional text...";
-            const isShort = !hasContent;
+            const previewText = n.content && n.content.trim().length > 0 ? n.content : "No additional text...";
 
             const isSelected = selectMode && selected.has(n.id);
 
@@ -427,7 +426,7 @@ export default function NotesOverview({
                 onTouchEnd={handleCardTouchEnd}
                 className={`
                     group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
-                    ${isShort ? "h-40" : "h-64"}
+                    min-h-[14rem] max-h-[16rem]
                     ${isSelected
                     ? "bg-white/5 border-white/40 ring-1 ring-white/20"
                     : "bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
@@ -451,7 +450,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className={`text-fluid-3xs font-mono text-zinc-500 leading-relaxed opacity-80 ${isShort ? "line-clamp-4" : "line-clamp-[8]"}`}>
+                  <p className="text-fluid-3xs font-mono text-zinc-500 leading-relaxed opacity-80 line-clamp-[8]">
                     {previewText}
                   </p>
                 </div>

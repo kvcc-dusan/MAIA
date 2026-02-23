@@ -126,7 +126,7 @@ export default function ExecutionPanel({ project }) {
     return (
         <div className="rounded-2xl bg-black border border-white/10 shadow-2xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
+                <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
                     <span className="w-1 h-1 bg-zinc-500 rounded-full" />
                     Execution
                 </h3>

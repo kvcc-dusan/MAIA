@@ -30,7 +30,7 @@ export default function ProjectIdentity({ project, updateProject, onDelete }) {
                     <input
                         value={project.name}
                         onChange={e => updateProject(project.id, { name: e.target.value })}
-                        className="bg-transparent text-4xl font-bold font-sans text-white w-full outline-none placeholder:text-zinc-700 tracking-tight"
+                        className="bg-transparent text-fluid-xl lg:text-fluid-2xl font-bold font-sans text-white w-full outline-none placeholder:text-zinc-700 tracking-tight"
                         placeholder="Mission Name"
                     />
                 </div>
@@ -39,7 +39,7 @@ export default function ProjectIdentity({ project, updateProject, onDelete }) {
                 <div className="relative">
                     <button
                         onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-                        className="p-2 text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-lg transition-colors"
+                        className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-lg transition-colors"
                         title="Project settings"
                     >
                         <MoreVertical size={18} />

@@ -14,7 +14,7 @@ export default function SignalCard({ title, children, accent = "zinc" }) {
             "p-4 rounded-xl glass-panel mb-4 shadow-none hover:bg-white/5 transition-colors",
             border
         )}>
-            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-3">{title}</h3>
+            <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold mb-3">{title}</h3>
             {children}
         </div>
     );

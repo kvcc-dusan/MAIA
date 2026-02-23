@@ -400,7 +400,7 @@ function DecisionDetailModal({ decision, onClose }) {
 
 function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, onContextMenu, isPinned }) {
     const longPress = useLongPress((touch) => {
-        onContextMenu({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} }, d.id);
+        onContextMenu({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => { } }, d.id);
     });
     const dateObj = new Date(d.createdAt);
     const now = new Date();
@@ -437,21 +437,19 @@ function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, o
                         : "h-auto min-h-[220px] bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
             )}
         >
-            {/* Top-right: select circle on hover / pin dot when pinned */}
-            <div className={cn(
-                "absolute top-4 right-4 z-20 w-3.5 h-3.5 rounded-full transition-all duration-200 flex items-center justify-center",
-                isSelected
-                    ? "bg-white border border-white"
-                    : isPinned
-                        ? "bg-white"
-                        : "border border-white/15 bg-transparent opacity-0 group-hover:opacity-100"
-            )}>
-                {isSelected && (
+            {/* Pinned indicator — white dot, only shown when pinned (matches Codex) */}
+            {isPinned && !isSelected && (
+                <div className="absolute top-4 right-4 z-20 w-2 h-2 rounded-full bg-white" />
+            )}
+
+            {/* Select mode checkmark circle */}
+            {isSelected && (
+                <div className="absolute top-4 right-4 z-20 w-3.5 h-3.5 rounded-full bg-white border border-white flex items-center justify-center">
                     <svg width="7" height="7" viewBox="0 0 10 10">
                         <polyline points="1,5 4,8 9,2" stroke="black" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Header */}
             <div className="z-10 mb-4">

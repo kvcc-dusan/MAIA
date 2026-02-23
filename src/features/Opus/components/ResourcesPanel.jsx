@@ -41,7 +41,7 @@ export default function ResourcesPanel({ project, updateProject }) {
     return (
         <div className="flex flex-col min-h-[200px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
+                <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
                     <ProjectIcon name="link" size={14} />
                     Uplinks
                 </h3>

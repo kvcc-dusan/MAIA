@@ -101,8 +101,8 @@ export default function Projects({
     });
   };
 
-  // Fixed widths: 320px expanded, 56px collapsed
-  const effectiveWidth = isCollapsed ? 56 : 320;
+  // Fixed widths: 280px (tablet) / 320px (lg+) expanded, 52px collapsed
+  const effectiveWidth = isCollapsed ? 52 : 280;
 
   // Mobile sidebar overlay
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -111,33 +111,25 @@ export default function Projects({
   return (
     <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-zinc-200">
 
-      {/* Mobile sidebar toggle */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors backdrop-blur-md"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-
       {/* Mobile sidebar backdrop */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMobile} />
       )}
 
       {/* Main Container */}
-      <div className="relative z-10 w-full h-full flex pointer-events-none">
+      <div className="relative z-10 w-full h-full flex">
 
         {/* SIDEBAR: Project List — hidden on mobile, overlay when mobileOpen */}
         <div
-          className={`flex-none h-full border-r border-white/10 bg-black pointer-events-auto flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
+          className={`flex-none h-full border-r border-white/10 bg-black flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
             ${mobileOpen ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'hidden md:flex'}`}
-          style={{ width: mobileOpen ? 320 : effectiveWidth }}
+          style={{ width: mobileOpen ? 280 : effectiveWidth }}
         >
           {/* Header */}
           {/* Header */}
           <div className={`flex-none p-6 border-b border-white/5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center gap-2 overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Projects</span>
+              <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Projects</span>
               <span className="text-fluid-3xs bg-white/5 px-1.5 py-0.5 rounded text-zinc-600 font-mono">OPUS</span>
             </div>
             <button
@@ -199,8 +191,40 @@ export default function Projects({
           </div>
 
           {/* Collapse Toggle */}
+          {/* Mobile Sidebar Settings (Only visible on mobile when a project is active) */}
+          {mobileOpen && activeProject && (
+            <div className="flex-none border-t border-white/5 p-4 flex flex-col gap-2 bg-black/50">
+              <div className="text-fluid-3xs text-zinc-500 uppercase tracking-widest font-bold mb-2">
+                Manage {activeProject.name}
+              </div>
+              {['Active', 'Paused', 'Done'].map(status => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setProjects(prev => prev.map(p => p.id === activeId ? { ...p, status } : p));
+                    closeMobile();
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-white/10 text-white" : "border border-transparent text-zinc-400 hover:text-white hover:bg-white/5"
+                    }`}
+                >
+                  Set to {status === 'Done' ? 'Archived' : status}
+                </button>
+              ))}
+              <div className="h-px bg-white/5 my-1" />
+              <button
+                onClick={() => {
+                  deleteProject(activeId);
+                  closeMobile();
+                }}
+                className="w-full text-left px-3 py-2 rounded-lg text-xs text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                Delete Project
+              </button>
+            </div>
+          )}
+
           {/* Collapse Toggle */}
-          <div className={`flex-none border-t border-white/5 p-2 flex items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
+          <div className={`hidden md:flex flex-none border-t border-white/5 p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
             <button
               onClick={toggleCollapse}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-zinc-500 hover:text-white transition-all"
@@ -218,22 +242,37 @@ export default function Projects({
         </div>
 
         {/* MAIN CONTENT: Opus Layout */}
-        <div className="flex-1 h-full overflow-y-auto custom-scrollbar pointer-events-auto">
-          {activeProject ? (
-            <OpusLayout
-              key={activeProject.id} // Re-mount on switch to reset local states if any
-              projectId={activeProject.id}
-              selectNote={selectNote}
-              onDeleteProject={deleteProject}
-            />
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
-              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                <ProjectIcon name="work" size={40} className="opacity-50" />
+        <div className="flex-1 h-full overflow-hidden">
+          {/* Mobile sidebar toggle — inside the content area, not a fixed overlay */}
+          <div className="md:hidden flex items-center gap-3 px-4 pt-4 pb-2 border-b border-white/5">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Open project list"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            {activeProject && (
+              <span className="text-xs text-zinc-400 font-mono uppercase tracking-widest truncate">{activeProject.name}</span>
+            )}
+          </div>
+          <div className="h-full overflow-y-auto custom-scrollbar">
+            {activeProject ? (
+              <OpusLayout
+                key={activeProject.id} // Re-mount on switch to reset local states if any
+                projectId={activeProject.id}
+                selectNote={selectNote}
+                onDeleteProject={deleteProject}
+              />
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                  <ProjectIcon name="work" size={40} className="opacity-50" />
+                </div>
+                <p className="text-lg font-light text-zinc-500">Select a mission to analyze.</p>
               </div>
-              <p className="text-lg font-light text-zinc-500">Select a mission to analyze.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
       </div>

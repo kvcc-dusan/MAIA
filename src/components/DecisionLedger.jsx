@@ -53,7 +53,7 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                 <section>
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                        <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Open Loops ({openDecisions.length})</h3>
+                        <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Open Loops ({openDecisions.length})</h3>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
                         {openDecisions.length === 0 && (
@@ -70,7 +70,7 @@ export default function DecisionLedger({ ledger = [], setLedger }) {
                     <section>
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                            <h3 className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Closed & Reviewed ({reviewedDecisions.length})</h3>
+                            <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Closed & Reviewed ({reviewedDecisions.length})</h3>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 opacity-80">
                             {reviewedDecisions.map(d => <DecisionCard key={d.id} d={d} onReviewStart={setReviewingId} />)}

@@ -115,7 +115,7 @@ export default function WorldMapWidget({ weather }) {
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <Card className="relative flex min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
+        <Card className="relative flex min-h-[100px] md:min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
             {/* HEADER: Date & Location Info */}
             <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
@@ -140,7 +140,7 @@ export default function WorldMapWidget({ weather }) {
             </div>
 
             {/* CENTER SECTION: Expanded Height for breathing room */}
-            <CardContent className="relative z-10 h-[200px] w-full overflow-hidden bg-transparent p-0">
+            <CardContent className="relative z-10 hidden md:block h-[200px] w-full overflow-hidden bg-transparent p-0">
                 <MapVisual coords={coords} topology={topology} />
             </CardContent>
 
