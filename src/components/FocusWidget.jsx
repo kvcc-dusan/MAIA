@@ -11,7 +11,7 @@ export default function FocusWidget({
   todayTasks = [],
   sessions = [],
   signals = { velocity: [], staleness: [] },
-  onOpenPulse,
+
   onTaskClick,
 }) {
   const [momentumOpen, setMomentumOpen] = useState(false);
