@@ -29,7 +29,7 @@ const JournalHistoryList = React.memo(({ entries }) => {
     );
 });
 
-export default function Journal({ journal = [], setJournal, onOpenLedger }) {
+export default function Journal({ journal = [], setJournal }) {
 
     const [content, setContent] = useState('');
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
