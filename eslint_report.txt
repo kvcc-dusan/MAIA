@@ -1,0 +1,110 @@
+
+/app/src/App.jsx
+    5:25  error    'ensurePermission' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                no-unused-vars
+  115:6   warning  React Hook useCallback has a missing dependency: 'setCurrentNoteId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  124:6   warning  React Hook useCallback has a missing dependency: 'setCurrentNoteId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  132:6   warning  React Hook useCallback has a missing dependency: 'setCurrentNoteId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  142:6   warning  React Hook useCallback has a missing dependency: 'setCurrentNoteId'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  153:9   error    'handleOpenLedger' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                       no-unused-vars
+
+/app/src/components/ChronosModal.jsx
+  351:6  warning  React Hook useEffect has missing dependencies: 'sessions' and 'setSessions'. Either include them or remove the dependency array. If 'setSessions' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+/app/src/components/ChronosModal.test.jsx
+  2:26  error  'fireEvent' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  2:37  error  'waitFor' is defined but never used. Allowed unused vars must match /^[A-Z_]/u    no-unused-vars
+
+/app/src/components/EditorRich.jsx
+  234:6  warning  React Hook useEffect has a missing dependency: 'emitMeta'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/components/FocusWidget.jsx
+  14:3  error  'onOpenPulse' is defined but never used  no-unused-vars
+
+/app/src/components/ProjectIcon.jsx
+    4:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  172:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  175:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/app/src/components/ui/CustomSelect.jsx
+  4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/components/ui/DateTimePicker.jsx
+  4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/components/ui/PillSelect.jsx
+  4:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/components/ui/dock.jsx
+  2:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/context/DataContext.jsx
+   4:10  error    'parseContentMeta' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                      no-unused-vars
+  37:8   warning  React Hook useEffect has a missing dependency: 'setNotes'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/Graph/components/GraphControls.jsx
+  28:5  error  'showSignals' is defined but never used     no-unused-vars
+  29:5  error  'setShowSignals' is defined but never used  no-unused-vars
+
+/app/src/features/Graph/components/GraphRenderer.jsx
+  240:8  warning  React Hook useEffect has missing dependencies: 'fontSize', 'linkThickness', and 'nodeSize'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/Graph/hooks/useGraphSimulation.js
+  43:8  warning  React Hook useEffect has missing dependencies: 'linkDistance' and 'repelForce'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/features/Ledger/components/OutcomeDistribution.jsx
+  3:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u              no-unused-vars
+  7:24  error  'total' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/features/Opus/components/ExecutionPanel.jsx
+  57:30  error  'showPromote' is assigned a value but never used  no-unused-vars
+
+/app/src/features/Opus/components/ProjectResume.jsx
+  38:15  error  'taskId' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+/app/src/features/Opus/components/ProjectVitality.jsx
+  5:17  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/app/src/features/Opus/components/ResourcesPanel.jsx
+  30:18  error  'e' is defined but never used  no-unused-vars
+
+/app/src/features/Opus/components/TimelinePanel.jsx
+  59:38  error  'idx' is defined but never used  no-unused-vars
+
+/app/src/lib/time.js
+  23:58  error  'excludeId' is assigned a value but never used  no-unused-vars
+
+/app/src/lib/utils.test.js
+  10:25  error  Unexpected constant truthiness on the left-hand side of a `&&` expression  no-constant-binary-expression
+  10:43  error  Unexpected constant truthiness on the left-hand side of a `&&` expression  no-constant-binary-expression
+
+/app/src/pages/EditorPage.jsx
+  111:27  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  112:31  error  React Hook "useCallback" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+/app/src/pages/HomePage.jsx
+  19:3  error  'ledger' is assigned a value but never used     no-unused-vars
+  21:3  error  'reminders' is assigned a value but never used  no-unused-vars
+  23:3  error  'updateNote' is defined but never used          no-unused-vars
+
+/app/src/pages/JournalPage.jsx
+  32:61  error  'onOpenLedger' is defined but never used  no-unused-vars
+
+/app/src/pages/LedgerPage.jsx
+  772:8  warning  React Hook useMemo has a missing dependency: 'sortFn'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  776:8  warning  React Hook useMemo has a missing dependency: 'sortFn'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/pages/NotesPage.jsx
+  230:6  warning  React Hook useMemo has a missing dependency: 'projects'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/src/pages/NotesPage_ModalSnippet.jsx
+   3:5   error  'showDeleteConfirm' is not defined     no-undef
+   8:56  error  'notes' is not defined                 no-undef
+  12:40  error  'setShowDeleteConfirm' is not defined  no-undef
+  18:34  error  'confirmDeleteAll' is not defined      no-undef
+
+/app/src/pages/ProjectsPage.jsx
+  30:3  error  'notes' is defined but never used      no-unused-vars
+  33:3  error  'setNotes' is defined but never used   no-unused-vars
+  36:3  error  'pushToast' is defined but never used  no-unused-vars
+
+✖ 50 problems (38 errors, 12 warnings)

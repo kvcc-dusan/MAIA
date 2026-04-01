@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
-import { cn } from "@/lib/utils";
 
 
 export function OutcomeDistribution({ data }) {
-    const { chartData, total } = useMemo(() => {
+    const { chartData } = useMemo(() => {
         if (!data || data.length === 0) return { chartData: [], total: 0 };
 
         const counts = { success: 0, mixed: 0, failure: 0 };

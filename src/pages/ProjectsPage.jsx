@@ -27,13 +27,10 @@ const withDefaults = (p) => ({
 });
 
 export default function Projects({
-  notes,
   projects,
   setProjects,
-  setNotes,
   selectNote,
   targetProjectId,
-  pushToast,
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
