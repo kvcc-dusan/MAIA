@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Portal } from "./portal";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { POPOVER_CLASS } from "@/lib/constants";
 import { Plus, X } from "lucide-react";
 

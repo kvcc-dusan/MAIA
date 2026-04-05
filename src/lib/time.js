@@ -20,7 +20,7 @@ export const isPastTime = (date) => {
     return new Date(date) < new Date();
 };
 
-export const checkOverlap = (start1, end1, start2, end2, excludeId = null) => {
+export const checkOverlap = (start1, end1, start2, end2) => {
     const s1 = new Date(start1).getTime();
     const e1 = new Date(end1).getTime();
     const s2 = new Date(start2).getTime();

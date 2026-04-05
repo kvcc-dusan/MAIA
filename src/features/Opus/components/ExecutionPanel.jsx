@@ -54,7 +54,7 @@ export default function ExecutionPanel({ project }) {
         setContextMenu(null);
     };
 
-    const TaskRow = ({ task, showPromote = false }) => (
+    const TaskRow = ({ task }) => (
         <div
             className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors relative"
             onContextMenu={(e) => {

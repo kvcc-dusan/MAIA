@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Portal } from "./portal";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { INPUT_CLASS, POPOVER_CLASS } from "@/lib/constants";
 
 export function CustomSelect({ label, value, options, onChange, placeholder = "Select..." }) {
