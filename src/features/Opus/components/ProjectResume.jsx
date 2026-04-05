@@ -35,7 +35,7 @@ export default function ProjectResume({ project }) {
 
     const handleCreateNextAction = () => {
         if (!newActionTitle.trim()) return;
-        const taskId = addTask(newActionTitle, null, "", project.id, { isNextAction: true });
+        addTask(newActionTitle, null, "", project.id, { isNextAction: true });
         setNewActionTitle("");
         setShowAddAction(false);
     };

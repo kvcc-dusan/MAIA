@@ -56,7 +56,7 @@ export default function TimelinePanel({ project }) {
                     <div className="pl-6 text-zinc-700 text-xs italic">No recorded activity yet.</div>
                 )}
 
-                {timeline.map((item, idx) => (
+                {timeline.map((item) => (
                     <div key={`${item.type}-${item.id}`} className="relative pl-6 group">
                         {/* Dot */}
                         <div className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-zinc-800 border-2 border-black group-hover:bg-blue-500 group-hover:border-blue-500/30 transition-all shadow-black shadow-lg z-10" />

@@ -16,11 +16,8 @@ export default function TodayPage({
   tasks = [],
   notes = [],
   projects = [],
-  ledger = [],
   sessions = [],
-  reminders = [],
   createNote,
-  updateNote,
   onOpenPulse,
   onOpenNote,
 }) {
