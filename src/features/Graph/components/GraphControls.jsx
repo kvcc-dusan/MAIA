@@ -2,6 +2,7 @@
 import React from "react";
 import { GlassCard, GlassInput } from "../../../components/GlassCard";
 import ProjectIcon from "../../../components/ProjectIcon";
+import { SettingsIcon, SearchIcon } from "../../../components/ui/CustomIcon.jsx";
 
 const COLORS = [
     "#2dd4bf", // Teal (Growth)
@@ -53,7 +54,13 @@ export default function GraphControls({
                     }`}
                 aria-label="Toggle Graph Controls"
             >
-                <ProjectIcon name={isPanelOpen ? "x" : "settings"} size={20} />
+                {isPanelOpen ? (
+                    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                ) : (
+                    <SettingsIcon size={18} />
+                )}
             </button>
 
             {/* Click-away backdrop (closes panel when clicking outside) */}
@@ -83,7 +90,7 @@ export default function GraphControls({
                     <div className="space-y-3">
                         <div className="text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Search</div>
                         <div className="relative">
-                            <ProjectIcon name="search" size={14} className="absolute left-3 top-2.5 text-zinc-500" />
+                            <SearchIcon size={14} className="absolute left-3 top-2.5 text-zinc-500" />
                             <GlassInput
                                 placeholder="Find node..."
                                 value={searchQuery}

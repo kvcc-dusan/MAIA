@@ -15,6 +15,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['maia-logo.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MiB
+      },
       manifest: {
         name: 'Maia',
         short_name: 'Maia',

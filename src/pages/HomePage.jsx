@@ -104,15 +104,15 @@ export default function TodayPage({
       {/* WebGL gradient background */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <Grainient
-          color1="#28302d"
+          color1="#1a2320"
           color2="#000000"
-          color3="#224536"
+          color3="#27493d"
           timeSpeed={0.12}
           warpStrength={0.6}
           warpAmplitude={80.0}
           grainAmount={0.06}
-          contrast={1.4}
-          gamma={0.85}
+          contrast={1.3}
+          gamma={1.1}
           zoom={1.1}
         />
       </div>

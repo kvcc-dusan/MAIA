@@ -366,12 +366,8 @@ export default function ChronosModal({
       >
 
         <div className="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r">
-          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
+          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-sans font-semibold text-white tracking-tight">Chronos</h2>
-            <div className="flex items-center gap-6">
-              <span className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em]">{today.toLocaleDateString()}</span>
-              <CloseButton onClick={onClose} aria-label="Close Modal" className="text-zinc-500 hover:text-white transition-colors" />
-            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
@@ -469,7 +465,6 @@ export default function ChronosModal({
                               )}
                             >
                               <span className="text-xs">{d.getDate()}</span>
-                              {hasTasks && <span className={cn("absolute bottom-1.5 w-1 h-1 rounded-full", isSel ? "bg-black" : "bg-zinc-500")} />}
                             </button>
                           )}
                         </div>
