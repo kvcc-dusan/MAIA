@@ -37,7 +37,7 @@ export function JudgmentOverview({ ledger }) {
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div>
                     <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#93FD23] animate-pulse shadow-[0_0_10px_rgba(147,253,35,0.5)]"></span>
+                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                         Judgment Overview
                     </h2>
                     <p className="text-fluid-3xs text-zinc-500 font-mono mt-1 uppercase tracking-wider">

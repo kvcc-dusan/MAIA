@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card.jsx";
 import { GlassErrorBoundary } from "./GlassErrorBoundary.jsx";
+import { ChevronRight } from "./ui/CustomIcon.jsx";
 
 /**
  * QuickCaptureWidget — Journal capture + today's entries pop-up.
@@ -50,7 +51,7 @@ export default function QuickCaptureWidget({
 
     return (
         <GlassErrorBoundary>
-            <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
+            <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
 
                 {/* HEADER */}
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -76,7 +77,7 @@ export default function QuickCaptureWidget({
                 </CardContent>
 
                 {/* FOOTER: Entries + Capture */}
-                <CardFooter className="relative z-20 flex items-center justify-between border-t-[0.5px] border-white/5 bg-muted/20 px-5 py-3">
+                <CardFooter className="relative z-20 flex items-center justify-between border-t border-white/5 bg-muted/20 px-5 py-3">
                     {/* View Entries — text only, no icon */}
                     <button
                         ref={btnRef}
@@ -93,9 +94,7 @@ export default function QuickCaptureWidget({
                         className="flex items-center gap-2 text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <span>Capture</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                        </svg>
+                        <ChevronRight size={14} className="shrink-0" />
                     </button>
                 </CardFooter>
 

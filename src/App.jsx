@@ -7,14 +7,14 @@ import { rescheduleAll, ensurePermission } from "./utils/notify.js";
 // Components
 import { Dock } from "./components/ui/dock.jsx";
 import {
-  CalendarDays,
-  Sparkles,
-  Library,
-  Globe,
-  Scale,
-  Hourglass,
-  Search
-} from "lucide-react";
+  Home08,
+  Search01,
+  OpusIcon,
+  CodexIcon,
+  ConnexaIcon,
+  LedgerIcon,
+  ChronosIcon
+} from "./components/ui/CustomIcon.jsx";
 
 import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
@@ -202,14 +202,14 @@ function AppContent() {
       {/* Dock (Floating Navigation) */}
       <Dock
         items={[
-          { icon: CalendarDays, label: "Today", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
-          { icon: Sparkles, label: "Opus", onClick: () => handleNavigate("projects"), isActive: currentPage === "projects" },
-          { icon: Library, label: "Codex", onClick: () => handleNavigate("overview"), isActive: currentPage === "overview" },
-          { icon: Globe, label: "Conexa", onClick: () => handleNavigate("graph"), isActive: currentPage === "graph" },
-          { icon: Scale, label: "Ledger", onClick: () => handleNavigate("ledgerPage"), isActive: currentPage === "ledgerPage" },
+          { icon: Home08, label: "Today", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
+          { icon: OpusIcon, label: "Opus", onClick: () => handleNavigate("projects"), isActive: currentPage === "projects" },
+          { icon: CodexIcon, label: "Codex", onClick: () => handleNavigate("overview"), isActive: currentPage === "overview" },
+          { icon: ConnexaIcon, label: "Conexa", onClick: () => handleNavigate("graph"), isActive: currentPage === "graph" },
+          { icon: LedgerIcon, label: "Ledger", onClick: () => handleNavigate("ledgerPage"), isActive: currentPage === "ledgerPage" },
           { type: 'separator' },
-          { icon: Hourglass, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
-          { icon: Search, label: "Search", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
+          { icon: ChronosIcon, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
+          { icon: Search01, label: "Search", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
         ]}
       />
 

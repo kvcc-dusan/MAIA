@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maia — Surface Colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:#000;color:#e4e4e7;width:700px;height:200px;overflow:hidden;font-family:var(--font-mono)}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);height:100%}
+  .sw{display:flex;flex-direction:column;justify-content:space-between;padding:16px 14px;border-right:1px solid rgba(255,255,255,.06);box-sizing:border-box}
+  .sw:last-child{border-right:none}
+  .name{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#a1a1aa;font-weight:700}
+  .hex{font-size:10px;color:#52525b}
+  .s0{background:#000}
+  .s1{background:#050505}
+  .s2{background:#0a0a0b}
+  .s3{background:#18181b}
+  .s4{background:#26262a}
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="sw s0"><span class="name">Black</span><span class="hex">#000000 · body</span></div>
+  <div class="sw s1"><span class="name">Midnight</span><span class="hex">#050505</span></div>
+  <div class="sw s2"><span class="name">Card</span><span class="hex">#0a0a0b</span></div>
+  <div class="sw s3"><span class="name">Surface</span><span class="hex">#18181b · zinc-900</span></div>
+  <div class="sw s4"><span class="name">Border</span><span class="hex">#26262a</span></div>
+</div>
+</body>
+</html>

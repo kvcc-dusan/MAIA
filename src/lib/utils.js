@@ -1,6 +1,8 @@
 import { clsx } from "clsx"
 import { extendTailwindMerge } from "tailwind-merge"
-import { NEON_BLUE, NEON_ORANGE, NEON_GREEN } from "./constants"
+const NEON_BLUE = '#6366f1';
+const NEON_ORANGE = '#f97316';
+const NEON_GREEN = '#10b981';
 
 const twMerge = extendTailwindMerge({
     extend: {

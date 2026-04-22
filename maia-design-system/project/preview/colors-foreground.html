@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maia — Foreground Scale</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:#000;color:#e4e4e7;width:700px;height:200px;overflow:hidden;font-family:var(--font-mono)}
+  .wrap{padding:24px 32px;display:flex;flex-direction:column;gap:10px;height:100%;box-sizing:border-box}
+  .row{display:flex;align-items:center;gap:16px}
+  .chip{width:20px;height:20px;border-radius:6px;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+  .name{font-size:12px;font-weight:600;min-width:80px}
+  .hex{font-size:11px;color:#71717a;min-width:80px}
+  .use{font-size:11px;color:#a1a1aa}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row"><span class="chip" style="background:#fafafa"></span><span class="name" style="color:#fafafa">fg</span><span class="hex">#fafafa</span><span class="use">headings, active</span></div>
+  <div class="row"><span class="chip" style="background:#e4e4e7"></span><span class="name" style="color:#e4e4e7">fg-1</span><span class="hex">#e4e4e7</span><span class="use">body text</span></div>
+  <div class="row"><span class="chip" style="background:#a1a1aa"></span><span class="name" style="color:#a1a1aa">fg-2</span><span class="hex">#a1a1aa</span><span class="use">secondary, captions</span></div>
+  <div class="row"><span class="chip" style="background:#71717a"></span><span class="name" style="color:#71717a">fg-3</span><span class="hex">#71717a</span><span class="use">muted / labels</span></div>
+  <div class="row"><span class="chip" style="background:#52525b"></span><span class="name" style="color:#52525b">fg-4</span><span class="hex">#52525b</span><span class="use">placeholder</span></div>
+</div>
+</body>
+</html>

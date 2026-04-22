@@ -26,7 +26,7 @@ export default function FocusWidget({
 
   return (
     <GlassErrorBoundary>
-      <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
+      <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
 
         {/* HEADER */}
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -125,7 +125,7 @@ export default function FocusWidget({
         </CardContent>
 
         {/* FOOTER — always visible */}
-        <CardFooter className="relative z-20 flex items-center justify-end border-t-[0.5px] border-white/5 bg-muted/20 px-5 py-3">
+        <CardFooter className="relative z-20 flex items-center justify-end border-t border-white/5 bg-muted/20 px-5 py-3">
           <button
             onClick={() => setMomentumOpen((v) => !v)}
             className="text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"

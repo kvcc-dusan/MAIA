@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Maia — Toast</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+html,body{margin:0;padding:0;background:#000;color:#e4e4e7;width:700px;height:180px;overflow:hidden;font-family:var(--font-sans);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.toast{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:16px;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(16px);box-shadow:0 25px 50px -12px rgba(0,0,0,.7);color:#e4e4e7;font-family:var(--font-sans);font-size:14px;font-weight:500}
+.dot{width:8px;height:8px;border-radius:999px;background:#10B981}
+.dot.amber{background:#F59E0B}.dot.rose{background:#F43F5E}
+</style></head>
+<body>
+<div class="toast"><span class="dot"></span>Note created</div>
+<div class="toast"><span class="dot amber"></span>Chronos paused · 14 min</div>
+<div class="toast"><span class="dot rose"></span>Sync failed — retrying</div>
+</body></html>

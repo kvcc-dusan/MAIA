@@ -45,8 +45,8 @@ export function VelocityChart({ data }) {
                 <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
                     <defs>
                         <linearGradient id="velocityGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#93FD23" stopOpacity={0.12} />
-                            <stop offset="100%" stopColor="#93FD23" stopOpacity={0} />
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.12} />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <XAxis
@@ -75,11 +75,11 @@ export function VelocityChart({ data }) {
                     <Area
                         type="monotone"
                         dataKey="count"
-                        stroke="#93FD23"
+                        stroke="#10b981"
                         strokeWidth={1.5}
                         fill="url(#velocityGradient)"
-                        dot={{ fill: '#93FD23', r: 2, strokeWidth: 0 }}
-                        activeDot={{ fill: '#93FD23', r: 4, strokeWidth: 0, filter: 'drop-shadow(0 0 4px #93FD23)' }}
+                        dot={{ fill: '#10b981', r: 2, strokeWidth: 0 }}
+                        activeDot={{ fill: '#10b981', r: 4, strokeWidth: 0, filter: 'drop-shadow(0 0 4px #10b981)' }}
                     />
                 </AreaChart>
             </ResponsiveContainer>

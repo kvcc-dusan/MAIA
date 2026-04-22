@@ -23,7 +23,7 @@ const THEME = {
   nodeFill: "#e4e4e7", // zinc-200 (Light Gray)
   nodeActive: "#ffffff", // Pure White
   nodeStroke: "none",
-  link: "#27272a", // zinc-800
+  link: "rgba(255,255,255,0.12)",
   text: "#a1a1aa", // zinc-400
   textActive: "#f4f4f5", // zinc-100
 };
@@ -114,7 +114,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       realId: p.id,
       title: p.name,
       type: "project",
-      color: "#3b82f6", // Blue (Tailwind 500) - visually distinct blue
+      color: "#3f3f46", // zinc-700 — matches Opus Nodes widget
       val: 3, // Smaller fixed size (~5% larger)
       tags: ["Project"],
     }));

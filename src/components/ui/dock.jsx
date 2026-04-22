@@ -21,12 +21,13 @@ const DockIconButton = React.forwardRef(
                     className
                 )}
             >
-                {Icon ? <Icon className="w-[18px] h-[18px] sm:w-5 sm:h-5" /> : <div className="w-5 h-5 bg-red-500/20 rounded-full" />}
+                {Icon ? <Icon className="w-[18px] h-[18px] sm:w-5 sm:h-5" strokeWidth={isActive ? 2.2 : 1.8} /> : <div className="w-5 h-5 bg-red-500/20 rounded-full" />}
                 <span
                     className={cn(
                         "absolute -top-10 left-1/2 -translate-x-1/2",
-                        "px-2 py-1 rounded-md text-fluid-3xs font-medium uppercase tracking-widest",
-                        "bg-zinc-900 border border-white/10 text-white shadow-xl backdrop-blur-md",
+                        "px-2 py-1 rounded-lg text-fluid-3xs font-medium uppercase tracking-widest",
+                        "bg-zinc-900/90 border border-white/10 text-white backdrop-blur-xl",
+                        "shadow-[var(--shadow-lg)]",
                         "opacity-0 group-hover:opacity-100",
                         "transition-opacity whitespace-nowrap pointer-events-none"
                     )}
@@ -48,11 +49,12 @@ const DesktopDock = React.forwardRef(({ items, className }, ref) => {
             <div className="w-fit flex items-center justify-center relative pointer-events-auto">
                 <motion.div
                     className={cn(
-                        "flex items-center gap-1 sm:gap-2 p-1.5 px-2 sm:p-2 sm:px-3 rounded-[20px] sm:rounded-[24px]",
-                        "backdrop-blur-sm border border-white/10 shadow-lg",
-                        "bg-card/80",
-                        "hover:shadow-2xl transition-shadow duration-300"
+                        "flex items-center gap-1 sm:gap-2 p-1.5 px-2 sm:p-2 sm:px-3 rounded-[24px]",
+                        "backdrop-blur-xl border border-white/10",
+                        "bg-zinc-900/80",
+                        "transition-shadow duration-300"
                     )}
+                    style={{ boxShadow: "var(--shadow-lg)" }}
                 >
                     {items.map((item, index) => (
                         item.type === 'separator' ? (
@@ -86,7 +88,7 @@ const MobileTabBar = ({ items }) => {
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
             {/* Main tab row */}
-            <div className="flex items-center bg-black/85 backdrop-blur-xl h-[var(--dock-h)]">
+            <div className="flex items-center bg-zinc-900/80 backdrop-blur-xl border-t border-white/5 h-[var(--dock-h)]">
                 {primaryItems.map((item, i) => (
                     <motion.button
                         key={item.label || i}

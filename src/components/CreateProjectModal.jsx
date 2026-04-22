@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import ProjectIcon, { IconPicker } from "./ProjectIcon";
-import { X, FolderPlus } from "lucide-react";
+import { CancelSquare as X, FolderAdd as FolderPlus } from "./ui/CustomIcon.jsx";
 import { cn } from "@/lib/utils";
 
 // Minimal Input Style (Shared with Ledger)
@@ -38,59 +38,59 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
+                className="w-full max-w-md mx-4 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2 font-mono">
-                        <FolderPlus size={14} className="text-zinc-500" />
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+                    <span className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
                         New Project
-                    </h2>
+                    </span>
                     <button
                         onClick={onClose}
-                        className="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/5 hover:text-zinc-300 transition-colors"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:bg-white/[0.06] hover:text-zinc-300 transition-colors"
                     >
-                        <X size={14} />
+                        <X size={12} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-8">
-                    {/* Project Name Input (Hero Style) */}
-                    <div className="flex items-start gap-4">
+                <form onSubmit={handleSubmit} className="p-5 space-y-5">
+                    {/* Icon + Name row */}
+                    <div className="flex items-center gap-4">
                         <button
                             type="button"
                             onClick={() => setShowPicker(true)}
-                            className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors shrink-0 group"
+                            className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.15] transition-all shrink-0"
+                            title="Choose icon"
                         >
-                            <ProjectIcon name={icon} size={24} color={iconColor} className="group-hover:scale-110 transition-transform" />
+                            <ProjectIcon name={icon} size={20} color={iconColor} />
                         </button>
 
-                        <div className="flex-1 pt-2">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Project Name..."
-                                className={cn(INPUT_CLEAN, "text-xl font-medium placeholder:text-zinc-700")}
-                            />
-                        </div>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            onKeyDown={e => e.key === 'Escape' && onClose()}
+                            placeholder="Project name..."
+                            className="flex-1 bg-transparent outline-none text-white text-base font-medium placeholder:text-zinc-700 font-mono"
+                        />
                     </div>
 
-                    <div className="flex justify-end gap-4 pt-4">
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-3 pt-1">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
+                            className="px-4 py-2 rounded-xl text-xs font-mono text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04] transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="text-xs font-bold font-mono uppercase tracking-wider text-white hover:text-zinc-300 transition-colors"
+                            className="px-4 py-2 rounded-xl text-xs font-bold font-mono uppercase tracking-[0.12em] bg-white/[0.07] border border-white/[0.12] text-white hover:bg-white/[0.12] transition-colors"
                         >
-                            Create Project
+                            Create
                         </button>
                     </div>
                 </form>

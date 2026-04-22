@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useData } from "../../../context/DataContext";
-import { Upload, X, Eye, FileIcon, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { UploadSquare01 as Upload, CancelSquare as X, File01 as FileIcon, Folder01 as Folder, Link04 as ExternalLink } from "../../../components/ui/CustomIcon.jsx";
 import { uid } from "../../../lib/ids";
 
 /**
@@ -56,17 +56,24 @@ export default function AssetsPanel({ project }) {
     const isImage = (type) => type && type.startsWith('image/');
 
     return (
-        <div className="flex flex-col min-h-[200px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
-                    <ImageIcon size={14} className="text-zinc-600" />
-                    Assets
-                </h3>
+        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                    <Folder size={12} className="text-zinc-600" />
+                    <h3 className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+                        Assets
+                    </h3>
+                    <span className="text-fluid-3xs text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full font-mono">
+                        {assets.length}
+                    </span>
+                </div>
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-fluid-3xs p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
+                    className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-md transition-colors"
+                    title="Upload files"
                 >
-                    <Upload size={14} />
+                    <Upload size={12} />
                 </button>
                 <input
                     ref={fileInputRef}
@@ -78,21 +85,23 @@ export default function AssetsPanel({ project }) {
             </div>
 
             {/* Drop Zone / Grid */}
+            <div className="flex-1 p-4 flex flex-col">
             <div
                 className={`flex-1 rounded-xl border-2 border-dashed transition-all ${isDragOver
-                    ? "border-[#93FD23]/40 bg-[#93FD23]/5"
+                    ? "border-[#10b981]/40 bg-[#10b981]/5"
                     : assets.length === 0
-                        ? "border-white/10 hover:border-white/20"
+                        ? "border-white/10 hover:border-white/20 cursor-pointer"
                         : "border-transparent"
                     }`}
                 onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleDrop}
+                onClick={assets.length === 0 ? () => fileInputRef.current?.click() : undefined}
             >
                 {assets.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full py-8 text-zinc-700">
-                        <Upload size={20} className="mb-2 opacity-50" />
-                        <p className="text-xs italic">Drop files here</p>
+                    <div className="flex flex-col items-center justify-center h-full gap-2 text-zinc-700">
+                        <Upload size={18} className="opacity-40" />
+                        <p className="text-fluid-3xs font-mono italic">Drop files or click to browse</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-2 p-1">
@@ -141,6 +150,7 @@ export default function AssetsPanel({ project }) {
                         ))}
                     </div>
                 )}
+            </div>
             </div>
 
             {/* Preview Modal */}

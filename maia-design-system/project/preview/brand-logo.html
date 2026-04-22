@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maia — Logo</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:#000;color:#e4e4e7;font-family:var(--font-mono);width:700px;height:220px;overflow:hidden}
+  .card{display:grid;grid-template-columns:1fr 1fr 1fr;height:100%;align-items:center}
+  .cell{display:flex;align-items:center;justify-content:center;height:100%;border-right:1px solid rgba(255,255,255,.06)}
+  .cell:last-child{border-right:none}
+  .cell.black{background:#000}
+  .cell.midnight{background:#050505}
+  .cell.invert{background:#fafafa}
+  .cell.invert img{filter:invert(1)}
+  img.logo{width:72px;height:72px}
+  .meta{position:absolute;bottom:10px;left:14px;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#52525b;font-weight:700}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="cell black"><img class="logo" src="../assets/maia-logo.svg" alt="Maia mark"/></div>
+    <div class="cell midnight"><img class="logo" src="../assets/maia-logo.svg" alt="Maia mark"/></div>
+    <div class="cell invert"><img class="logo" src="../assets/maia-logo.svg" alt="Maia mark"/></div>
+  </div>
+</body>
+</html>

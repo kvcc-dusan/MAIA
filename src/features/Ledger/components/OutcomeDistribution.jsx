@@ -52,11 +52,11 @@ export function OutcomeDistribution({ data }) {
                     />
                     <Radar
                         dataKey="value"
-                        stroke="#93FD23"
+                        stroke="#10b981"
                         strokeWidth={1.5}
-                        fill="#93FD23"
+                        fill="#10b981"
                         fillOpacity={0.06}
-                        dot={{ fill: '#93FD23', r: 3, filter: 'drop-shadow(0 0 3px #93FD23)' }}
+                        dot={{ fill: '#10b981', r: 3, filter: 'drop-shadow(0 0 3px #10b981)' }}
                     />
                     <Tooltip
                         content={({ active, payload }) => {

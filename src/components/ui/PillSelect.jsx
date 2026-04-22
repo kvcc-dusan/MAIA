@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Portal } from "./portal";
 import { motion, AnimatePresence } from "framer-motion";
 import { POPOVER_CLASS } from "@/lib/constants";
-import { Plus, X } from "lucide-react";
+import { PlusSignSquare as Plus, CancelSquare as X } from "./CustomIcon.jsx";
 
 export function PillSelect({ value, options, onChange, placeholder, icon: Icon }) {
   const [open, setOpen] = useState(false);
@@ -52,8 +52,8 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
         className={cn(
-          "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-full border transition-all text-xs font-medium",
-          hasValue ? "bg-zinc-900/50 border-zinc-700 text-white hover:bg-zinc-800/50" : "bg-zinc-900/30 border-zinc-700/50 text-zinc-400 hover:bg-zinc-900/50 hover:text-zinc-300"
+          "w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl border transition-all text-sm font-mono min-h-[46px]",
+          hasValue ? "bg-white/5 border-white/25 text-white hover:border-white/30" : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
         )}
       >
         <div className="flex items-center gap-2 overflow-hidden">

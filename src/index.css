@@ -37,6 +37,40 @@
 
   --radius: 0.5rem;
 
+  /* === MAIA SURFACE TOKENS === */
+  --maia-black:     #000000;
+  --maia-midnight:  #050505;
+  --maia-card:      #0a0a0b;
+  --maia-border:    #26262a;
+  --maia-ring:      #d4d4d8;
+
+  /* === MAIA FOREGROUND (zinc scale) === */
+  --maia-fg:   #fafafa;
+  --maia-fg-1: #e4e4e7;
+  --maia-fg-2: #a1a1aa;
+  --maia-fg-3: #71717a;
+  --maia-fg-4: #52525b;
+  --maia-fg-5: #3f3f46;
+
+  /* === GLASS / TRANSPARENCY SCALE === */
+  --maia-glass-bg:          rgba(24, 24, 27, 0.40);
+  --maia-glass-bg-strong:   rgba(0, 0, 0, 0.80);
+  --maia-glass-bg-soft:     rgba(255, 255, 255, 0.05);
+  --maia-glass-bg-hi:       rgba(255, 255, 255, 0.10);
+  --maia-glass-border:      rgba(255, 255, 255, 0.10);
+  --maia-glass-border-soft: rgba(255, 255, 255, 0.05);
+
+  /* === SHADOWS / ELEVATION === */
+  --shadow-sm:  0 1px 2px 0 rgba(0, 0, 0, 0.30);
+  --shadow-lg:  0 10px 25px -5px rgba(0, 0, 0, 0.50), 0 8px 10px -6px rgba(0, 0, 0, 0.30);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.70);
+  /* Signature "thick glass" rim */
+  --shadow-glass:
+    0 1px 0 0 rgba(255, 255, 255, 0.10) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 20px 0 rgba(0, 0, 0, 0.50),
+    0 10px 20px -5px rgba(0, 0, 0, 0.80);
+
   /* === ACCENT COLORS (Semantic Palette) === */
   --color-emerald: #10B981;
   /* Active, Growth, Momentum */
@@ -100,9 +134,14 @@
   /* 12px */
   --radius-lg: 1rem;
   /* 16px */
+  --radius-xl: 1.25rem;
+  /* 20px — GlassSurface */
+  --radius-2xl: 1.5rem;
+  /* 24px — dock, large cards */
   --radius-pill: 9999px;
 
   /* === TRANSITIONS === */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --transition-fast: 200ms ease-out;
   --transition-base: 300ms ease-out;
   --transition-slow: 500ms ease-out;

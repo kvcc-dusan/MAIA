@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
+import { CollapseIcon, ExpandIcon, ReadIcon, WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
@@ -64,8 +65,8 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
                 placeholder="Untitled Note"
-                className="bg-transparent outline-none text-fluid-lg font-bold text-white placeholder:text-zinc-600 tracking-tight"
-                style={{ fontFamily: "var(--font-sans, 'Inter', system-ui, sans-serif)" }}
+                className="bg-transparent outline-none font-sans font-semibold text-white placeholder:text-zinc-600"
+                style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
               />
               <div className="flex items-center gap-3 text-fluid-3xs text-zinc-500 font-mono uppercase tracking-widest">
                 <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -86,7 +87,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
                 title={wide ? "Narrow View" : "Wide View"}
               >
-                <ProjectIcon name={wide ? "shrink_arrow" : "expand_arrow"} size={16} />
+                {wide ? <CollapseIcon size={16} /> : <ExpandIcon size={16} />}
               </button>
 
               {/* Mode Toggle */}
@@ -95,7 +96,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
                 title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
               >
-                <ProjectIcon name={editable ? "book_open" : "edit_pencil"} size={16} />
+                {editable ? <ReadIcon size={16} /> : <WriteIcon size={16} />}
               </button>
             </div>
           </div>
@@ -146,7 +147,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
         {/* Status Pill (Floating above dock) */}
         <div
           className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-          style={{ bottom: 'calc(var(--dock-h) + 0.75rem)' }}
+          style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
         >
           <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-fluid-3xs text-zinc-500 font-mono shadow-2xl pointer-events-auto">
             <div className="flex items-center gap-3 pr-3 border-r border-white/10">

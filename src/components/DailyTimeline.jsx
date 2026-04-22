@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { isPastTime, hasOverlap, sameDay } from "../lib/time";
 import { Portal } from "./ui/portal";
 import { AnimatePresence } from "framer-motion";
+import { Pen01, Delete01 } from "./ui/CustomIcon.jsx";
 
 const SLOT_HEIGHT = 40;
 
@@ -90,7 +91,7 @@ const SessionItem = memo(({
   return (
     <div
       className={cn(
-        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-[#09090b]/90 backdrop-blur-sm border border-white/5 px-3 overflow-hidden hover:bg-white/10 hover:border-white/10 transition-all z-10 select-none group",
+        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/10 px-3 overflow-hidden hover:bg-white/[0.12] hover:border-white/20 transition-all z-10 select-none group",
         isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
         isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
       )}
@@ -506,15 +507,15 @@ function DailyTimeline({
           <Portal>
             <div className="fixed inset-0 z-[9998]" onClick={() => setContextMenu(null)} />
             <div
-              className="fixed bg-[#18181b] border border-white/10 rounded-xl shadow-2xl py-1.5 w-48 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-100 ring-1 ring-black/50"
+              className="fixed bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 w-48 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-100"
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="px-3 py-2 text-fluid-3xs font-bold text-zinc-500 uppercase tracking-wider border-b border-white/5 mb-1 bg-white/[0.02]">
-                Session Options
+              <div className="px-3 py-2 text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em] border-b border-white/5 mb-1">
+                Session
               </div>
               <button
-                className="w-full text-left px-3 py-2 text-xs text-zinc-200 hover:bg-white/10 transition-colors flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-2"
                 onClick={() => {
                   const s = contextMenu.session;
                   openForm({
@@ -528,17 +529,17 @@ function DailyTimeline({
                   setContextMenu(null);
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                <Pen01 size={14} className="shrink-0" />
                 Edit Session
               </button>
               <button
-                className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-2"
                 onClick={() => {
                   setSessions(prev => prev.filter(s => s.id !== contextMenu.session.id));
                   setContextMenu(null);
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <Delete01 size={14} className="shrink-0" />
                 Delete Session
               </button>
             </div>

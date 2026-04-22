@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { GlassCard } from "../../../components/GlassCard";
-import { Plus, Play, Circle, CheckCircle2 } from "lucide-react";
+import { PlusSignSquare as Plus, Target02 as Play, Circle, CheckmarkCircle02 as CheckCircle2 } from "../../../components/ui/CustomIcon.jsx";
 import ProjectIcon from "../../../components/ProjectIcon";
 import { useData } from "../../../context/DataContext";
 
@@ -31,7 +31,7 @@ export default function ActivityPanel({ project }) {
         .sort((a, b) => new Date(a.start) - new Date(b.start))[0], [sessions, project.id]);
 
     return (
-        <div className="flex flex-col h-full min-h-[300px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">
+        <div className="flex flex-col h-full min-h-[300px] rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl p-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
                     <ProjectIcon name="lightning" size={14} />

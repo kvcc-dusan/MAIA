@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProjectIcon from "../components/ProjectIcon";
+import { StickyNote03, Pin, CheckmarkSquare02, Delete01, Pen01 } from "../components/ui/CustomIcon.jsx";
 import { useData } from "../context/DataContext";
-import { Sparkles } from "lucide-react";
+import { AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
 
 /**
  * NotesOverview (Codex)
@@ -298,7 +299,7 @@ export default function NotesOverview({
         {/* Header: Full Width, Opus Style */}
         <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
-            <span className="text-sm uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Codex</span>
+            <span className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono ml-1">Codex</span>
             <span className="text-fluid-3xs bg-white/5 px-2 py-0.5 rounded-full text-zinc-500 font-mono">
               {viewNotes.length}
             </span>
@@ -312,7 +313,7 @@ export default function NotesOverview({
               className="h-8 px-3 rounded-lg bg-white text-black hover:bg-zinc-200 flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-95"
               title="Create New Note"
             >
-              <ProjectIcon name="plus" size={14} strokeWidth={3} />
+              <StickyNote03 size={14} className="stroke-[2.5px]" />
               <span className="text-xs font-bold uppercase tracking-wide">Note</span>
             </button>
 
@@ -322,7 +323,7 @@ export default function NotesOverview({
               className="h-8 px-3 rounded-lg bg-black text-white border border-zinc-700 hover:bg-zinc-800 flex items-center justify-center transition-all gap-2 active:scale-95"
               title="Create New Journal"
             >
-              <ProjectIcon name="plus" size={14} strokeWidth={3} />
+              <StickyNote03 size={14} className="stroke-[2.5px]" />
               <span className="text-xs font-bold uppercase tracking-wide">Journal</span>
             </button>
 
@@ -368,7 +369,7 @@ export default function NotesOverview({
                       onClick={() => { handleDeleteAll(); setShowSettings(false); }}
                       className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center gap-3 text-red-400 group transition-colors"
                     >
-                      <ProjectIcon name="trash_empty" size={14} className="group-hover:scale-110 transition-transform" />
+                      <Delete01 size={14} className="group-hover:scale-110 transition-transform" />
                       <span className="text-xs font-mono">Delete All</span>
                     </button>
                   )}
@@ -378,6 +379,10 @@ export default function NotesOverview({
           </div>
 
         </div>
+
+        <h1 className="font-sans font-semibold text-[#fafafa] leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.5rem)', letterSpacing: '-0.02em' }}>
+          All notes
+        </h1>
       </div>
 
       {/* Grid Container */}
@@ -388,7 +393,8 @@ export default function NotesOverview({
         }}
       >
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 pb-24"
+          className="grid gap-4 pb-24"
+          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
           onClick={(e) => {
             if (selectMode && e.target === e.currentTarget) exitSelectMode();
           }}
@@ -425,11 +431,11 @@ export default function NotesOverview({
                 onTouchMove={handleCardTouchMove}
                 onTouchEnd={handleCardTouchEnd}
                 className={`
-                    group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden
-                    min-h-[14rem] max-h-[16rem]
+                    group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden
+                    min-h-[200px] backdrop-blur-sm
                     ${isSelected
-                    ? "bg-white/5 border-white/40 ring-1 ring-white/20"
-                    : "bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
+                    ? "bg-white/10 border-white/30 ring-1 ring-white/20"
+                    : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
                   }
                   `}
               >
@@ -440,7 +446,7 @@ export default function NotesOverview({
 
                 {/* Header: Title (Consistent top spacing, no divider) */}
                 <div className="z-10 mb-5">
-                  <h3 className={`text-lg font-bold font-sans leading-tight line-clamp-2 text-zinc-200 group-hover:text-white transition-colors`}>
+                  <h3 className="text-[15px] font-medium font-sans leading-tight line-clamp-2 text-[#fafafa] transition-colors">
                     {n.title || "Untitled Note"}
                   </h3>
                 </div>
@@ -450,7 +456,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className="text-fluid-3xs font-mono text-zinc-500 leading-relaxed opacity-80 line-clamp-[8]">
+                  <p className="text-[11px] font-mono text-[#71717a] leading-[1.5] line-clamp-6">
                     {previewText}
                   </p>
                 </div>
@@ -465,16 +471,14 @@ export default function NotesOverview({
 
                     {/* Journal Pill */}
                     {(n.tags || []).includes("journal") && (
-                      <span className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-300 bg-[#121214] px-2 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
-                        Journal
-                      </span>
+                      <span className="maia-tag whitespace-nowrap">journal</span>
                     )}
 
                     {/* Project Pill (Moved to Footer) */}
                     {(n.projectIds || []).length > 0 && (() => {
                       const linkedProject = projects.find(p => p.id === n.projectIds[0]);
                       return linkedProject ? (
-                        <span className="text-fluid-3xs font-bold uppercase tracking-widest text-zinc-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="text-[10px] font-mono text-[#71717a] bg-white/5 px-2 py-0.5 rounded-full border border-white/5 whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
                           {linkedProject.name}
                         </span>
                       ) : null;
@@ -506,7 +510,7 @@ export default function NotesOverview({
           {/* Empty State */}
           {viewNotes.length === 0 && (
             <div className="col-span-full py-32 flex flex-col items-center justify-center text-zinc-600 opacity-50 select-none">
-              <ProjectIcon name="layers" size={48} className="mb-4 opacity-20" />
+              <StickyNote03 size={48} className="mb-4 opacity-20" />
               <p className="text-sm font-light uppercase tracking-widest">No notes found</p>
             </div>
           )}
@@ -539,7 +543,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="pin_note" size={14} />
+                  <Pin size={14} />
                   Pin All
                 </button>
 
@@ -551,7 +555,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="pin_note" size={14} className="opacity-50" />
+                  <Pin size={14} className="opacity-50" />
                   Unpin All
                 </button>
 
@@ -565,7 +569,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="trash_empty" size={14} />
+                  <Delete01 size={14} />
                   Delete All
                 </button>
               </>
@@ -580,7 +584,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="pin_note" size={14} />
+                  <Pin size={14} />
                   <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
                 </button>
 
@@ -594,7 +598,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="edit_pencil" size={14} />
+                  <Pen01 size={14} />
                   Rename
                 </button>
 
@@ -607,7 +611,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="checkbox_fill" size={14} />
+                  <CheckmarkSquare02 size={14} />
                   Select
                 </button>
 
@@ -621,7 +625,7 @@ export default function NotesOverview({
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
-                  <ProjectIcon name="trash_empty" size={14} />
+                  <Delete01 size={14} />
                   Delete
                 </button>
               </>

@@ -1,260 +1,388 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useData } from "../../../context/DataContext";
-import { Plus, Circle, CheckCircle2, AlertCircle, ChevronDown, ChevronRight, Target, X, Ban } from "lucide-react";
+import { PlusSignSquare as Plus, Circle, Target02 as Target, CancelSquare as X, Unavailable as Ban, Calendar03 as Calendar, Clock01 as Clock, Layers01 as Layers, ArrowDown01 as ChevronDown, ChevronRight } from "../../../components/ui/CustomIcon.jsx";
 import { cn } from "@/lib/utils";
 
-/**
- * ExecutionPanel — Layer 2
- * Structured task groups: Next Action, In Progress, Blocked, Backlog, Completed
- */
+const SCHED_ORDER = { today: 0, soon: 1, future: 2 };
+const sortFIFO = (arr) => [...arr].sort((a, b) => {
+    const sd = (SCHED_ORDER[a.schedule] ?? 0) - (SCHED_ORDER[b.schedule] ?? 0);
+    return sd !== 0 ? sd : new Date(a.createdAt) - new Date(b.createdAt);
+});
+
 export default function ExecutionPanel({ project }) {
     const { tasks, addTask, toggleTask, updateTask, deleteTask, setNextAction } = useData();
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [expandedGroups, setExpandedGroups] = useState({
-        completed: false,
+        today: true, soon: true, future: false, blocked: true, done: false,
     });
-    const [contextMenu, setContextMenu] = useState(null); // { taskId, x, y }
+    const [contextMenu, setContextMenu] = useState(null);
 
     const projectTasks = tasks.filter(t => t.projectId === project.id);
-
-    // Group tasks
-    const nextAction = projectTasks.filter(t => t.isNextAction && !t.done);
-    const blocked = projectTasks.filter(t => !t.done && !t.isNextAction && t.status === 'blocked');
-    const inProgress = projectTasks.filter(t => !t.done && !t.isNextAction && t.status !== 'blocked');
+    const nowTask   = projectTasks.find(t => t.isNextAction && !t.done);
+    const today     = sortFIFO(projectTasks.filter(t => !t.done && !t.isNextAction && t.status !== 'blocked' && (!t.schedule || t.schedule === 'today')));
+    const soon      = sortFIFO(projectTasks.filter(t => !t.done && !t.isNextAction && t.status !== 'blocked' && t.schedule === 'soon'));
+    const future    = sortFIFO(projectTasks.filter(t => !t.done && !t.isNextAction && t.status !== 'blocked' && t.schedule === 'future'));
+    const blocked   = projectTasks.filter(t => !t.done && !t.isNextAction && t.status === 'blocked');
     const completed = projectTasks.filter(t => t.done);
+
+    // Track previous lengths to detect 0→N transitions
+    const prevLengths = React.useRef({ today: today.length, soon: soon.length, future: future.length });
+
+    useEffect(() => {
+        const prev = prevLengths.current;
+        setExpandedGroups(g => {
+            const next = { ...g };
+            // Collapse when empty
+            if (today.length === 0)  next.today  = false;
+            if (soon.length === 0)   next.soon   = false;
+            if (future.length === 0) next.future = false;
+            // Expand when first task appears
+            if (today.length > 0  && prev.today  === 0) next.today  = true;
+            if (soon.length > 0   && prev.soon   === 0) next.soon   = true;
+            if (future.length > 0 && prev.future === 0) next.future = true;
+            return next;
+        });
+        prevLengths.current = { today: today.length, soon: soon.length, future: future.length };
+    }, [today.length, soon.length, future.length]);
 
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
-        addTask(newTaskTitle, null, "", project.id);
+        const hasNextAction = projectTasks.some(t => t.isNextAction && !t.done);
+        addTask(newTaskTitle, null, "", project.id, hasNextAction ? {} : { isNextAction: true });
         setNewTaskTitle("");
     };
 
-    const toggleGroup = (group) => {
-        setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+    const toggleGroup = (key) =>
+        setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
+
+    const openContextMenu = (e, taskId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const W = 192;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let x = e.clientX + 8;
+        let y = e.clientY - 8;
+        if (x + W > vw - 8) x = e.clientX - W - 8;
+        if (y + 260 > vh - 8) y = vh - 268;
+        setContextMenu({ taskId, x, y });
     };
+
+    const closeMenu = () => setContextMenu(null);
 
     const handleContextAction = (action, taskId) => {
         switch (action) {
-            case 'next':
-                setNextAction(taskId, project.id);
-                break;
-            case 'block':
-                updateTask(taskId, { status: 'blocked' });
-                break;
-            case 'unblock':
-                updateTask(taskId, { status: null });
-                break;
-            case 'unnext':
-                updateTask(taskId, { isNextAction: false });
-                break;
-            case 'delete':
-                deleteTask(taskId);
-                break;
+            case 'next':         setNextAction(taskId, project.id); break;
+            case 'unnext':       updateTask(taskId, { isNextAction: false }); break;
+            case 'block':        updateTask(taskId, { status: 'blocked' }); break;
+            case 'unblock':      updateTask(taskId, { status: null }); break;
+            case 'sched-today':  updateTask(taskId, { schedule: 'today' }); break;
+            case 'sched-soon':   updateTask(taskId, { schedule: 'soon' }); break;
+            case 'sched-future': updateTask(taskId, { schedule: 'future' }); break;
+            case 'delete':       deleteTask(taskId); break;
         }
-        setContextMenu(null);
-    };
-
-    const TaskRow = ({ task, showPromote = false }) => (
-        <div
-            className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors relative"
-            onContextMenu={(e) => {
-                e.preventDefault();
-                const menuW = 192, menuH = 160;
-                const vw = window.innerWidth, vh = window.innerHeight;
-                let x = e.clientX, y = e.clientY;
-                if (x + menuW > vw - 8) x = vw - menuW - 8;
-                if (y + menuH > vh - 8) y = vh - menuH - 8;
-                if (x < 8) x = 8;
-                if (y < 8) y = 8;
-                setContextMenu({ taskId: task.id, x, y });
-            }}
-        >
-            <button
-                onClick={() => toggleTask(task.id)}
-                className={cn(
-                    "transition-colors shrink-0",
-                    task.done ? "text-zinc-600" : task.status === 'blocked' ? "text-red-400" : "text-zinc-600 hover:text-[#93FD23]"
-                )}
-            >
-                {task.done ? <CheckCircle2 size={16} /> : task.status === 'blocked' ? <AlertCircle size={16} /> : <Circle size={16} />}
-            </button>
-
-            <div className="flex-1 min-w-0">
-                <span className={cn(
-                    "text-sm truncate block",
-                    task.done ? "text-zinc-700 line-through" : task.status === 'blocked' ? "text-zinc-400" : "text-zinc-300 group-hover:text-white"
-                )}>
-                    {task.title}
-                </span>
-                {task.due && !task.done && (
-                    <span className="text-fluid-3xs text-zinc-600 font-mono">
-                        Due {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                    </span>
-                )}
-            </div>
-
-            {task.isNextAction && (
-                <Target size={12} className="text-[#93FD23] shrink-0" />
-            )}
-        </div>
-    );
-
-    const GroupHeader = ({ label, count, icon: Icon, color, groupKey, defaultOpen = true }) => {
-        const isOpen = groupKey ? (expandedGroups[groupKey] ?? defaultOpen) : true;
-        return (
-            <button
-                onClick={() => groupKey && toggleGroup(groupKey)}
-                className={cn(
-                    "flex items-center gap-2 w-full py-2 px-1 text-left",
-                    groupKey && "cursor-pointer hover:bg-white/5 rounded-lg transition-colors"
-                )}
-            >
-                {groupKey && (
-                    isOpen ? <ChevronDown size={12} className="text-zinc-600" /> : <ChevronRight size={12} className="text-zinc-600" />
-                )}
-                {Icon && <Icon size={12} className={color || "text-zinc-600"} />}
-                <span className="text-fluid-3xs uppercase tracking-widest text-zinc-500 font-bold">
-                    {label}
-                </span>
-                <span className="text-fluid-3xs text-zinc-700 font-mono">
-                    {count}
-                </span>
-            </button>
-        );
+        closeMenu();
     };
 
     return (
-        <div className="rounded-2xl bg-black border border-white/10 shadow-2xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
-                    <span className="w-1 h-1 bg-zinc-500 rounded-full" />
+        <div className="rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+
+            {/* ── Header ── */}
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-white/5">
+                <Target size={12} className="text-zinc-600" />
+                <h3 className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
                     Execution
                 </h3>
             </div>
 
-            {/* Quick Add */}
-            <div className="relative group/add mb-4">
-                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                    <Plus size={14} className="text-zinc-600 group-focus-within/add:text-zinc-400 transition-colors" />
-                </div>
-                <input
-                    value={newTaskTitle}
-                    onChange={e => setNewTaskTitle(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                    className="w-full bg-transparent border-none focus:border-none focus:ring-0 rounded-xl py-2.5 pl-9 pr-4 text-sm text-zinc-500 placeholder:text-zinc-700 hover:text-zinc-200 focus:text-white outline-none transition-colors"
-                    placeholder="Add task..."
-                />
-            </div>
-
-            {/* Task Groups */}
-            <div className="space-y-2">
-                {/* Next Action */}
-                {nextAction.length > 0 && (
-                    <div>
-                        <GroupHeader label="Next Action" count={nextAction.length} icon={Target} color="text-[#93FD23]" />
-                        {nextAction.map(t => <TaskRow key={t.id} task={t} />)}
-                    </div>
-                )}
-
-                {/* Blocked */}
-                {blocked.length > 0 && (
-                    <div>
-                        <GroupHeader label="Blocked" count={blocked.length} icon={AlertCircle} color="text-red-400" />
-                        {blocked.map(t => <TaskRow key={t.id} task={t} />)}
-                    </div>
-                )}
-
-                {/* Backlog (In Progress + remaining) */}
-                {inProgress.length > 0 && (
-                    <div>
-                        <GroupHeader label="Backlog" count={inProgress.length} />
-                        {inProgress.map(t => <TaskRow key={t.id} task={t} />)}
-                    </div>
-                )}
-
-                {/* Completed */}
-                {completed.length > 0 && (
-                    <div>
-                        <GroupHeader
-                            label="Completed"
-                            count={completed.length}
-                            icon={CheckCircle2}
-                            groupKey="completed"
-                            defaultOpen={false}
-                        />
-                        {(expandedGroups.completed ?? false) && (
-                            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                                {completed.map(t => <TaskRow key={t.id} task={t} />)}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Empty State */}
-                {projectTasks.length === 0 && (
-                    <div className="py-8 text-center text-zinc-700 text-xs italic">
-                        No tasks yet. Add one above.
-                    </div>
-                )}
-            </div>
-
-            {/* Context Menu */}
-            {contextMenu && (
-                <>
-                    <div className="fixed inset-0 z-40" onClick={() => setContextMenu(null)} />
+            {/* ── Next Move zone ── */}
+            <div className="px-5 pt-5 pb-4 border-b border-white/[0.06]">
+                {nowTask ? (
                     <div
-                        className="fixed z-50 w-40 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl py-1 animate-in fade-in zoom-in-95 duration-100"
+                        className="cursor-default select-none group/now"
+                        onContextMenu={e => openContextMenu(e, nowTask.id)}
+                    >
+                        {/* Caption */}
+                        <div className="text-[9px] uppercase tracking-[0.22em] text-zinc-600 font-bold font-mono mb-2.5">
+                            Next Move
+                        </div>
+                        {/* Title row — title left-aligned, circle on right */}
+                        <div className="flex items-center gap-3">
+                            <span className="flex-1 min-w-0 text-[17px] text-white font-medium leading-snug truncate">
+                                {nowTask.title}
+                            </span>
+                            <button
+                                onClick={() => toggleTask(nowTask.id)}
+                                className="w-5 h-5 rounded-full border border-zinc-600 hover:border-white hover:bg-white/10 transition-all shrink-0 flex items-center justify-center group/cb opacity-0 group-hover/now:opacity-100"
+                                title="Mark complete"
+                            >
+                                <div className="w-2 h-2 rounded-full bg-transparent group-hover/cb:bg-white/60 transition-all" />
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    (today.length > 0 || soon.length > 0 || future.length > 0) && (
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-800 shrink-0" />
+                            <span className="text-xs font-mono text-zinc-700 italic">
+                                Right-click a task → Set as Next Move
+                            </span>
+                        </div>
+                    )
+                )}
+
+                {/* Add task — lives right under Next Move */}
+                <div className="flex items-center gap-2.5 mt-4 group/add">
+                    <Plus size={11} className="text-zinc-700 group-focus-within/add:text-zinc-500 shrink-0 transition-colors" />
+                    <input
+                        value={newTaskTitle}
+                        onChange={e => setNewTaskTitle(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddTask()}
+                        className="flex-1 bg-transparent outline-none text-sm text-zinc-600 placeholder:text-zinc-700 hover:text-zinc-300 focus:text-white transition-colors font-mono"
+                        placeholder="Add task..."
+                    />
+                </div>
+            </div>
+
+            {/* ── Task groups ── */}
+            <div className="px-4 py-3 space-y-0.5">
+
+                {/* Today */}
+                <Group
+                    label="Today" count={today.length}
+                    isOpen={expandedGroups.today}
+                    onToggle={() => toggleGroup('today')}
+                    labelClass="text-zinc-500"
+                >
+                    {today.map(t => (
+                        <TaskRow key={t.id} task={t}
+                            onToggle={() => toggleTask(t.id)}
+                            onContextMenu={e => openContextMenu(e, t.id)}
+                        />
+                    ))}
+                </Group>
+
+                {/* Soon */}
+                <Group
+                    label="Soon" count={soon.length}
+                    isOpen={expandedGroups.soon}
+                    onToggle={() => toggleGroup('soon')}
+                    labelClass="text-zinc-600"
+                >
+                    {soon.map(t => (
+                        <TaskRow key={t.id} task={t}
+                            onToggle={() => toggleTask(t.id)}
+                            onContextMenu={e => openContextMenu(e, t.id)}
+                        />
+                    ))}
+                </Group>
+
+                {/* Future */}
+                <Group
+                    label="Future" count={future.length}
+                    isOpen={expandedGroups.future}
+                    onToggle={() => toggleGroup('future')}
+                    labelClass="text-zinc-700"
+                >
+                    {future.map(t => (
+                        <TaskRow key={t.id} task={t}
+                            onToggle={() => toggleTask(t.id)}
+                            onContextMenu={e => openContextMenu(e, t.id)}
+                        />
+                    ))}
+                </Group>
+
+                {/* Blocked — only when present */}
+                {blocked.length > 0 && (
+                    <Group
+                        label="Blocked" count={blocked.length}
+                        isOpen={expandedGroups.blocked}
+                        onToggle={() => toggleGroup('blocked')}
+                        labelClass="text-red-400/60"
+                    >
+                        {blocked.map(t => (
+                            <TaskRow key={t.id} task={t} variant="blocked"
+                                onToggle={() => toggleTask(t.id)}
+                                onContextMenu={e => openContextMenu(e, t.id)}
+                            />
+                        ))}
+                    </Group>
+                )}
+
+                {/* Done */}
+                <Group
+                    label="Done" count={completed.length}
+                    isOpen={expandedGroups.done}
+                    onToggle={() => toggleGroup('done')}
+                    labelClass="text-zinc-700"
+                >
+                    {completed.map(t => (
+                        <TaskRow key={t.id} task={t} variant="done"
+                            onToggle={() => toggleTask(t.id)}
+                            onContextMenu={e => openContextMenu(e, t.id)}
+                        />
+                    ))}
+                </Group>
+
+            </div>
+
+            {/* ── Context menu — portalled to body ── */}
+            {contextMenu && createPortal(
+                <>
+                    <div
+                        className="fixed inset-0 z-[9998]"
+                        onClick={closeMenu}
+                        onContextMenu={e => { e.preventDefault(); closeMenu(); }}
+                    />
+                    <div
+                        className="fixed z-[9999] w-48 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
                         style={{ left: contextMenu.x, top: contextMenu.y }}
                     >
                         {(() => {
                             const task = projectTasks.find(t => t.id === contextMenu.taskId);
                             if (!task) return null;
+                            const sched = task.schedule || 'today';
                             return (
                                 <>
                                     {!task.done && !task.isNextAction && (
-                                        <button
-                                            onClick={() => handleContextAction('next', task.id)}
-                                            className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
-                                        >
-                                            <Target size={12} /> Set as Next Action
-                                        </button>
+                                        <MenuItem onClick={() => handleContextAction('next', task.id)} icon={<Target size={11} />}>
+                                            Set as Next Move
+                                        </MenuItem>
                                     )}
                                     {task.isNextAction && (
-                                        <button
-                                            onClick={() => handleContextAction('unnext', task.id)}
-                                            className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
-                                        >
-                                            <X size={12} /> Remove Next Action
-                                        </button>
+                                        <MenuItem onClick={() => handleContextAction('unnext', task.id)} icon={<X size={11} />}>
+                                            Remove Next Move
+                                        </MenuItem>
                                     )}
-                                    {!task.done && task.status !== 'blocked' && (
-                                        <button
-                                            onClick={() => handleContextAction('block', task.id)}
-                                            className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
-                                        >
-                                            <Ban size={12} /> Mark Blocked
-                                        </button>
+
+                                    {!task.done && (
+                                        <>
+                                            <div className="h-px bg-white/[0.06] my-1" />
+                                            {sched !== 'today' && (
+                                                <MenuItem onClick={() => handleContextAction('sched-today', task.id)} icon={<Calendar size={11} />}>
+                                                    Move to Today
+                                                </MenuItem>
+                                            )}
+                                            {sched !== 'soon' && (
+                                                <MenuItem onClick={() => handleContextAction('sched-soon', task.id)} icon={<Clock size={11} />}>
+                                                    Move to Soon
+                                                </MenuItem>
+                                            )}
+                                            {sched !== 'future' && (
+                                                <MenuItem onClick={() => handleContextAction('sched-future', task.id)} icon={<Layers size={11} />}>
+                                                    Move to Future
+                                                </MenuItem>
+                                            )}
+                                        </>
                                     )}
-                                    {task.status === 'blocked' && (
-                                        <button
-                                            onClick={() => handleContextAction('unblock', task.id)}
-                                            className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
-                                        >
-                                            <Circle size={12} /> Unblock
-                                        </button>
+
+                                    {!task.done && (
+                                        <>
+                                            <div className="h-px bg-white/[0.06] my-1" />
+                                            {task.status !== 'blocked'
+                                                ? <MenuItem onClick={() => handleContextAction('block', task.id)} icon={<Ban size={11} />}>Mark Blocked</MenuItem>
+                                                : <MenuItem onClick={() => handleContextAction('unblock', task.id)} icon={<Circle size={11} />}>Unblock</MenuItem>
+                                            }
+                                        </>
                                     )}
-                                    <div className="h-px bg-white/5 my-1" />
-                                    <button
+
+                                    <div className="h-px bg-white/[0.06] my-1" />
+                                    <MenuItem
                                         onClick={() => handleContextAction('delete', task.id)}
-                                        className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                                        className="text-red-400 hover:bg-red-500/10"
+                                        icon={<X size={11} />}
                                     >
-                                        <X size={12} /> Delete
-                                    </button>
+                                        Delete
+                                    </MenuItem>
                                 </>
                             );
                         })()}
                     </div>
-                </>
+                </>,
+                document.body
+            )}
+        </div>
+    );
+}
+
+/* ── Menu item ── */
+function MenuItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/[0.08] hover:text-white" }) {
+    return (
+        <button
+            onClick={onClick}
+            className={cn("w-full text-left px-3 py-2 rounded-xl text-xs font-mono flex items-center gap-2.5 transition-colors", className)}
+        >
+            <span className="opacity-60">{icon}</span>
+            {children}
+        </button>
+    );
+}
+
+/* ── Collapsible section ── */
+function Group({ label, count, isOpen, onToggle, labelClass = "text-zinc-600", children }) {
+    return (
+        <div>
+            <button
+                onClick={onToggle}
+                className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-white/[0.03] rounded-lg transition-colors group/grp"
+            >
+                {isOpen
+                    ? <ChevronDown size={11} className="text-zinc-700 group-hover/grp:text-zinc-500 transition-colors" />
+                    : <ChevronRight size={11} className="text-zinc-700 group-hover/grp:text-zinc-500 transition-colors" />
+                }
+                <span className={cn("text-fluid-3xs uppercase tracking-[0.15em] font-bold font-mono", labelClass)}>
+                    {label}
+                </span>
+                {count > 0 && (
+                    <span className="text-fluid-3xs text-zinc-700 font-mono ml-0.5">{count}</span>
+                )}
+            </button>
+
+            {isOpen && React.Children.count(children) > 0 && (
+                <div className="mt-0.5 space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── Task row ── */
+function TaskRow({ task, onToggle, onContextMenu, variant }) {
+    const isDone    = variant === 'done';
+    const isBlocked = variant === 'blocked';
+
+    return (
+        <div
+            className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-colors cursor-default select-none"
+            onContextMenu={onContextMenu}
+        >
+            <button
+                onClick={onToggle}
+                className={cn(
+                    "w-4 h-4 rounded-full border transition-all shrink-0 flex items-center justify-center",
+                    isDone    ? "border-zinc-700 bg-zinc-800"
+                    : isBlocked ? "border-red-400/30"
+                    : "border-zinc-700 group-hover:border-zinc-500"
+                )}
+            >
+                {isDone    && <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />}
+                {isBlocked && <Ban size={8} className="text-red-400/50" />}
+            </button>
+
+            <span className={cn(
+                "flex-1 min-w-0 text-sm truncate font-mono transition-colors",
+                isDone    ? "text-zinc-700 line-through"
+                : isBlocked ? "text-zinc-500"
+                : "text-zinc-400 group-hover:text-zinc-200"
+            )}>
+                {task.title}
+            </span>
+
+            {task.due && !isDone && (
+                <span className="text-[10px] text-zinc-600 font-mono shrink-0">
+                    {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </span>
             )}
         </div>
     );

@@ -7,6 +7,7 @@ import { POPOVER_CLASS, TASK_PRIORITIES } from "@/lib/constants";
 import ProjectIcon from "./ProjectIcon";
 import { CloseButton } from "./ui/CloseButton";
 import { PriorityCheckbox } from "./ui/PriorityCheckbox";
+import { CancelSquare } from "./ui/CustomIcon.jsx";
 
 export default React.memo(TaskRow);
 
@@ -49,23 +50,24 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                   sideOffset={5}
                 >
                   <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <h4 className="font-semibold text-white text-sm leading-tight">{task.title}</h4>
-                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-semibold text-white text-sm leading-tight font-mono">{task.title}</h4>
+                      <Popover.Close className="text-zinc-500 hover:text-white transition-colors shrink-0">
+                        <CancelSquare size={14} className="shrink-0" />
                       </Popover.Close>
                     </div>
-                    {task.desc && <p className="text-xs text-zinc-400 leading-relaxed">{task.desc}</p>}
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/5">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: priorityColor }} />
-                        <span className="text-fluid-3xs font-medium text-zinc-300">{priorityLabel}</span>
+                    {task.desc && <p className="text-xs text-zinc-400 leading-relaxed font-mono">{task.desc}</p>}
+
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: priorityColor }} />
+                        <span className="text-fluid-3xs font-mono text-zinc-300">{priorityLabel} Priority</span>
                       </div>
                       {task.due && (
-                        <div className="text-fluid-3xs text-zinc-500 font-mono">
-                          {new Date(task.due).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                        </div>
+                        <span className="text-fluid-3xs text-zinc-500 font-mono">
+                          {new Date(task.due).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -80,7 +82,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
       <ContextMenu.Portal>
         <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
           <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-none transition-colors"
             onSelect={onEdit}
           >
             <span>Edit Task</span>
@@ -97,7 +99,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                 {projects.map(p => (
                   <ContextMenu.Item
                     key={p.id}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-none transition-colors"
                     onSelect={() => onAssign(p.id)}
                   >
                     <ProjectIcon name={p.icon} size={14} className="text-zinc-500 group-hover:text-white" />
@@ -111,7 +113,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
           <ContextMenu.Separator className="h-px bg-white/10 my-1" />
 
           <ContextMenu.Item
-            className="flex items-center gap-2 px-2 py-1.5 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-none transition-colors"
             onSelect={onDelete}
           >
             Delete Task

@@ -45,11 +45,24 @@ module.exports = {
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        sm: 'calc(var(--radius) - 4px)',
+        xl: 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        pill: 'var(--radius-pill)',
+      },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
+        lg: 'var(--shadow-lg)',
+        '2xl': 'var(--shadow-2xl)',
+        glass: 'var(--shadow-glass)',
+      },
+      transitionTimingFunction: {
+        'maia': 'var(--ease-out)',
       },
       fontFamily: {
         mono: ['var(--font-mono)'],
         sans: ['var(--font-sans)'],
+        serif: ['"Instrument Serif"', 'serif'],
       },
       fontSize: {
         'fluid-3xs': 'var(--fluid-3xs)',

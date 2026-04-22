@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard, GlassTextarea } from "../../../components/GlassCard";
-import { Plus, X, CheckSquare, Square, ChevronDown, ChevronUp } from "lucide-react";
+import { PlusSignSquare as Plus, CancelSquare as X, CheckmarkSquare02 as CheckSquare, ArrowDown01 as ChevronDown, ArrowUp01 as ChevronUp, Circle as Square } from "../../../components/ui/CustomIcon.jsx";
 import { uid } from "../../../lib/ids";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +35,7 @@ export default function StrategicDirective({ project, updateProject }) {
 
     return (
         <div className={cn(
-            "rounded-2xl bg-black border border-white/10 shadow-2xl overflow-hidden transition-all duration-300 h-full flex flex-col",
+            "rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-300 h-full flex flex-col",
             isExpanded ? "p-6" : "p-6 hover:border-white/20 cursor-pointer"
         )}
             onClick={() => !isExpanded && setIsExpanded(true)}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard, GlassTextarea } from "../../../components/GlassCard";
-import { Plus, X, CheckSquare, Square } from "lucide-react";
+import { PlusSignSquare as Plus, CancelSquare as X, CheckmarkSquare02 as CheckSquare, Circle as Square } from "../../../components/ui/CustomIcon.jsx";
 import { uid } from "../../../lib/ids";
 
 export default function ObjectiveBlock({ project, updateProject }) {

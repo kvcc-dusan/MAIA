@@ -98,7 +98,7 @@ export default function ActivityGrid({ project }) {
     const totalActions = Object.values(activityMap).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="h-full flex flex-col p-6 rounded-2xl bg-black border border-white/10 shadow-2xl">
+        <div className="h-full flex flex-col p-6 rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                     <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, X, CheckSquare, Square, Calendar, Layers, Hash } from "lucide-react";
+import { PlusSignSquare as Plus, CancelSquare as X, CheckmarkSquare02 as CheckSquare, Calendar03 as Calendar, Layers01 as Layers, ArrowDown01 as ChevronDown, ArrowUp01 as ChevronUp, Circle as Square, LeftToRightListBullet as Hash } from "../../../components/ui/CustomIcon.jsx";
 import { useData } from "../../../context/DataContext";
 import { uid } from "../../../lib/ids";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,7 @@ export default function ProjectContext({ project, updateProject }) {
 
     return (
         <div className={cn(
-            "rounded-2xl bg-black border border-white/10 shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
+            "rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
             isExpanded ? "" : "hover:border-white/20"
         )}>
             {/* Header — always visible */}
@@ -96,7 +96,7 @@ export default function ProjectContext({ project, updateProject }) {
                                 <div key={c.id} className="flex items-start gap-3 group/item">
                                     <button
                                         onClick={() => toggleCriteria(c.id)}
-                                        className={`mt-0.5 ${c.done ? "text-[#93FD23]" : "text-zinc-600 hover:text-zinc-400"} transition-colors`}
+                                        className={`mt-0.5 ${c.done ? "text-emerald-500" : "text-zinc-600 hover:text-zinc-400"} transition-colors`}
                                     >
                                         {c.done ? <CheckSquare size={16} /> : <Square size={16} />}
                                     </button>

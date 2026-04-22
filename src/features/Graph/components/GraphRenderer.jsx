@@ -10,7 +10,7 @@ const THEME = {
     nodeFill: "#e4e4e7",
     nodeActive: "#ffffff",
     nodeStroke: "none",
-    link: "#27272a",
+    link: "rgba(255,255,255,0.12)",
     text: "#ffffff",
     textActive: "#f4f4f5",
 };
@@ -103,7 +103,7 @@ function GraphRenderer({
             .join("path")
             .attr("fill", "none")
             .attr("stroke", THEME.link)
-            .attr("stroke-opacity", 0.6)
+            .attr("stroke-opacity", 1)
             .attr("stroke-width", linkThickness)
             .attr("class", "link-element");
 
@@ -185,7 +185,7 @@ function GraphRenderer({
                     return match ? 1 : 0;
                 });
             } else {
-                link.attr("stroke", THEME.link).attr("stroke-opacity", 0.6).attr("opacity", 1);
+                link.attr("stroke", THEME.link).attr("stroke-opacity", 1).attr("opacity", 1);
                 node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
                 label.attr("opacity", 0.7); // Reset to default opacity
             }
@@ -282,7 +282,7 @@ function GraphRenderer({
             });
         } else {
             node.style("opacity", 1).style("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-            link.style("opacity", 1).attr("stroke-opacity", 0.6);
+            link.style("opacity", 1).attr("stroke-opacity", 1);
             label.style("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : (d.val > 2 ? 1 : 0.5));
         }
     }, [query, activeCluster, nodes, svgRef]);

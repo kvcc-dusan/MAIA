@@ -1,9 +1,11 @@
 // @maia:projects
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { uid } from "../lib/ids.js";
 import GlassSurface from "../components/GlassSurface";
 import CreateProjectModal from "../components/CreateProjectModal";
-import ProjectIcon from "../components/ProjectIcon";
+import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
+import { Briefcase08, Pen01, Setting06, Delete01, PlusSignSquare, LayoutAlignLeft, LayoutAlignRight } from "../components/ui/CustomIcon.jsx";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
 
 /* -----------------------------------------
@@ -77,11 +79,47 @@ export default function Projects({
     setActiveId(newProj.id);
   };
 
+  const updateProject = useCallback((id, patch) => {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p));
+  }, [setProjects]);
+
   const deleteProject = (id) => {
-    if (!confirm("Are you sure you want to archive this mission?")) return;
+    if (!confirm("Are you sure you want to delete this project?")) return;
     setProjects(prev => prev.filter(p => p.id !== id));
     if (activeId === id) setActiveId(null);
   }
+
+  // Sidebar context menu
+  const [ctxMenu, setCtxMenu] = useState(null); // { projectId, x, y }
+  const [renamingId, setRenamingId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [iconPickerId, setIconPickerId] = useState(null);
+  const renameInputRef = useRef(null);
+
+  const openCtxMenu = (e, projectId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const W = 176, H = 130;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let x = e.clientX + 4, y = e.clientY - 4;
+    if (x + W > vw - 8) x = e.clientX - W - 4;
+    if (y + H > vh - 8) y = vh - H - 8;
+    setCtxMenu({ projectId, x, y });
+  };
+
+  const closeCtx = () => setCtxMenu(null);
+
+  const startRename = (p) => {
+    setRenamingId(p.id);
+    setRenameValue(p.name);
+    closeCtx();
+    setTimeout(() => renameInputRef.current?.focus(), 30);
+  };
+
+  const commitRename = () => {
+    if (renameValue.trim()) updateProject(renamingId, { name: renameValue.trim() });
+    setRenamingId(null);
+  };
 
   // Group projects
   const activeList = normalizedProjects.filter(p => p.status === "Active");
@@ -128,20 +166,14 @@ export default function Projects({
           {/* Header */}
           {/* Header */}
           <div className={`flex-none p-6 border-b border-white/5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-            <div className={`flex items-center gap-2 overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Projects</span>
-              <span className="text-fluid-3xs bg-white/5 px-1.5 py-0.5 rounded text-zinc-600 font-mono">OPUS</span>
+            <div className={`flex items-center overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
+              <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Opus</span>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className={`
-                w-8 h-8 flex items-center justify-center rounded-lg transition-colors border shrink-0
-                ${isCollapsed
-                  ? "bg-transparent border-transparent text-zinc-400 hover:text-white"
-                  : "bg-white/5 hover:bg-white/10 text-white border-white/5"}
-              `}
+              className="flex items-center justify-center transition-colors shrink-0 text-zinc-500 hover:text-white outline-none"
             >
-              <span className="text-lg leading-none mb-0.5">+</span>
+              <PlusSignSquare size={20} />
             </button>
           </div>
 
@@ -152,22 +184,37 @@ export default function Projects({
             )}
 
             {activeList.map(p => (
-              <button
+              <div
                 key={p.id}
-                onClick={() => { setActiveId(p.id); closeMobile(); }}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border ${p.id === activeId
+                onContextMenu={e => openCtxMenu(e, p.id)}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
                   ? isCollapsed
-                    ? "bg-transparent border-transparent shadow-none" // Collapsed active: icon only
-                    : "bg-white/5 border-white/10 text-white shadow-lg" // Expanded active: box
+                    ? "bg-transparent border-transparent shadow-none"
+                    : "bg-white/5 border-white/10 text-white shadow-lg"
                   : "border-transparent text-zinc-500 hover:text-zinc-300 " + (isCollapsed ? "" : "hover:bg-white/5")
                   } ${effectiveWidth < 120 ? 'justify-center' : ''}`}
+                onClick={() => { setActiveId(p.id); closeMobile(); }}
                 title={effectiveWidth < 120 ? p.name : ''}
               >
-                <span className={`text-xl group-hover:scale-110 transition-transform ${p.id === activeId ? "text-white" : "text-zinc-600"} ${isCollapsed && p.id === activeId ? "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
-                  <ProjectIcon name={p.icon} size={20} color={p.iconColor} />
+                <span className={`shrink-0 ${p.id === activeId ? "text-white" : "text-zinc-600"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
+                  <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
                 </span>
-                <span className={`font-medium truncate text-sm transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0 hidden' : 'opacity-100'}`}>{p.name}</span>
-              </button>
+                {effectiveWidth >= 120 && (
+                  renamingId === p.id ? (
+                    <input
+                      ref={renameInputRef}
+                      value={renameValue}
+                      onChange={e => setRenameValue(e.target.value)}
+                      onBlur={commitRename}
+                      onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
+                      onClick={e => e.stopPropagation()}
+                      className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-0.5 text-sm text-white outline-none font-mono min-w-0"
+                    />
+                  ) : (
+                    <span className="font-medium truncate text-sm flex-1">{p.name}</span>
+                  )
+                )}
+              </div>
             ))}
 
             {otherList.length > 0 && effectiveWidth > 120 && (
@@ -227,15 +274,14 @@ export default function Projects({
           <div className={`hidden md:flex flex-none border-t border-white/5 p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
             <button
               onClick={toggleCollapse}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-zinc-500 hover:text-white transition-all"
+              className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors outline-none"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              <svg
-                width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
-              >
-                <path d="M9 20V4M9 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2837 19.7822 18.9074C20 18.48 20 17.921 20 16.8031V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H9M9 20H7.19692C6.07901 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2837 4.21799 18.9074C4 18.4796 4 17.9203 4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H9" />
-              </svg>
+              {isCollapsed ? (
+                <LayoutAlignRight size={20} strokeWidth="1.5" />
+              ) : (
+                <LayoutAlignLeft size={20} strokeWidth="1.5" />
+              )}
             </button>
           </div>
 
@@ -267,9 +313,9 @@ export default function Projects({
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
                 <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                  <ProjectIcon name="work" size={40} className="opacity-50" />
+                  <Briefcase08 size={40} className="opacity-50" />
                 </div>
-                <p className="text-lg font-light text-zinc-500">Select a mission to analyze.</p>
+                <p className="text-lg font-light text-zinc-500">Select an Opus.</p>
               </div>
             )}
           </div>
@@ -282,6 +328,63 @@ export default function Projects({
         onClose={() => setIsModalOpen(false)}
         onCreate={handleCreateProject}
       />
-    </div >
+
+      {/* Sidebar context menu */}
+      {ctxMenu && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={closeCtx} onContextMenu={e => { e.preventDefault(); closeCtx(); }} />
+          <div
+            className="fixed z-[9999] w-44 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
+            style={{ left: ctxMenu.x, top: ctxMenu.y }}
+          >
+            {(() => {
+              const p = normalizedProjects.find(p => p.id === ctxMenu.projectId);
+              if (!p) return null;
+              return (
+                <>
+                  <CtxItem onClick={() => startRename(p)} icon={<Pen01 size={14} />}>Rename</CtxItem>
+                  <CtxItem onClick={() => { setIconPickerId(p.id); closeCtx(); }} icon={<Setting06 size={14} />}>Edit Icon</CtxItem>
+                  <div className="h-px bg-white/[0.06] my-1" />
+                  <CtxItem
+                    onClick={() => { deleteProject(p.id); closeCtx(); }}
+                    className="text-red-400 hover:bg-red-500/10"
+                    icon={<Delete01 size={14} />}
+                  >
+                    Delete
+                  </CtxItem>
+                </>
+              );
+            })()}
+          </div>
+        </>,
+        document.body
+      )}
+
+      {/* Icon picker for sidebar */}
+      {iconPickerId && (() => {
+        const p = normalizedProjects.find(p => p.id === iconPickerId);
+        if (!p) return null;
+        return (
+          <IconPicker
+            currentIcon={p.icon}
+            currentColor={p.iconColor}
+            onSelect={(icon, iconColor) => updateProject(iconPickerId, { icon, iconColor })}
+            onClose={() => setIconPickerId(null)}
+          />
+        );
+      })()}
+    </div>
+  );
+}
+
+function CtxItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/[0.08] hover:text-white" }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono flex items-center gap-2.5 transition-colors ${className}`}
+    >
+      <span className="text-[11px] opacity-70">{icon}</span>
+      {children}
+    </button>
   );
 }

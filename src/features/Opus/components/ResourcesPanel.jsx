@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { GlassCard } from "../../../components/GlassCard";
-import ProjectIcon from "../../../components/ProjectIcon";
 import { uid } from "../../../lib/ids";
-import { Plus, X, ExternalLink } from "lucide-react";
+import { PlusSignSquare as Plus, CancelSquare as X, Link04 as ExternalLink, Link01 as Link2 } from "../../../components/ui/CustomIcon.jsx";
 
 export default function ResourcesPanel({ project, updateProject }) {
     const [isAdding, setIsAdding] = useState(false);
@@ -39,21 +37,28 @@ export default function ResourcesPanel({ project, updateProject }) {
     };
 
     return (
-        <div className="flex flex-col min-h-[200px] rounded-2xl bg-black border border-white/10 shadow-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold flex items-center gap-2">
-                    <ProjectIcon name="link" size={14} />
-                    Uplinks
-                </h3>
+        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                    <Link2 size={12} className="text-zinc-600" />
+                    <h3 className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+                        Uplinks
+                    </h3>
+                    <span className="text-fluid-3xs text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full font-mono">
+                        {(project.links || []).length}
+                    </span>
+                </div>
                 <button
                     onClick={() => setIsAdding(true)}
-                    className="text-fluid-3xs p-1 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white"
+                    className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-md transition-colors"
+                    title="Add uplink"
                 >
-                    <Plus size={14} />
+                    <Plus size={12} />
                 </button>
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
                 {(project.links || []).map(link => (
                     <div key={link.id} className="group flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
                         <a
@@ -81,17 +86,15 @@ export default function ResourcesPanel({ project, updateProject }) {
                 ))}
 
                 {isAdding && (
-                    <div className="p-2">
-                        <input
-                            autoFocus
-                            value={newLinkUrl}
-                            onChange={e => setNewLinkUrl(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && addLink()}
-                            onBlur={addLink}
-                            placeholder="https://..."
-                            className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-blue-500/50"
-                        />
-                    </div>
+                    <input
+                        autoFocus
+                        value={newLinkUrl}
+                        onChange={e => setNewLinkUrl(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') addLink(); if (e.key === 'Escape') setIsAdding(false); }}
+                        onBlur={addLink}
+                        placeholder="https://..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-white text-xs outline-none focus:outline-none focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono px-3 py-2.5"
+                    />
                 )}
 
                 {(project.links || []).length === 0 && !isAdding && (

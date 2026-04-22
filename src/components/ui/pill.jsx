@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDownIcon, ChevronUpIcon, MinusIcon } from 'lucide-react';
+import { ArrowDown01, ArrowUp01, DashedLine02 } from '../CustomIcon.jsx';
 
 export const Pill = ({
     variant = 'secondary',
@@ -86,17 +86,17 @@ export const PillIndicator = ({
 export const PillDelta = ({ className, delta }) => {
     if (!delta) {
         return (
-            <MinusIcon className={cn('size-3 text-muted-foreground', className)} />
+            <DashedLine02 size={12} className={cn('size-3 text-muted-foreground', className)} />
         );
     }
 
     if (delta > 0) {
         return (
-            <ChevronUpIcon className={cn('size-3 text-emerald-500', className)} />
+            <ArrowUp01 size={12} className={cn('size-3 text-emerald-500', className)} />
         );
     }
 
-    return <ChevronDownIcon className={cn('size-3 text-rose-500', className)} />;
+    return <ArrowDown01 size={12} className={cn('size-3 text-rose-500', className)} />;
 };
 
 export const PillIcon = ({

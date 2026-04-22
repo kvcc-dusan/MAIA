@@ -183,7 +183,8 @@ export function DataProvider({ children }) {
             due,
             projectId: projectId || null,
             isNextAction: false,
-            status: null, // null | 'blocked'
+            status: null,     // null | 'blocked'
+            schedule: 'today', // 'today' | 'soon' | 'future'
             ...extras,
         };
         setTasks((prev) => [task, ...prev]);
@@ -212,15 +213,48 @@ export function DataProvider({ children }) {
     }, [setReminders]);
 
     const toggleTask = useCallback((id) => {
-        setTasks((prev) => prev.map((t) => {
-            if (t.id !== id) return t;
-            const isDone = !t.done;
-            return {
-                ...t,
-                done: isDone,
-                completedAt: isDone ? isoNow() : null
-            };
-        }));
+        setTasks((prev) => {
+            const target = prev.find(t => t.id === id);
+            if (!target) return prev;
+
+            const willBeDone = !target.done;
+
+            // Update the toggled task
+            let updated = prev.map((t) => {
+                if (t.id !== id) return t;
+                return {
+                    ...t,
+                    done: willBeDone,
+                    completedAt: willBeDone ? isoNow() : null,
+                    // Clear nextAction flag when completing
+                    isNextAction: willBeDone ? false : t.isNextAction,
+                };
+            });
+
+            // Auto-promote: FIFO — oldest task, schedule-priority (today > soon > future)
+            if (willBeDone && target.isNextAction && target.projectId) {
+                const SCHED = { today: 0, soon: 1, future: 2 };
+                const nextCandidate = updated
+                    .filter(t =>
+                        t.projectId === target.projectId &&
+                        !t.done &&
+                        !t.isNextAction &&
+                        t.status !== 'blocked'
+                    )
+                    .sort((a, b) => {
+                        const sd = (SCHED[a.schedule] ?? 0) - (SCHED[b.schedule] ?? 0);
+                        return sd !== 0 ? sd : new Date(a.createdAt) - new Date(b.createdAt);
+                    })[0];
+
+                if (nextCandidate) {
+                    updated = updated.map(t =>
+                        t.id === nextCandidate.id ? { ...t, isNextAction: true } : t
+                    );
+                }
+            }
+
+            return updated;
+        });
     }, [setTasks]);
 
     // Decisions (Ledger)

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from "../../../context/DataContext";
-import { TrendingUp, TrendingDown, Minus, Zap } from "lucide-react";
+import { Fire03 as Zap } from "../../../components/ui/CustomIcon.jsx";
 import { cn } from "@/lib/utils";
 
 /**
@@ -49,9 +49,9 @@ export default function ActivitySummary({ project }) {
     }, [tasks, sessions, project.id]);
 
     const trendConfig = {
-        increasing: { icon: TrendingUp, label: '↑', color: 'text-[#93FD23]' },
-        stable: { icon: Minus, label: '→', color: 'text-zinc-600' },
-        declining: { icon: TrendingDown, label: '↓', color: 'text-red-400' },
+        increasing: { label: '↑', color: 'text-[#10b981]' },
+        stable: { label: '→', color: 'text-zinc-600' },
+        declining: { label: '↓', color: 'text-red-400' },
     };
 
     const { color: trendColor } = trendConfig[stats.trend];

@@ -70,7 +70,7 @@ export function useProjectVitality(project) {
         }
 
         // State: ACTIVE (Default if activity < 10 days ago but not high tempo)
-        return { status: 'Active', color: 'text-[#93FD23]', bg: 'bg-[#93FD23]' };
+        return { status: 'Active', color: 'text-[#10b981]', bg: 'bg-[#10b981]' };
 
     }, [project, tasks, sessions]);
 }

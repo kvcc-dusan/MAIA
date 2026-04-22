@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 
+import Grainient from "../components/Grainient.jsx";
 import WorldMapWidget from "../components/WorldMapWidget.jsx";
 import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
 import FocusWidget from "../components/FocusWidget.jsx";
@@ -100,22 +101,38 @@ export default function TodayPage({
   return (
     <div className="relative flex flex-col h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-black font-sans text-white selection:bg-white/20">
 
+      {/* WebGL gradient background */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <Grainient
+          color1="#28302d"
+          color2="#000000"
+          color3="#224536"
+          timeSpeed={0.12}
+          warpStrength={0.6}
+          warpAmplitude={80.0}
+          grainAmount={0.06}
+          contrast={1.4}
+          gamma={0.85}
+          zoom={1.1}
+        />
+      </div>
+
       {/* Single-screen hero — greeting + widgets */}
-      <div className="flex-1 w-full relative">
+      <div className="flex-1 w-full relative z-10">
         <div className="grid min-h-full w-full grid-cols-1 md:grid-cols-2 items-center gap-fluid-gap px-fluid-page py-8 md:py-12 pb-8">
 
           {/* LEFT ZONE: Greeting */}
           <div className="flex flex-col items-start justify-center space-y-4 md:space-y-6">
             <div className="space-y-1 text-left">
               <h1
-                className="whitespace-nowrap font-semibold tracking-tight mix-blend-difference grayscale"
-                style={{ fontSize: 'clamp(0.9rem, 3.5vw, 3.5rem)', textShadow: "0 0 30px rgba(0,0,0,0.5)" }}
+                className="whitespace-nowrap font-sans font-semibold tracking-tight"
+                style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', lineHeight: 1, letterSpacing: '-0.02em' }}
               >
-                <span className="text-white/50">{greeting}</span>{" "}
-                <span className="text-white">{userName || "Dušan"}.</span>
+                <span className="font-semibold text-zinc-400/60">{greeting}</span>{" "}
+                <span className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]">{userName || "Dušan"}.</span>
               </h1>
-              {/* Quote — always visible, scaled by breakpoint */}
-              <p className="max-w-xl text-fluid-xs md:text-fluid-sm font-normal italic leading-relaxed text-white/40 md:text-white/70 md:mix-blend-difference md:grayscale mt-1 md:mt-1.5">
+              {/* Quote — always visible */}
+              <p className="max-w-xl text-fluid-xs md:text-fluid-sm font-sans italic leading-relaxed text-white/70 mt-1 md:mt-1.5 pt-2">
                 &ldquo;{quote}&rdquo;
               </p>
             </div>

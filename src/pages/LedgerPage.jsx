@@ -1,8 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { cn } from "@/lib/utils";
-import { Plus, Sparkles, Settings, Trash2, Scale, Pin, PenLine, Circle } from "lucide-react";
-import ProjectIcon from "../components/ProjectIcon";
+import { PlusSignSquare as Plus, AiMagic as Sparkles, Settings01 as Settings, Delete01 as Trash2, BalanceScale as Scale, Pin, Pen01 as PenLine, Circle, Filter } from "../components/ui/CustomIcon.jsx";
 import { JudgmentOverview } from "@/features/Ledger/components/JudgmentOverview";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLongPress } from "../hooks/useLongPress";
@@ -16,8 +15,8 @@ const INPUT_CLEAN = "w-full bg-transparent border-none outline-none text-zinc-20
 const LABEL_CLASS = "text-fluid-3xs font-bold uppercase tracking-widest text-zinc-600 font-mono mb-3 block";
 
 // Shared color tokens
-const STAKES_DOT = { high: '#FE083D', medium: '#FEEE08', low: '#0885FE' };
-const OUTCOME_DOT = { success: '#93FD23', mixed: '#FEEE08', failure: '#FE083D' };
+const STAKES_DOT = { high: '#f43f5e', medium: '#f59e0b', low: '#6366f1' };
+const OUTCOME_DOT = { success: '#10b981', mixed: '#f59e0b', failure: '#f43f5e' };
 
 // ─── Shared Components ───
 
@@ -162,7 +161,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                                         className={cn(
                                             "px-3 py-1.5 rounded-lg text-fluid-3xs font-bold font-mono uppercase tracking-wider transition-all",
                                             draft.stakes === s
-                                                ? (s === 'high' ? 'bg-red-500/10 text-red-400' : s === 'medium' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-blue-500/10 text-blue-400')
+                                                ? (s === 'high' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : s === 'medium' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' : 'bg-[#6366f1]/10 text-[#6366f1]')
                                                 : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/5'
                                         )}
                                     >
@@ -291,7 +290,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                                     className={cn(
                                         "px-4 py-2 rounded-lg text-fluid-3xs font-bold font-mono uppercase tracking-wider transition-all",
                                         status === s
-                                            ? (s === 'success' ? 'bg-[#93FD23]/10 text-[#93FD23]' : s === 'failure' ? 'bg-[#FE083D]/10 text-[#FE083D]' : 'bg-[#FEEE08]/10 text-[#FEEE08]')
+                                            ? (s === 'success' ? 'bg-[#10b981]/10 text-[#10b981]' : s === 'failure' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : 'bg-[#f59e0b]/10 text-[#f59e0b]')
                                             : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/5'
                                     )}
                                 >
@@ -429,12 +428,12 @@ function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, o
             onTouchMove={longPress.onTouchMove}
             onTouchEnd={longPress.onTouchEnd}
             className={cn(
-                "group relative p-5 flex flex-col justify-between rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden font-mono",
+                "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden font-mono backdrop-blur-sm",
                 isSelected
-                    ? "bg-zinc-900 border-white/50"
+                    ? "bg-white/10 border-white/30 ring-1 ring-white/20"
                     : isReviewed
-                        ? "h-auto min-h-[220px] bg-black border-white/10 opacity-70 hover:opacity-100"
-                        : "h-auto min-h-[220px] bg-black border-white/10 hover:border-white/20 hover:bg-[#09090b] hover:shadow-2xl"
+                        ? "h-auto min-h-[200px] bg-white/5 border-white/5 opacity-70 hover:opacity-100 hover:bg-white/10 hover:border-white/10"
+                        : "h-auto min-h-[200px] bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
             )}
         >
             {/* Pinned indicator — white dot, only shown when pinned (matches Codex) */}
@@ -798,12 +797,12 @@ export default function LedgerPage({ ledger = [], setLedger }) {
             className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar"
             onClick={() => { if (selectMode) exitSelectMode(); }}
         >
-            <div className="w-full px-6 md:px-8 py-8 flex flex-col gap-8">
+            <div className="w-full px-fluid-page py-8 flex flex-col gap-8">
 
                 {/* Header */}
                 <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-3 flex-wrap">
                     <div className="flex items-center gap-4">
-                        <span className="text-sm uppercase tracking-[0.2em] text-zinc-500 font-bold ml-1">Ledger</span>
+                        <span className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono ml-1">Ledger</span>
                         <span className="text-fluid-3xs bg-white/5 px-2 py-0.5 rounded-full text-zinc-500 font-mono">
                             {ledger.length}
                         </span>
@@ -824,7 +823,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             className="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-xs text-zinc-400 font-mono transition-colors flex items-center gap-2"
                         >
                             {SORT_LABEL[sort]}
-                            <ProjectIcon name="filter" size={14} />
+                            <Filter size={14} />
                         </button>
 
                         <div ref={settingsRef} className="relative">
@@ -844,7 +843,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                     </div>
                                     <button
                                         onClick={() => { seedData(); setShowSettings(false); }}
-                                        className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center gap-3 text-emerald-400 group transition-colors"
+                                        className="w-full px-4 py-2 text-left hover:bg-white/5 flex items-center gap-3 text-[#10b981] group transition-colors"
                                     >
                                         <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
                                         <span className="text-xs font-mono">Seed Data</span>
@@ -863,15 +862,19 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                         </div>
                     </div>
                 </div>
+
+                <h1 className="font-sans font-semibold text-[#fafafa] leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.5rem)', letterSpacing: '-0.02em' }}>
+                    Decisions
+                </h1>
             </div>
 
             {/* Stats Overview */}
-            <div className="px-6 md:px-8">
+            <div className="px-fluid-page">
                 <JudgmentOverview ledger={ledger} />
             </div>
 
             {/* Card Grid */}
-            <div className="flex-1 min-h-0 px-6 md:px-8">
+            <div className="flex-1 min-h-0 px-fluid-page">
 
                 {/* Filter Bar */}
                 <div className="flex items-center gap-3 mb-6 flex-wrap">
@@ -929,7 +932,8 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 </div>
 
                 <div
-                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mb-12"
+                    className="grid gap-4 mb-12"
+                    style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
                     onClick={() => { if (selectMode) exitSelectMode(); }}
                 >
                     {/* Empty state */}

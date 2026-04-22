@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Maia — Tags & Pills</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+html,body{margin:0;padding:0;background:#000;color:#e4e4e7;width:700px;height:220px;overflow:hidden;font-family:var(--font-sans)}
+.wrap{padding:28px;display:flex;flex-direction:column;gap:14px;height:100%;box-sizing:border-box}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;background:rgba(6,78,59,.2);border:1px solid rgba(5,150,105,.3);color:#a7f3d0}
+.pill{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;font-size:12px;background:#26262a;color:#fafafa;gap:8px;font-weight:500}
+.dot{width:8px;height:8px;border-radius:999px;background:currentColor;position:relative;color:#10B981}
+.dot::before{content:"";position:absolute;inset:0;border-radius:999px;background:currentColor;animation:p 2s infinite;opacity:.75}
+.dot.focus{color:#F59E0B}
+.dot.blocked{color:#F43F5E}
+@keyframes p{from{transform:scale(1);opacity:.75}to{transform:scale(2);opacity:0}}
+.chev{font-size:10px;color:#10B981}
+.chev.down{color:#F43F5E}
+.lbl{font-family:var(--font-sans);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#71717a;min-width:110px}
+</style></head>
+<body><div class="wrap">
+<div class="row"><span class="lbl">SIGNAL TAGS</span>
+  <span class="tag">#journal</span><span class="tag">#design-system</span><span class="tag">#maia</span>
+</div>
+<div class="row"><span class="lbl">STATUS PILLS</span>
+  <span class="pill"><span class="dot"></span>Active</span>
+  <span class="pill"><span class="dot focus"></span>Focus</span>
+  <span class="pill"><span class="dot blocked"></span>Blocked</span>
+</div>
+<div class="row"><span class="lbl">VELOCITY</span>
+  <span class="pill" style="background:rgba(16,185,129,.1);color:#34d399"><span class="chev">▲</span>+3</span>
+  <span class="pill" style="background:rgba(39,39,42,.5);color:#71717a">—</span>
+  <span class="pill" style="background:rgba(244,63,94,.1);color:#fb7185"><span class="chev down">▼</span>−2</span>
+</div>
+</div></body></html>

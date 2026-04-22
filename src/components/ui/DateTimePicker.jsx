@@ -4,6 +4,7 @@ import { Portal } from "./portal";
 import { motion, AnimatePresence } from "framer-motion";
 import { INPUT_CLASS, POPOVER_CLASS } from "@/lib/constants";
 import { toLocalInputValue } from "@/lib/time";
+import { Calendar03 } from "./CustomIcon.jsx";
 
 export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
   const [open, setOpen] = useState(false);
@@ -33,7 +34,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
   useLayoutEffect(() => {
     if (open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      const popoverWidth = 320; // w-80 = 20rem = 320px
+      const popoverWidth = Math.max(rect.width, 280);
       const popoverHeight = 340; // approximate max height
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -51,7 +52,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
       }
       if (left < 8) left = 8;
 
-      setCoords({ top, left });
+      setCoords({ top, left, width: popoverWidth });
     }
   }, [open]);
 
@@ -104,16 +105,16 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
   };
 
   return (
-    <div className="relative space-y-2 h-full flex flex-col min-w-0" ref={ref}>
-      {label && <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">{label}</label>}
+    <div className="relative space-y-2" ref={ref}>
+      {label && <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
-        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
+        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left min-h-[46px]")}
         aria-label="Select Date and Time"
       >
         <div className="flex items-center gap-3 truncate">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span className="truncate flex-1">{formatDisplay(value)}</span>
+          <Calendar03 size={14} className="text-zinc-500 shrink-0" />
+          <span className="truncate flex-1 font-mono">{formatDisplay(value)}</span>
         </div>
       </button>
 
@@ -122,14 +123,14 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
           <Portal>
             <motion.div
               initial={{ opacity: 0, y: -5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.98 }} transition={{ duration: 0.1 }}
-              className={cn(POPOVER_CLASS, "fixed z-[9999] p-4 custom-portal-content w-80")}
-              style={{ top: coords.top, left: coords.left }}
+              className={cn(POPOVER_CLASS, "fixed z-[9999] p-4 custom-portal-content")}
+              style={{ top: coords.top, left: coords.left, width: coords.width }}
             >
               {/* Tabs */}
               {!dateOnly && (
-                <div className="flex bg-white/5 p-1 rounded-xl mb-4">
-                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-lg font-medium transition-colors", tab === 'date' ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:text-white")}>Date</button>
-                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-lg font-medium transition-colors", tab === 'time' ? "bg-white/10 text-white shadow-sm" : "text-zinc-500 hover:text-white")}>Time</button>
+                <div className="flex bg-white/5 p-[3px] rounded-xl mb-4 gap-[3px]">
+                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'date' ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}>Date</button>
+                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'time' ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}>Time</button>
                 </div>
               )}
 
@@ -193,16 +194,16 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
 
                   {/* AM/PM Toggle Footer - DISTINCT STYLE */}
                   <div className="flex justify-center pt-1">
-                    <div className="grid grid-cols-2 gap-0 bg-black p-0.5 rounded-lg border border-white/20 w-fit">
+                    <div className="grid grid-cols-2 gap-[3px] bg-white/5 p-[3px] rounded-xl border border-white/10 w-fit">
                       <button
                         onClick={() => setTimePart('ampm', 'AM')}
-                        className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-zinc-300")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}
                       >
                         AM
                       </button>
                       <button
                         onClick={() => setTimePart('ampm', 'PM')}
-                        className={cn("px-4 py-1.5 rounded-md text-xs font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-zinc-300")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}
                       >
                         PM
                       </button>

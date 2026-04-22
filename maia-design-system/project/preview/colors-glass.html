@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maia — Glass Transparency Scale</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html,body{margin:0;padding:0;background:#000;color:#e4e4e7;width:700px;height:220px;overflow:hidden;font-family:var(--font-mono);position:relative}
+  /* backdrop so transparency reads */
+  .bg{position:absolute;inset:0;background:radial-gradient(circle at 20% 40%,#10b981 0%,transparent 40%),radial-gradient(circle at 80% 60%,#8b5cf6 0%,transparent 45%),#050505;filter:blur(40px);opacity:.35}
+  .grid{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:24px;height:100%;box-sizing:border-box;z-index:1}
+  .tile{border-radius:16px;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;border:1px solid rgba(255,255,255,.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .name{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#fafafa;font-weight:700}
+  .hex{font-size:10px;color:#a1a1aa;margin-top:4px}
+  .t1{background:rgba(255,255,255,.05)}
+  .t2{background:rgba(255,255,255,.10)}
+  .t3{background:rgba(0,0,0,.40)}
+  .t4{background:rgba(24,24,27,.40)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid">
+  <div class="tile t1"><span class="name">white / 5</span><span class="hex">list rows</span></div>
+  <div class="tile t2"><span class="name">white / 10</span><span class="hex">hover, active</span></div>
+  <div class="tile t3"><span class="name">black / 40</span><span class="hex">glass fill</span></div>
+  <div class="tile t4"><span class="name">zinc-900 / 40</span><span class="hex">glass-panel</span></div>
+</div>
+</body>
+</html>

@@ -71,8 +71,8 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                     >
                         <div className="flex h-full w-full items-center justify-center">
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#ABFA54' }}></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: '#ABFA54' }}></span>
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#10b981' }}></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
                             </span>
                         </div>
                     </foreignObject>
@@ -115,7 +115,7 @@ export default function WorldMapWidget({ weather }) {
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <Card className="relative flex min-h-[100px] md:min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border-[0.5px] border-white/10 bg-card/80 shadow-lg backdrop-blur-sm">
+        <Card className="relative flex min-h-[100px] md:min-h-[260px] w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
             {/* HEADER: Date & Location Info */}
             <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
@@ -145,7 +145,7 @@ export default function WorldMapWidget({ weather }) {
             </CardContent>
 
             {/* FOOTER: Temp & Time */}
-            <CardFooter className="relative z-20 flex items-center justify-between border-t-[0.5px] border-white/5 bg-muted/20 p-4 py-3">
+            <CardFooter className="relative z-20 flex items-center justify-between border-t border-white/5 bg-muted/20 p-4 py-3">
                 <div className="flex flex-col">
                     <span className="font-mono text-xs tracking-wide text-muted-foreground">
                         {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}

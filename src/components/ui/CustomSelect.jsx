@@ -47,11 +47,11 @@ export function CustomSelect({ label, value, options, onChange, placeholder = "S
   const selectedOption = selectedIdx >= 0 ? options[selectedIdx] : null;
 
   return (
-    <div className="relative space-y-2 h-full flex flex-col min-w-0" ref={ref}>
-      {label && <label className="text-xs text-zinc-500 uppercase tracking-widest font-bold ml-1 block">{label}</label>}
+    <div className="relative space-y-2" ref={ref}>
+      {label && <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
-        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left h-full min-h-[46px]")}
+        className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left min-h-[46px]")}
       >
         <div className="flex items-center gap-2 min-w-0">
           {selectedOption?.color && (
@@ -75,7 +75,7 @@ export function CustomSelect({ label, value, options, onChange, placeholder = "S
                   key={opt.value}
                   onClick={() => { onChange(opt.value); setOpen(false); }}
                   className={cn(
-                    "w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-3",
+                    "w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-white/10 transition-colors flex items-center gap-3",
                     opt.value == value ? "bg-white/5 text-white" : "text-zinc-400"
                   )}
                 >

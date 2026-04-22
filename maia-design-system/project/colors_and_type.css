@@ -1,0 +1,205 @@
+/* ==========================================================================
+   MAIA DESIGN SYSTEM — Colors & Type
+   Sourced from: src/index.css (:root tokens) + tailwind.config.cjs
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* === CORE SURFACE === */
+  --maia-black:       #000000;   /* body background (pitch black) */
+  --maia-midnight:    #050505;   /* slightly lifted black */
+  --maia-card:        #0a0a0b;   /* hsl(240 10% 3.9%) — card/popover */
+  --maia-border:      #26262a;   /* hsl(240 3.7% 15.9%) — border / input / muted */
+  --maia-ring:        #d4d4d8;   /* hsl(240 4.9% 83.9%) — focus ring */
+
+  /* === FOREGROUND (zinc scale, cold gray) === */
+  --maia-fg:          #fafafa;   /* hsl(210 40% 98%) — primary fg */
+  --maia-fg-1:        #e4e4e7;   /* body text (zinc-200) */
+  --maia-fg-2:        #a1a1aa;   /* zinc-400 — secondary */
+  --maia-fg-3:        #71717a;   /* zinc-500 — muted text */
+  --maia-fg-4:        #52525b;   /* zinc-600 — placeholder */
+  --maia-fg-5:        #3f3f46;   /* zinc-700 — dividers over white */
+
+  /* === GLASS / TRANSPARENCY SCALE === */
+  --maia-glass-bg:        rgba(24, 24, 27, 0.40);   /* bg-zinc-900/40 */
+  --maia-glass-bg-strong: rgba(0, 0, 0, 0.80);      /* bg-black/80 */
+  --maia-glass-bg-soft:   rgba(255, 255, 255, 0.05);/* bg-white/5 */
+  --maia-glass-bg-hi:     rgba(255, 255, 255, 0.10);/* bg-white/10 */
+  --maia-glass-border:    rgba(255, 255, 255, 0.10);/* border-white/10 */
+  --maia-glass-border-soft: rgba(255, 255, 255, 0.05);
+
+  /* === SEMANTIC ACCENTS === */
+  --maia-emerald: #10B981;  /* Active / Growth / Momentum */
+  --maia-amber:   #F59E0B;  /* Attention / Focus / Warning */
+  --maia-rose:    #F43F5E;  /* Critical / Error / Delete */
+  --maia-sky:     #0EA5E9;  /* Link / Reference / Connection */
+  --maia-violet:  #8B5CF6;  /* AI Insight / Intelligence */
+
+  --accent-active:       var(--maia-emerald);
+  --accent-attention:    var(--maia-amber);
+  --accent-critical:     var(--maia-rose);
+  --accent-connection:   var(--maia-sky);
+  --accent-intelligence: var(--maia-violet);
+
+  --maia-selection-bg: #14532d;
+  --maia-selection-fg: #e5fde8;
+
+  /* === TYPOGRAPHY === */
+  --font-sans: 'Onest', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Fixed sizes */
+  --text-xs:   0.75rem;    /* 12 */
+  --text-sm:   0.875rem;   /* 14 */
+  --text-base: 1rem;       /* 16 */
+  --text-lg:   1.125rem;   /* 18 */
+  --text-xl:   1.25rem;    /* 20 */
+  --text-2xl:  1.5rem;     /* 24 */
+  --text-3xl:  1.875rem;   /* 30 */
+
+  /* Fluid sizes (375 → 1440) */
+  --fluid-3xs: clamp(0.5rem,   0.45rem + 0.2vw, 0.625rem);
+  --fluid-2xs: clamp(0.625rem, 0.55rem + 0.3vw, 0.75rem);
+  --fluid-xs:  clamp(0.75rem,  0.7rem  + 0.2vw, 0.875rem);
+  --fluid-sm:  clamp(0.875rem, 0.8rem  + 0.3vw, 1rem);
+  --fluid-base:clamp(1rem,     0.9rem  + 0.4vw, 1.25rem);
+  --fluid-lg:  clamp(1.25rem,  1rem    + 1vw,   1.75rem);
+  --fluid-xl:  clamp(1.5rem,   1.1rem  + 1.5vw, 2.25rem);
+  --fluid-2xl: clamp(2rem,     1.5rem  + 2vw,   3rem);
+  --fluid-3xl: clamp(2.5rem,   1.8rem  + 3vw,   4rem);
+
+  /* === SPACING === */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  --space-2xl: 2rem;
+  --space-3xl: 3rem;
+  --space-4xl: 4rem;
+
+  --space-fluid-page:    clamp(1rem,   4vw,   4rem);
+  --space-fluid-section: clamp(1.5rem, 5vw,   6rem);
+  --space-fluid-gap:     clamp(1rem,   2.5vw, 2rem);
+
+  /* === RADIUS === */
+  --radius-sm:   0.375rem;    /* 6 — small chips */
+  --radius:      0.5rem;      /* 8 — default shadcn */
+  --radius-md:   0.75rem;     /* 12 — inputs / list rows */
+  --radius-lg:   1rem;        /* 16 — buttons, medium cards */
+  --radius-xl:   1.25rem;     /* 20 — GlassSurface */
+  --radius-2xl:  1.5rem;      /* 24 — dock, large cards */
+  --radius-pill: 9999px;
+
+  /* === SHADOW / ELEVATION === */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.30);
+  --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.50), 0 8px 10px -6px rgba(0,0,0,0.30);
+  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.70);
+
+  /* Signature "thick glass" rim — GlassSurface */
+  --shadow-glass:
+    0 1px 0 0 rgba(255,255,255,0.10) inset,
+    0 0 0 1px rgba(255,255,255,0.05) inset,
+    0 0 20px 0 rgba(0,0,0,0.50),
+    0 10px 20px -5px rgba(0,0,0,0.80);
+
+  /* === MOTION === */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: 200ms ease-out;
+  --transition-base: 300ms ease-out;
+  --transition-slow: 500ms ease-out;
+
+  /* === CHROME === */
+  --dock-h: 56px;
+  --dock-h-desktop: 68px;
+}
+
+/* ==========================================================================
+   SEMANTIC TEXT ROLES
+   ========================================================================== */
+.maia-h1 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fluid-2xl);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--maia-fg);
+}
+.maia-h2 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fluid-xl);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--maia-fg);
+}
+.maia-h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fluid-lg);
+  line-height: 1.3;
+  color: var(--maia-fg);
+}
+.maia-body {
+  font-family: var(--font-sans);
+  font-size: var(--fluid-sm);
+  line-height: 1.75;
+  color: var(--maia-fg-1);
+}
+.maia-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fluid-xs);
+  line-height: 1.5;
+  color: var(--maia-fg-1);
+}
+/* Signature Maia label — uppercase, wide-tracked, micro, muted */
+.maia-label {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--fluid-3xs);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--maia-fg-3);
+}
+.maia-caption {
+  font-family: var(--font-mono);
+  font-size: var(--fluid-2xs);
+  color: var(--maia-fg-3);
+}
+.maia-code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(255,255,255,0.10);
+  color: #fb7185;
+  padding: 0.1em 0.3em;
+  border-radius: 0.25rem;
+}
+.maia-link {
+  color: var(--maia-sky);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+.maia-link:hover { border-bottom-color: var(--maia-sky); }
+
+/* Glass panel utility (matches .glass-panel in src/index.css) */
+.maia-glass {
+  background: var(--maia-glass-bg);
+  backdrop-filter: blur(16px) saturate(1.8);
+  -webkit-backdrop-filter: blur(16px) saturate(1.8);
+  border: 1px solid var(--maia-glass-border-soft);
+  box-shadow: var(--shadow-2xl);
+}
+
+/* Tag pill — .maia-tag from index.css */
+.maia-tag {
+  display: inline-flex; align-items: center;
+  height: 1.5rem; padding: 0 0.5rem;
+  border-radius: var(--radius-pill);
+  background: rgba(6, 78, 59, 0.20);
+  border: 1px solid rgba(5, 150, 105, 0.30);
+  color: #a7f3d0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+}
