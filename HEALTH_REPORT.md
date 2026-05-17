@@ -4,33 +4,51 @@
 **Status**: Warnings Found
 
 ## 1. Complexity Creep
-The following files have grown significantly in complexity and require attention:
+The following files have grown significantly in complexity (> 300 lines) and require attention:
 
-*   **CRITICAL: `src/components/ChronosModal.jsx` (1911 lines)**
-    *   This component has become a monolith. It combines UI, complex state management, and helper functions.
-    *   **Recommendation**: Decompose into smaller sub-components (e.g., `TaskView`, `SessionView`, `CalendarView`) and extract logic into custom hooks (`useChronosState`).
+*   **`src/pages/LedgerPage.jsx` (1137 lines)**: Huge monolith mixing UI, state management, and inline components.
+*   **`src/components/ChronosModal.jsx` (688 lines)**: Extremely complex modal that needs splitting.
+*   **`src/pages/NotesPage.jsx` (663 lines)**: Becoming complex, mixing list and details logic.
+*   **`src/pages/CanvasPage.jsx` (594 lines)**: Significant logic accumulation.
+*   **`src/components/DailyTimeline.jsx` (552 lines)**: High complexity logic and drag/drop management.
+*   **`src/App.jsx` (374 lines)**: Growing size, managing too many global concerns.
+*   **`src/features/Graph/components/GraphRenderer.jsx` (317 lines)**: High complexity graph drawing logic.
+*   **`src/features/Graph/pages/GraphPage.jsx` (307 lines)**: Accumulating logic over standard component size.
+*   **`src/components/ProjectIcon.jsx` (309 lines)**: Excessive complexity for an icon component.
 
-*   **HIGH: `src/pages/LedgerPage.jsx` (912 lines)**
-    *   Defines multiple significant components inline (`NewDecisionModal`, `ReviewModal`, `DecisionDetailModal`, `DecisionCard`).
-    *   **Recommendation**: Move these components to `src/features/Ledger/components/` to match the project structure.
+## 2. Leftovers
+*   No active `console.log` or `debugger` statements were found in the `src/` directory.
+*   **False Positive**: `src/utils/dummyData.js` contains `"TODO:\n- [ ] Fix bug\n- [ ] Deploy to prod"` which is sample user content, not an actual codebase TODO.
 
-*   **MEDIUM: `src/pages/NotesPage.jsx` (624 lines) & `src/pages/CanvasPage.jsx` (588 lines)**
-    *   Accumulating substantial logic.
-    *   **Recommendation**: Consider refactoring layout and logic into separate hooks/components.
+## 3. Ghost Code (Unused imports/variables)
+Static analysis (`eslint`) found multiple instances of ghost code:
 
-## 2. Structure Drift
-New components are being defined outside the established structure:
+*   `src/App.jsx`: Unused variable `ensurePermission`, `handleOpenLedger`.
+*   `src/components/ChronosModal.test.jsx`: Unused imports `fireEvent`, `waitFor`.
+*   `src/components/FocusWidget.jsx`: Unused variable `onOpenPulse`.
+*   `src/components/ui/CustomSelect.jsx`, `DateTimePicker.jsx`, `PillSelect.jsx`, `dock.jsx`: Unused import `motion`.
+*   `src/context/DataContext.jsx`: Unused import `parseContentMeta`.
+*   `src/features/Graph/components/GraphControls.jsx`: Unused variables `showSignals`, `setShowSignals`.
+*   `src/features/Ledger/components/OutcomeDistribution.jsx`: Unused imports `cn`, `total`.
+*   `src/features/Opus/components/ExecutionPanel.jsx`: Unused variable `showPromote`.
+*   `src/features/Opus/components/ProjectResume.jsx`: Unused variable `taskId`.
+*   `src/features/Opus/components/ResourcesPanel.jsx`: Unused variable `e`.
+*   `src/features/Opus/components/TimelinePanel.jsx`: Unused variable `idx`.
+*   `src/lib/time.js`: Unused variable `excludeId`.
+*   `src/pages/HomePage.jsx`: Unused variables `ledger`, `reminders`, `updateNote`.
+*   `src/pages/JournalPage.jsx`: Unused variable `onOpenLedger`.
+*   `src/pages/ProjectsPage.jsx`: Unused variables `notes`, `setNotes`, `pushToast`.
+*   `src/pages/NotesPage_ModalSnippet.jsx`: Several undefined variables used, looks like an orphaned snippet file.
 
-*   **`src/pages/LedgerPage.jsx`**: As noted above, this file acts as a module definition rather than just a page view.
-*   **`src/components/GlassCard.jsx`**: Defines `GlassCard`, `GlassListItem`, `GlassInput`, `GlassTextarea`. While acceptable as a UI library file, consider renaming to `src/components/ui/glass.jsx` to reflect it is a collection of primitives.
+## 4. Structure Drift
+New components are being defined inline within other files rather than following the established project structure:
 
-## 3. Leftovers & Ghost Code
-*   **Fixed**: Removed active `console.log` in `src/features/Graph/pages/GraphPage.jsx`.
-*   **Fixed**: Removed unused `MousePointer2` import in `src/pages/LedgerPage.jsx`.
-*   **Warning**: `src/features/Graph/components/GraphRenderer.jsx` contains commented-out debug code (`// console.log(...)`).
-*   **False Positive**: `src/utils/dummyData.js` contains "TODO" inside string literals for sample data.
+*   **`src/pages/LedgerPage.jsx`**: Defines multiple inline components (`CloseButton`, `ConfirmModal`, `RenameModal`, `NewDecisionModal`, `ReviewModal`, `DecisionDetailModal`, `DecisionCard`, `SectionDivider`). These should ideally be moved to `src/features/Ledger/components/`.
+*   **`src/pages/CanvasPage.jsx`**: Defines `CanvasBoard` and `URLImage` inline.
+*   **`src/pages/NotesPage.jsx`**: Defines `NotesOverview` inline.
 
-## 4. Recommendations
-1.  **Prioritize decomposing `ChronosModal.jsx`**. It is likely a source of bugs and performance issues due to its size.
-2.  **Refactor `LedgerPage.jsx`**. Move the inline modals and cards to the `src/features/Ledger/` directory.
-3.  **Enforce Linting**. Ensure unused imports are caught by CI/CD pipelines.
+## Recommendations
+1.  **Decompose complex files**: `LedgerPage.jsx` and `ChronosModal.jsx` are critical priorities for refactoring.
+2.  **Extract inline components**: Move inline components from pages to their own dedicated files within the relevant feature folders.
+3.  **Clean up ghost code**: Remove all unused variables and imports highlighted by the ESLint report to reduce clutter.
+4.  **Remove orphaned files**: Delete `src/pages/NotesPage_ModalSnippet.jsx` as it contains syntax errors and appears unused.
