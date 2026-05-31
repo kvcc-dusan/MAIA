@@ -4,33 +4,45 @@
 **Status**: Warnings Found
 
 ## 1. Complexity Creep
-The following files have grown significantly in complexity and require attention:
+The following files have grown significantly in complexity and require attention (more than 300 lines or high cyclomatic complexity):
 
-*   **CRITICAL: `src/components/ChronosModal.jsx` (1911 lines)**
-    *   This component has become a monolith. It combines UI, complex state management, and helper functions.
-    *   **Recommendation**: Decompose into smaller sub-components (e.g., `TaskView`, `SessionView`, `CalendarView`) and extract logic into custom hooks (`useChronosState`).
-
-*   **HIGH: `src/pages/LedgerPage.jsx` (912 lines)**
-    *   Defines multiple significant components inline (`NewDecisionModal`, `ReviewModal`, `DecisionDetailModal`, `DecisionCard`).
+*   **CRITICAL: `src/components/ChronosModal.jsx` (~688 lines)**
+    *   This component remains a complex monolith handling task views, session views, and calendar logic.
+    *   **Recommendation**: Continue decomposing into smaller sub-components and extract logic into custom hooks.
+*   **CRITICAL: `src/pages/LedgerPage.jsx` (~1137 lines)**
+    *   Significant complexity creep. Defines multiple modals and significant components inline.
     *   **Recommendation**: Move these components to `src/features/Ledger/components/` to match the project structure.
-
-*   **MEDIUM: `src/pages/NotesPage.jsx` (624 lines) & `src/pages/CanvasPage.jsx` (588 lines)**
-    *   Accumulating substantial logic.
-    *   **Recommendation**: Consider refactoring layout and logic into separate hooks/components.
+*   **HIGH: `src/pages/NotesPage.jsx` (~663 lines)**
+    *   Accumulating substantial logic. Defines inline components.
+    *   **Recommendation**: Refactor layout and logic into separate components/hooks.
+*   **HIGH: `src/pages/CanvasPage.jsx` (~594 lines)**
+    *   Flagged for complexity. Defines inline components.
+    *   **Recommendation**: Refactor layout and logic into separate components/hooks.
+*   **MEDIUM: `src/components/DailyTimeline.jsx` (~552 lines)**
+    *   High line count.
+    *   **Recommendation**: Extract inline components.
+*   **MEDIUM: `src/App.jsx` (~374 lines)**
+    *   High line count, combining routing, provider setup and layout logic.
+*   **MEDIUM: `src/components/ProjectIcon.jsx` (~309 lines)**
+*   **MEDIUM: `src/features/Graph/components/GraphRenderer.jsx` (~318 lines)**
+*   **MEDIUM: `src/features/Graph/pages/GraphPage.jsx` (~308 lines)**
 
 ## 2. Structure Drift
-New components are being defined outside the established structure:
+New components are being defined outside the established structure (inline instead of separate files):
 
-*   **`src/pages/LedgerPage.jsx`**: As noted above, this file acts as a module definition rather than just a page view.
-*   **`src/components/GlassCard.jsx`**: Defines `GlassCard`, `GlassListItem`, `GlassInput`, `GlassTextarea`. While acceptable as a UI library file, consider renaming to `src/components/ui/glass.jsx` to reflect it is a collection of primitives.
+*   **`src/pages/LedgerPage.jsx`**: Defines 9 inline components (`CloseButton`, `ConfirmModal`, `RenameModal`, `NewDecisionModal`, `ReviewModal`, `DecisionDetailModal`, `DecisionCard`, `SectionDivider`).
+*   **`src/pages/CanvasPage.jsx`**: Defines 2 inline components (`CanvasBoard`, `URLImage`).
+*   **`src/pages/NotesPage.jsx`**: Defines inline component `NotesOverview`.
+*   **`src/components/DailyTimeline.jsx`**: Defines inline components `GridSlot` and `SessionItem`.
+*   **`src/pages/JournalPage.jsx`**: Defines inline component `JournalHistoryList` alongside `Journal`.
+*   **`src/App.jsx`**: Defines inline component `AppContent`.
 
 ## 3. Leftovers & Ghost Code
-*   **Fixed**: Removed active `console.log` in `src/features/Graph/pages/GraphPage.jsx`.
-*   **Fixed**: Removed unused `MousePointer2` import in `src/pages/LedgerPage.jsx`.
-*   **Warning**: `src/features/Graph/components/GraphRenderer.jsx` contains commented-out debug code (`// console.log(...)`).
-*   **False Positive**: `src/utils/dummyData.js` contains "TODO" inside string literals for sample data.
+*   **Ghost Code**: Over 20 instances of unused imports and variables across multiple files, identified by ESLint (e.g., `motion` in UI components, unused functions like `handleOpenLedger` in `App.jsx`, etc.).
+*   **Leftovers**: `src/utils/dummyData.js` contains a "TODO" string literal as sample data (a false positive, but noted for completeness). No active `console.log` or `debugger` statements were found in the source code.
+*   **Fixed**: Deleted orphaned artifact `src/pages/NotesPage_ModalSnippet.jsx` which was causing `no-undef` linting errors.
 
 ## 4. Recommendations
-1.  **Prioritize decomposing `ChronosModal.jsx`**. It is likely a source of bugs and performance issues due to its size.
-2.  **Refactor `LedgerPage.jsx`**. Move the inline modals and cards to the `src/features/Ledger/` directory.
-3.  **Enforce Linting**. Ensure unused imports are caught by CI/CD pipelines.
+1.  **Prioritize decomposing `ChronosModal.jsx` and `LedgerPage.jsx`**.
+2.  **Refactor inline components**. Move the inline components found in pages and large components to their respective feature or shared component directories.
+3.  **Clean up ghost code**. Remove unused variables and imports flagged by ESLint.
