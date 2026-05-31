@@ -21,7 +21,7 @@ export default function TodayPage({
   sessions = [],
   reminders = [],
   createNote,
-  updateNote,
+
   onOpenPulse,
   onOpenNote,
 }) {
