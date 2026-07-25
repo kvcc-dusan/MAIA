@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useMemo, useCallback, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
+import { useNotesStore } from "../hooks/useNotesStore.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { generateDummyData } from "../utils/dummyData.js";
@@ -9,11 +10,12 @@ const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
     // Notes & Projects
-    const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
+    const [notes, setNotes, notesMeta] = useNotesStore();
     const [projects, setProjects] = useLocalStorage(STORAGE_KEYS.PROJECTS, []);
 
     // --- One-time migration: clear legacy maia.journal from localStorage ---
     useEffect(() => {
+        if (notesMeta.status !== "ready") return; // wait for vault load in Tauri
         try {
             const raw = localStorage.getItem("maia.journal");
             if (raw) {
@@ -34,7 +36,7 @@ export function DataProvider({ children }) {
                 localStorage.removeItem("maia.journal");
             }
         } catch { /* already migrated or corrupt — ignore */ }
-    }, []); // Run once on mount
+    }, [notesMeta.status]); // Run once notes are loaded
 
     // Decision Ledger
     const [ledger, setLedger] = useLocalStorage(STORAGE_KEYS.LEDGER, []);
@@ -282,7 +284,7 @@ export function DataProvider({ children }) {
     }, [setLedger]);
 
     const value = useMemo(() => ({
-        notes, setNotes,
+        notes, setNotes, notesMeta,
         projects, setProjects,
         ledger, setLedger,
         tasks, setTasks,
@@ -299,7 +301,7 @@ export function DataProvider({ children }) {
         createDecision, reviewDecision, deleteDecision,
         generateSamples
     }), [
-        notes, setNotes, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
+        notes, setNotes, notesMeta, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject, addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
         createDecision, reviewDecision, deleteDecision,

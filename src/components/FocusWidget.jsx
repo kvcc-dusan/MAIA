@@ -26,7 +26,7 @@ export default function FocusWidget({
 
   return (
     <GlassErrorBoundary>
-      <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+      <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
 
         {/* HEADER */}
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -36,7 +36,7 @@ export default function FocusWidget({
         </CardHeader>
 
         {/* BODY */}
-        <CardContent className="flex flex-col gap-0 px-5 pt-3 pb-5">
+        <CardContent className="flex flex-1 flex-col gap-0 px-5 pt-3 pb-5">
 
           {/* ── TASKS ── */}
           {todayTasks.length === 0 ? (

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
-import { rescheduleAll, ensurePermission } from "./utils/notify.js";
+import { rescheduleAll } from "./utils/notify.js";
 
 // Components
 import { Dock } from "./components/ui/dock.jsx";
@@ -18,10 +18,9 @@ import {
 
 import ChronosModal from "./components/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
-import DecisionLedger from "./components/DecisionLedger.jsx";
-import GlassSurface from "./components/GlassSurface.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
+import VaultSetup from "./components/VaultSetup.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage.jsx";
@@ -33,12 +32,15 @@ import LedgerPage from "./pages/LedgerPage.jsx";
 
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
-const CanvasPage = React.lazy(() => import("./pages/CanvasPage.jsx"));
+
+const PAGES = ["home", "overview", "projects", "editor", "graph", "ledgerPage"];
 
 function AppContent() {
   // Pages
-  // Pages
-  const [currentPage, setCurrentPage] = useState(() => localStorage.getItem("maia_current_view") || "home"); // home | overview | projects | editor | canvas | graph | pulse | journal | ledger | ledgerPage
+  const [currentPage, setCurrentPage] = useState(() => {
+    const stored = localStorage.getItem("maia_current_view");
+    return PAGES.includes(stored) ? stored : "home";
+  });
 
   useEffect(() => {
     localStorage.setItem("maia_current_view", currentPage);
@@ -79,7 +81,6 @@ function AppContent() {
 
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
-  const [ledgerOpen, setLedgerOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
 
   /* -----------------------------------------
@@ -146,13 +147,10 @@ function AppContent() {
   const handleOpenTool = useCallback((tool) => {
     if (tool === "chronos") setChronosOpen(true);
     if (tool === "search") setCmdOpen((prev) => !prev);
-    if (tool === "ledger") setLedgerOpen(true);
   }, []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
-  const handleOpenLedger = useCallback(() => setLedgerOpen(true), []);
   const handleCloseChronos = useCallback(() => setChronosOpen(false), []);
-  const handleCloseLedger = useCallback(() => setLedgerOpen(false), []);
 
   const handleCreateProject = useCallback(() => {
     setCurrentPage("projects");
@@ -198,6 +196,9 @@ function AppContent() {
       className="w-full bg-black text-zinc-200 grid min-h-0 relative"
       style={{ gridTemplateRows: "1fr", height: "calc(var(--vh, 1vh) * 100)" }}
     >
+      {/* Vault picker / loading gate (Tauri only) */}
+      <VaultSetup />
+
       {/* Dock (Floating Navigation) */}
       {/* Dock (Floating Navigation) */}
       <Dock
@@ -248,10 +249,6 @@ function AppContent() {
                   onCreateJournal={handleCreateJournal}
                   onBack={handleGoHome}
                 />
-              )}
-
-              {currentPage === "canvas" && (
-                <CanvasPage goHome={handleGoHome} />
               )}
 
               {currentPage === "projects" && (
@@ -312,24 +309,6 @@ function AppContent() {
           projects={projects}
           pushToast={pushToast}
         />
-      )}
-
-      {/* Decision Ledger Modal (secondary access from command palette) */}
-      {ledgerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-5xl h-[85vh]">
-            <GlassSurface className="h-full w-full p-6 relative flex flex-col">
-              <button
-                onClick={handleCloseLedger}
-                className="absolute top-6 right-6 text-zinc-500 hover:text-white transition-colors z-10"
-                aria-label="Close Ledger"
-              >
-                ✕
-              </button>
-              <DecisionLedger ledger={ledger} setLedger={setLedger} />
-            </GlassSurface>
-          </div>
-        </div>
       )}
 
       {/* Toast */}

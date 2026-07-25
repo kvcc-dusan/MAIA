@@ -51,7 +51,7 @@ export default function QuickCaptureWidget({
 
     return (
         <GlassErrorBoundary>
-            <Card className="flex w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+            <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
 
                 {/* HEADER */}
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -66,7 +66,7 @@ export default function QuickCaptureWidget({
                 </CardHeader>
 
                 {/* BODY: Text input */}
-                <CardContent className="px-5 pt-3 pb-5">
+                <CardContent className="flex-1 px-5 pt-3 pb-5">
                     <textarea
                         value={captureContent}
                         onChange={(e) => setCaptureContent(e.target.value)}

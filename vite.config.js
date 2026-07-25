@@ -8,11 +8,16 @@ import { fileURLToPath } from "url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Tauri CLI sets TAURI_ENV_* — desktop build serves from root and must not
+// register a service worker (stale-cache hell inside the webview)
+const isTauri = !!process.env.TAURI_ENV_PLATFORM
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      disable: isTauri,
       registerType: 'autoUpdate',
       includeAssets: ['maia-logo.png'],
       workbox: {
@@ -47,7 +52,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '/MAIA/',
+  server: {
+    port: 5183,
+    strictPort: true,
+  },
+  base: isTauri ? '/' : '/MAIA/',
   build: {
     rollupOptions: {
       output: {
