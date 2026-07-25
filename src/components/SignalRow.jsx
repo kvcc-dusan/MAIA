@@ -35,7 +35,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
             {open && (
               <Popover.Portal>
                 <Popover.Content
-                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
+                  className={cn(POPOVER_CLASS, "z-9999 w-64 p-4 animate-in zoom-in-95 duration-200")}
                   sideOffset={5}
                 >
                   <div className="space-y-3">
@@ -69,16 +69,16 @@ function SignalRow({ signal, onDelete, onEdit }) {
       </ContextMenu.Trigger>
 
       <ContextMenu.Portal>
-        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
+        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-9999 w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
           <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-hidden transition-colors"
             onSelect={onEdit}
           >
             Edit Signal
           </ContextMenu.Item>
           <ContextMenu.Separator className="h-px bg-white/10 my-1" />
           <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-hidden transition-colors"
             onSelect={onDelete}
           >
             Cancel Signal

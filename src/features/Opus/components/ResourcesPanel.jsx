@@ -93,7 +93,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                         onKeyDown={e => { if (e.key === 'Enter') addLink(); if (e.key === 'Escape') setIsAdding(false); }}
                         onBlur={addLink}
                         placeholder="https://..."
-                        className="w-full bg-white/5 border border-white/10 rounded-xl text-white text-xs outline-none focus:outline-none focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono px-3 py-2.5"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl text-white text-xs outline-hidden focus:outline-hidden focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono px-3 py-2.5"
                     />
                 )}
 

@@ -294,7 +294,7 @@ export default function NotesOverview({
       }}
     >
 
-      <div className="w-full px-fluid-page py-8 flex flex-col gap-8">
+      <div className="w-full px-page py-8 flex flex-col gap-8">
 
         {/* Header: Full Width, Opus Style */}
         <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-2 flex-wrap">
@@ -387,7 +387,7 @@ export default function NotesOverview({
 
       {/* Grid Container */}
       <div
-        className="flex-1 min-h-0 px-fluid-page"
+        className="flex-1 min-h-0 px-page"
         onClick={(e) => {
           if (selectMode && e.target === e.currentTarget) exitSelectMode();
         }}
@@ -432,7 +432,7 @@ export default function NotesOverview({
                 onTouchEnd={handleCardTouchEnd}
                 className={`
                     group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden
-                    min-h-[200px] backdrop-blur-sm
+                    min-h-[200px] backdrop-blur-xs
                     ${isSelected
                     ? "bg-white/10 border-white/30 ring-1 ring-white/20"
                     : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
@@ -456,7 +456,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className="text-[11px] font-mono text-[#71717a] leading-[1.5] line-clamp-6">
+                  <p className="text-[11px] font-mono text-[#71717a] leading-normal line-clamp-6">
                     {previewText}
                   </p>
                 </div>
@@ -465,7 +465,7 @@ export default function NotesOverview({
                 <div className="flex items-center justify-between mt-auto pt-3 z-10">
                   <div className="flex items-center gap-3 overflow-hidden">
                     {/* Date */}
-                    <span className="text-fluid-3xs font-mono font-medium text-zinc-600 uppercase tracking-wider flex-shrink-0">
+                    <span className="text-fluid-3xs font-mono font-medium text-zinc-600 uppercase tracking-wider shrink-0">
                       {dateDisplay}
                     </span>
 
@@ -485,7 +485,7 @@ export default function NotesOverview({
                     })()}
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -523,7 +523,7 @@ export default function NotesOverview({
         menu.open && (
           <div
             ref={menuRef}
-            className="fixed z-[100] min-w-[180px] bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-100 min-w-[180px] bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
             style={{ left: menu.x, top: menu.y }}
             onContextMenu={(e) => e.preventDefault()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -637,7 +637,7 @@ export default function NotesOverview({
       {/* Delete Confirmation Modal */}
       {
         showDeleteConfirm && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-150 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
             <div className="w-full max-w-sm bg-[#09090b] border border-white/10 rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
               <h3 className="text-lg font-bold text-white mb-2">Delete All Notes?</h3>
               <p className="text-sm text-zinc-400 mb-6">

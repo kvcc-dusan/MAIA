@@ -72,7 +72,7 @@ export default function QuickCaptureWidget({
                         onChange={(e) => setCaptureContent(e.target.value)}
                         placeholder="What's on your mind…"
                         rows={2}
-                        className="w-full resize-none bg-transparent font-mono text-sm text-zinc-200 placeholder:text-muted-foreground/50 outline-none leading-relaxed"
+                        className="w-full resize-none bg-transparent font-mono text-sm text-zinc-200 placeholder:text-muted-foreground/50 outline-hidden leading-relaxed"
                     />
                 </CardContent>
 
@@ -104,7 +104,7 @@ export default function QuickCaptureWidget({
             {showEntries && createPortal(
                 <div
                     ref={popoverRef}
-                    className="fixed w-64 max-h-48 overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-black/95 backdrop-blur-xl shadow-2xl p-4 z-[9999]"
+                    className="fixed w-64 max-h-48 overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-black/95 backdrop-blur-xl shadow-2xl p-4 z-9999"
                     style={{
                         top: popoverPos.top,
                         left: popoverPos.left,

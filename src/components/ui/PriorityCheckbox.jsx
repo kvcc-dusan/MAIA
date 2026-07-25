@@ -8,7 +8,7 @@ export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
     <button
       onClick={(e) => { e.stopPropagation(); onChange && onChange(); }}
       className={cn(
-        "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 relative group",
+        "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20 relative group",
         checked
           ? "bg-white/20 text-white"
           : "bg-transparent hover:bg-white/5"

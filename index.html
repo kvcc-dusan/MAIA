@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 
 <head>
   <meta charset="UTF-8" />
@@ -7,15 +7,11 @@
   <link rel="apple-touch-icon" href="/maianewlogo.svg" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Fonts are self-hosted via @fontsource-variable and bundled by Vite,
+       so font-src is 'self' — no external font CDN. -->
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data: blob:; connect-src *;" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; connect-src *;" />
   <link rel="manifest" href="/manifest.webmanifest" />
-
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
 
   <title>Maia</title>
 </head>
@@ -24,10 +20,6 @@
   <div id="root" class="h-full"></div>
 
   <script type="module" src="/src/main.jsx"></script>
-
-
-
-
 </body>
 
 </html>

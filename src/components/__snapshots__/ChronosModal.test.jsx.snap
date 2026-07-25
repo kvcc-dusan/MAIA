@@ -3,63 +3,50 @@
 exports[`ChronosModal > renders correctly (snapshot) 1`] = `
 <DocumentFragment>
   <div
-    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+    class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
   >
     <div
-      class="w-full max-w-5xl h-[80vh] rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-white/10 bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 md:grid-rows-1 md:grid-cols-[minmax(0,1fr)_var(--right-width)]"
+      class="w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-white/10 bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
       style="--right-width: 420px;"
     >
       <div
-        class="h-full flex flex-col overflow-hidden border-b border-white/5 md:border-b-0 md:border-r"
+        class="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r"
       >
         <div
-          class="flex-none px-8 py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10"
+          class="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10"
         >
           <h2
-            class="text-2xl font-semibold text-white tracking-tight"
+            class="text-2xl font-sans font-semibold text-white tracking-tight"
           >
             Chronos
           </h2>
-          <div
-            class="flex items-center gap-6"
+          <button
+            aria-label="Close Modal"
+            class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20"
           >
-            <span
-              class="text-xs font-mono text-zinc-500 uppercase tracking-widest"
+            <svg
+              class=""
+              fill="none"
+              height="14"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              width="14"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              2/6/2024
-            </span>
-            <button
-              aria-label="Close Modal"
-              class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 text-zinc-400 hover:text-white transition-colors"
-            >
-              <svg
-                fill="none"
-                height="14"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-                width="14"
-              >
-                <line
-                  x1="18"
-                  x2="6"
-                  y1="6"
-                  y2="18"
-                />
-                <line
-                  x1="6"
-                  x2="18"
-                  y1="6"
-                  y2="18"
-                />
-              </svg>
-            </button>
-          </div>
+              <path
+                d="M12 21.5H12H12C16.4783 21.5 18.7175 21.5 20.1088 20.1088C21.5 18.7175 21.5 16.4783 21.5 12V12V12C21.5 7.52165 21.5 5.28248 20.1088 3.89124C18.7175 2.5 16.4783 2.5 12 2.5C7.52166 2.5 5.28249 2.5 3.89124 3.89124C2.5 5.28249 2.5 7.52166 2.5 12C2.5 16.4783 2.5 18.7175 3.89124 20.1088C5.28248 21.5 7.52165 21.5 12 21.5Z"
+              />
+              <path
+                d="M15 9L9 14.9996M15 15L9 9.00039"
+              />
+            </svg>
+          </button>
         </div>
         <div
-          class="flex-1 overflow-y-auto custom-scrollbar p-8 pt-0 space-y-8"
+          class="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8"
         >
           <div
             class="space-y-4"
@@ -68,15 +55,33 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2 pt-0"
             >
               <h3
-                class="text-xs font-bold text-zinc-500 uppercase tracking-widest"
+                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
               >
                 Tasks
               </h3>
               <button
                 aria-label="Add Task"
-                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
-                +
+                <svg
+                  class=""
+                  fill="none"
+                  height="16"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z"
+                  />
+                  <path
+                    d="M12 8V16M16 12H8"
+                  />
+                </svg>
               </button>
             </div>
             <div
@@ -96,15 +101,33 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2"
             >
               <h3
-                class="text-xs font-bold text-zinc-500 uppercase tracking-widest"
+                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
               >
                 Signals
               </h3>
               <button
                 aria-label="Add Signal"
-                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-400 hover:text-white transition-colors text-lg leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
-                +
+                <svg
+                  class=""
+                  fill="none"
+                  height="16"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z"
+                  />
+                  <path
+                    d="M12 8V16M16 12H8"
+                  />
+                </svg>
               </button>
             </div>
             <div
@@ -126,49 +149,45 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                     class="w-5 h-5 flex items-center justify-center shrink-0"
                   >
                     <span
-                      class="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.1)]"
-                      style="background-color: rgb(171, 250, 84);"
+                      class="w-2 h-2 rounded-full"
+                      style="background-color: rgb(16, 185, 129);"
                     />
                   </div>
                   <div
                     class="flex-1 min-w-0"
                   >
                     <div
-                      class="text-sm text-zinc-200 truncate"
+                      class="text-sm text-zinc-200 truncate font-mono"
                     >
                       Signal 1
                     </div>
                     <div
-                      class="text-[10px] text-zinc-500 font-mono"
+                      class="text-fluid-3xs text-zinc-500 font-mono mt-0.5"
                     >
                       02:00 PM
                     </div>
                   </div>
                   <button
                     aria-label="Delete Signal"
-                    class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white/20 opacity-0 group-hover:opacity-100"
+                    class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20 opacity-0 group-hover:opacity-100"
                   >
                     <svg
+                      class=""
                       fill="none"
                       height="14"
                       stroke="currentColor"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      stroke-width="2"
+                      stroke-width="1.5"
                       viewBox="0 0 24 24"
                       width="14"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <line
-                        x1="18"
-                        x2="6"
-                        y1="6"
-                        y2="18"
+                      <path
+                        d="M12 21.5H12H12C16.4783 21.5 18.7175 21.5 20.1088 20.1088C21.5 18.7175 21.5 16.4783 21.5 12V12V12C21.5 7.52165 21.5 5.28248 20.1088 3.89124C18.7175 2.5 16.4783 2.5 12 2.5C7.52166 2.5 5.28249 2.5 3.89124 3.89124C2.5 5.28249 2.5 7.52166 2.5 12C2.5 16.4783 2.5 18.7175 3.89124 20.1088C5.28248 21.5 7.52165 21.5 12 21.5Z"
                       />
-                      <line
-                        x1="6"
-                        x2="18"
-                        y1="6"
-                        y2="18"
+                      <path
+                        d="M15 9L9 14.9996M15 15L9 9.00039"
                       />
                     </svg>
                   </button>
@@ -179,1063 +198,1097 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
         </div>
       </div>
       <div
-        class="h-full bg-black/20 flex flex-col md:border-l border-white/5 relative overflow-hidden"
+        class="h-full bg-black/20 flex flex-col lg:border-l border-white/5 relative overflow-hidden"
       >
         <div
-          class="p-6 pb-2 flex-none flex items-center justify-between"
-        >
-          <span
-            class="text-sm font-medium text-white"
-          >
-            Tuesday, Feb 6
-          </span>
-          <div
-            class="flex gap-1"
-          >
-            <button
-              class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              ‹
-            </button>
-            <button
-              class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              ›
-            </button>
-          </div>
-        </div>
-        <div
-          class="px-6 pb-6 flex-none"
+          class="h-full flex flex-col"
         >
           <div
-            class="grid grid-cols-7 mb-2"
-          >
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              M
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              T
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              W
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              T
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              F
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              S
-            </div>
-            <div
-              class="text-center text-[10px] font-bold text-zinc-600 py-1"
-            >
-              S
-            </div>
-          </div>
-          <div
-            class="grid grid-cols-7 gap-1 auto-rows-fr"
-          >
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
-              >
-                <span
-                  class="text-xs"
-                >
-                  1
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
-              >
-                <span
-                  class="text-xs"
-                >
-                  2
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
-              >
-                <span
-                  class="text-xs"
-                >
-                  3
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
-              >
-                <span
-                  class="text-xs"
-                >
-                  4
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
-              >
-                <span
-                  class="text-xs"
-                >
-                  5
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white bg-white text-black shadow-lg scale-100 font-semibold"
-              >
-                <span
-                  class="text-xs"
-                >
-                  6
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  7
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  8
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  9
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  10
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  11
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  12
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  13
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  14
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  15
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  16
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  17
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  18
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  19
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  20
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  21
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  22
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  23
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  24
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  25
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  26
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  27
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  28
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            >
-              <button
-                class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
-              >
-                <span
-                  class="text-xs"
-                >
-                  29
-                </span>
-              </button>
-            </div>
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-            <div
-              class="aspect-square"
-            />
-          </div>
-        </div>
-        <div
-          class="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden"
-        >
-          <div
-            class="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10"
+            class="p-6 pb-2 flex-none flex items-center justify-between"
           >
             <span
-              class="text-xs font-bold text-zinc-500 uppercase tracking-widest"
+              class="text-sm font-medium text-white"
             >
-              SESSIONS
+              Tuesday, Feb 6
             </span>
+            <div
+              class="flex gap-1"
+            >
+              <button
+                class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <svg
+                  class="rotate-180"
+                  fill="none"
+                  height="16"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 6C9 6 15 10.4189 15 12C15 13.5812 9 18 9 18"
+                  />
+                </svg>
+              </button>
+              <button
+                class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+              >
+                <svg
+                  class=""
+                  fill="none"
+                  height="16"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 6C9 6 15 10.4189 15 12C15 13.5812 9 18 9 18"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div
-            class="flex-1 overflow-y-auto custom-scrollbar p-0 relative"
+            class="px-4 pb-4 flex-none"
           >
             <div
-              class="relative h-full"
+              class="grid grid-cols-7 mb-2"
             >
               <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-0"
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                M
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                T
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                W
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                T
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                F
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                S
+              </div>
+              <div
+                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+              >
+                S
+              </div>
+            </div>
+            <div
+              class="grid grid-cols-7 gap-y-0.5"
+            >
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    1
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    2
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    3
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    4
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    5
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white bg-white text-black shadow-lg scale-100 font-semibold"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    6
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    7
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    8
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    9
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    10
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    11
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    12
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    13
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    14
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    15
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    16
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    17
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    18
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    19
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    20
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    21
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    22
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    23
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    24
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    25
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    26
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    27
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    28
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              >
+                <button
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                >
+                  <span
+                    class="text-xs"
+                  >
+                    29
+                  </span>
+                </button>
+              </div>
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+              <div
+                class="h-8"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden"
+          >
+            <div
+              class="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10"
+            >
+              <span
+                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
+              >
+                Sessions
+              </span>
+            </div>
+            <div
+              class="flex-1 overflow-y-auto custom-scrollbar p-0 relative"
+            >
+              <div
+                class="relative h-full"
               >
                 <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-0"
                 >
-                  12:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    12:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-1"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  01:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-2"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-1"
                 >
-                  02:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    01:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-3"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  03:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-4"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-2"
                 >
-                  04:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    02:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-5"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  05:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-6"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-3"
                 >
-                  06:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    03:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-7"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  07:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-8"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-4"
                 >
-                  08:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    04:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-9"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  09:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-10"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-5"
                 >
-                  10:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    05:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-11"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  11:00 AM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-12"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-6"
                 >
-                  12:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    06:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-13"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  01:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-14"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-7"
                 >
-                  02:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    07:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-15"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  03:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-16"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-8"
                 >
-                  04:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    08:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-17"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  05:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-18"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-9"
                 >
-                  06:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    09:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-19"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  07:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-20"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-10"
                 >
-                  08:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    10:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-21"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  09:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-22"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-11"
                 >
-                  10:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    11:00 AM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
-                <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
-                <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-                id="timeline-hour-23"
-              >
-                <div
-                  class="w-24 border-r border-white/5 text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  class="flex min-h-[40px] group select-none"
                 >
-                  11:00 PM
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
                 </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
-              </div>
-              <div
-                class="flex min-h-[40px] group select-none"
-              >
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-12"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    12:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
+                </div>
                 <div
-                  class="w-24 border-r text-[10px] text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
-                />
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                  />
+                </div>
                 <div
-                  class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/[0.02]"
-                />
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-13"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    01:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-14"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    02:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-15"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    03:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-16"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    04:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-17"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    05:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-18"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    06:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-19"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    07:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-20"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    08:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-21"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    09:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-22"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    10:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                  id="timeline-hour-23"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                  >
+                    11:00 PM
+                  </div>
+                  <div
+                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
+                <div
+                  class="flex min-h-[40px] group select-none"
+                >
+                  <div
+                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                  />
+                  <div
+                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                  />
+                </div>
               </div>
             </div>
           </div>

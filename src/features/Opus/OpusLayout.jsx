@@ -25,7 +25,7 @@ export default function OpusLayout({ projectId, selectNote, onDeleteProject }) {
     if (!project) return null;
 
     return (
-        <div className="w-full px-fluid-page py-8 flex flex-col gap-6 bg-transparent min-h-screen" style={{ paddingBottom: 'calc(var(--dock-h) + 2rem)' }}>
+        <div className="w-full px-page py-8 flex flex-col gap-6 bg-transparent min-h-screen" style={{ paddingBottom: 'calc(var(--dock-h) + 2rem)' }}>
 
             {/* HEADER: Identity & Activity Summary */}
             <ProjectIdentity

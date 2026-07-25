@@ -4,13 +4,22 @@ const NEON_BLUE = '#6366f1';
 const NEON_ORANGE = '#f97316';
 const NEON_GREEN = '#10b981';
 
+// tailwind-merge can't infer custom theme keys, so every custom utility we add
+// has to be registered here or `cn()` will keep both sides of a conflict.
+// Add to this list whenever a new named token lands in styles/tokens.css.
 const twMerge = extendTailwindMerge({
     extend: {
         classGroups: {
             'font-size': [
+                // Legacy aliases, removed by the Sprint 4 codemod.
                 'text-fluid-3xs', 'text-fluid-2xs', 'text-fluid-xs', 'text-fluid-sm',
                 'text-fluid-base', 'text-fluid-lg', 'text-fluid-xl', 'text-fluid-2xl', 'text-fluid-3xl',
             ],
+            'z-index': [
+                'z-sticky', 'z-dock', 'z-drawer', 'z-overlay',
+                'z-dialog', 'z-popover', 'z-tooltip', 'z-toast',
+            ],
+            'shadow': ['shadow-ambient', 'shadow-raised', 'shadow-overlay', 'shadow-glass'],
         },
     },
 });

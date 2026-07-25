@@ -28,7 +28,7 @@ export class GlassErrorBoundary extends React.Component {
                         <Unavailable size={40} className="mx-auto opacity-50" />
                     </div>
                     <h3 className="text-white font-medium mb-2">Widget Unavailable</h3>
-                    <p className="text-xs text-zinc-400 mb-4 max-w-[200px] break-words">
+                    <p className="text-xs text-zinc-400 mb-4 max-w-[200px] wrap-break-word">
                         {this.state.error?.message || "Something went wrong."}
                     </p>
                     <button

@@ -79,7 +79,7 @@ export default function ProjectVitality({ project }) {
     const { status, color, bg, animate } = useProjectVitality(project);
 
     return (
-        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
+        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-xs">
             <span className={cn(
                 "w-2 h-2 rounded-full",
                 bg,

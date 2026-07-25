@@ -1,0 +1,275 @@
+/* ==========================================================================
+   MAIA — TOKENS. Single source of truth.
+
+   Colour values come from the shadcn preset b1bvuw1RPk
+   (style base-luma, baseColor neutral, font manrope/roboto, radius 0.625rem).
+   Do not add a second palette.
+
+   Layout:
+     .dark   — every colour. The app is dark-only today; this block exists so
+               adding light mode later is a config change, not a rewrite.
+     :root   — mode-invariant app values (layout, z-index, motion).
+     @theme  — the Tailwind v4 namespace mappings + the migration compat layer.
+   ========================================================================== */
+
+.dark {
+  /* --- preset surfaces: the elevation ramp ------------------------------
+     This is the layered dark that replaces flat #000. Each step is a
+     distinct surface, so depth reads without relying on borders alone. */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* --- MAIA extensions to the ramp --------------------------------------
+     The preset gives 2 surfaces and 2 text steps; MAIA's density needs one
+     more of each. These interpolate the preset scale, they don't fork it. */
+  --background-subtle: oklch(0.178 0 0);
+  --elevated: oklch(0.32 0 0);
+  --subtle-foreground: oklch(0.556 0 0);
+  --border-subtle: oklch(1 0 0 / 5%);
+  --border-strong: oklch(1 0 0 / 20%);
+  --glass: oklch(0.205 0 0);
+
+  /* --- status ------------------------------------------------------------
+     MAIA's five semantic accents. These are deliberately NOT `--accent`: in
+     shadcn `--accent` means "hover surface" and every registry component
+     hardcodes `hover:bg-accent`. Rose merges into `--destructive` rather than
+     adding a sixth token, so stock destructive buttons come out right free. */
+  --success: oklch(0.696 0.17 162.48);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.205 0 0);
+  --info: oklch(0.685 0.169 237.32);
+  --info-foreground: oklch(0.985 0 0);
+  --intel: oklch(0.606 0.25 292.717);
+  --intel-foreground: oklch(0.985 0 0);
+
+  /* Priority colours keep their existing hues; only the format changes. */
+  --priority-1: oklch(0.585 0.233 277.117);
+  --priority-2: oklch(0.705 0.213 47.604);
+  --priority-3: oklch(0.696 0.17 162.48);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --vh: 1dvh;
+  --dock-h: 56px;
+  --dock-h-desktop: 68px;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Named z-index scale, replacing the ad-hoc
+     20/30/40/50/60/100/110/150/200/9998/9999 ladder. Toast sits above dialog
+     on purpose: validation toasts fired from inside a modal used to render
+     behind it. */
+  --z-sticky: 10;
+  --z-dock: 20;
+  --z-drawer: 30;
+  --z-overlay: 40;
+  --z-dialog: 50;
+  --z-popover: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
+
+  /* Editor-local, consumed by styles/components.css */
+  --task-box: 16px;
+  --task-gap: 0.5rem;
+  --task-text-nudge: 1px;
+  --task-line: 1.5;
+}
+
+@supports not (height: 1dvh) {
+  :root {
+    --vh: 1vh;
+  }
+}
+
+@theme inline {
+  /* --- semantic colours -------------------------------------------------- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* --- MAIA extensions --------------------------------------------------- */
+  --color-background-subtle: var(--background-subtle);
+  --color-elevated: var(--elevated);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-glass: var(--glass);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-intel: var(--intel);
+  --color-intel-foreground: var(--intel-foreground);
+
+  --color-priority-1: var(--priority-1);
+  --color-priority-2: var(--priority-2);
+  --color-priority-3: var(--priority-3);
+
+  /* Escape hatch for genuine #fff (avatar fallbacks, SVG masks, progress
+     fills) so `white` can be retargeted later without breaking them. */
+  --color-pure: #ffffff;
+
+  /* --- MIGRATION COMPAT LAYER -------------------------------------------
+     Remaps the legacy palette onto the new ramp so ~980 existing utility
+     usages adopt it with zero file edits, and the Sprint 4 codemod that
+     renames them is a provable visual no-op.
+
+     DELETE THIS BLOCK when `npm run lint:tokens` reports zero hits. It is
+     the migration progress bar — while it exists, the rename isn't done. */
+  --color-zinc-50: var(--foreground);
+  --color-zinc-100: var(--foreground);
+  --color-zinc-200: var(--foreground);
+  --color-zinc-300: oklch(0.87 0 0);
+  --color-zinc-400: var(--muted-foreground);
+  --color-zinc-500: var(--muted-foreground);
+  --color-zinc-600: var(--subtle-foreground);
+  --color-zinc-700: oklch(0.45 0 0);
+  --color-zinc-800: var(--secondary);
+  --color-zinc-900: var(--card);
+  --color-zinc-950: var(--background);
+}
+
+/* Non-colour tokens use a plain `@theme` (not `inline`) so Tailwind emits them
+   as real custom properties. They are read at runtime by inline styles and by
+   the D3/Three surfaces, which cannot consume utility classes. */
+@theme {
+  /* --- type --------------------------------------------------------------
+     7 steps. 0.75rem is the floor — nothing in the UI goes below 12px.
+     The two fluid sizes still in use (fluid-3xs x180, fluid-2xs x8) are
+     aliased to that floor, which lifts the old 8px type in one line. */
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.35;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.15;
+
+  --text-fluid-3xs: 0.75rem;
+  --text-fluid-2xs: 0.75rem;
+  --text-fluid-xs: 0.75rem;
+  --text-fluid-sm: 0.875rem;
+  --text-fluid-base: 1rem;
+  --text-fluid-lg: 1.125rem;
+  --text-fluid-xl: 1.375rem;
+  --text-fluid-2xl: 1.75rem;
+  --text-fluid-3xl: 2.25rem;
+
+  /* --- radius (preset scale, monotonic) ---------------------------------- */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* --- spacing ----------------------------------------------------------- */
+  --spacing-page: clamp(1rem, 4vw, 4rem);
+  --spacing-dock: var(--dock-h);
+  --spacing-dock-desktop: var(--dock-h-desktop);
+
+  /* --- elevation --------------------------------------------------------- */
+  --shadow-ambient: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --shadow-raised: 0 10px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.3);
+  --shadow-overlay: 0 25px 50px -12px oklch(0 0 0 / 0.7);
+  --shadow-glass:
+    0 1px 0 0 oklch(1 0 0 / 0.1) inset,
+    0 0 0 1px oklch(1 0 0 / 0.05) inset,
+    0 0 20px 0 oklch(0 0 0 / 0.5),
+    0 10px 20px -5px oklch(0 0 0 / 0.8);
+
+  /* --- motion ------------------------------------------------------------ */
+  --ease-maia: var(--ease-out);
+}
+
+/* Named z-index utilities. v4 has no z-index theme namespace, so these are
+   real utilities rather than theme values. */
+@utility z-sticky { z-index: var(--z-sticky); }
+@utility z-dock { z-index: var(--z-dock); }
+@utility z-drawer { z-index: var(--z-drawer); }
+@utility z-overlay { z-index: var(--z-overlay); }
+@utility z-dialog { z-index: var(--z-dialog); }
+@utility z-popover { z-index: var(--z-popover); }
+@utility z-tooltip { z-index: var(--z-tooltip); }
+@utility z-toast { z-index: var(--z-toast); }

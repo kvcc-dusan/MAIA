@@ -1,0 +1,52 @@
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border, currentcolor);
+  }
+
+  html,
+  body {
+    height: 100%;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    overflow: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+  }
+
+  /* Focus.
+
+     The old rule here was `:focus, :focus-visible { outline: none }`, which
+     removed the keyboard focus indicator app-wide and silently defeated every
+     shadcn `focus-visible:ring-*` utility. Mouse clicks still get no ring;
+     keyboard navigation now does. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline-width: 2px;
+    outline-style: solid;
+    outline-color: var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--success);
+    color: var(--background);
+  }
+}

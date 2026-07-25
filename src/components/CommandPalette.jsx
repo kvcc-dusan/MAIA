@@ -64,7 +64,7 @@ export default function CommandPalette({
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity" onMouseDown={onClose}>
       <div
 
         className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-white/10 bg-black/80 backdrop-blur-xl"
@@ -76,7 +76,7 @@ export default function CommandPalette({
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Type a command or search notes..."
-            className="w-full bg-transparent px-4 py-3 text-sm font-sans text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 font-medium"
+            className="w-full bg-transparent px-4 py-3 text-sm font-sans text-white placeholder:text-zinc-500 focus:outline-hidden focus:ring-0 font-medium"
           />
         </div>
         <div className="max-h-[min(360px,calc(100dvh-200px))] overflow-auto p-2 space-y-1 custom-scrollbar">
@@ -89,7 +89,7 @@ export default function CommandPalette({
               onMouseEnter={() => setI(idx)}
               onClick={() => it.run()}
               className={cn(
-                "w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center justify-between group outline-none",
+                "w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center justify-between group outline-hidden",
                 i === idx ? "bg-white/10 text-white shadow-sm" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
               )}
             >

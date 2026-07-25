@@ -85,7 +85,7 @@ export function JudgmentOverview({ ledger }) {
                         <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Confidence Calibration</h3>
                         <span className="text-fluid-3xs text-zinc-600 font-mono">EXP VS ACT</span>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/20 pointer-events-none" />
                     <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
                         <CalibrationChart data={filteredData} />
                     </div>

@@ -96,7 +96,7 @@ export default function ExecutionPanel({ project }) {
             </div>
 
             {/* ── Next Move zone ── */}
-            <div className="px-5 pt-5 pb-4 border-b border-white/[0.06]">
+            <div className="px-5 pt-5 pb-4 border-b border-white/6">
                 {nowTask ? (
                     <div
                         className="cursor-default select-none group/now"
@@ -138,7 +138,7 @@ export default function ExecutionPanel({ project }) {
                         value={newTaskTitle}
                         onChange={e => setNewTaskTitle(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                        className="flex-1 bg-transparent outline-none text-sm text-zinc-600 placeholder:text-zinc-700 hover:text-zinc-300 focus:text-white transition-colors font-mono"
+                        className="flex-1 bg-transparent outline-hidden text-sm text-zinc-600 placeholder:text-zinc-700 hover:text-zinc-300 focus:text-white transition-colors font-mono"
                         placeholder="Add task..."
                     />
                 </div>
@@ -230,12 +230,12 @@ export default function ExecutionPanel({ project }) {
             {contextMenu && createPortal(
                 <>
                     <div
-                        className="fixed inset-0 z-[9998]"
+                        className="fixed inset-0 z-9998"
                         onClick={closeMenu}
                         onContextMenu={e => { e.preventDefault(); closeMenu(); }}
                     />
                     <div
-                        className="fixed z-[9999] w-48 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
+                        className="fixed z-9999 w-48 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
                         style={{ left: contextMenu.x, top: contextMenu.y }}
                     >
                         {(() => {
@@ -257,7 +257,7 @@ export default function ExecutionPanel({ project }) {
 
                                     {!task.done && (
                                         <>
-                                            <div className="h-px bg-white/[0.06] my-1" />
+                                            <div className="h-px bg-white/6 my-1" />
                                             {sched !== 'today' && (
                                                 <MenuItem onClick={() => handleContextAction('sched-today', task.id)} icon={<Calendar size={11} />}>
                                                     Move to Today
@@ -278,7 +278,7 @@ export default function ExecutionPanel({ project }) {
 
                                     {!task.done && (
                                         <>
-                                            <div className="h-px bg-white/[0.06] my-1" />
+                                            <div className="h-px bg-white/6 my-1" />
                                             {task.status !== 'blocked'
                                                 ? <MenuItem onClick={() => handleContextAction('block', task.id)} icon={<Ban size={11} />}>Mark Blocked</MenuItem>
                                                 : <MenuItem onClick={() => handleContextAction('unblock', task.id)} icon={<Circle size={11} />}>Unblock</MenuItem>
@@ -286,7 +286,7 @@ export default function ExecutionPanel({ project }) {
                                         </>
                                     )}
 
-                                    <div className="h-px bg-white/[0.06] my-1" />
+                                    <div className="h-px bg-white/6 my-1" />
                                     <MenuItem
                                         onClick={() => handleContextAction('delete', task.id)}
                                         className="text-red-400 hover:bg-red-500/10"
@@ -306,7 +306,7 @@ export default function ExecutionPanel({ project }) {
 }
 
 /* ── Menu item ── */
-function MenuItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/[0.08] hover:text-white" }) {
+function MenuItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/8 hover:text-white" }) {
     return (
         <button
             onClick={onClick}
@@ -324,7 +324,7 @@ function Group({ label, count, isOpen, onToggle, labelClass = "text-zinc-600", c
         <div>
             <button
                 onClick={onToggle}
-                className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-white/[0.03] rounded-lg transition-colors group/grp"
+                className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-white/3 rounded-lg transition-colors group/grp"
             >
                 {isOpen
                     ? <ChevronDown size={11} className="text-zinc-700 group-hover/grp:text-zinc-500 transition-colors" />
@@ -354,7 +354,7 @@ function TaskRow({ task, onToggle, onContextMenu, variant }) {
 
     return (
         <div
-            className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-colors cursor-default select-none"
+            className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/4 transition-colors cursor-default select-none"
             onContextMenu={onContextMenu}
         >
             <button

@@ -192,7 +192,7 @@ export default function EditorRich({
     editorProps: {
       attributes: {
         class:
-          "outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0",
+          "outline-hidden focus:outline-hidden focus-visible:outline-hidden ring-0 focus:ring-0",
         spellcheck: "false",
         style:
           "outline:none; -webkit-tap-highlight-color: transparent; caret-color: currentColor;",
@@ -250,7 +250,7 @@ export default function EditorRich({
     >
       <EditorContent
         editor={editor}
-        className="tiptap maia-editor outline-none min-h-full text-zinc-200 leading-relaxed w-full font-mono text-sm"
+        className="tiptap maia-editor outline-hidden min-h-full text-zinc-200 leading-relaxed w-full font-mono text-sm"
       />
     </div>
   );

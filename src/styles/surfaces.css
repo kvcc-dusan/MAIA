@@ -1,0 +1,31 @@
+/* Shared surface + chrome utilities.
+   Sprint 2 replaces `glass-panel` with a real <Surface> component; until then
+   it is at least tokenised and single-sourced. */
+
+@utility glass-panel {
+  @apply bg-glass/70 backdrop-blur-xl border border-border-subtle shadow-overlay;
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@utility touch-none {
+  touch-action: none;
+}
+
+@utility custom-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility maia-tag {
+  @apply inline-flex items-center h-6 px-2 rounded-full text-xs;
+  background: color-mix(in oklch, var(--success) 18%, transparent);
+  border: 1px solid color-mix(in oklch, var(--success) 32%, transparent);
+  color: color-mix(in oklch, var(--success) 55%, var(--foreground));
+}

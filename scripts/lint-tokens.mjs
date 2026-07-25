@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+/**
+ * Token ratchet.
+ *
+ * Counts legacy styling patterns that the design-system migration is replacing.
+ * Sprint 4 drives these to zero; Sprint 8 flips STRICT on so regressions fail
+ * the build. Until then this reports and exits 0.
+ *
+ *   npm run lint:tokens
+ *   npm run lint:tokens -- --strict
+ */
+import { readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+
+const STRICT = process.argv.includes('--strict');
+
+const RULES = [
+  { name: 'raw zinc-* utilities', re: /\b(?:bg|text|border|ring|from|to|via|fill|stroke|divide|placeholder|decoration|outline|shadow|accent|caret)-zinc-\d{2,3}\b/g },
+  { name: 'white/black alpha utilities', re: /\b(?:bg|border|text|ring|divide|from|to|via|fill|stroke|outline)-(?:white|black)\/\d{1,3}\b/g },
+  { name: 'hardcoded hex colours', re: /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g },
+  { name: 'rgba() literals', re: /\brgba?\(/g },
+  { name: 'legacy fluid type', re: /\btext-fluid-[a-z0-9]+\b/g },
+  { name: 'arbitrary z-index', re: /\bz-\[\d+\]/g },
+  { name: 'arbitrary radius', re: /\brounded-\[[^\]]+\]/g },
+  { name: 'arbitrary font-size', re: /\btext-\[\d+px\]/g },
+  { name: 'font-mono as UI voice', re: /\bfont-mono\b/g },
+];
+
+// Surfaces that legitimately need raw colour values: canvas/WebGL/chart libraries
+// take colour strings as props, not classes. Sprint 7 routes these through
+// lib/tokens.js; until then they are allowed.
+const ALLOW = [
+  'src/components/ui/CustomIcon.jsx',
+  'src/components/__snapshots__/',
+  'src/styles/tokens.css',
+];
+
+const files = execSync('git ls-files "src/**/*.jsx" "src/**/*.js" "src/**/*.css"', { encoding: 'utf8' })
+  .split('\n')
+  .filter(Boolean)
+  .filter((f) => !ALLOW.some((a) => f.startsWith(a)));
+
+const totals = new Map(RULES.map((r) => [r.name, 0]));
+const byFile = new Map();
+
+for (const file of files) {
+  let src;
+  try { src = readFileSync(file, 'utf8'); } catch { continue; }
+  for (const rule of RULES) {
+    const n = (src.match(rule.re) || []).length;
+    if (!n) continue;
+    totals.set(rule.name, totals.get(rule.name) + n);
+    byFile.set(file, (byFile.get(file) || 0) + n);
+  }
+}
+
+const grand = [...totals.values()].reduce((a, b) => a + b, 0);
+
+console.log('\n  Token ratchet — legacy styling patterns remaining\n');
+for (const [name, n] of totals) {
+  console.log(`    ${String(n).padStart(5)}  ${name}`);
+}
+console.log(`    ${'-'.repeat(5)}`);
+console.log(`    ${String(grand).padStart(5)}  total across ${byFile.size} files\n`);
+
+const worst = [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+if (worst.length) {
+  console.log('  Worst offenders:');
+  for (const [f, n] of worst) console.log(`    ${String(n).padStart(5)}  ${f}`);
+  console.log('');
+}
+
+if (STRICT && grand > 0) {
+  console.error(`  FAIL: ${grand} legacy styling patterns remain (strict mode).\n`);
+  process.exit(1);
+}

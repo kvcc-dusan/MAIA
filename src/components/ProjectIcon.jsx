@@ -434,7 +434,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+            className="fixed inset-0 z-110 flex items-center justify-center bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
             onClick={onClose}
         >
             <div className="w-full max-w-[380px] px-4" onClick={e => e.stopPropagation()}>
@@ -448,7 +448,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                         <button
                             aria-label="Close"
                             onClick={onClose}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:bg-white/[0.06] hover:text-zinc-300 transition-colors"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:bg-white/6 hover:text-zinc-300 transition-colors"
                         >
                             <CancelSquare size={14} className="shrink-0" />
                         </button>
@@ -494,7 +494,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                             })}
                         </div>
 
-                        <div className="h-px bg-white/[0.05]" />
+                        <div className="h-px bg-white/5" />
 
                         {/* Icon grid — 6 cols */}
                         <div className="grid grid-cols-6 gap-1.5">
@@ -527,7 +527,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                         {/* Apply */}
                         <button
                             onClick={handleConfirm}
-                            className="w-full py-2.5 rounded-xl border border-white/10 bg-white/[0.06] text-white text-fluid-3xs uppercase tracking-[0.15em] font-bold font-mono hover:bg-white/[0.10] transition-colors"
+                            className="w-full py-2.5 rounded-xl border border-white/10 bg-white/6 text-white text-fluid-3xs uppercase tracking-[0.15em] font-bold font-mono hover:bg-white/10 transition-colors"
                         >
                             Apply
                         </button>

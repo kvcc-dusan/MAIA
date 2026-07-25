@@ -105,7 +105,7 @@ export default function TodayPage({
 
       {/* Centered composition — greeting above, widgets in a row beneath */}
       <div className="flex-1 w-full relative z-10 home-hero">
-        <div className="home-stack min-h-full w-full px-fluid-page">
+        <div className="home-stack min-h-full w-full px-page">
 
           {/* Greeting */}
           <div className="home-greeting-block text-center">

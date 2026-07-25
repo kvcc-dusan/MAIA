@@ -31,7 +31,7 @@ export const STORAGE_KEYS = {
   SESSIONS: 'maia.sessions',
 };
 
-export const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-none focus:outline-none focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono";
+export const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-hidden focus:outline-hidden focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono";
 export const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
 
 export const getPriorityColor = (p) => {

@@ -35,7 +35,7 @@ const GridSlot = memo(({
           isHourStart ? "border-b border-dashed border-white/5" : "border-b border-white/5",
           isPast ? "opacity-30 cursor-not-allowed bg-zinc-900/20" :
             isOccupied ? "opacity-50 cursor-not-allowed" :
-              "cursor-pointer hover:bg-white/[0.02]"
+              "cursor-pointer hover:bg-white/2"
         )}
         onMouseDown={() => onMouseDown(i)}
         onMouseEnter={() => onMouseEnter(i)}
@@ -91,7 +91,7 @@ const SessionItem = memo(({
   return (
     <div
       className={cn(
-        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/10 px-3 overflow-hidden hover:bg-white/[0.12] hover:border-white/20 transition-all z-10 select-none group",
+        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-white/6 backdrop-blur-xs border border-white/10 px-3 overflow-hidden hover:bg-white/12 hover:border-white/20 transition-all z-10 select-none group",
         isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
         isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
       )}
@@ -505,9 +505,9 @@ function DailyTimeline({
       <AnimatePresence>
         {contextMenu && (
           <Portal>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setContextMenu(null)} />
+            <div className="fixed inset-0 z-9998" onClick={() => setContextMenu(null)} />
             <div
-              className="fixed bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 w-48 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+              className="fixed bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 w-48 z-9999 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onClick={e => e.stopPropagation()}
             >

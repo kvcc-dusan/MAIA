@@ -353,7 +353,7 @@ export default function ChronosModal({
   }, [selectedDate]); // Run when date changes
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose}>
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300" onClick={onClose}>
 
       <div
         className={cn(
@@ -366,15 +366,16 @@ export default function ChronosModal({
       >
 
         <div className="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r">
-          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center bg-black/80 backdrop-blur-xl z-10">
+          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-sans font-semibold text-white tracking-tight">Chronos</h2>
+            <CloseButton onClick={onClose} aria-label="Close Modal" />
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
                 <h3 className="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]">Tasks</h3>
-                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
               </div>
@@ -403,7 +404,7 @@ export default function ChronosModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
                 <h3 className="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]">Signals</h3>
-                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
               </div>
@@ -433,10 +434,10 @@ export default function ChronosModal({
                     {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                   </span>
                   <div className="flex gap-1">
-                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       <ChevronRight size={16} className="rotate-180" />
                     </button>
-                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       <ChevronRight size={16} />
                     </button>
                   </div>
@@ -459,7 +460,7 @@ export default function ChronosModal({
                             <button
                               onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}
                               className={cn(
-                                "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
+                                "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white",
                                 isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-zinc-600 hover:bg-white/5 hover:text-zinc-500" : "text-zinc-400 hover:bg-white/5 hover:text-white",
                                 isToday && !isSel ? "bg-white/10 text-white border border-white/10" : ""
                               )}
@@ -498,7 +499,7 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {taskDraft.id ? "Edit Task" : "New Task"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
@@ -533,7 +534,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {taskDraft.id ? "Save Changes" : "Create Task"}
                     </button>
                   </div>
@@ -548,7 +549,7 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {signalDraft.id ? "Edit Signal" : "New Signal"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
@@ -600,7 +601,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {signalDraft.id ? "Save Changes" : "Create Signal"}
                     </button>
                   </div>
@@ -615,7 +616,7 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {sessionDraft.id ? "Edit Session" : "New Session"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-none focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
@@ -659,7 +660,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {sessionDraft.id ? "Save Changes" : "Create Session"}
                     </button>
                   </div>

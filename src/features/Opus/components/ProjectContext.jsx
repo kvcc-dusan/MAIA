@@ -81,7 +81,7 @@ export default function ProjectContext({ project, updateProject }) {
                         <textarea
                             value={project.description}
                             onChange={e => updateProject(project.id, { description: e.target.value })}
-                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-none resize-none placeholder:text-zinc-800 placeholder:italic text-white/90"
+                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-zinc-800 placeholder:italic text-white/90"
                             placeholder="Define the core objective and desired outcome..."
                         />
                     </div>
@@ -119,7 +119,7 @@ export default function ProjectContext({ project, updateProject }) {
                                 onChange={e => setNewCriteria(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addCriteria()}
                                 placeholder="Add success criteria..."
-                                className="bg-transparent text-sm text-zinc-300 placeholder:text-zinc-700 outline-none flex-1"
+                                className="bg-transparent text-sm text-zinc-300 placeholder:text-zinc-700 outline-hidden flex-1"
                             />
                         </div>
                     </div>

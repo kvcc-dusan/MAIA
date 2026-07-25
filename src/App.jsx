@@ -193,7 +193,7 @@ function AppContent() {
   ----------------------------------------- */
   return (
     <div
-      className="w-full bg-black text-zinc-200 grid min-h-0 relative"
+      className="w-full bg-background text-foreground grid min-h-0 relative"
       style={{ gridTemplateRows: "1fr", height: "calc(var(--vh, 1vh) * 100)" }}
     >
       {/* Vault picker / loading gate (Tauri only) */}
@@ -216,7 +216,7 @@ function AppContent() {
 
       {/* Main Content */}
       <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
-        <main className="h-full overflow-hidden min-h-0 relative pb-[var(--dock-h)] md:pb-0">
+        <main className="h-full overflow-hidden min-h-0 relative pb-(--dock-h) md:pb-0">
           <GlassErrorBoundary>
             <React.Suspense fallback={<GlassSkeleton />}>
 
@@ -313,7 +313,7 @@ function AppContent() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed z-[60] left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4"
+        <div className="fixed z-60 left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4"
           style={{ bottom: 'calc(var(--dock-h) + 0.75rem)' }}
         >
           <div className="px-4 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 text-zinc-200 text-sm shadow-2xl flex items-center gap-2 font-medium">

@@ -123,7 +123,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
           <Portal>
             <motion.div
               initial={{ opacity: 0, y: -5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.98 }} transition={{ duration: 0.1 }}
-              className={cn(POPOVER_CLASS, "fixed z-[9999] p-4 custom-portal-content")}
+              className={cn(POPOVER_CLASS, "fixed z-9999 p-4 custom-portal-content")}
               style={{ top: coords.top, left: coords.left, width: coords.width }}
             >
               {/* Tabs */}

@@ -11,7 +11,7 @@ import { useLongPress } from "../hooks/useLongPress";
    ────────────────────────────────────────────────────────── */
 
 const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
-const INPUT_CLEAN = "w-full bg-transparent border-none outline-none text-zinc-200 placeholder:text-zinc-700/50 font-mono transition-all resize-none p-0 focus:ring-0";
+const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-zinc-200 placeholder:text-zinc-700/50 font-mono transition-all resize-none p-0 focus:ring-0";
 const LABEL_CLASS = "text-fluid-3xs font-bold uppercase tracking-widest text-zinc-600 font-mono mb-3 block";
 
 // Shared color tokens
@@ -36,7 +36,7 @@ function CloseButton({ onClick, className }) {
 function ConfirmModal({ message, onConfirm, onCancel, danger = true, confirmLabel = "Confirm" }) {
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={onCancel}
         >
             <div
@@ -68,7 +68,7 @@ function RenameModal({ initialValue, onConfirm, onCancel }) {
 
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={onCancel}
         >
             <div
@@ -123,7 +123,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
             onClick={onClose}
         >
             <div
@@ -238,7 +238,7 @@ function ReviewModal({ decision, onClose, onReview }) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
             onClick={onClose}
         >
             <div
@@ -322,7 +322,7 @@ function DecisionDetailModal({ decision, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
             onClick={onClose}
         >
             <div
@@ -428,7 +428,7 @@ function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, o
             onTouchMove={longPress.onTouchMove}
             onTouchEnd={longPress.onTouchEnd}
             className={cn(
-                "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden font-mono backdrop-blur-sm",
+                "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden font-mono backdrop-blur-xs",
                 isSelected
                     ? "bg-white/10 border-white/30 ring-1 ring-white/20"
                     : isReviewed
@@ -797,7 +797,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
             className="h-full w-full relative bg-black font-mono text-zinc-200 overflow-y-auto custom-scrollbar"
             onClick={() => { if (selectMode) exitSelectMode(); }}
         >
-            <div className="w-full px-fluid-page py-8 flex flex-col gap-8">
+            <div className="w-full px-page py-8 flex flex-col gap-8">
 
                 {/* Header */}
                 <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-white/5 pt-2 gap-3 flex-wrap">
@@ -869,12 +869,12 @@ export default function LedgerPage({ ledger = [], setLedger }) {
             </div>
 
             {/* Stats Overview */}
-            <div className="px-fluid-page">
+            <div className="px-page">
                 <JudgmentOverview ledger={ledger} />
             </div>
 
             {/* Card Grid */}
-            <div className="flex-1 min-h-0 px-fluid-page">
+            <div className="flex-1 min-h-0 px-page">
 
                 {/* Filter Bar */}
                 <div className="flex items-center gap-3 mb-6 flex-wrap">
@@ -1041,7 +1041,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
             {menu.open && (
                 <div
                     ref={menuRef}
-                    className="fixed z-[100] w-48 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                    className="fixed z-100 w-48 bg-[#09090b] border border-white/10 rounded-xl shadow-2xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
                     style={{ top: menu.y, left: menu.x }}
                     onClick={(e) => e.stopPropagation()}
                 >

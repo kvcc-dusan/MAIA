@@ -1,0 +1,357 @@
+/* Legacy component styles carried over from the pre-token index.css.
+   Values are migrated to tokens progressively; prose is redesigned in Sprint 6. */
+
+@layer utilities {
+
+  /* ========================================================================== */
+  /* 📌 CALLOUTS (Markdown-it callouts)                                         */
+  /* ========================================================================== */
+  .callout {
+    border-left: 3px solid #3f3f46;
+    padding-left: 0.75rem;
+  }
+
+  .callout-info {
+    border-color: #38bdf8;
+  }
+
+  .callout-note {
+    border-color: #a78bfa;
+  }
+
+  .callout-tip {
+    border-color: #34d399;
+  }
+
+  .callout-warning {
+    border-color: #f59e0b;
+  }
+
+  .callout-danger {
+    border-color: #ef4444;
+  }
+
+  /* ========================================================================== */
+  /* ✍️ RICH TEXT (TipTap editor + read view)                                   */
+  /* ========================================================================== */
+  .tiptap,
+  .prose {
+    color: #e4e4e7;
+    font-family: var(--font-sans);
+    line-height: 1.75;
+    font-size: 1rem;
+  }
+
+  /* Code blocks remain mono */
+  .tiptap pre,
+  .tiptap code,
+  .prose pre,
+  .prose code {
+    font-family: var(--font-mono);
+  }
+
+  /* Headings */
+  .tiptap h1,
+  .prose h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 2rem 0 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .tiptap h2,
+  .prose h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 1.75rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    letter-spacing: -0.01em;
+  }
+
+  .tiptap h3,
+  .prose h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  .tiptap h4,
+  .prose h4 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 1.25rem 0 0.5rem;
+  }
+
+  /* Body rhythm */
+  .tiptap p,
+  .prose p {
+    margin: 0.75rem 0;
+  }
+
+
+  /* Horizontal rules & code blocks */
+  .tiptap hr,
+  .prose hr {
+    border-color: #27272a;
+    margin: 2rem 0;
+  }
+
+  .tiptap pre,
+  .prose pre {
+    background: #0a0a0a;
+    border: 1px solid #27272a;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow: auto;
+    margin: 1rem 0;
+  }
+
+  /* Inline code */
+  .tiptap code,
+  .prose code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+    font-size: 0.85em;
+    color: #fb7185;
+    /* Rose-400 for code contrast */
+  }
+
+  /* Links */
+  .tiptap a,
+  .prose a {
+    color: var(--info);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .tiptap a:hover,
+  .prose a:hover {
+    border-bottom-color: var(--info);
+  }
+
+  /* Highlight ==text== */
+  .tiptap mark,
+  .prose mark {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fcd34d;
+    padding: 0 0.2rem;
+    border-radius: 0.2rem;
+  }
+
+  /* Blockquotes */
+  .tiptap blockquote,
+  .prose blockquote {
+    border-left: 3px solid var(--intel);
+    /* Accent color */
+    margin: 1rem 0;
+    padding-left: 1rem;
+    color: #a1a1aa;
+    font-style: italic;
+  }
+
+  /* Images */
+  .tiptap img,
+  .prose img {
+    display: inline-block;
+    max-width: 100%;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  /* ========================================================================== */
+  /* 🏷️ COMPONENTS                                                             */
+  /* ========================================================================== */
+}
+
+
+/* ========================================================================== */
+/* 🔢 REGULAR LISTS (bullets & numbers)                                       */
+/* ========================================================================== */
+.tiptap ul:not([data-type="taskList"]),
+.prose ul:not(.contains-task-list) {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0.5rem 0.25rem;
+}
+
+.tiptap ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0 0.5rem 0.25rem;
+}
+
+.tiptap ul:not([data-type="taskList"]) li,
+.tiptap ol:not([data-type="taskList"]) li,
+.prose ul:not(.contains-task-list) li,
+.prose ol:not(.contains-task-list) li {
+  margin: 0.25rem 0;
+}
+
+.tiptap ul:not([data-type="taskList"]) ul:not([data-type="taskList"]),
+.prose ul:not(.contains-task-list) ul:not(.contains-task-list) {
+  list-style: circle;
+}
+
+.tiptap ol:not([data-type="taskList"]) ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) ol:not(.contains-task-list) {
+  list-style: lower-alpha;
+}
+
+.tiptap ol:not([data-type="taskList"]),
+.prose ol:not(.contains-task-list) {
+  list-style-position: outside;
+  /* keep marker separate */
+  padding-left: 1.7rem;
+  /* adjust until numbers align with checkbox squares */
+  text-indent: -0.25rem;
+}
+
+.tiptap ol:not([data-type="taskList"]) li::marker,
+.prose ol:not(.contains-task-list) li::marker {
+  font-variant-numeric: tabular-nums;
+}
+
+
+
+/* ========================================================================== */
+/* ☑️ TASK LISTS (TipTap TaskList/TaskItem + Markdown-it)                     */
+/* ========================================================================== */
+
+.tiptap ul[data-type="taskList"],
+.prose .contains-task-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0;
+}
+
+/* Item wrapper */
+.tiptap ul[data-type="taskList"]>li,
+.prose .contains-task-list .task-list-item {
+  display: flex;
+  align-items: flex-start;
+  /* aligns box with first line */
+  gap: var(--task-gap);
+  margin: 0.25rem 0;
+  line-height: var(--task-line);
+}
+
+/* Checkbox column */
+.tiptap ul[data-type="taskList"]>li>label,
+.prose .contains-task-list .task-list-item-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--task-box);
+  width: var(--task-box);
+  line-height: 1;
+  margin: 0;
+  margin-top: calc((var(--task-line) * 1em - var(--task-box)) / 2);
+}
+
+/* Checkbox appearance */
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"],
+.prose .contains-task-list .task-list-item-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: var(--task-box);
+  height: var(--task-box);
+  border: 1px solid #fff;
+  background: #000;
+  border-radius: 4px;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked,
+.prose .contains-task-list .task-list-item-checkbox:checked {
+  background: #fff;
+  border-color: #fff;
+}
+
+.tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked::after,
+.prose .contains-task-list .task-list-item-checkbox:checked::after {
+  content: none;
+}
+
+/* Text area */
+.tiptap ul[data-type="taskList"]>li>div {
+  flex: 1 1 auto;
+  transform: translateY(var(--task-text-nudge));
+}
+
+.tiptap ul[data-type="taskList"]>li>div p {
+  margin: 0;
+}
+
+.tiptap ul[data-type="taskList"]>li>div p+p {
+  margin-top: 0.25rem;
+}
+
+/* Nested task list + vertical guide */
+.tiptap ul[data-type="taskList"] ul[data-type="taskList"],
+.prose .contains-task-list .contains-task-list {
+  position: relative;
+  margin-left: 1.25rem;
+  padding-left: calc(var(--task-gap) + 2px);
+}
+
+.tiptap ul[data-type="taskList"] ul[data-type="taskList"]::before,
+.prose .contains-task-list .contains-task-list::before {
+  content: "";
+  position: absolute;
+  left: 0.25rem;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  width: 1px;
+  background: #2a2a2a;
+}
+
+/* ========================================================================== */
+/* 📝 EDITOR (ProseMirror wrapper)                                            */
+/* ========================================================================== */
+
+.maia-editor {
+  outline: none;
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.maia-editor:focus,
+.maia-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.maia-editor .ProseMirror {
+  min-height: 100%;
+}
+
+/* Make the whole editor surface feel editable */
+.maia-editor,
+.maia-editor .ProseMirror {
+  cursor: text;
+}
+
+/* Placeholder — rendered via CSS ::before, perfectly aligned with caret */
+.maia-editor .ProseMirror.is-editor-empty::before {
+  content: attr(data-placeholder);
+  color: #52525b;
+  /* zinc-600 */
+  pointer-events: none;
+  float: left;
+  height: 0;
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: inherit;
+}

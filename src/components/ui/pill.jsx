@@ -119,7 +119,7 @@ export const PillAvatarGroup = ({
     <div
         className={cn(
             '-space-x-1 flex items-center',
-            '[&>*:not(:first-of-type)]:[mask-image:radial-gradient(circle_9px_at_-4px_50%,transparent_99%,white_100%)]',
+            '[&>*:not(:first-of-type)]:mask-[radial-gradient(circle_9px_at_-4px_50%,transparent_99%,white_100%)]',
             className
         )}
         {...props}

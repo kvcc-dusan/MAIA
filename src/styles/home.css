@@ -1,0 +1,95 @@
+/* Home / Today — container-query layout.
+   The cqw/cqh font sizes here are a deliberate display-type exception
+   and sit off the 7-step scale on purpose. Do not flatten them. */
+
+.home-hero {
+  container-type: inline-size;
+  container-name: home;
+}
+
+/* Near-black canvas: barely-there vignette, no motion */
+.home-bg {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
+    radial-gradient(140% 110% at 50% 115%, rgba(23, 38, 32, 0.55), transparent 65%),
+    #050505;
+}
+
+/* Centered vertical composition */
+.home-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.75rem, 5cqh, 3.5rem);
+  padding-top: clamp(1.5rem, 4vh, 3rem);
+  padding-bottom: calc(clamp(1.5rem, 4vh, 3rem) + 4.5rem);
+}
+
+.home-greeting-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.home-greeting {
+  font-size: clamp(1.5rem, 3.4cqw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.home-quote {
+  font-size: clamp(0.72rem, 1.1cqw, 0.85rem);
+  line-height: 1.6;
+  max-width: 34rem;
+  text-wrap: balance;
+}
+
+/* Widgets: one row on wide windows, wrapping to a stack on narrow ones */
+.home-widgets-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(0.75rem, 1.5cqw, 1.25rem);
+  width: 100%;
+  max-width: 26rem;
+  align-items: stretch;
+}
+
+@container home (min-width: 760px) {
+  .home-widgets-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 72rem;
+  }
+}
+
+/* Map body only when there's room for it */
+.home-map-body {
+  display: none;
+}
+
+.home-map-card {
+  min-height: 100px;
+  height: 100%;
+}
+
+@container home (min-width: 760px) {
+  .home-map-body {
+    display: block;
+    flex: 1;
+    min-height: 120px;
+  }
+}
+
+@media (max-height: 640px) {
+  .home-map-body {
+    display: none;
+  }
+
+  .home-stack {
+    padding-top: clamp(0.75rem, 2vh, 1.5rem);
+    gap: 1.25rem;
+  }
+}
+

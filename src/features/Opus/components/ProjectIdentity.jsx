@@ -16,7 +16,7 @@ export default function ProjectIdentity({ project, updateProject }) {
       <input
         value={project.name}
         onChange={e => updateProject(project.id, { name: e.target.value })}
-        className="bg-transparent font-bold font-sans text-white w-full outline-none placeholder:text-zinc-700 leading-none"
+        className="bg-transparent font-bold font-sans text-white w-full outline-hidden placeholder:text-zinc-700 leading-none"
         style={{ fontSize: 'clamp(2.2rem, 3.5vw, 2.75rem)', letterSpacing: '-0.02em' }}
         placeholder="Project Name"
       />

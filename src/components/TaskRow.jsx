@@ -46,7 +46,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
             {open && (
               <Popover.Portal>
                 <Popover.Content
-                  className={cn(POPOVER_CLASS, "z-[9999] w-64 p-4 animate-in zoom-in-95 duration-200")}
+                  className={cn(POPOVER_CLASS, "z-9999 w-64 p-4 animate-in zoom-in-95 duration-200")}
                   sideOffset={5}
                 >
                   <div className="space-y-3">
@@ -80,26 +80,26 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
       </ContextMenu.Trigger>
 
       <ContextMenu.Portal>
-        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
+        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-9999 w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
           <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-hidden transition-colors"
             onSelect={onEdit}
           >
             <span>Edit Task</span>
           </ContextMenu.Item>
 
           <ContextMenu.Sub>
-            <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-none transition-colors">
+            <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white rounded cursor-pointer outline-hidden transition-colors">
               Assign to Project
               <span>›</span>
             </ContextMenu.SubTrigger>
             <ContextMenu.Portal>
-              <ContextMenu.SubContent className={cn(POPOVER_CLASS, "z-[9999] w-48 p-1 animate-in fade-in duration-200 ml-1")}>
+              <ContextMenu.SubContent className={cn(POPOVER_CLASS, "z-9999 w-48 p-1 animate-in fade-in duration-200 ml-1")}>
                 {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-zinc-600 italic">No projects</div>}
                 {projects.map(p => (
                   <ContextMenu.Item
                     key={p.id}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-none transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl cursor-pointer outline-hidden transition-colors"
                     onSelect={() => onAssign(p.id)}
                   >
                     <ProjectIcon name={p.icon} size={14} className="text-zinc-500 group-hover:text-white" />
@@ -113,7 +113,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
           <ContextMenu.Separator className="h-px bg-white/10 my-1" />
 
           <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-none transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-xs font-mono text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-hidden transition-colors"
             onSelect={onDelete}
           >
             Delete Task

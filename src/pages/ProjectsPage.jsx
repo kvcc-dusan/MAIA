@@ -151,7 +151,7 @@ export default function Projects({
 
       {/* Mobile sidebar backdrop */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMobile} />
+        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={closeMobile} />
       )}
 
       {/* Main Container */}
@@ -171,7 +171,7 @@ export default function Projects({
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center transition-colors shrink-0 text-zinc-500 hover:text-white outline-none"
+              className="flex items-center justify-center transition-colors shrink-0 text-zinc-500 hover:text-white outline-hidden"
             >
               <PlusSignSquare size={20} />
             </button>
@@ -208,7 +208,7 @@ export default function Projects({
                       onBlur={commitRename}
                       onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-2 py-0.5 text-sm text-white outline-none font-mono min-w-0"
+                      className="flex-1 bg-white/6 border border-white/10 rounded-lg px-2 py-0.5 text-sm text-white outline-hidden font-mono min-w-0"
                     />
                   ) : (
                     <span className="font-medium truncate text-sm flex-1">{p.name}</span>
@@ -274,7 +274,7 @@ export default function Projects({
           <div className={`hidden md:flex flex-none border-t border-white/5 p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
             <button
               onClick={toggleCollapse}
-              className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors outline-none"
+              className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors outline-hidden"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? (
@@ -332,9 +332,9 @@ export default function Projects({
       {/* Sidebar context menu */}
       {ctxMenu && createPortal(
         <>
-          <div className="fixed inset-0 z-[9998]" onClick={closeCtx} onContextMenu={e => { e.preventDefault(); closeCtx(); }} />
+          <div className="fixed inset-0 z-9998" onClick={closeCtx} onContextMenu={e => { e.preventDefault(); closeCtx(); }} />
           <div
-            className="fixed z-[9999] w-44 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-9999 w-44 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
             style={{ left: ctxMenu.x, top: ctxMenu.y }}
           >
             {(() => {
@@ -344,7 +344,7 @@ export default function Projects({
                 <>
                   <CtxItem onClick={() => startRename(p)} icon={<Pen01 size={14} />}>Rename</CtxItem>
                   <CtxItem onClick={() => { setIconPickerId(p.id); closeCtx(); }} icon={<Setting06 size={14} />}>Edit Icon</CtxItem>
-                  <div className="h-px bg-white/[0.06] my-1" />
+                  <div className="h-px bg-white/6 my-1" />
                   <CtxItem
                     onClick={() => { deleteProject(p.id); closeCtx(); }}
                     className="text-red-400 hover:bg-red-500/10"
@@ -377,7 +377,7 @@ export default function Projects({
   );
 }
 
-function CtxItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/[0.08] hover:text-white" }) {
+function CtxItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/8 hover:text-white" }) {
   return (
     <button
       onClick={onClick}

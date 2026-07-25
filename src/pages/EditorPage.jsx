@@ -65,7 +65,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
                 placeholder="Untitled Note"
-                className="bg-transparent outline-none font-sans font-semibold text-white placeholder:text-zinc-600"
+                className="bg-transparent outline-hidden font-sans font-semibold text-white placeholder:text-zinc-600"
                 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
               />
               <div className="flex items-center gap-3 text-fluid-3xs text-zinc-500 font-mono uppercase tracking-widest">

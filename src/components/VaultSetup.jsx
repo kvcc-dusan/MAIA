@@ -50,7 +50,7 @@ export default function VaultSetup() {
   if (notesMeta.status === "ready") return null;
   if (notesMeta.status === "loading") {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black">
+      <div className="fixed inset-0 z-200 flex items-center justify-center bg-black">
         <span className="font-mono text-xs uppercase tracking-widest text-white/40 animate-pulse">
           Opening vault…
         </span>
@@ -61,7 +61,7 @@ export default function VaultSetup() {
   const isError = notesMeta.status === "error" || migrationError;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black font-sans text-white">
+    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black font-sans text-white">
       <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-[24px] border border-white/10 bg-black/80 p-8 backdrop-blur-xl">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold tracking-tight">
