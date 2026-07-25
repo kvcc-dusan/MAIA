@@ -1,20 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-
-const NEON_BLUE = '#6366f1';
-const NEON_ORANGE = '#f97316';
-const NEON_GREEN = '#10b981';
+import { getPriorityColor } from "@/lib/utils";
 
 export default function FocusTaskItem({ task, onClick }) {
-  const getPriorityColor = (p) => {
-    switch (p) {
-      case 'high': case 'p1': return NEON_BLUE;
-      case 'medium': case 'p2': return NEON_ORANGE;
-      case 'low': case 'p3': return NEON_GREEN;
-      default: return NEON_GREEN;
-    }
-  };
-
   const dotColor = getPriorityColor(task.priority || 'p3');
 
   return (

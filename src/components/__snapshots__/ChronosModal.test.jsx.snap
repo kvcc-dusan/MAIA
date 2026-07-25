@@ -150,7 +150,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   >
                     <span
                       class="w-2 h-2 rounded-full"
-                      style="background-color: rgb(16, 185, 129);"
+                      style="background-color: var(--priority-1);"
                     />
                   </div>
                   <div

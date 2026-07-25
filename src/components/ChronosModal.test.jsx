@@ -72,7 +72,6 @@ describe('ChronosModal', () => {
       setReminders: mockSetReminders,
       sessions: [],
       setSessions: vi.fn(),
-      pushToast: vi.fn(),
     };
 
     const { asFragment } = render(<ChronosModal {...props} />);

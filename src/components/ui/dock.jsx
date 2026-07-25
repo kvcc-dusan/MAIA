@@ -1,6 +1,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 /* ─────────────────────────────────────────────
    DESKTOP PILL DOCK  (md and above)
@@ -8,33 +9,36 @@ import { cn } from "@/lib/utils";
 const DockIconButton = React.forwardRef(
     ({ icon: Icon, label, onClick, className, isActive }, ref) => {
         return (
-            <motion.button
-                ref={ref}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onClick}
-                aria-label={label}
-                className={cn(
-                    "relative group p-2.5 sm:p-3 rounded-xl min-w-[44px] min-h-[44px] flex items-center justify-center",
-                    "hover:bg-white/10 transition-colors",
-                    isActive ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white",
-                    className
-                )}
-            >
-                {Icon ? <Icon className="w-[18px] h-[18px] sm:w-5 sm:h-5" strokeWidth={isActive ? 2.2 : 1.8} /> : <div className="w-5 h-5 bg-red-500/20 rounded-full" />}
-                <span
-                    className={cn(
-                        "absolute -top-10 left-1/2 -translate-x-1/2",
-                        "px-2 py-1 rounded-lg text-fluid-3xs font-medium uppercase tracking-widest",
-                        "bg-zinc-900/90 border border-white/10 text-white backdrop-blur-xl",
-                        "shadow-lg",
-                        "opacity-0 group-hover:opacity-100",
-                        "transition-opacity whitespace-nowrap pointer-events-none"
-                    )}
-                >
+            <Tooltip>
+                <TooltipTrigger
+                    render={
+                        <motion.button
+                            ref={ref}
+                            whileHover={{ scale: 1.1, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onClick}
+                            aria-label={label}
+                            aria-current={isActive ? "page" : undefined}
+                            className={cn(
+                                "relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2.5 sm:p-3",
+                                "transition-colors hover:bg-accent",
+                                isActive ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground",
+                                className
+                            )}
+                        >
+                            {Icon
+                                ? <Icon className="size-[18px] sm:size-5" strokeWidth={isActive ? 2.2 : 1.8} />
+                                : <div className="size-5 rounded-full bg-destructive/20" />}
+                        </motion.button>
+                    }
+                />
+                {/* Replaces the hand-rolled hover bubble; keeps the dock's
+                    uppercase micro-label voice but inherits real positioning,
+                    delay and dismissal behaviour. */}
+                <TooltipContent side="top" className="uppercase tracking-widest">
                     {label}
-                </span>
-            </motion.button>
+                </TooltipContent>
+            </Tooltip>
         );
     }
 );
@@ -44,20 +48,19 @@ const DesktopDock = React.forwardRef(({ items, className }, ref) => {
     return (
         <div
             ref={ref}
-            className={cn("hidden md:flex fixed bottom-4 left-0 right-0 z-50 items-center justify-center pointer-events-none safe-bottom", className)}
+            className={cn("safe-bottom pointer-events-none fixed inset-x-0 bottom-4 z-dock hidden items-center justify-center md:flex", className)}
         >
-            <div className="w-fit flex items-center justify-center relative pointer-events-auto">
+            <div className="pointer-events-auto relative flex w-fit items-center justify-center">
                 <motion.div
                     className={cn(
-                        "flex items-center gap-1 sm:gap-2 p-1.5 px-2 sm:p-2 sm:px-3 rounded-[24px]",
-                        "backdrop-blur-xl border border-white/10",
-                        "bg-zinc-900/80",
+                        "flex items-center gap-1 rounded-3xl p-1.5 px-2 sm:gap-2 sm:p-2 sm:px-3",
+                        "border border-border bg-glass/80 supports-backdrop-filter:backdrop-blur-xl",
                         "shadow-raised transition-shadow duration-300"
                     )}
                 >
                     {items.map((item, index) => (
                         item.type === 'separator' ? (
-                            <div key={`sep-${index}`} className="w-px h-8 bg-white/10 mx-2" />
+                            <div key={`sep-${index}`} className="mx-2 h-8 w-px bg-border" />
                         ) : (
                             <DockIconButton key={item.label || index} {...item} />
                         )
@@ -71,81 +74,72 @@ DesktopDock.displayName = "DesktopDock";
 
 /* ─────────────────────────────────────────────
    MOBILE TAB BAR  (below md)
-   Full-width, labeled, touch-optimized
 ───────────────────────────────────────────── */
 const MobileTabBar = ({ items }) => {
-    // Filter out separators and split into primary nav + tools
-    const navItems = items.filter(item => item.type !== 'separator');
-    // Primary tabs: first 5 non-separator items (nav pages)
-    const primaryItems = navItems.slice(0, 5);
-    // Secondary tools: rest (Chronos, Search)
-    const toolItems = navItems.slice(5);
+    // Split on the separator rather than a hardcoded index — the old
+    // `slice(0, 5)` silently mis-grouped the bar if items were reordered.
+    const separatorAt = items.findIndex((item) => item.type === 'separator');
+    const navItems = items.filter((item) => item.type !== 'separator');
+    const splitAt = separatorAt === -1 ? navItems.length : separatorAt;
+    const primaryItems = navItems.slice(0, splitAt);
+    const toolItems = navItems.slice(splitAt);
 
     return (
         <div
-            className="md:hidden fixed bottom-0 left-0 right-0 z-50"
+            className="fixed inset-x-0 bottom-0 z-dock md:hidden"
             style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
-            {/* Main tab row */}
-            <div className="flex items-center bg-zinc-900/80 backdrop-blur-xl border-t border-white/5 h-(--dock-h)">
+            <div className="flex h-(--dock-h) items-center border-t border-border-subtle bg-glass/80 supports-backdrop-filter:backdrop-blur-xl">
                 {primaryItems.map((item, i) => (
                     <motion.button
                         key={item.label || i}
                         onClick={item.onClick}
                         whileTap={{ scale: 0.92 }}
                         aria-label={item.label}
-                        className="flex-1 flex flex-col items-center justify-center gap-[3px] h-full min-w-[44px] transition-colors"
+                        aria-current={item.isActive ? "page" : undefined}
+                        className="flex h-full min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 transition-colors"
                     >
                         {item.icon && (
                             <item.icon
                                 className={cn(
-                                    "w-[19px] h-[19px] transition-all duration-200",
-                                    item.isActive
-                                        ? "text-white"
-                                        : "text-zinc-500"
+                                    "size-[19px] transition-all duration-200",
+                                    item.isActive ? "text-foreground" : "text-muted-foreground"
                                 )}
                                 strokeWidth={item.isActive ? 2.2 : 1.8}
                             />
                         )}
                         <span className={cn(
-                            "text-[9px] font-medium uppercase tracking-wider leading-none transition-colors duration-200",
-                            item.isActive ? "text-white" : "text-zinc-600"
+                            "text-xs font-medium uppercase leading-none tracking-wider transition-colors duration-200",
+                            item.isActive ? "text-foreground" : "text-subtle-foreground"
                         )}>
                             {item.label}
                         </span>
-
                     </motion.button>
                 ))}
 
-                {/* Tool items (Chronos, Search) — rendered as icon-only mini buttons */}
+                {/* Tools are icon-only on mobile. With the type floor raised to
+                    12px, seven labelled tabs no longer fit at 375px — and the
+                    aria-label still names them for assistive tech. */}
                 {toolItems.length > 0 && (
                     <>
-                        <div className="w-px h-5 bg-white/10 mx-1 flex-none" />
+                        <div className="mx-1 h-5 w-px flex-none bg-border" />
                         {toolItems.map((item, i) => (
                             <motion.button
                                 key={item.label || i}
                                 onClick={item.onClick}
                                 whileTap={{ scale: 0.92 }}
                                 aria-label={item.label}
-                                className={cn(
-                                    "flex-1 flex flex-col items-center justify-center gap-[3px] h-full min-w-[44px] transition-colors",
-                                )}
+                                className="flex h-full min-w-[44px] flex-none items-center justify-center px-4 transition-colors"
                             >
                                 {item.icon && (
                                     <item.icon
                                         className={cn(
-                                            "w-[18px] h-[18px] transition-all duration-200",
-                                            item.isActive ? "text-white" : "text-zinc-500"
+                                            "size-[18px] transition-all duration-200",
+                                            item.isActive ? "text-foreground" : "text-muted-foreground"
                                         )}
                                         strokeWidth={item.isActive ? 2.2 : 1.8}
                                     />
                                 )}
-                                <span className={cn(
-                                    "text-[9px] font-medium uppercase tracking-wider leading-none",
-                                    item.isActive ? "text-white" : "text-zinc-600"
-                                )}>
-                                    {item.label}
-                                </span>
                             </motion.button>
                         ))}
                     </>

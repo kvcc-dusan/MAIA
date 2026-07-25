@@ -21,6 +21,8 @@ import CommandPalette from "./components/CommandPalette.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 import VaultSetup from "./components/VaultSetup.jsx";
+import { Toaster } from "./components/ui/sonner.jsx";
+import { TooltipProvider } from "./components/ui/tooltip.jsx";
 
 // Pages
 import HomePage from "./pages/HomePage.jsx";
@@ -69,15 +71,6 @@ function AppContent() {
   const [targetProjectId, setTargetProjectId] = useState(null);
   const [search] = useState("");
 
-  // Toast
-  const [toast, setToast] = useState(null);
-  const pushToast = useCallback((msg) => {
-    setToast(msg);
-    // Clear previous timeout if any - storing ID on the function itself is a bit hacky in functional comp but works if ref is used.
-    // Better to just let it be or use a ref.
-    // Simplest: just set timeout. If overlap, multiple toasts might flicker or clear early. Acceptable for now.
-    setTimeout(() => setToast(null), 2200);
-  }, []);
 
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
@@ -259,7 +252,6 @@ function AppContent() {
                   setNotes={setNotes}
                   selectNote={selectItem}
                   targetProjectId={targetProjectId}
-                  pushToast={pushToast}
                   isCreateModalOpen={projectModalOpen}
                   setCreateModalOpen={setProjectModalOpen}
                 />
@@ -307,27 +299,17 @@ function AppContent() {
           sessions={sessions}
           setSessions={setSessions}
           projects={projects}
-          pushToast={pushToast}
         />
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed z-60 left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4"
-          style={{ bottom: 'calc(var(--dock-h) + 0.75rem)' }}
-        >
-          <div className="px-4 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 text-zinc-200 text-sm shadow-2xl flex items-center gap-2 font-medium">
-            {typeof toast === 'string' ? (
-              <>
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                {toast}
-              </>
-            ) : (
-              toast
-            )}
-          </div>
-        </div>
-      )}
+      {/* Toasts. Sonner owns queueing, dismissal and stacking; the previous
+          hand-rolled version was single-slot, had no dismiss control, and sat
+          at z-60 — below every modal, so validation toasts fired from inside
+          Chronos rendered behind it. */}
+      <Toaster
+        position="bottom-center"
+        offset={`calc(var(--dock-h) + 0.75rem)`}
+      />
 
       {/* Command Palette */}
       <CommandPalette
@@ -347,7 +329,9 @@ function AppContent() {
 export default function App() {
   return (
     <DataProvider>
-      <AppContent />
+      <TooltipProvider>
+        <AppContent />
+      </TooltipProvider>
     </DataProvider>
   );
 }

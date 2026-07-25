@@ -1,8 +1,9 @@
 import React from "react";
-import { cn, getPriorityColor } from "@/lib/utils";
+import { cn, getPriorityColor, getPriorityTint } from "@/lib/utils";
 
 export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
   const color = getPriorityColor(priority);
+  const glow = getPriorityTint(priority, 40);
 
   return (
     <button
@@ -21,7 +22,7 @@ export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
           "absolute w-2 h-2 rounded-full transition-all duration-300",
           checked ? "opacity-0 scale-0" : "opacity-100 scale-100"
         )}
-        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}40` }}
+        style={{ backgroundColor: color, boxShadow: `0 0 6px ${glow}` }}
       />
 
       {/* The Checkmark (Visible when checked) */}

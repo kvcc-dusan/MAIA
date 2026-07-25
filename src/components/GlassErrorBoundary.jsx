@@ -1,11 +1,10 @@
 import React from 'react';
-import { GlassCard } from './GlassCard';
-import { Unavailable } from "./ui/CustomIcon.jsx";
+import { ErrorState } from './composed/ErrorState';
 
 export class GlassErrorBoundary extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { hasError: false, error: null };
+        this.state = { hasError: false, error: null, attempt: 0 };
     }
 
     static getDerivedStateFromError(error) {
@@ -16,31 +15,24 @@ export class GlassErrorBoundary extends React.Component {
         console.error("GlassErrorBoundary caught an error:", error, errorInfo);
     }
 
-    handleReload = () => {
-        this.setState({ hasError: false, error: null });
+    // Bumping `attempt` re-keys the subtree so children actually remount.
+    // Previously this only cleared `hasError`, so a deterministic error threw
+    // again on the very next render and Retry appeared to do nothing.
+    handleRetry = () => {
+        this.setState((s) => ({ hasError: false, error: null, attempt: s.attempt + 1 }));
     };
 
     render() {
         if (this.state.hasError) {
             return (
-                <GlassCard className="flex flex-col items-center justify-center p-6 text-center h-full min-h-[150px] w-full">
-                    <div className="text-zinc-500 mb-4">
-                        <Unavailable size={40} className="mx-auto opacity-50" />
-                    </div>
-                    <h3 className="text-white font-medium mb-2">Widget Unavailable</h3>
-                    <p className="text-xs text-zinc-400 mb-4 max-w-[200px] wrap-break-word">
-                        {this.state.error?.message || "Something went wrong."}
-                    </p>
-                    <button
-                        onClick={this.handleReload}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs rounded-lg transition-colors"
-                    >
-                        Reload Widget
-                    </button>
-                </GlassCard>
+                <ErrorState
+                    title={this.props.title || "Something went wrong"}
+                    message={this.state.error?.message}
+                    onRetry={this.handleRetry}
+                />
             );
         }
 
-        return this.props.children;
+        return <React.Fragment key={this.state.attempt}>{this.props.children}</React.Fragment>;
     }
 }

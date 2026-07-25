@@ -7,6 +7,7 @@ import { Folder01 as Folder, PlusSignSquare, ChevronRight } from "./ui/CustomIco
 
 import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, INPUT_CLASS } from "../lib/constants";
 import { sameDay, toLocalInputValue, isPastTime, hasOverlap } from "../lib/time";
+import { toast } from "sonner";
 import { CloseButton } from "./ui/CloseButton";
 import { CustomSelect } from "./ui/CustomSelect";
 import { DateTimePicker } from "./ui/DateTimePicker";
@@ -24,7 +25,6 @@ export default function ChronosModal({
   sessions,
   setSessions,
   projects = [],
-  pushToast,
 }) {
   const today = new Date();
 
@@ -134,12 +134,12 @@ export default function ChronosModal({
     if (!title || !sessionDraft.start || !sessionDraft.end) return;
 
     if (isPastTime(sessionDraft.start)) {
-      pushToast?.("Cannot create sessions in the past");
+      toast.error("Cannot create sessions in the past");
       return;
     }
 
     if (hasOverlap(sessionDraft.start, sessionDraft.end, sessions, sessionDraft.id)) {
-      pushToast?.("Time slot is already occupied");
+      toast.error("Time slot is already occupied");
       return;
     }
 
@@ -200,7 +200,7 @@ export default function ChronosModal({
   const assignTask = (id, projectId) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, projectId } : t));
     const projectTitle = projects.find(p => p.id === projectId)?.name || "Project";
-    pushToast?.(`Assigned to ${projectTitle}`);
+    toast.success(`Assigned to ${projectTitle}`);
   };
 
   const createSignal = () => { // Actually 'saveSignal' now
@@ -214,22 +214,9 @@ export default function ChronosModal({
     if (isNaN(when.getTime())) return;
 
     if (when < new Date()) {
-      pushToast?.(
-        <>
-          <span className="text-red-400 font-bold">Error:</span>
-          <span>Time is in the past!</span>
-        </>
-      );
+      toast.error("Time is in the past");
       return;
     }
-
-    const pColor = TASK_PRIORITIES.find(p => p.value === signalDraft.priority)?.color || '#fff';
-    const toastContent = (label) => (
-      <>
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pColor }} />
-        <span>{label}</span>
-      </>
-    );
 
     if (signalDraft.id) {
       // Update logic
@@ -243,7 +230,7 @@ export default function ChronosModal({
       ensurePermission().then((ok) => {
         if (ok) scheduleLocalNotification(signalDraft.id, title, when.toISOString());
       });
-      pushToast?.(toastContent(`Signal updated for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+      toast.success(`Signal updated for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
     } else {
       // Create
       const id = uid();
@@ -260,7 +247,7 @@ export default function ChronosModal({
       ensurePermission().then((ok) => {
         if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
       });
-      pushToast?.(toastContent(`Signal set for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`));
+      toast.success(`Signal set for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
     }
     closeForm();
   };

@@ -35,7 +35,6 @@ export default function Projects({
   setNotes,
   selectNote,
   targetProjectId,
-  pushToast,
   isCreateModalOpen,
   setCreateModalOpen,
 }) {

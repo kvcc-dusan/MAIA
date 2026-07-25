@@ -1,14 +1,12 @@
 export const TASK_PRIORITIES = [
-  { value: 'p1', label: 'High Priority',   color: '#6366f1' },
-  { value: 'p2', label: 'Medium Priority', color: '#f97316' },
-  { value: 'p3', label: 'Normal Priority', color: '#10b981' },
+  { value: 'p1', label: 'High Priority',   color: 'var(--priority-1)' },
+  { value: 'p2', label: 'Medium Priority', color: 'var(--priority-2)' },
+  { value: 'p3', label: 'Normal Priority', color: 'var(--priority-3)' },
 ];
 
-export const SIGNAL_PRIORITIES = [
-  { value: 'p1', label: 'High Priority',   color: '#6366f1' },
-  { value: 'p2', label: 'Medium Priority', color: '#f97316' },
-  { value: 'p3', label: 'Normal Priority', color: '#10b981' },
-];
+// Identical to TASK_PRIORITIES today; kept as a separate export because tasks
+// and signals are separate domains and may diverge.
+export const SIGNAL_PRIORITIES = TASK_PRIORITIES;
 
 export const IN_PRESETS = [
   { value: 5, label: '5 m' },
@@ -31,14 +29,17 @@ export const STORAGE_KEYS = {
   SESSIONS: 'maia.sessions',
 };
 
-export const INPUT_CLASS = "bg-white/5 border border-white/10 rounded-xl text-white text-sm outline-hidden focus:outline-hidden focus:border-white/25 transition-all placeholder:text-zinc-600 font-mono";
-export const POPOVER_CLASS = "bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl";
+/**
+ * @deprecated Use <Field> + <Input> / <Textarea> instead. Retained only until
+ * Sprint 5 migrates the remaining callers (ChronosModal, CustomSelect,
+ * DateTimePicker). Now token-based, so existing consumers pick up the theme
+ * without needing to be edited first.
+ */
+export const INPUT_CLASS = "bg-input/50 border border-transparent rounded-xl text-foreground text-sm outline-hidden transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 
-export const getPriorityColor = (p) => {
-  switch (p) {
-    case 'p1': return '#6366f1';
-    case 'p2': return '#f97316';
-    case 'p3': return '#10b981';
-    default:   return '#10b981';
-  }
-};
+/** @deprecated Use the Menu / Popover components instead. */
+export const POPOVER_CLASS = "bg-popover border border-border shadow-overlay rounded-2xl";
+
+// getPriorityColor lives in lib/utils.js. It was defined here as well (and a
+// third time inline in FocusTaskItem), all returning divergent raw hex.
+export { getPriorityColor } from "./utils.js";

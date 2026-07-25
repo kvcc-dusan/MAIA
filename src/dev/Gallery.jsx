@@ -6,6 +6,11 @@ import { PromptDialog } from "@/components/composed/PromptDialog";
 import { SidePanel } from "@/components/composed/SidePanel";
 import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
+import { Field } from "@/components/composed/Field";
+import { PageHeader } from "@/components/composed/PageHeader";
+import { EmptyState } from "@/components/composed/EmptyState";
+import { ErrorState } from "@/components/composed/ErrorState";
+import { StatusDot, PriorityChip } from "@/components/composed/StatusDot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -122,6 +127,67 @@ export default function Gallery() {
             <div className="flex w-64 flex-col gap-2">
               <Label>Disabled</Label>
               <Input disabled placeholder="Disabled" />
+            </div>
+          </Section>
+
+          <Section title="Field" note="Owns label association, aria-invalid and aria-describedby so pages can't drift.">
+            <Field label="Title" className="w-64">
+              <Input placeholder="Weekly review" />
+            </Field>
+            <Field label="Stakes" hint="How much rides on this call?" className="w-64">
+              <Input placeholder="High" />
+            </Field>
+            <Field label="Title" error="Title can't be empty." required className="w-64">
+              <Input defaultValue="" />
+            </Field>
+            <Field label="Notes" className="w-64">
+              <Textarea placeholder="Optional context…" />
+            </Field>
+          </Section>
+
+          <Section title="PageHeader" note="NotesPage and LedgerPage hand-wrote this with identical class strings.">
+            <div className="w-full">
+              <PageHeader
+                eyebrow="Codex"
+                count={128}
+                actions={
+                  <>
+                    <Button size="sm">New note</Button>
+                    <IconButton label="Settings" icon={Settings} />
+                  </>
+                }
+              />
+            </div>
+          </Section>
+
+          <Section title="Status & priority" note="Replaces three copies of getPriorityColor returning raw hex.">
+            <div className="flex items-center gap-3">
+              {["p1", "p2", "p3"].map((p) => <StatusDot key={p} tone={p} />)}
+              {["success", "warning", "danger", "info", "intel", "muted"].map((t) => (
+                <StatusDot key={t} tone={t} />
+              ))}
+              <StatusDot tone="success" glow pulse />
+            </div>
+            <div className="flex items-center gap-2">
+              {["p1", "p2", "p3"].map((p) => <PriorityChip key={p} priority={p} />)}
+            </div>
+          </Section>
+
+          <Section title="Empty & error states" note="~24 empty states existed, each worded and styled differently.">
+            <div className="w-64">
+              <EmptyState icon={Plus} title="No notes found" />
+            </div>
+            <div className="w-72">
+              <EmptyState
+                size="page"
+                icon={Trash2}
+                title="No decisions recorded"
+                description="Log a decision to start building your calibration record."
+                action={<Button size="sm">Log decision</Button>}
+              />
+            </div>
+            <div className="w-72">
+              <ErrorState message="Cannot read properties of undefined" onRetry={() => toast("Retried")} />
             </div>
           </Section>
 
