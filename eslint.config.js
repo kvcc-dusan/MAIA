@@ -26,4 +26,14 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    // Vendored shadcn registry components. They follow the registry's own
+    // conventions (exporting cva variant maps alongside the component), and
+    // hand-editing them means the next `shadcn add` silently reverts the fix.
+    // The react-refresh rule is an HMR ergonomics hint, not a correctness one.
+    files: ['src/components/ui/**/*.{js,jsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
