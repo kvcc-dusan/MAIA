@@ -4,7 +4,7 @@ import { CancelSquare as X, FolderAdd as FolderPlus } from "./ui/CustomIcon.jsx"
 import { cn } from "@/lib/utils";
 
 // Minimal Input Style (Shared with Ledger)
-const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-zinc-200 placeholder:text-zinc-700/50 font-mono transition-all resize-none p-0 focus:ring-0";
+const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-foreground placeholder:text-zinc-700/50 font-mono transition-all resize-none p-0 focus:ring-0";
 
 export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState("");
@@ -38,17 +38,17 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md mx-4 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                className="w-full max-w-md mx-4 bg-[#09090b] border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
-                    <span className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
+                    <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
                         New Project
                     </span>
                     <button
                         onClick={onClose}
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:bg-white/6 hover:text-zinc-300 transition-colors"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-white/6 hover:text-foreground-secondary transition-colors"
                     >
                         <X size={12} />
                     </button>
@@ -60,7 +60,7 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                         <button
                             type="button"
                             onClick={() => setShowPicker(true)}
-                            className="w-11 h-11 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center text-zinc-500 hover:text-white hover:bg-white/8 hover:border-white/15 transition-all shrink-0"
+                            className="w-11 h-11 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center text-muted-foreground hover:text-white hover:bg-white/8 hover:border-white/15 transition-all shrink-0"
                             title="Choose icon"
                         >
                             <ProjectIcon name={icon} size={20} color={iconColor} />
@@ -73,7 +73,7 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                             onChange={e => setName(e.target.value)}
                             onKeyDown={e => e.key === 'Escape' && onClose()}
                             placeholder="Project name..."
-                            className="flex-1 bg-transparent outline-hidden text-white text-base font-medium placeholder:text-zinc-700 font-mono"
+                            className="flex-1 bg-transparent outline-hidden text-white text-base font-medium placeholder:text-faint-foreground font-mono"
                         />
                     </div>
 
@@ -82,7 +82,7 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-xs font-mono text-zinc-500 hover:text-zinc-300 hover:bg-white/4 transition-colors"
+                            className="px-4 py-2 rounded-xl text-xs font-mono text-muted-foreground hover:text-foreground-secondary hover:bg-white/4 transition-colors"
                         >
                             Cancel
                         </button>

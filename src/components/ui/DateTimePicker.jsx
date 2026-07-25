@@ -106,14 +106,14 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
 
   return (
     <div className="relative space-y-2" ref={ref}>
-      {label && <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
+      {label && <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
         className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left min-h-[46px]")}
         aria-label="Select Date and Time"
       >
         <div className="flex items-center gap-3 truncate">
-          <Calendar03 size={14} className="text-zinc-500 shrink-0" />
+          <Calendar03 size={14} className="text-muted-foreground shrink-0" />
           <span className="truncate flex-1 font-mono">{formatDisplay(value)}</span>
         </div>
       </button>
@@ -128,29 +128,29 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
             >
               {/* Tabs */}
               {!dateOnly && (
-                <div className="flex bg-white/5 p-[3px] rounded-xl mb-4 gap-[3px]">
-                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'date' ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}>Date</button>
-                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'time' ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}>Time</button>
+                <div className="flex bg-overlay-subtle p-[3px] rounded-xl mb-4 gap-[3px]">
+                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'date' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Date</button>
+                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'time' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Time</button>
                 </div>
               )}
 
               {tab === 'date' && (
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-white text-sm font-medium px-1">
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() - 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">‹</button>
+                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() - 1)))} className="hover:bg-overlay w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:text-white">‹</button>
                     <span>{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-white/10 w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-white">›</button>
+                    <button onClick={() => setViewDate(d => new Date(d.setMonth(d.getMonth() + 1)))} className="hover:bg-overlay w-6 h-6 flex items-center justify-center rounded-full text-muted-foreground hover:text-white">›</button>
                   </div>
                   <div className="grid grid-cols-7 text-center gap-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-fluid-3xs uppercase font-bold text-zinc-600 py-1">{d}</div>)}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-xs uppercase font-bold text-subtle-foreground py-1">{d}</div>)}
                     {gridCells.map((d, i) => (
                       <div key={i} className="aspect-square">
                         {d && (
                           <button
                             onClick={() => setDatePart(d)}
                             className={cn(
-                              "w-full h-full text-xs rounded-lg hover:bg-white/10 flex items-center justify-center transition-all",
-                              d.toDateString() === dateObj.toDateString() ? "bg-white text-black font-bold shadow-lg scale-110" : "text-zinc-400"
+                              "w-full h-full text-xs rounded-lg hover:bg-overlay flex items-center justify-center transition-all",
+                              d.toDateString() === dateObj.toDateString() ? "bg-white text-black font-bold shadow-lg scale-110" : "text-muted-foreground"
                             )}
                           >
                             {d.getDate()}
@@ -166,25 +166,25 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                 <div className="flex flex-col gap-2">
                   {/* Lists: Hours | Mins */}
                   <div className="h-52 grid grid-cols-2 gap-2 overflow-hidden pb-1">
-                    <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 border-r border-white/5">
-                      <div className="text-fluid-3xs text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Hour</div>
+                    <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 border-r border-border-subtle">
+                      <div className="text-xs text-subtle-foreground uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Hour</div>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
                         <button
                           key={h}
                           onClick={() => setTimePart('hour', h)}
-                          className={cn("text-xs py-2 rounded-lg hover:bg-white/10 shrink-0 transition-colors", h === hours12 ? "bg-white/20 text-white font-bold" : "text-zinc-400")}
+                          className={cn("text-xs py-2 rounded-lg hover:bg-overlay shrink-0 transition-colors", h === hours12 ? "bg-overlay-strong text-white font-bold" : "text-muted-foreground")}
                         >
                           {h}
                         </button>
                       ))}
                     </div>
                     <div className="overflow-y-auto custom-scrollbar flex flex-col gap-1">
-                      <div className="text-fluid-3xs text-zinc-600 uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Min</div>
+                      <div className="text-xs text-subtle-foreground uppercase font-bold text-center mb-1 sticky top-0 bg-[#09090b] py-1 z-10">Min</div>
                       {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
                         <button
                           key={m}
                           onClick={() => setTimePart('min', m)}
-                          className={cn("text-xs py-2 rounded-lg hover:bg-white/10 shrink-0 transition-colors", m === minutes ? "bg-white/20 text-white font-bold" : "text-zinc-400")}
+                          className={cn("text-xs py-2 rounded-lg hover:bg-overlay shrink-0 transition-colors", m === minutes ? "bg-overlay-strong text-white font-bold" : "text-muted-foreground")}
                         >
                           {m.toString().padStart(2, '0')}
                         </button>
@@ -194,16 +194,16 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
 
                   {/* AM/PM Toggle Footer - DISTINCT STYLE */}
                   <div className="flex justify-center pt-1">
-                    <div className="grid grid-cols-2 gap-[3px] bg-white/5 p-[3px] rounded-xl border border-white/10 w-fit">
+                    <div className="grid grid-cols-2 gap-[3px] bg-overlay-subtle p-[3px] rounded-xl border border-border w-fit">
                       <button
                         onClick={() => setTimePart('ampm', 'AM')}
-                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
                       >
                         AM
                       </button>
                       <button
                         onClick={() => setTimePart('ampm', 'PM')}
-                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-zinc-500 hover:text-white")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
                       >
                         PM
                       </button>

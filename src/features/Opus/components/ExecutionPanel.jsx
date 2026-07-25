@@ -85,12 +85,12 @@ export default function ExecutionPanel({ project }) {
     };
 
     return (
-        <div className="rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+        <div className="rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
 
             {/* ── Header ── */}
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-white/5">
-                <Target size={12} className="text-zinc-600" />
-                <h3 className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-border-subtle">
+                <Target size={12} className="text-subtle-foreground" />
+                <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
                     Execution
                 </h3>
             </div>
@@ -103,7 +103,7 @@ export default function ExecutionPanel({ project }) {
                         onContextMenu={e => openContextMenu(e, nowTask.id)}
                     >
                         {/* Caption */}
-                        <div className="text-[9px] uppercase tracking-[0.22em] text-zinc-600 font-bold font-mono mb-2.5">
+                        <div className="text-[9px] uppercase tracking-[0.22em] text-subtle-foreground font-bold font-mono mb-2.5">
                             Next Move
                         </div>
                         {/* Title row — title left-aligned, circle on right */}
@@ -113,7 +113,7 @@ export default function ExecutionPanel({ project }) {
                             </span>
                             <button
                                 onClick={() => toggleTask(nowTask.id)}
-                                className="w-5 h-5 rounded-full border border-zinc-600 hover:border-white hover:bg-white/10 transition-all shrink-0 flex items-center justify-center group/cb opacity-0 group-hover/now:opacity-100"
+                                className="w-5 h-5 rounded-full border border-subtle-foreground hover:border-white hover:bg-overlay transition-all shrink-0 flex items-center justify-center group/cb opacity-0 group-hover/now:opacity-100"
                                 title="Mark complete"
                             >
                                 <div className="w-2 h-2 rounded-full bg-transparent group-hover/cb:bg-white/60 transition-all" />
@@ -123,8 +123,8 @@ export default function ExecutionPanel({ project }) {
                 ) : (
                     (today.length > 0 || soon.length > 0 || future.length > 0) && (
                         <div className="flex items-center gap-2.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-zinc-800 shrink-0" />
-                            <span className="text-xs font-mono text-zinc-700 italic">
+                            <div className="w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
+                            <span className="text-xs font-mono text-faint-foreground italic">
                                 Right-click a task → Set as Next Move
                             </span>
                         </div>
@@ -133,12 +133,12 @@ export default function ExecutionPanel({ project }) {
 
                 {/* Add task — lives right under Next Move */}
                 <div className="flex items-center gap-2.5 mt-4 group/add">
-                    <Plus size={11} className="text-zinc-700 group-focus-within/add:text-zinc-500 shrink-0 transition-colors" />
+                    <Plus size={11} className="text-faint-foreground group-focus-within/add:text-muted-foreground shrink-0 transition-colors" />
                     <input
                         value={newTaskTitle}
                         onChange={e => setNewTaskTitle(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                        className="flex-1 bg-transparent outline-hidden text-sm text-zinc-600 placeholder:text-zinc-700 hover:text-zinc-300 focus:text-white transition-colors font-mono"
+                        className="flex-1 bg-transparent outline-hidden text-sm text-subtle-foreground placeholder:text-faint-foreground hover:text-foreground-secondary focus:text-white transition-colors font-mono"
                         placeholder="Add task..."
                     />
                 </div>
@@ -152,7 +152,7 @@ export default function ExecutionPanel({ project }) {
                     label="Today" count={today.length}
                     isOpen={expandedGroups.today}
                     onToggle={() => toggleGroup('today')}
-                    labelClass="text-zinc-500"
+                    labelClass="text-muted-foreground"
                 >
                     {today.map(t => (
                         <TaskRow key={t.id} task={t}
@@ -167,7 +167,7 @@ export default function ExecutionPanel({ project }) {
                     label="Soon" count={soon.length}
                     isOpen={expandedGroups.soon}
                     onToggle={() => toggleGroup('soon')}
-                    labelClass="text-zinc-600"
+                    labelClass="text-subtle-foreground"
                 >
                     {soon.map(t => (
                         <TaskRow key={t.id} task={t}
@@ -182,7 +182,7 @@ export default function ExecutionPanel({ project }) {
                     label="Future" count={future.length}
                     isOpen={expandedGroups.future}
                     onToggle={() => toggleGroup('future')}
-                    labelClass="text-zinc-700"
+                    labelClass="text-faint-foreground"
                 >
                     {future.map(t => (
                         <TaskRow key={t.id} task={t}
@@ -214,7 +214,7 @@ export default function ExecutionPanel({ project }) {
                     label="Done" count={completed.length}
                     isOpen={expandedGroups.done}
                     onToggle={() => toggleGroup('done')}
-                    labelClass="text-zinc-700"
+                    labelClass="text-faint-foreground"
                 >
                     {completed.map(t => (
                         <TaskRow key={t.id} task={t} variant="done"
@@ -235,7 +235,7 @@ export default function ExecutionPanel({ project }) {
                         onContextMenu={e => { e.preventDefault(); closeMenu(); }}
                     />
                     <div
-                        className="fixed z-9999 w-48 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
+                        className="fixed z-9999 w-48 bg-[#09090b] border border-border rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
                         style={{ left: contextMenu.x, top: contextMenu.y }}
                     >
                         {(() => {
@@ -306,7 +306,7 @@ export default function ExecutionPanel({ project }) {
 }
 
 /* ── Menu item ── */
-function MenuItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/8 hover:text-white" }) {
+function MenuItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-white/8 hover:text-white" }) {
     return (
         <button
             onClick={onClick}
@@ -319,7 +319,7 @@ function MenuItem({ onClick, icon, children, className = "text-zinc-300 hover:bg
 }
 
 /* ── Collapsible section ── */
-function Group({ label, count, isOpen, onToggle, labelClass = "text-zinc-600", children }) {
+function Group({ label, count, isOpen, onToggle, labelClass = "text-subtle-foreground", children }) {
     return (
         <div>
             <button
@@ -327,14 +327,14 @@ function Group({ label, count, isOpen, onToggle, labelClass = "text-zinc-600", c
                 className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-white/3 rounded-lg transition-colors group/grp"
             >
                 {isOpen
-                    ? <ChevronDown size={11} className="text-zinc-700 group-hover/grp:text-zinc-500 transition-colors" />
-                    : <ChevronRight size={11} className="text-zinc-700 group-hover/grp:text-zinc-500 transition-colors" />
+                    ? <ChevronDown size={11} className="text-faint-foreground group-hover/grp:text-muted-foreground transition-colors" />
+                    : <ChevronRight size={11} className="text-faint-foreground group-hover/grp:text-muted-foreground transition-colors" />
                 }
-                <span className={cn("text-fluid-3xs uppercase tracking-[0.15em] font-bold font-mono", labelClass)}>
+                <span className={cn("text-xs uppercase tracking-[0.15em] font-bold font-mono", labelClass)}>
                     {label}
                 </span>
                 {count > 0 && (
-                    <span className="text-fluid-3xs text-zinc-700 font-mono ml-0.5">{count}</span>
+                    <span className="text-xs text-faint-foreground font-mono ml-0.5">{count}</span>
                 )}
             </button>
 
@@ -361,26 +361,26 @@ function TaskRow({ task, onToggle, onContextMenu, variant }) {
                 onClick={onToggle}
                 className={cn(
                     "w-4 h-4 rounded-full border transition-all shrink-0 flex items-center justify-center",
-                    isDone    ? "border-zinc-700 bg-zinc-800"
+                    isDone    ? "border-faint-foreground bg-secondary"
                     : isBlocked ? "border-red-400/30"
-                    : "border-zinc-700 group-hover:border-zinc-500"
+                    : "border-faint-foreground group-hover:border-muted-foreground"
                 )}
             >
-                {isDone    && <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />}
+                {isDone    && <div className="w-1.5 h-1.5 rounded-full bg-subtle-foreground" />}
                 {isBlocked && <Ban size={8} className="text-red-400/50" />}
             </button>
 
             <span className={cn(
                 "flex-1 min-w-0 text-sm truncate font-mono transition-colors",
-                isDone    ? "text-zinc-700 line-through"
-                : isBlocked ? "text-zinc-500"
-                : "text-zinc-400 group-hover:text-zinc-200"
+                isDone    ? "text-faint-foreground line-through"
+                : isBlocked ? "text-muted-foreground"
+                : "text-muted-foreground group-hover:text-foreground"
             )}>
                 {task.title}
             </span>
 
             {task.due && !isDone && (
-                <span className="text-[10px] text-zinc-600 font-mono shrink-0">
+                <span className="text-[10px] text-subtle-foreground font-mono shrink-0">
                     {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </span>
             )}

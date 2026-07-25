@@ -288,16 +288,16 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       {/* Hover Info Card */}
       {hoveredNode && (
         <div
-          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl font-mono"
+          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl font-mono"
           style={{ top: 80, right: 24 }}
         >
           <div className="text-white font-medium text-xs leading-tight">{hoveredNode.title}</div>
-          <div className="text-fluid-3xs text-zinc-500 mt-2 flex flex-wrap gap-1">
+          <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-1">
             {hoveredNode.tags.length > 0
-              ? hoveredNode.tags.map(t => <span key={t} className="bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">#{t}</span>)
+              ? hoveredNode.tags.map(t => <span key={t} className="bg-overlay-subtle border border-border px-1.5 py-0.5 rounded-full">#{t}</span>)
               : <span className="italic opacity-50">No tags</span>}
           </div>
-          <div className="mt-3 pt-2 border-t border-white/5 text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">
+          <div className="mt-3 pt-2 border-t border-border-subtle text-xs text-subtle-foreground uppercase tracking-widest font-bold">
             Click to open
           </div>
         </div>

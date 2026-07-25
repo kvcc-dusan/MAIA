@@ -48,7 +48,7 @@ export function CustomSelect({ label, value, options, onChange, placeholder = "S
 
   return (
     <div className="relative space-y-2" ref={ref}>
-      {label && <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
+      {label && <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
         className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left min-h-[46px]")}
@@ -59,7 +59,7 @@ export function CustomSelect({ label, value, options, onChange, placeholder = "S
           )}
           <span className="truncate">{selectedOption?.label || value || placeholder}</span>
         </div>
-        <span className="text-zinc-500 text-xs shrink-0 ml-1">▼</span>
+        <span className="text-muted-foreground text-xs shrink-0 ml-1">▼</span>
       </button>
 
       <AnimatePresence>
@@ -75,8 +75,8 @@ export function CustomSelect({ label, value, options, onChange, placeholder = "S
                   key={opt.value}
                   onClick={() => { onChange(opt.value); setOpen(false); }}
                   className={cn(
-                    "w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-white/10 transition-colors flex items-center gap-3",
-                    opt.value == value ? "bg-white/5 text-white" : "text-zinc-400"
+                    "w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-overlay transition-colors flex items-center gap-3",
+                    opt.value == value ? "bg-overlay-subtle text-white" : "text-muted-foreground"
                   )}
                 >
                   {opt.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}

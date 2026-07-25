@@ -40,7 +40,7 @@ export function CalibrationChart({ data }) {
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-zinc-700 font-mono text-fluid-3xs uppercase tracking-wider">
+            <div className="h-full w-full flex items-center justify-center text-faint-foreground font-mono text-xs uppercase tracking-wider">
                 Not enough data
             </div>
         );
@@ -72,11 +72,11 @@ export function CalibrationChart({ data }) {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-white/10 rounded-lg px-3 py-2 text-fluid-3xs shadow-xl backdrop-blur-md">
-                                        <div className="text-zinc-500 mb-1">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
+                                    <div className="bg-black/90 border border-border rounded-lg px-3 py-2 text-xs shadow-xl backdrop-blur-md">
+                                        <div className="text-muted-foreground mb-1">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
                                         <div className="flex gap-3 text-white">
-                                            <span className="text-zinc-500">Exp <span className="text-white font-bold">{d.avgConfidence}%</span></span>
-                                            <span className="text-zinc-500">Act <span className="text-white font-bold">{d.actualSuccess}%</span></span>
+                                            <span className="text-muted-foreground">Exp <span className="text-white font-bold">{d.avgConfidence}%</span></span>
+                                            <span className="text-muted-foreground">Act <span className="text-white font-bold">{d.actualSuccess}%</span></span>
                                         </div>
                                     </div>
                                 );

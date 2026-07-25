@@ -9,12 +9,12 @@ export function GlassCard({
     ...props
 }) {
     const variants = {
-        default: "bg-white/5 border-white/5",
-        elevated: "bg-white/10 border-white/10",
-        dark: "bg-black/40 border-white/5"
+        default: "bg-overlay-subtle border-border-subtle",
+        elevated: "bg-overlay border-border",
+        dark: "bg-black/40 border-border-subtle"
     };
 
-    const hoverClass = hover ? "hover:bg-white/10 transition-colors" : "";
+    const hoverClass = hover ? "hover:bg-overlay transition-colors" : "";
 
     return (
         <div
@@ -43,8 +43,8 @@ export function GlassListItem({
             className={cn(
                 "border rounded-xl p-3 backdrop-blur-xs transition-colors",
                 active
-                    ? "bg-white/10 border-white/20 text-white"
-                    : "bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-white",
+                    ? "bg-overlay border-border-strong text-white"
+                    : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:bg-overlay hover:text-white",
                 className
             )}
             {...props}
@@ -59,7 +59,7 @@ export function GlassInput({ className = "", ...props }) {
     return (
         <input
             className={cn(
-                "w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white outline-hidden focus:bg-white/10 focus:border-white/20 transition-colors placeholder:text-zinc-400",
+                "w-full bg-overlay-subtle border border-border rounded-lg p-3 text-white outline-hidden focus:bg-overlay focus:border-border-strong transition-colors placeholder:text-muted-foreground",
                 className
             )}
             {...props}
@@ -72,7 +72,7 @@ export function GlassTextarea({ className = "", ...props }) {
     return (
         <textarea
             className={cn(
-                "w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-hidden focus:bg-white/10 focus:border-white/20 transition-colors resize-none placeholder:text-zinc-400",
+                "w-full bg-overlay-subtle border border-border rounded-xl p-4 text-white outline-hidden focus:bg-overlay focus:border-border-strong transition-colors resize-none placeholder:text-muted-foreground",
                 className
             )}
             {...props}

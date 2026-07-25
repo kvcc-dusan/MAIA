@@ -62,7 +62,7 @@ export default function VaultSetup() {
 
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-black font-sans text-white">
-      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-[24px] border border-white/10 bg-black/80 p-8 backdrop-blur-xl">
+      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-[24px] border border-border bg-black/80 p-8 backdrop-blur-xl">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold tracking-tight">
             {isError ? "Vault unavailable" : "Choose your vault"}
@@ -92,7 +92,7 @@ export default function VaultSetup() {
               type="button"
               onClick={() => notesMeta.reload()}
               disabled={isBusy}
-              className="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:bg-white/10 disabled:opacity-50"
+              className="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:bg-overlay disabled:opacity-50"
             >
               Retry
             </button>

@@ -42,8 +42,8 @@ export default function ProjectContext({ project, updateProject }) {
 
     return (
         <div className={cn(
-            "rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
-            isExpanded ? "" : "hover:border-white/20"
+            "rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
+            isExpanded ? "" : "hover:border-border-strong"
         )}>
             {/* Header — always visible */}
             <button
@@ -51,22 +51,22 @@ export default function ProjectContext({ project, updateProject }) {
                 className="w-full flex items-center justify-between p-6 text-left"
             >
                 <div className="flex items-center gap-2">
-                    <span className="w-1 h-1 bg-zinc-700 rounded-full" />
-                    <span className="text-fluid-3xs uppercase tracking-widest text-zinc-600 font-bold">
+                    <span className="w-1 h-1 bg-faint-foreground rounded-full" />
+                    <span className="text-xs uppercase tracking-widest text-subtle-foreground font-bold">
                         Project Context
                     </span>
                 </div>
                 <div className="flex items-center gap-4">
                     {/* Compact metadata when collapsed */}
                     {!isExpanded && (
-                        <div className="flex items-center gap-4 text-fluid-3xs text-zinc-700 font-mono">
+                        <div className="flex items-center gap-4 text-xs text-faint-foreground font-mono">
                             {project.description && (
-                                <span className="max-w-[200px] truncate text-zinc-600">{project.description}</span>
+                                <span className="max-w-[200px] truncate text-subtle-foreground">{project.description}</span>
                             )}
                             <span>{completedTasks}/{totalTasks} tasks</span>
                         </div>
                     )}
-                    {isExpanded ? <ChevronUp size={14} className="text-zinc-600" /> : <ChevronDown size={14} className="text-zinc-600" />}
+                    {isExpanded ? <ChevronUp size={14} className="text-subtle-foreground" /> : <ChevronDown size={14} className="text-subtle-foreground" />}
                 </div>
             </button>
 
@@ -75,20 +75,20 @@ export default function ProjectContext({ project, updateProject }) {
                 <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-2 duration-300 space-y-6">
                     {/* Strategic Directive */}
                     <div>
-                        <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-2 block">
+                        <label className="text-xs uppercase tracking-wider text-subtle-foreground font-bold mb-2 block">
                             Strategic Directive
                         </label>
                         <textarea
                             value={project.description}
                             onChange={e => updateProject(project.id, { description: e.target.value })}
-                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-zinc-800 placeholder:italic text-white/90"
+                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-secondary placeholder:italic text-white/90"
                             placeholder="Define the core objective and desired outcome..."
                         />
                     </div>
 
                     {/* Success Criteria */}
-                    <div className="pt-4 border-t border-white/5">
-                        <label className="text-fluid-3xs uppercase tracking-wider text-zinc-600 font-bold mb-3 block">
+                    <div className="pt-4 border-t border-border-subtle">
+                        <label className="text-xs uppercase tracking-wider text-subtle-foreground font-bold mb-3 block">
                             Success Criteria
                         </label>
                         <div className="space-y-2 mb-3">
@@ -96,16 +96,16 @@ export default function ProjectContext({ project, updateProject }) {
                                 <div key={c.id} className="flex items-start gap-3 group/item">
                                     <button
                                         onClick={() => toggleCriteria(c.id)}
-                                        className={`mt-0.5 ${c.done ? "text-emerald-500" : "text-zinc-600 hover:text-zinc-400"} transition-colors`}
+                                        className={`mt-0.5 ${c.done ? "text-emerald-500" : "text-subtle-foreground hover:text-muted-foreground"} transition-colors`}
                                     >
                                         {c.done ? <CheckSquare size={16} /> : <Square size={16} />}
                                     </button>
-                                    <span className={`text-sm flex-1 leading-relaxed ${c.done ? "text-zinc-600 line-through" : "text-zinc-300"}`}>
+                                    <span className={`text-sm flex-1 leading-relaxed ${c.done ? "text-subtle-foreground line-through" : "text-foreground-secondary"}`}>
                                         {c.text}
                                     </span>
                                     <button
                                         onClick={() => removeCriteria(c.id)}
-                                        className="opacity-0 group-hover/item:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity"
+                                        className="opacity-0 group-hover/item:opacity-100 text-subtle-foreground hover:text-red-400 transition-opacity"
                                     >
                                         <X size={14} />
                                     </button>
@@ -113,40 +113,40 @@ export default function ProjectContext({ project, updateProject }) {
                             ))}
                         </div>
                         <div className="flex items-center gap-2">
-                            <Plus size={14} className="text-zinc-600" />
+                            <Plus size={14} className="text-subtle-foreground" />
                             <input
                                 value={newCriteria}
                                 onChange={e => setNewCriteria(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addCriteria()}
                                 placeholder="Add success criteria..."
-                                className="bg-transparent text-sm text-zinc-300 placeholder:text-zinc-700 outline-hidden flex-1"
+                                className="bg-transparent text-sm text-foreground-secondary placeholder:text-faint-foreground outline-hidden flex-1"
                             />
                         </div>
                     </div>
 
                     {/* Metadata */}
-                    <div className="pt-4 border-t border-white/5 grid grid-cols-3 gap-4">
+                    <div className="pt-4 border-t border-border-subtle grid grid-cols-3 gap-4">
                         <div>
-                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Calendar size={10} /> Created
                             </div>
-                            <div className="text-sm text-zinc-500 font-mono">
+                            <div className="text-sm text-muted-foreground font-mono">
                                 {project.createdAt ? new Date(project.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                             </div>
                         </div>
                         <div>
-                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Hash size={10} /> Tasks
                             </div>
-                            <div className="text-sm text-zinc-500 font-mono">
+                            <div className="text-sm text-muted-foreground font-mono">
                                 {completedTasks}/{totalTasks}
                             </div>
                         </div>
                         <div>
-                            <div className="text-fluid-3xs text-zinc-700 uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
+                            <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Layers size={10} /> Sessions
                             </div>
-                            <div className="text-sm text-zinc-500 font-mono">
+                            <div className="text-sm text-muted-foreground font-mono">
                                 {totalSessions}
                             </div>
                         </div>

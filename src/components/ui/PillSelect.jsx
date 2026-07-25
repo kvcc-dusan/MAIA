@@ -53,11 +53,11 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
         className={cn(
           "w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl border transition-all text-sm font-mono min-h-[46px]",
-          hasValue ? "bg-white/5 border-white/25 text-white hover:border-white/30" : "bg-white/5 border-white/10 text-zinc-400 hover:border-white/20"
+          hasValue ? "bg-overlay-subtle border-white/25 text-white hover:border-white/30" : "bg-overlay-subtle border-border text-muted-foreground hover:border-border-strong"
         )}
       >
         <div className="flex items-center gap-2 overflow-hidden">
-          {Icon && <Icon size={14} className={cn("shrink-0", hasValue ? "text-white" : "text-zinc-500")} />}
+          {Icon && <Icon size={14} className={cn("shrink-0", hasValue ? "text-white" : "text-muted-foreground")} />}
           <span className="truncate">{selectedOption?.label || placeholder}</span>
         </div>
         {hasValue ? (
@@ -67,7 +67,7 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
               e.stopPropagation();
               onChange('none');
             }}
-            className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
+            className="p-0.5 hover:bg-overlay-strong rounded-full transition-colors"
           >
             <X size={12} />
           </div>
@@ -89,8 +89,8 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
                   key={opt.value}
                   onClick={() => { onChange(opt.value); setOpen(false); }}
                   className={cn(
-                    "w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-3",
-                    opt.value == value ? "bg-white/5 text-white" : "text-zinc-400"
+                    "w-full text-left px-4 py-2 text-sm hover:bg-overlay transition-colors flex items-center gap-3",
+                    opt.value == value ? "bg-overlay-subtle text-white" : "text-muted-foreground"
                   )}
                 >
                   {opt.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}

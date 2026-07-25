@@ -56,21 +56,21 @@ export default function AssetsPanel({ project }) {
     const isImage = (type) => type && type.startsWith('image/');
 
     return (
-        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
                 <div className="flex items-center gap-2">
-                    <Folder size={12} className="text-zinc-600" />
-                    <h3 className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+                    <Folder size={12} className="text-subtle-foreground" />
+                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
                         Assets
                     </h3>
-                    <span className="text-fluid-3xs text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full font-mono">
+                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full font-mono">
                         {assets.length}
                     </span>
                 </div>
                 <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-6 h-6 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-md transition-colors"
+                    className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
                     title="Upload files"
                 >
                     <Upload size={12} />
@@ -90,7 +90,7 @@ export default function AssetsPanel({ project }) {
                 className={`flex-1 rounded-xl border-2 border-dashed transition-all ${isDragOver
                     ? "border-[#10b981]/40 bg-[#10b981]/5"
                     : assets.length === 0
-                        ? "border-white/10 hover:border-white/20 cursor-pointer"
+                        ? "border-border hover:border-border-strong cursor-pointer"
                         : "border-transparent"
                     }`}
                 onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
@@ -99,16 +99,16 @@ export default function AssetsPanel({ project }) {
                 onClick={assets.length === 0 ? () => fileInputRef.current?.click() : undefined}
             >
                 {assets.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-2 text-zinc-700">
+                    <div className="flex flex-col items-center justify-center h-full gap-2 text-faint-foreground">
                         <Upload size={18} className="opacity-40" />
-                        <p className="text-fluid-3xs font-mono italic">Drop files or click to browse</p>
+                        <p className="text-xs font-mono italic">Drop files or click to browse</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-2 p-1">
                         {assets.map(asset => (
                             <div
                                 key={asset.id}
-                                className="relative group aspect-square rounded-lg overflow-hidden border border-white/5 hover:border-white/20 transition-all cursor-pointer"
+                                className="relative group aspect-square rounded-lg overflow-hidden border border-border-subtle hover:border-border-strong transition-all cursor-pointer"
                                 onClick={() => {
                                     if (asset.type === 'application/pdf') {
                                         // Open PDF in new tab
@@ -130,11 +130,11 @@ export default function AssetsPanel({ project }) {
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 p-2">
-                                        <FileIcon size={20} className="text-zinc-600 mb-1" />
-                                        <span className="text-[8px] text-zinc-500 truncate w-full text-center">{asset.name}</span>
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-overlay-subtle p-2">
+                                        <FileIcon size={20} className="text-subtle-foreground mb-1" />
+                                        <span className="text-[8px] text-muted-foreground truncate w-full text-center">{asset.name}</span>
                                         {asset.type === 'application/pdf' && (
-                                            <ExternalLink size={10} className="text-zinc-600 mt-1" />
+                                            <ExternalLink size={10} className="text-subtle-foreground mt-1" />
                                         )}
                                     </div>
                                 )}
@@ -142,7 +142,7 @@ export default function AssetsPanel({ project }) {
                                 {/* Remove button */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); removeAsset(asset.id); }}
-                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-zinc-400 hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-muted-foreground hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                 >
                                     <X size={10} />
                                 </button>
@@ -160,20 +160,20 @@ export default function AssetsPanel({ project }) {
                         <div className="max-w-[80vw] max-h-[80vh] relative" onClick={e => e.stopPropagation()}>
                             <button
                                 onClick={() => setPreviewAsset(null)}
-                                className="absolute -top-10 right-0 text-zinc-400 hover:text-white transition-colors"
+                                className="absolute -top-10 right-0 text-muted-foreground hover:text-white transition-colors"
                             >
                                 <X size={20} />
                             </button>
                             {isImage(previewAsset.type) ? (
                                 <img src={previewAsset.dataUrl} alt={previewAsset.name} className="max-w-full max-h-[80vh] rounded-xl" />
                             ) : (
-                                <div className="bg-zinc-900 border border-white/10 rounded-xl p-8 text-center">
-                                    <FileIcon size={48} className="text-zinc-500 mx-auto mb-4" />
+                                <div className="bg-card border border-border rounded-xl p-8 text-center">
+                                    <FileIcon size={48} className="text-muted-foreground mx-auto mb-4" />
                                     <p className="text-white text-sm">{previewAsset.name}</p>
-                                    <p className="text-zinc-500 text-xs mt-1">{previewAsset.type}</p>
+                                    <p className="text-muted-foreground text-xs mt-1">{previewAsset.type}</p>
                                 </div>
                             )}
-                            <div className="text-center mt-3 text-zinc-500 text-xs">{previewAsset.name}</div>
+                            <div className="text-center mt-3 text-muted-foreground text-xs">{previewAsset.name}</div>
                         </div>
                     </div>
                 </>

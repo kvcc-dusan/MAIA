@@ -50,16 +50,16 @@ export default function ActivitySummary({ project }) {
 
     const trendConfig = {
         increasing: { label: '↑', color: 'text-[#10b981]' },
-        stable: { label: '→', color: 'text-zinc-600' },
+        stable: { label: '→', color: 'text-subtle-foreground' },
         declining: { label: '↓', color: 'text-red-400' },
     };
 
     const { color: trendColor } = trendConfig[stats.trend];
 
     return (
-        <div className="flex items-center gap-4 text-fluid-3xs font-mono text-zinc-600">
+        <div className="flex items-center gap-4 text-xs font-mono text-subtle-foreground">
             <span className="flex items-center gap-1">
-                <Zap size={10} className="text-zinc-700" />
+                <Zap size={10} className="text-faint-foreground" />
                 {stats.lastActionLabel}
             </span>
             <span>{stats.last7d} / 7d</span>

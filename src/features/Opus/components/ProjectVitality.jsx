@@ -39,7 +39,7 @@ export function useProjectVitality(project) {
         // State: COLD (Default / Start)
         // If no activity ever, it's Cold (User request: "When I create project it is called cold")
         if (timestamps.length === 0) {
-            return { status: 'Cold', color: 'text-zinc-500', bg: 'bg-zinc-500' };
+            return { status: 'Cold', color: 'text-muted-foreground', bg: 'bg-muted-foreground' };
         }
 
         const lastActive = Math.max(...timestamps);
@@ -47,12 +47,12 @@ export function useProjectVitality(project) {
 
         // State: DORMANT (> 30 days inactivity)
         if (diffDays > 30) {
-            return { status: 'Dormant', color: 'text-zinc-700', bg: 'bg-zinc-700' };
+            return { status: 'Dormant', color: 'text-faint-foreground', bg: 'bg-faint-foreground' };
         }
 
         // State: COLD (> 10 days inactivity)
         if (diffDays > 10) {
-            return { status: 'Cold', color: 'text-zinc-500', bg: 'bg-zinc-500' };
+            return { status: 'Cold', color: 'text-muted-foreground', bg: 'bg-muted-foreground' };
         }
 
         // State: HIGH TEMPO (Active > 3 days)
@@ -79,14 +79,14 @@ export default function ProjectVitality({ project }) {
     const { status, color, bg, animate } = useProjectVitality(project);
 
     return (
-        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-xs">
+        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-overlay-subtle border border-border-subtle backdrop-blur-xs">
             <span className={cn(
                 "w-2 h-2 rounded-full",
                 bg,
                 animate && "animate-pulse shadow-[0_0_8px_currentColor]"
             )} />
             <span className={cn(
-                "text-fluid-3xs font-bold uppercase tracking-wider",
+                "text-xs font-bold uppercase tracking-wider",
                 color
             )}>
                 {status}

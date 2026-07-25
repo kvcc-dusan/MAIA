@@ -345,14 +345,14 @@ export default function ChronosModal({
       <div
         className={cn(
           "w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
-          "border border-white/10 bg-black/80 backdrop-blur-xl",
+          "border border-border bg-black/80 backdrop-blur-xl",
           "grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
         )}
         style={{ '--right-width': `${rightWidth}px` }}
         onClick={(e) => e.stopPropagation()}
       >
 
-        <div className="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r">
+        <div className="h-full flex flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
           <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
             <h2 className="text-2xl font-sans font-semibold text-white tracking-tight">Chronos</h2>
             <CloseButton onClick={onClose} aria-label="Close Modal" />
@@ -361,8 +361,8 @@ export default function ChronosModal({
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
-                <h3 className="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]">Tasks</h3>
-                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                <h3 className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">Tasks</h3>
+                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
               </div>
@@ -371,7 +371,7 @@ export default function ChronosModal({
                 {(() => {
                   const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
                   if (list.length === 0) {
-                    return <div className="py-8 text-center text-sm text-zinc-600 italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
+                    return <div className="py-8 text-center text-sm text-subtle-foreground italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
                   }
                   return list.map(t => (
                     <TaskRow
@@ -390,14 +390,14 @@ export default function ChronosModal({
 
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
-                <h3 className="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]">Signals</h3>
-                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                <h3 className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">Signals</h3>
+                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
               </div>
 
               <div className="space-y-2">
-                {upcomingSignals.length === 0 && <div className="py-2 text-sm text-zinc-600 italic">No active signals.</div>}
+                {upcomingSignals.length === 0 && <div className="py-2 text-sm text-subtle-foreground italic">No active signals.</div>}
                 {upcomingSignals.map(s => (
                   <SignalRow
                     key={s.id}
@@ -411,7 +411,7 @@ export default function ChronosModal({
           </div>
         </div>
 
-        <div className="h-full bg-black/20 flex flex-col lg:border-l border-white/5 relative overflow-hidden">
+        <div className="h-full bg-black/20 flex flex-col lg:border-l border-border-subtle relative overflow-hidden">
           <div className="h-full flex flex-col">
 
             {rightView === 'calendar' && (
@@ -421,10 +421,10 @@ export default function ChronosModal({
                     {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                   </span>
                   <div className="flex gap-1">
-                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       <ChevronRight size={16} className="rotate-180" />
                     </button>
-                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       <ChevronRight size={16} />
                     </button>
                   </div>
@@ -432,7 +432,7 @@ export default function ChronosModal({
 
                 <div className="px-4 pb-4 flex-none">
                   <div className="grid grid-cols-7 mb-2">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-fluid-3xs font-bold text-zinc-600 py-1">{d}</div>)}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-xs font-bold text-subtle-foreground py-1">{d}</div>)}
                   </div>
                   <div className="grid grid-cols-7 gap-y-0.5">
                     {gridCells.map((d, i) => {
@@ -448,8 +448,8 @@ export default function ChronosModal({
                               onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}
                               className={cn(
                                 "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white",
-                                isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-zinc-600 hover:bg-white/5 hover:text-zinc-500" : "text-zinc-400 hover:bg-white/5 hover:text-white",
-                                isToday && !isSel ? "bg-white/10 text-white border border-white/10" : ""
+                                isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground" : "text-muted-foreground hover:bg-overlay-subtle hover:text-white",
+                                isToday && !isSel ? "bg-overlay text-white border border-border" : ""
                               )}
                             >
                               <span className="text-xs">{d.getDate()}</span>
@@ -461,9 +461,9 @@ export default function ChronosModal({
                   </div>
                 </div>
 
-                <div className="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden">
-                  <div className="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10">
-                    <span className="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]">
+                <div className="flex-1 border-t border-border-subtle flex flex-col min-h-0 bg-black/20 overflow-hidden">
+                  <div className="p-4 px-6 border-b border-border-subtle flex-none flex items-center justify-between bg-black/10 z-10">
+                    <span className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">
                       Sessions
                     </span>
                   </div>
@@ -486,11 +486,11 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {taskDraft.id ? "Edit Task" : "New Task"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -516,12 +516,12 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Add details..." value={taskDraft.description} onChange={e => setTaskDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {taskDraft.id ? "Save Changes" : "Create Task"}
                     </button>
                   </div>
@@ -536,11 +536,11 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {signalDraft.id ? "Edit Signal" : "New Signal"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -552,11 +552,11 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1 block">Time</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">Time</label>
                     <div className="grid grid-cols-[96px_1fr] gap-3 items-start">
-                      <div className="grid grid-cols-2 gap-[3px] bg-white/5 rounded-xl p-[3px] border border-white/10 min-h-[46px]">
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>In</button>
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-zinc-500 hover:text-white")}>At</button>
+                      <div className="grid grid-cols-2 gap-[3px] bg-overlay-subtle rounded-xl p-[3px] border border-border min-h-[46px]">
+                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>In</button>
+                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>At</button>
                       </div>
 
                       {signalDraft.mode === 'in' ? (
@@ -583,12 +583,12 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Signal details..." value={signalDraft.description} onChange={e => setSignalDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {signalDraft.id ? "Save Changes" : "Create Signal"}
                     </button>
                   </div>
@@ -603,11 +603,11 @@ export default function ChronosModal({
                     <h2 className="text-xl font-semibold text-white">
                       {sessionDraft.id ? "Edit Session" : "New Session"}
                     </h2>
-                    <button onClick={closeForm} className="text-zinc-400 hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
+                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -631,7 +631,7 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Project</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Project</label>
                     <PillSelect
                       value={sessionDraft.linkedProjectId}
                       options={projects.map(p => ({ value: p.id, label: p.name }))}
@@ -642,12 +642,12 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-fluid-3xs font-mono text-zinc-500 uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-zinc-200 transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
+                    <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                       {sessionDraft.id ? "Save Changes" : "Create Session"}
                     </button>
                   </div>

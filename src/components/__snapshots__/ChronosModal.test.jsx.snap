@@ -6,11 +6,11 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
     class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
   >
     <div
-      class="w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-white/10 bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
+      class="w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-border bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
       style="--right-width: 420px;"
     >
       <div
-        class="h-full flex flex-col overflow-hidden border-b border-white/5 lg:border-b-0 lg:border-r"
+        class="h-full flex flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r"
       >
         <div
           class="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10"
@@ -22,7 +22,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
           </h2>
           <button
             aria-label="Close Modal"
-            class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20"
+            class="w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:bg-overlay hover:text-foreground-secondary transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-overlay-strong"
           >
             <svg
               class=""
@@ -55,13 +55,13 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2 pt-0"
             >
               <h3
-                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
+                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Tasks
               </h3>
               <button
                 aria-label="Add Task"
-                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
                 <svg
                   class=""
@@ -88,7 +88,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="space-y-2"
             >
               <div
-                class="py-8 text-center text-sm text-zinc-600 italic"
+                class="py-8 text-center text-sm text-subtle-foreground italic"
               >
                 No tasks for this day.
               </div>
@@ -101,13 +101,13 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2"
             >
               <h3
-                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
+                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Signals
               </h3>
               <button
                 aria-label="Add Signal"
-                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 text-zinc-500 hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+                class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
                 <svg
                   class=""
@@ -141,7 +141,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   aria-controls="radix-«r0»"
                   aria-expanded="false"
                   aria-haspopup="dialog"
-                  class="group flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer"
+                  class="group flex items-center gap-3 p-3 rounded-xl bg-overlay-subtle border border-border-subtle hover:bg-overlay hover:border-border transition-all cursor-pointer"
                   data-state="closed"
                   type="button"
                 >
@@ -157,19 +157,19 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                     class="flex-1 min-w-0"
                   >
                     <div
-                      class="text-sm text-zinc-200 truncate font-mono"
+                      class="text-sm text-foreground truncate font-mono"
                     >
                       Signal 1
                     </div>
                     <div
-                      class="text-fluid-3xs text-zinc-500 font-mono mt-0.5"
+                      class="text-xs text-muted-foreground font-mono mt-0.5"
                     >
                       02:00 PM
                     </div>
                   </div>
                   <button
                     aria-label="Delete Signal"
-                    class="w-6 h-6 rounded flex items-center justify-center text-zinc-500 hover:bg-white/10 hover:text-zinc-300 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20 opacity-0 group-hover:opacity-100"
+                    class="w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:bg-overlay hover:text-foreground-secondary transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-overlay-strong opacity-0 group-hover:opacity-100"
                   >
                     <svg
                       class=""
@@ -198,7 +198,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
         </div>
       </div>
       <div
-        class="h-full bg-black/20 flex flex-col lg:border-l border-white/5 relative overflow-hidden"
+        class="h-full bg-black/20 flex flex-col lg:border-l border-border-subtle relative overflow-hidden"
       >
         <div
           class="h-full flex flex-col"
@@ -215,7 +215,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex gap-1"
             >
               <button
-                class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+                class="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
                 <svg
                   class="rotate-180"
@@ -235,7 +235,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 </svg>
               </button>
               <button
-                class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
+                class="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
               >
                 <svg
                   class=""
@@ -263,37 +263,37 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="grid grid-cols-7 mb-2"
             >
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 M
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 T
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 W
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 T
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 F
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 S
               </div>
               <div
-                class="text-center text-fluid-3xs font-bold text-zinc-600 py-1"
+                class="text-center text-xs font-bold text-subtle-foreground py-1"
               >
                 S
               </div>
@@ -314,7 +314,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
                 >
                   <span
                     class="text-xs"
@@ -327,7 +327,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
                 >
                   <span
                     class="text-xs"
@@ -340,7 +340,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
                 >
                   <span
                     class="text-xs"
@@ -353,7 +353,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
                 >
                   <span
                     class="text-xs"
@@ -366,7 +366,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-600 hover:bg-white/5 hover:text-zinc-500"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
                 >
                   <span
                     class="text-xs"
@@ -392,7 +392,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -405,7 +405,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -418,7 +418,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -431,7 +431,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -444,7 +444,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -457,7 +457,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -470,7 +470,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -483,7 +483,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -496,7 +496,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -509,7 +509,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -522,7 +522,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -535,7 +535,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -548,7 +548,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -561,7 +561,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -574,7 +574,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -587,7 +587,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -600,7 +600,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -613,7 +613,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -626,7 +626,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -639,7 +639,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -652,7 +652,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -665,7 +665,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -678,7 +678,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                 class="h-8"
               >
                 <button
-                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-zinc-400 hover:bg-white/5 hover:text-white"
+                  class="w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white text-muted-foreground hover:bg-overlay-subtle hover:text-white"
                 >
                   <span
                     class="text-xs"
@@ -720,13 +720,13 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
             </div>
           </div>
           <div
-            class="flex-1 border-t border-white/5 flex flex-col min-h-0 bg-black/20 overflow-hidden"
+            class="flex-1 border-t border-border-subtle flex flex-col min-h-0 bg-black/20 overflow-hidden"
           >
             <div
-              class="p-4 px-6 border-b border-white/5 flex-none flex items-center justify-between bg-black/10 z-10"
+              class="p-4 px-6 border-b border-border-subtle flex-none flex items-center justify-between bg-black/10 z-10"
             >
               <span
-                class="text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em]"
+                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Sessions
               </span>
@@ -742,22 +742,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-0"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     12:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -765,22 +765,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-1"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     01:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -788,22 +788,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-2"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     02:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -811,22 +811,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-3"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     03:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -834,22 +834,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-4"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     04:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -857,22 +857,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-5"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     05:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -880,22 +880,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-6"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     06:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -903,22 +903,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-7"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     07:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -926,22 +926,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-8"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     08:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -949,22 +949,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-9"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     09:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -972,22 +972,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-10"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     10:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -995,22 +995,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-11"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     11:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -1018,22 +1018,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-12"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     12:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
                   />
                 </div>
                 <div
@@ -1041,22 +1041,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-13"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     01:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1064,22 +1064,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-14"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     02:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1087,22 +1087,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-15"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     03:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1110,22 +1110,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-16"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     04:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1133,22 +1133,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-17"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     05:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1156,22 +1156,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-18"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     06:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1179,22 +1179,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-19"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     07:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1202,22 +1202,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-20"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     08:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1225,22 +1225,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-21"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     09:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1248,22 +1248,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-22"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     10:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
@@ -1271,22 +1271,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-23"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     11:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-white/5"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-white/5 cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
                   />
                 </div>
               </div>

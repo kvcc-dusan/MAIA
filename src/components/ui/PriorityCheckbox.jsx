@@ -9,10 +9,10 @@ export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
     <button
       onClick={(e) => { e.stopPropagation(); onChange && onChange(); }}
       className={cn(
-        "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/20 relative group",
+        "w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all focus:outline-hidden focus-visible:ring-2 focus-visible:ring-overlay-strong relative group",
         checked
-          ? "bg-white/20 text-white"
-          : "bg-transparent hover:bg-white/5"
+          ? "bg-overlay-strong text-white"
+          : "bg-transparent hover:bg-overlay-subtle"
       )}
       {...props}
     >
@@ -38,7 +38,7 @@ export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
 
       {/* Hover Hint (Empty circle ring on hover when not checked) */}
       {!checked && (
-        <span className="absolute inset-0 rounded-full border border-white/0 group-hover:border-white/20 transition-colors" />
+        <span className="absolute inset-0 rounded-full border border-white/0 group-hover:border-border-strong transition-colors" />
       )}
     </button>
   )

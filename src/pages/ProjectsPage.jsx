@@ -146,7 +146,7 @@ export default function Projects({
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-zinc-200">
+    <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-foreground">
 
       {/* Mobile sidebar backdrop */}
       {mobileOpen && (
@@ -158,19 +158,19 @@ export default function Projects({
 
         {/* SIDEBAR: Project List — hidden on mobile, overlay when mobileOpen */}
         <div
-          className={`flex-none h-full border-r border-white/10 bg-black flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
+          className={`flex-none h-full border-r border-border bg-black flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
             ${mobileOpen ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'hidden md:flex'}`}
           style={{ width: mobileOpen ? 280 : effectiveWidth }}
         >
           {/* Header */}
           {/* Header */}
-          <div className={`flex-none p-6 border-b border-white/5 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className={`flex-none p-6 border-b border-border-subtle flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             <div className={`flex items-center overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <span className="text-fluid-2xs uppercase tracking-widest text-zinc-500 font-bold">Opus</span>
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Opus</span>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center transition-colors shrink-0 text-zinc-500 hover:text-white outline-hidden"
+              className="flex items-center justify-center transition-colors shrink-0 text-muted-foreground hover:text-white outline-hidden"
             >
               <PlusSignSquare size={20} />
             </button>
@@ -179,7 +179,7 @@ export default function Projects({
           {/* List */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
             {activeList.length === 0 && effectiveWidth > 120 && (
-              <div className="p-4 text-center text-xs text-zinc-600 italic">No active projects.</div>
+              <div className="p-4 text-center text-xs text-subtle-foreground italic">No active projects.</div>
             )}
 
             {activeList.map(p => (
@@ -189,13 +189,13 @@ export default function Projects({
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
                   ? isCollapsed
                     ? "bg-transparent border-transparent shadow-none"
-                    : "bg-white/5 border-white/10 text-white shadow-lg"
-                  : "border-transparent text-zinc-500 hover:text-zinc-300 " + (isCollapsed ? "" : "hover:bg-white/5")
+                    : "bg-overlay-subtle border-border text-white shadow-lg"
+                  : "border-transparent text-muted-foreground hover:text-foreground-secondary " + (isCollapsed ? "" : "hover:bg-overlay-subtle")
                   } ${effectiveWidth < 120 ? 'justify-center' : ''}`}
                 onClick={() => { setActiveId(p.id); closeMobile(); }}
                 title={effectiveWidth < 120 ? p.name : ''}
               >
-                <span className={`shrink-0 ${p.id === activeId ? "text-white" : "text-zinc-600"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
+                <span className={`shrink-0 ${p.id === activeId ? "text-white" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
                   <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
                 </span>
                 {effectiveWidth >= 120 && (
@@ -207,7 +207,7 @@ export default function Projects({
                       onBlur={commitRename}
                       onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-white/6 border border-white/10 rounded-lg px-2 py-0.5 text-sm text-white outline-hidden font-mono min-w-0"
+                      className="flex-1 bg-white/6 border border-border rounded-lg px-2 py-0.5 text-sm text-white outline-hidden font-mono min-w-0"
                     />
                   ) : (
                     <span className="font-medium truncate text-sm flex-1">{p.name}</span>
@@ -217,13 +217,13 @@ export default function Projects({
             ))}
 
             {otherList.length > 0 && effectiveWidth > 120 && (
-              <div className="pt-4 mt-4 border-t border-white/5">
-                <div className="px-3 mb-2 text-fluid-3xs text-zinc-600 uppercase tracking-widest font-bold">Archived</div>
+              <div className="pt-4 mt-4 border-t border-border-subtle">
+                <div className="px-3 mb-2 text-xs text-subtle-foreground uppercase tracking-widest font-bold">Archived</div>
                 {otherList.map(p => (
                   <button
                     key={p.id}
                     onClick={() => setActiveId(p.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-white/5 text-white" : "text-zinc-600 hover:bg-white/5"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-overlay-subtle text-white" : "text-subtle-foreground hover:bg-overlay-subtle"
                       }`}
                   >
                     <span className="text-sm grayscale">
@@ -239,8 +239,8 @@ export default function Projects({
           {/* Collapse Toggle */}
           {/* Mobile Sidebar Settings (Only visible on mobile when a project is active) */}
           {mobileOpen && activeProject && (
-            <div className="flex-none border-t border-white/5 p-4 flex flex-col gap-2 bg-black/50">
-              <div className="text-fluid-3xs text-zinc-500 uppercase tracking-widest font-bold mb-2">
+            <div className="flex-none border-t border-border-subtle p-4 flex flex-col gap-2 bg-black/50">
+              <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-2">
                 Manage {activeProject.name}
               </div>
               {['Active', 'Paused', 'Done'].map(status => (
@@ -250,13 +250,13 @@ export default function Projects({
                     setProjects(prev => prev.map(p => p.id === activeId ? { ...p, status } : p));
                     closeMobile();
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-white/10 text-white" : "border border-transparent text-zinc-400 hover:text-white hover:bg-white/5"
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-overlay text-white" : "border border-transparent text-muted-foreground hover:text-white hover:bg-overlay-subtle"
                     }`}
                 >
                   Set to {status === 'Done' ? 'Archived' : status}
                 </button>
               ))}
-              <div className="h-px bg-white/5 my-1" />
+              <div className="h-px bg-overlay-subtle my-1" />
               <button
                 onClick={() => {
                   deleteProject(activeId);
@@ -270,10 +270,10 @@ export default function Projects({
           )}
 
           {/* Collapse Toggle */}
-          <div className={`hidden md:flex flex-none border-t border-white/5 p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
+          <div className={`hidden md:flex flex-none border-t border-border-subtle p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
             <button
               onClick={toggleCollapse}
-              className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors outline-hidden"
+              className="flex items-center justify-center text-muted-foreground hover:text-white transition-colors outline-hidden"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? (
@@ -289,16 +289,16 @@ export default function Projects({
         {/* MAIN CONTENT: Opus Layout */}
         <div className="flex-1 h-full overflow-hidden">
           {/* Mobile sidebar toggle — inside the content area, not a fixed overlay */}
-          <div className="md:hidden flex items-center gap-3 px-4 pt-4 pb-2 border-b border-white/5">
+          <div className="md:hidden flex items-center gap-3 px-4 pt-4 pb-2 border-b border-border-subtle">
             <button
               onClick={() => setMobileOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-overlay-subtle border border-border text-muted-foreground hover:text-white hover:bg-overlay transition-colors"
               aria-label="Open project list"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             {activeProject && (
-              <span className="text-xs text-zinc-400 font-mono uppercase tracking-widest truncate">{activeProject.name}</span>
+              <span className="text-xs text-muted-foreground font-mono uppercase tracking-widest truncate">{activeProject.name}</span>
             )}
           </div>
           <div className="h-full overflow-y-auto custom-scrollbar">
@@ -310,11 +310,11 @@ export default function Projects({
                 onDeleteProject={deleteProject}
               />
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-zinc-600 animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+              <div className="h-full flex flex-col items-center justify-center text-subtle-foreground animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-24 h-24 rounded-full bg-overlay-subtle flex items-center justify-center mb-6">
                   <Briefcase08 size={40} className="opacity-50" />
                 </div>
-                <p className="text-lg font-light text-zinc-500">Select an Opus.</p>
+                <p className="text-lg font-light text-muted-foreground">Select an Opus.</p>
               </div>
             )}
           </div>
@@ -333,7 +333,7 @@ export default function Projects({
         <>
           <div className="fixed inset-0 z-9998" onClick={closeCtx} onContextMenu={e => { e.preventDefault(); closeCtx(); }} />
           <div
-            className="fixed z-9999 w-44 bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-9999 w-44 bg-[#09090b] border border-border rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
             style={{ left: ctxMenu.x, top: ctxMenu.y }}
           >
             {(() => {
@@ -376,7 +376,7 @@ export default function Projects({
   );
 }
 
-function CtxItem({ onClick, icon, children, className = "text-zinc-300 hover:bg-white/8 hover:text-white" }) {
+function CtxItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-white/8 hover:text-white" }) {
   return (
     <button
       onClick={onClick}

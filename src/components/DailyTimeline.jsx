@@ -23,8 +23,8 @@ const GridSlot = memo(({
       className="flex min-h-[40px] group select-none"
     >
       <div className={cn(
-        "w-16 sm:w-20 lg:w-24 border-r border-white/5 text-fluid-3xs text-zinc-600 font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
-        isHourStart ? "" : "border-b border-white/5"
+        "w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors",
+        isHourStart ? "" : "border-b border-border-subtle"
       )}>
         {isHourStart && label}
       </div>
@@ -32,7 +32,7 @@ const GridSlot = memo(({
       <div
         className={cn(
           "flex-1 relative transition-colors",
-          isHourStart ? "border-b border-dashed border-white/5" : "border-b border-white/5",
+          isHourStart ? "border-b border-dashed border-border-subtle" : "border-b border-border-subtle",
           isPast ? "opacity-30 cursor-not-allowed bg-zinc-900/20" :
             isOccupied ? "opacity-50 cursor-not-allowed" :
               "cursor-pointer hover:bg-white/2"
@@ -91,7 +91,7 @@ const SessionItem = memo(({
   return (
     <div
       className={cn(
-        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-white/6 backdrop-blur-xs border border-white/10 px-3 overflow-hidden hover:bg-white/12 hover:border-white/20 transition-all z-10 select-none group",
+        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-white/6 backdrop-blur-xs border border-border px-3 overflow-hidden hover:bg-white/12 hover:border-border-strong transition-all z-10 select-none group",
         isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
         isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
       )}
@@ -114,18 +114,18 @@ const SessionItem = memo(({
         {session.title}
       </div>
       {!isShort && session.description && (
-        <div className="text-fluid-3xs text-zinc-500 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
+        <div className="text-xs text-muted-foreground line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
           {session.description}
         </div>
       )}
       <div className={cn(
-        "text-fluid-3xs text-zinc-500 font-mono tracking-tight pointer-events-none",
+        "text-xs text-muted-foreground font-mono tracking-tight pointer-events-none",
         isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
         {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
       </div>
       <div
-        className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-white/10 cursor-s-resize flex justify-center items-end"
+        className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"
         onMouseDown={(e) => onMouseDownResize(e, session)}
       />
     </div>
@@ -371,7 +371,7 @@ function DailyTimeline({
 
   if (!selectedDate) {
     return (
-      <div className="h-full flex items-center justify-center text-zinc-700 text-sm italic">
+      <div className="h-full flex items-center justify-center text-faint-foreground text-sm italic">
         Select a date to view timeline
       </div>
     );
@@ -460,7 +460,7 @@ function DailyTimeline({
           return (
             <div
               className={cn(
-                "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-zinc-800/80 border border-white/20 px-3 py-2 text-xs text-zinc-200 overflow-hidden shadow-sm z-20 select-none",
+                "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-zinc-800/80 border border-border-strong px-3 py-2 text-xs text-foreground overflow-hidden shadow-sm z-20 select-none",
                 isBeingDragged ? "opacity-50" : "cursor-move"
               )}
               style={{ top: `${top}px`, height: `${height - 1}px` }}
@@ -471,11 +471,11 @@ function DailyTimeline({
               }}
             >
               <div className="font-medium truncate italic text-white/70">New Session</div>
-              <div className="text-fluid-3xs text-zinc-500 truncate">
+              <div className="text-xs text-muted-foreground truncate">
                 {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
               </div>
               <div
-                className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-white/10 cursor-s-resize flex justify-center items-end"
+                className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"
                 onMouseDown={(e) => handleSessionMouseDown(e, draftObj, 'resize')}
               />
             </div>
@@ -494,7 +494,7 @@ function DailyTimeline({
 
           return (
             <div
-              className="absolute left-16 sm:left-20 lg:left-24 right-2 sm:right-4 rounded-md bg-white/10 border border-white/20 z-20 pointer-events-none"
+              className="absolute left-16 sm:left-20 lg:left-24 right-2 sm:right-4 rounded-md bg-overlay border border-border-strong z-20 pointer-events-none"
               style={{ top: `${top}px`, height: `${height - 1}px` }}
             />
           )
@@ -507,15 +507,15 @@ function DailyTimeline({
           <Portal>
             <div className="fixed inset-0 z-9998" onClick={() => setContextMenu(null)} />
             <div
-              className="fixed bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl p-1 w-48 z-9999 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+              className="fixed bg-[#09090b] border border-border rounded-2xl shadow-2xl p-1 w-48 z-9999 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onClick={e => e.stopPropagation()}
             >
-              <div className="px-3 py-2 text-fluid-3xs font-bold font-mono text-zinc-500 uppercase tracking-[0.15em] border-b border-white/5 mb-1">
+              <div className="px-3 py-2 text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em] border-b border-border-subtle mb-1">
                 Session
               </div>
               <button
-                className="w-full text-left px-3 py-2 text-xs font-mono text-zinc-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors flex items-center gap-2"
+                className="w-full text-left px-3 py-2 text-xs font-mono text-foreground-secondary hover:bg-overlay hover:text-white rounded-xl transition-colors flex items-center gap-2"
                 onClick={() => {
                   const s = contextMenu.session;
                   openForm({

@@ -51,15 +51,15 @@ export default function QuickCaptureWidget({
 
     return (
         <GlassErrorBoundary>
-            <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+            <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-border bg-zinc-900/40 shadow-lg backdrop-blur-xl">
 
                 {/* HEADER */}
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
-                    <CardTitle className="text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground">
+                    <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                         Quick Capture
                     </CardTitle>
                     {todayEntries.length > 0 && (
-                        <span className="text-fluid-3xs font-mono text-muted-foreground">
+                        <span className="text-xs font-mono text-muted-foreground">
                             {todayEntries.length} today
                         </span>
                     )}
@@ -72,17 +72,17 @@ export default function QuickCaptureWidget({
                         onChange={(e) => setCaptureContent(e.target.value)}
                         placeholder="What's on your mind…"
                         rows={2}
-                        className="w-full resize-none bg-transparent font-mono text-sm text-zinc-200 placeholder:text-muted-foreground/50 outline-hidden leading-relaxed"
+                        className="w-full resize-none bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/50 outline-hidden leading-relaxed"
                     />
                 </CardContent>
 
                 {/* FOOTER: Entries + Capture */}
-                <CardFooter className="relative z-20 flex items-center justify-between border-t border-white/5 bg-muted/20 px-5 py-3">
+                <CardFooter className="relative z-20 flex items-center justify-between border-t border-border-subtle bg-muted/20 px-5 py-3">
                     {/* View Entries — text only, no icon */}
                     <button
                         ref={btnRef}
                         onClick={() => setShowEntries((v) => !v)}
-                        className="text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+                        className="text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
                     >
                         Entries
                     </button>
@@ -91,7 +91,7 @@ export default function QuickCaptureWidget({
                     <button
                         onClick={handleCapture}
                         disabled={!captureContent?.trim()}
-                        className="flex items-center gap-2 text-fluid-3xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <span>Capture</span>
                         <ChevronRight size={14} className="shrink-0" />
@@ -104,7 +104,7 @@ export default function QuickCaptureWidget({
             {showEntries && createPortal(
                 <div
                     ref={popoverRef}
-                    className="fixed w-64 max-h-48 overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-black/95 backdrop-blur-xl shadow-2xl p-4 z-9999"
+                    className="fixed w-64 max-h-48 overflow-y-auto custom-scrollbar rounded-2xl border border-border bg-black/95 backdrop-blur-xl shadow-2xl p-4 z-9999"
                     style={{
                         top: popoverPos.top,
                         left: popoverPos.left,
@@ -112,7 +112,7 @@ export default function QuickCaptureWidget({
                     }}
                 >
                     {todayEntries.length === 0 ? (
-                        <div className="text-fluid-3xs text-muted-foreground font-mono italic text-center py-2">
+                        <div className="text-xs text-muted-foreground font-mono italic text-center py-2">
                             No entries yet today.
                         </div>
                     ) : (
@@ -124,12 +124,12 @@ export default function QuickCaptureWidget({
                                         onOpenNote?.(entry.id);
                                         setShowEntries(false);
                                     }}
-                                    className="w-full text-left pl-3 border-l border-white/10 hover:border-white/30 transition-colors"
+                                    className="w-full text-left pl-3 border-l border-border hover:border-white/30 transition-colors"
                                 >
-                                    <div className="text-fluid-3xs text-muted-foreground font-mono uppercase tracking-wider">
+                                    <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
                                         {new Date(entry.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </div>
-                                    <div className="text-xs text-zinc-400 font-mono leading-snug line-clamp-1 hover:text-zinc-200 transition-colors">
+                                    <div className="text-xs text-muted-foreground font-mono leading-snug line-clamp-1 hover:text-foreground transition-colors">
                                         {entry.title}
                                     </div>
                                 </button>

@@ -56,10 +56,24 @@
      more of each. These interpolate the preset scale, they don't fork it. */
   --background-subtle: oklch(0.178 0 0);
   --elevated: oklch(0.32 0 0);
+  --glass: oklch(0.205 0 0);
+
+  /* Text ramp. The preset ships two steps (foreground, muted-foreground);
+     MAIA's density genuinely uses five, and the counts bear that out —
+     zinc-300 appeared 54 times and zinc-700 37 times. Values are the exact
+     ones those utilities already resolved to, so adopting them is a no-op. */
+  --foreground-secondary: oklch(0.87 0 0);
   --subtle-foreground: oklch(0.556 0 0);
+  --faint-foreground: oklch(0.45 0 0);
+
+  /* Lines and translucent overlays. White is oklch(1 0 0), so these are
+     bit-identical to the bg-white/N and border-white/N they replace —
+     they just collapse 42 ad-hoc opacities down to three named steps. */
   --border-subtle: oklch(1 0 0 / 5%);
   --border-strong: oklch(1 0 0 / 20%);
-  --glass: oklch(0.205 0 0);
+  --overlay-subtle: oklch(1 0 0 / 5%);
+  --overlay: oklch(1 0 0 / 10%);
+  --overlay-strong: oklch(1 0 0 / 20%);
 
   /* --- status ------------------------------------------------------------
      MAIA's five semantic accents. These are deliberately NOT `--accent`: in
@@ -156,10 +170,17 @@
   /* --- MAIA extensions --------------------------------------------------- */
   --color-background-subtle: var(--background-subtle);
   --color-elevated: var(--elevated);
+  --color-glass: var(--glass);
+
+  --color-foreground-secondary: var(--foreground-secondary);
   --color-subtle-foreground: var(--subtle-foreground);
+  --color-faint-foreground: var(--faint-foreground);
+
   --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
-  --color-glass: var(--glass);
+  --color-overlay-subtle: var(--overlay-subtle);
+  --color-overlay: var(--overlay);
+  --color-overlay-strong: var(--overlay-strong);
 
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);

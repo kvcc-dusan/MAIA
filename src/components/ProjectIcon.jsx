@@ -438,17 +438,17 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
             onClick={onClose}
         >
             <div className="w-full max-w-[380px] px-4" onClick={e => e.stopPropagation()}>
-                <div className="bg-[#09090b] border border-white/10 shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="bg-[#09090b] border border-border shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                        <span className="text-fluid-3xs uppercase tracking-[0.15em] text-zinc-500 font-bold font-mono">
+                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
                             Select Icon
                         </span>
                         <button
                             aria-label="Close"
                             onClick={onClose}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:bg-white/6 hover:text-zinc-300 transition-colors"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-white/6 hover:text-foreground-secondary transition-colors"
                         >
                             <CancelSquare size={14} className="shrink-0" />
                         </button>
@@ -494,7 +494,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                             })}
                         </div>
 
-                        <div className="h-px bg-white/5" />
+                        <div className="h-px bg-overlay-subtle" />
 
                         {/* Icon grid — 6 cols */}
                         <div className="grid grid-cols-6 gap-1.5">
@@ -527,7 +527,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                         {/* Apply */}
                         <button
                             onClick={handleConfirm}
-                            className="w-full py-2.5 rounded-xl border border-white/10 bg-white/6 text-white text-fluid-3xs uppercase tracking-[0.15em] font-bold font-mono hover:bg-white/10 transition-colors"
+                            className="w-full py-2.5 rounded-xl border border-border bg-white/6 text-white text-xs uppercase tracking-[0.15em] font-bold font-mono hover:bg-overlay transition-colors"
                         >
                             Apply
                         </button>

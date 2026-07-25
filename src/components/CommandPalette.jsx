@@ -67,21 +67,21 @@ export default function CommandPalette({
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity" onMouseDown={onClose}>
       <div
 
-        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-white/10 bg-black/80 backdrop-blur-xl"
+        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-border bg-black/80 backdrop-blur-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4 border-b border-border-subtle">
           <input
             ref={inputRef}
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Type a command or search notes..."
-            className="w-full bg-transparent px-4 py-3 text-sm font-sans text-white placeholder:text-zinc-500 focus:outline-hidden focus:ring-0 font-medium"
+            className="w-full bg-transparent px-4 py-3 text-sm font-sans text-white placeholder:text-muted-foreground focus:outline-hidden focus:ring-0 font-medium"
           />
         </div>
         <div className="max-h-[min(360px,calc(100dvh-200px))] overflow-auto p-2 space-y-1 custom-scrollbar">
           {items.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-zinc-600">No matching commands or notes.</div>
+            <div className="px-4 py-8 text-center text-sm text-subtle-foreground">No matching commands or notes.</div>
           )}
           {items.map((it, idx) => (
             <button
@@ -90,23 +90,23 @@ export default function CommandPalette({
               onClick={() => it.run()}
               className={cn(
                 "w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center justify-between group outline-hidden",
-                i === idx ? "bg-white/10 text-white shadow-sm" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                i === idx ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground"
               )}
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-fluid-3xs font-mono font-bold transition-colors shrink-0",
-                  i === idx ? "bg-white text-black" : "bg-white/5 text-zinc-500 group-hover:bg-white/10 group-hover:text-zinc-300"
+                  "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono font-bold transition-colors shrink-0",
+                  i === idx ? "bg-white text-black" : "bg-overlay-subtle text-muted-foreground group-hover:bg-overlay group-hover:text-foreground-secondary"
                 )}>
                   {it._type === 'action' ? 'CMD' : 'DOC'}
                 </div>
                 <span>{it.label}</span>
               </div>
-              {it._type === 'note' && <span className="text-fluid-3xs font-mono opacity-40 uppercase tracking-[0.15em] font-medium">Note</span>}
+              {it._type === 'note' && <span className="text-xs font-mono opacity-40 uppercase tracking-[0.15em] font-medium">Note</span>}
             </button>
           ))}
         </div>
-        <div className="px-4 py-3 border-t border-white/5 bg-black/40 text-fluid-3xs font-mono text-zinc-600 flex justify-between uppercase tracking-[0.15em] font-bold">
+        <div className="px-4 py-3 border-t border-border-subtle bg-black/40 text-xs font-mono text-subtle-foreground flex justify-between uppercase tracking-[0.15em] font-bold">
           <span>Search, Navigate, Act</span>
           <span>ESC to close</span>
         </div>

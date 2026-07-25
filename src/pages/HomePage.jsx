@@ -98,7 +98,7 @@ export default function TodayPage({
   }, [captureContent, createNote]);
 
   return (
-    <div className="relative flex flex-col h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-black font-sans text-white selection:bg-white/20">
+    <div className="relative flex flex-col h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-black font-sans text-white selection:bg-overlay-strong">
 
       {/* Near-black background with a faint vignette */}
       <div className="home-bg absolute inset-0 pointer-events-none z-0" />
@@ -110,7 +110,7 @@ export default function TodayPage({
           {/* Greeting */}
           <div className="home-greeting-block text-center">
             <h1 className="home-greeting font-sans font-medium tracking-tight">
-              <span className="text-zinc-500">{greeting}</span>{" "}
+              <span className="text-muted-foreground">{greeting}</span>{" "}
               <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
             <p className="home-quote font-sans italic text-white/45">

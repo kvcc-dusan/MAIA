@@ -33,7 +33,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
 
   if (!note) {
     return (
-      <div className="h-full grid place-items-center text-zinc-500 font-mono">
+      <div className="h-full grid place-items-center text-muted-foreground font-mono">
         <div className="flex flex-col items-center gap-2">
           <ProjectIcon name="quill" size={32} className="opacity-20" />
           <span className="text-xs">Select a note to begin.</span>
@@ -56,24 +56,24 @@ export default function Editor({ note, updateNote, projects = [] }) {
       <div className={`w-full h-full flex flex-col min-h-0 z-10 transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
 
         {/* Clean Dark Panel */}
-        <div className="flex flex-col w-full h-full relative overflow-hidden bg-black/90 border border-white/10 rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col w-full h-full relative overflow-hidden bg-black/90 border border-border rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
 
           {/* Header */}
-          <div className="flex-none px-6 py-5 border-b border-white/5 flex items-start gap-4 z-20">
+          <div className="flex-none px-6 py-5 border-b border-border-subtle flex items-start gap-4 z-20">
             <div className="flex-1 flex flex-col gap-1.5">
               <input
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
                 placeholder="Untitled Note"
-                className="bg-transparent outline-hidden font-sans font-semibold text-white placeholder:text-zinc-600"
+                className="bg-transparent outline-hidden font-sans font-semibold text-white placeholder:text-subtle-foreground"
                 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
               />
-              <div className="flex items-center gap-3 text-fluid-3xs text-zinc-500 font-mono uppercase tracking-widest">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono uppercase tracking-widest">
                 <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 {local.project && (
                   <>
-                    <span className="text-zinc-700">•</span>
-                    <span className="text-zinc-400">@{local.project}</span>
+                    <span className="text-faint-foreground">•</span>
+                    <span className="text-muted-foreground">@{local.project}</span>
                   </>
                 )}
               </div>
@@ -84,7 +84,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
               {/* Width Toggle */}
               <button
                 onClick={toggleWide}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-white hover:bg-overlay hover:border-border-strong transition-all"
                 title={wide ? "Narrow View" : "Wide View"}
               >
                 {wide ? <CollapseIcon size={16} /> : <ExpandIcon size={16} />}
@@ -93,7 +93,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
               {/* Mode Toggle */}
               <button
                 onClick={toggleMode}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-white hover:bg-overlay hover:border-border-strong transition-all"
                 title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
               >
                 {editable ? <ReadIcon size={16} /> : <WriteIcon size={16} />}
@@ -149,19 +149,19 @@ export default function Editor({ note, updateNote, projects = [] }) {
           className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
           style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
         >
-          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full text-fluid-3xs text-zinc-500 font-mono shadow-2xl pointer-events-auto">
-            <div className="flex items-center gap-3 pr-3 border-r border-white/10">
+          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground font-mono shadow-2xl pointer-events-auto">
+            <div className="flex items-center gap-3 pr-3 border-r border-border">
               <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
-              <span className="text-zinc-700">•</span>
+              <span className="text-faint-foreground">•</span>
               <span>{(local?.charCount ?? 0).toLocaleString()} chars</span>
             </div>
             <div className="flex items-center gap-2">
               {(local.tags && local.tags.length > 0) ? (
                 local.tags.map(t => (
-                  <span key={t} className="text-zinc-400">#{t}</span>
+                  <span key={t} className="text-muted-foreground">#{t}</span>
                 ))
               ) : (
-                <span className="text-zinc-700 italic">No tags</span>
+                <span className="text-faint-foreground italic">No tags</span>
               )}
             </div>
           </div>
