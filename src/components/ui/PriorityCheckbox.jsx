@@ -38,7 +38,7 @@ export function PriorityCheckbox({ checked, onChange, priority, ...props }) {
 
       {/* Hover Hint (Empty circle ring on hover when not checked) */}
       {!checked && (
-        <span className="absolute inset-0 rounded-full border border-white/0 group-hover:border-border-strong transition-colors" />
+        <span className="absolute inset-0 rounded-full border border-transparent group-hover:border-border-strong transition-colors" />
       )}
     </button>
   )

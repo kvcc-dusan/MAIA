@@ -85,25 +85,25 @@ export default function ExecutionPanel({ project }) {
     };
 
     return (
-        <div className="rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+        <div className="rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
 
             {/* ── Header ── */}
             <div className="flex items-center gap-2 px-5 py-4 border-b border-border-subtle">
                 <Target size={12} className="text-subtle-foreground" />
-                <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
+                <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
                     Execution
                 </h3>
             </div>
 
             {/* ── Next Move zone ── */}
-            <div className="px-5 pt-5 pb-4 border-b border-white/6">
+            <div className="px-5 pt-5 pb-4 border-b border-border">
                 {nowTask ? (
                     <div
                         className="cursor-default select-none group/now"
                         onContextMenu={e => openContextMenu(e, nowTask.id)}
                     >
                         {/* Caption */}
-                        <div className="text-[9px] uppercase tracking-[0.22em] text-subtle-foreground font-bold font-mono mb-2.5">
+                        <div className="text-xs uppercase tracking-[0.22em] text-subtle-foreground font-bold mb-2.5">
                             Next Move
                         </div>
                         {/* Title row — title left-aligned, circle on right */}
@@ -124,7 +124,7 @@ export default function ExecutionPanel({ project }) {
                     (today.length > 0 || soon.length > 0 || future.length > 0) && (
                         <div className="flex items-center gap-2.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
-                            <span className="text-xs font-mono text-faint-foreground italic">
+                            <span className="text-xs text-faint-foreground italic">
                                 Right-click a task → Set as Next Move
                             </span>
                         </div>
@@ -138,7 +138,7 @@ export default function ExecutionPanel({ project }) {
                         value={newTaskTitle}
                         onChange={e => setNewTaskTitle(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                        className="flex-1 bg-transparent outline-hidden text-sm text-subtle-foreground placeholder:text-faint-foreground hover:text-foreground-secondary focus:text-white transition-colors font-mono"
+                        className="flex-1 bg-transparent outline-hidden text-sm text-subtle-foreground placeholder:text-faint-foreground hover:text-foreground-secondary focus:text-white transition-colors"
                         placeholder="Add task..."
                     />
                 </div>
@@ -257,7 +257,7 @@ export default function ExecutionPanel({ project }) {
 
                                     {!task.done && (
                                         <>
-                                            <div className="h-px bg-white/6 my-1" />
+                                            <div className="h-px bg-overlay my-1" />
                                             {sched !== 'today' && (
                                                 <MenuItem onClick={() => handleContextAction('sched-today', task.id)} icon={<Calendar size={11} />}>
                                                     Move to Today
@@ -278,7 +278,7 @@ export default function ExecutionPanel({ project }) {
 
                                     {!task.done && (
                                         <>
-                                            <div className="h-px bg-white/6 my-1" />
+                                            <div className="h-px bg-overlay my-1" />
                                             {task.status !== 'blocked'
                                                 ? <MenuItem onClick={() => handleContextAction('block', task.id)} icon={<Ban size={11} />}>Mark Blocked</MenuItem>
                                                 : <MenuItem onClick={() => handleContextAction('unblock', task.id)} icon={<Circle size={11} />}>Unblock</MenuItem>
@@ -286,7 +286,7 @@ export default function ExecutionPanel({ project }) {
                                         </>
                                     )}
 
-                                    <div className="h-px bg-white/6 my-1" />
+                                    <div className="h-px bg-overlay my-1" />
                                     <MenuItem
                                         onClick={() => handleContextAction('delete', task.id)}
                                         className="text-red-400 hover:bg-red-500/10"
@@ -306,11 +306,11 @@ export default function ExecutionPanel({ project }) {
 }
 
 /* ── Menu item ── */
-function MenuItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-white/8 hover:text-white" }) {
+function MenuItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-overlay hover:text-white" }) {
     return (
         <button
             onClick={onClick}
-            className={cn("w-full text-left px-3 py-2 rounded-xl text-xs font-mono flex items-center gap-2.5 transition-colors", className)}
+            className={cn("w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2.5 transition-colors", className)}
         >
             <span className="opacity-60">{icon}</span>
             {children}
@@ -324,17 +324,17 @@ function Group({ label, count, isOpen, onToggle, labelClass = "text-subtle-foreg
         <div>
             <button
                 onClick={onToggle}
-                className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-white/3 rounded-lg transition-colors group/grp"
+                className="flex items-center gap-1.5 w-full py-1.5 px-2 text-left hover:bg-overlay-subtle rounded-lg transition-colors group/grp"
             >
                 {isOpen
                     ? <ChevronDown size={11} className="text-faint-foreground group-hover/grp:text-muted-foreground transition-colors" />
                     : <ChevronRight size={11} className="text-faint-foreground group-hover/grp:text-muted-foreground transition-colors" />
                 }
-                <span className={cn("text-xs uppercase tracking-[0.15em] font-bold font-mono", labelClass)}>
+                <span className={cn("text-xs uppercase tracking-[0.15em] font-bold", labelClass)}>
                     {label}
                 </span>
                 {count > 0 && (
-                    <span className="text-xs text-faint-foreground font-mono ml-0.5">{count}</span>
+                    <span className="text-xs text-faint-foreground ml-0.5">{count}</span>
                 )}
             </button>
 
@@ -354,7 +354,7 @@ function TaskRow({ task, onToggle, onContextMenu, variant }) {
 
     return (
         <div
-            className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/4 transition-colors cursor-default select-none"
+            className="group flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-overlay-subtle transition-colors cursor-default select-none"
             onContextMenu={onContextMenu}
         >
             <button
@@ -371,7 +371,7 @@ function TaskRow({ task, onToggle, onContextMenu, variant }) {
             </button>
 
             <span className={cn(
-                "flex-1 min-w-0 text-sm truncate font-mono transition-colors",
+                "flex-1 min-w-0 text-sm truncate transition-colors",
                 isDone    ? "text-faint-foreground line-through"
                 : isBlocked ? "text-muted-foreground"
                 : "text-muted-foreground group-hover:text-foreground"
@@ -380,7 +380,7 @@ function TaskRow({ task, onToggle, onContextMenu, variant }) {
             </span>
 
             {task.due && !isDone && (
-                <span className="text-[10px] text-subtle-foreground font-mono shrink-0">
+                <span className="text-xs text-subtle-foreground shrink-0">
                     {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </span>
             )}

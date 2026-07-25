@@ -52,8 +52,8 @@ export function PillSelect({ value, options, onChange, placeholder, icon: Icon }
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
         className={cn(
-          "w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl border transition-all text-sm font-mono min-h-[46px]",
-          hasValue ? "bg-overlay-subtle border-white/25 text-white hover:border-white/30" : "bg-overlay-subtle border-border text-muted-foreground hover:border-border-strong"
+          "w-full flex items-center justify-between gap-2 px-3 py-3 rounded-xl border transition-all text-sm min-h-[46px]",
+          hasValue ? "bg-overlay-subtle border-border-strong text-white hover:border-border-strong" : "bg-overlay-subtle border-border text-muted-foreground hover:border-border-strong"
         )}
       >
         <div className="flex items-center gap-2 overflow-hidden">

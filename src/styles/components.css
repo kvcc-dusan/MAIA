@@ -47,7 +47,7 @@
   .tiptap code,
   .prose pre,
   .prose code {
-    font-family: var(--font-mono);
+    font-family: var(--);
   }
 
   /* Headings */
@@ -351,7 +351,7 @@
   float: left;
   height: 0;
   width: 100%;
-  font-family: var(--font-mono);
+  font-family: var(--);
   font-size: 0.875rem;
   line-height: inherit;
 }

@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
  * Empty state.
  *
  * There were ~24 of these across the app, every one worded and styled
- * differently — `italic text-zinc-600`, `italic text-zinc-700`, and
- * `uppercase tracking-widest opacity-50` all coexisted for the same idea.
+ * differently — two different italic greys and an uppercase tracked-out
+ * variant all coexisted for the same idea.
  *
  * `size="inline"` is for the small in-panel cases (a widget with no items);
  * `size="page"` is for a whole empty route.

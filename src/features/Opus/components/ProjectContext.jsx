@@ -42,7 +42,7 @@ export default function ProjectContext({ project, updateProject }) {
 
     return (
         <div className={cn(
-            "rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
+            "rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300",
             isExpanded ? "" : "hover:border-border-strong"
         )}>
             {/* Header — always visible */}
@@ -59,7 +59,7 @@ export default function ProjectContext({ project, updateProject }) {
                 <div className="flex items-center gap-4">
                     {/* Compact metadata when collapsed */}
                     {!isExpanded && (
-                        <div className="flex items-center gap-4 text-xs text-faint-foreground font-mono">
+                        <div className="flex items-center gap-4 text-xs text-faint-foreground">
                             {project.description && (
                                 <span className="max-w-[200px] truncate text-subtle-foreground">{project.description}</span>
                             )}
@@ -81,7 +81,7 @@ export default function ProjectContext({ project, updateProject }) {
                         <textarea
                             value={project.description}
                             onChange={e => updateProject(project.id, { description: e.target.value })}
-                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-secondary placeholder:italic text-white/90"
+                            className="w-full min-h-[80px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-secondary placeholder:italic text-foreground/90"
                             placeholder="Define the core objective and desired outcome..."
                         />
                     </div>
@@ -130,7 +130,7 @@ export default function ProjectContext({ project, updateProject }) {
                             <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Calendar size={10} /> Created
                             </div>
-                            <div className="text-sm text-muted-foreground font-mono">
+                            <div className="text-sm text-muted-foreground">
                                 {project.createdAt ? new Date(project.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                             </div>
                         </div>
@@ -138,7 +138,7 @@ export default function ProjectContext({ project, updateProject }) {
                             <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Hash size={10} /> Tasks
                             </div>
-                            <div className="text-sm text-muted-foreground font-mono">
+                            <div className="text-sm text-muted-foreground">
                                 {completedTasks}/{totalTasks}
                             </div>
                         </div>
@@ -146,7 +146,7 @@ export default function ProjectContext({ project, updateProject }) {
                             <div className="text-xs text-faint-foreground uppercase tracking-wider font-bold mb-1 flex items-center gap-1">
                                 <Layers size={10} /> Sessions
                             </div>
-                            <div className="text-sm text-muted-foreground font-mono">
+                            <div className="text-sm text-muted-foreground">
                                 {totalSessions}
                             </div>
                         </div>

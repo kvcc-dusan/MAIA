@@ -6,7 +6,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
     class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
   >
     <div
-      class="w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-border bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
+      class="w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-3xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300 border border-border bg-black/80 backdrop-blur-xl grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
       style="--right-width: 420px;"
     >
       <div
@@ -55,7 +55,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2 pt-0"
             >
               <h3
-                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
+                class="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Tasks
               </h3>
@@ -101,7 +101,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="flex items-center justify-between group py-2"
             >
               <h3
-                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
+                class="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Signals
               </h3>
@@ -157,12 +157,12 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                     class="flex-1 min-w-0"
                   >
                     <div
-                      class="text-sm text-foreground truncate font-mono"
+                      class="text-sm text-foreground truncate"
                     >
                       Signal 1
                     </div>
                     <div
-                      class="text-xs text-muted-foreground font-mono mt-0.5"
+                      class="text-xs text-muted-foreground mt-0.5"
                     >
                       02:00 PM
                     </div>
@@ -726,7 +726,7 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
               class="p-4 px-6 border-b border-border-subtle flex-none flex items-center justify-between bg-black/10 z-10"
             >
               <span
-                class="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]"
+                class="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]"
               >
                 Sessions
               </span>
@@ -742,22 +742,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-0"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     12:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -765,22 +765,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-1"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     01:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -788,22 +788,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-2"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     02:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -811,22 +811,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-3"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     03:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -834,22 +834,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-4"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     04:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -857,22 +857,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-5"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     05:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -880,22 +880,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-6"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     06:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -903,22 +903,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-7"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     07:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -926,22 +926,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-8"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     08:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -949,22 +949,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-9"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     09:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -972,22 +972,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-10"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     10:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -995,22 +995,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-11"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     11:00 AM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -1018,22 +1018,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-12"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     12:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-zinc-900/20"
+                    class="flex-1 relative transition-colors border-b border-border-subtle opacity-30 cursor-not-allowed bg-card/20"
                   />
                 </div>
                 <div
@@ -1041,22 +1041,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-13"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     01:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1064,22 +1064,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-14"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     02:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1087,22 +1087,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-15"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     03:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1110,22 +1110,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-16"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     04:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1133,22 +1133,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-17"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     05:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1156,22 +1156,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-18"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     06:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1179,22 +1179,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-19"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     07:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1202,22 +1202,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-20"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     08:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1225,22 +1225,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-21"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     09:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1248,22 +1248,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-22"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     10:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
@@ -1271,22 +1271,22 @@ exports[`ChronosModal > renders correctly (snapshot) 1`] = `
                   id="timeline-hour-23"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors"
+                    class="w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors"
                   >
                     11:00 PM
                   </div>
                   <div
-                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-dashed border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
                 <div
                   class="flex min-h-[40px] group select-none"
                 >
                   <div
-                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground font-mono flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
+                    class="w-16 sm:w-20 lg:w-24 border-r text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors border-b border-border-subtle"
                   />
                   <div
-                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-white/2"
+                    class="flex-1 relative transition-colors border-b border-border-subtle cursor-pointer hover:bg-overlay-subtle"
                   />
                 </div>
               </div>

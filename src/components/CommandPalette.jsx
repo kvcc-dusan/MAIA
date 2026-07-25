@@ -67,7 +67,7 @@ export default function CommandPalette({
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity" onMouseDown={onClose}>
       <div
 
-        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-[24px] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-border bg-black/80 backdrop-blur-xl"
+        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-border bg-black/80 backdrop-blur-xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-border-subtle">
@@ -95,18 +95,18 @@ export default function CommandPalette({
             >
               <div className="flex items-center gap-3">
                 <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono font-bold transition-colors shrink-0",
+                  "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors shrink-0",
                   i === idx ? "bg-white text-black" : "bg-overlay-subtle text-muted-foreground group-hover:bg-overlay group-hover:text-foreground-secondary"
                 )}>
                   {it._type === 'action' ? 'CMD' : 'DOC'}
                 </div>
                 <span>{it.label}</span>
               </div>
-              {it._type === 'note' && <span className="text-xs font-mono opacity-40 uppercase tracking-[0.15em] font-medium">Note</span>}
+              {it._type === 'note' && <span className="text-xs opacity-40 uppercase tracking-[0.15em] font-medium">Note</span>}
             </button>
           ))}
         </div>
-        <div className="px-4 py-3 border-t border-border-subtle bg-black/40 text-xs font-mono text-subtle-foreground flex justify-between uppercase tracking-[0.15em] font-bold">
+        <div className="px-4 py-3 border-t border-border-subtle bg-black/40 text-xs text-subtle-foreground flex justify-between uppercase tracking-[0.15em] font-bold">
           <span>Search, Navigate, Act</span>
           <span>ESC to close</span>
         </div>

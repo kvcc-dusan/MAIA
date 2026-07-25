@@ -288,7 +288,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       {/* Hover Info Card */}
       {hoveredNode && (
         <div
-          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl font-mono"
+          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl"
           style={{ top: 80, right: 24 }}
         >
           <div className="text-white font-medium text-xs leading-tight">{hoveredNode.title}</div>

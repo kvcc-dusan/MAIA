@@ -146,7 +146,7 @@ export default function Projects({
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <div className="h-full w-full flex relative overflow-hidden bg-black font-mono text-foreground">
+    <div className="h-full w-full flex relative overflow-hidden bg-black text-foreground">
 
       {/* Mobile sidebar backdrop */}
       {mobileOpen && (
@@ -207,7 +207,7 @@ export default function Projects({
                       onBlur={commitRename}
                       onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-white/6 border border-border rounded-lg px-2 py-0.5 text-sm text-white outline-hidden font-mono min-w-0"
+                      className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-white outline-hidden min-w-0"
                     />
                   ) : (
                     <span className="font-medium truncate text-sm flex-1">{p.name}</span>
@@ -298,7 +298,7 @@ export default function Projects({
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             {activeProject && (
-              <span className="text-xs text-muted-foreground font-mono uppercase tracking-widest truncate">{activeProject.name}</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-widest truncate">{activeProject.name}</span>
             )}
           </div>
           <div className="h-full overflow-y-auto custom-scrollbar">
@@ -343,7 +343,7 @@ export default function Projects({
                 <>
                   <CtxItem onClick={() => startRename(p)} icon={<Pen01 size={14} />}>Rename</CtxItem>
                   <CtxItem onClick={() => { setIconPickerId(p.id); closeCtx(); }} icon={<Setting06 size={14} />}>Edit Icon</CtxItem>
-                  <div className="h-px bg-white/6 my-1" />
+                  <div className="h-px bg-overlay my-1" />
                   <CtxItem
                     onClick={() => { deleteProject(p.id); closeCtx(); }}
                     className="text-red-400 hover:bg-red-500/10"
@@ -376,13 +376,13 @@ export default function Projects({
   );
 }
 
-function CtxItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-white/8 hover:text-white" }) {
+function CtxItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-overlay hover:text-white" }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono flex items-center gap-2.5 transition-colors ${className}`}
+      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2.5 transition-colors ${className}`}
     >
-      <span className="text-[11px] opacity-70">{icon}</span>
+      <span className="text-xs opacity-70">{icon}</span>
       {children}
     </button>
   );

@@ -57,7 +57,7 @@ export default function ActivitySummary({ project }) {
     const { color: trendColor } = trendConfig[stats.trend];
 
     return (
-        <div className="flex items-center gap-4 text-xs font-mono text-subtle-foreground">
+        <div className="flex items-center gap-4 text-xs text-subtle-foreground">
             <span className="flex items-center gap-1">
                 <Zap size={10} className="text-faint-foreground" />
                 {stats.lastActionLabel}

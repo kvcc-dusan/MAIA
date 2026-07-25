@@ -56,15 +56,15 @@ export default function AssetsPanel({ project }) {
     const isImage = (type) => type && type.startsWith('image/');
 
     return (
-        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
+        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
                 <div className="flex items-center gap-2">
                     <Folder size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
+                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
                         Assets
                     </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full font-mono">
+                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
                         {assets.length}
                     </span>
                 </div>
@@ -101,7 +101,7 @@ export default function AssetsPanel({ project }) {
                 {assets.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-2 text-faint-foreground">
                         <Upload size={18} className="opacity-40" />
-                        <p className="text-xs font-mono italic">Drop files or click to browse</p>
+                        <p className="text-xs italic">Drop files or click to browse</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-3 gap-2 p-1">
@@ -132,7 +132,7 @@ export default function AssetsPanel({ project }) {
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-overlay-subtle p-2">
                                         <FileIcon size={20} className="text-subtle-foreground mb-1" />
-                                        <span className="text-[8px] text-muted-foreground truncate w-full text-center">{asset.name}</span>
+                                        <span className="text-xs text-muted-foreground truncate w-full text-center">{asset.name}</span>
                                         {asset.type === 'application/pdf' && (
                                             <ExternalLink size={10} className="text-subtle-foreground mt-1" />
                                         )}

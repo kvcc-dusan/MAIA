@@ -250,7 +250,7 @@ export default function EditorRich({
     >
       <EditorContent
         editor={editor}
-        className="tiptap maia-editor outline-hidden min-h-full text-foreground leading-relaxed w-full font-mono text-sm"
+        className="tiptap maia-editor outline-hidden min-h-full text-foreground leading-relaxed w-full text-sm"
       />
     </div>
   );

@@ -36,11 +36,11 @@ export function JudgmentOverview({ ledger }) {
             {/* Header & Filters */}
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div>
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono flex items-center gap-2">
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                         Judgment Overview
                     </h2>
-                    <p className="text-xs text-muted-foreground font-mono mt-1 uppercase tracking-wider">
+                    <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
                         Cognitive Feedback Loop • {totalDecisions} Decisions • {reviewRate}% Reviewed
                     </p>
                 </div>
@@ -53,7 +53,7 @@ export function JudgmentOverview({ ledger }) {
                                 key={t.id}
                                 onClick={() => setTimeRange(t.id)}
                                 className={cn(
-                                    "px-3 py-1 text-xs font-bold font-mono uppercase rounded-md transition-all",
+                                    "px-3 py-1 text-xs font-bold uppercase rounded-md transition-all",
                                     timeRange === t.id ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
                                 )}
                             >
@@ -66,7 +66,7 @@ export function JudgmentOverview({ ledger }) {
                     <button
                         onClick={() => setStakesFilter(prev => prev === 'all' ? 'high' : 'all')}
                         className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold font-mono uppercase transition-all",
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all",
                             stakesFilter === 'high'
                                 ? "bg-red-500/10 border-red-500/20 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
                                 : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground-secondary"
@@ -83,7 +83,7 @@ export function JudgmentOverview({ ledger }) {
                 <div className="lg:col-span-2 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Confidence Calibration</h3>
-                        <span className="text-xs text-subtle-foreground font-mono">EXP VS ACT</span>
+                        <span className="text-xs text-subtle-foreground">EXP VS ACT</span>
                     </div>
                     <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/20 pointer-events-none" />
                     <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
@@ -95,7 +95,7 @@ export function JudgmentOverview({ ledger }) {
                 <div className="lg:col-span-2 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Decision Velocity</h3>
-                        <span className="text-xs text-subtle-foreground font-mono">WEEKLY VOLUME</span>
+                        <span className="text-xs text-subtle-foreground">WEEKLY VOLUME</span>
                     </div>
                     <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
                         <VelocityChart data={filteredData} />
@@ -106,7 +106,7 @@ export function JudgmentOverview({ ledger }) {
                 <div className="md:col-span-2 lg:col-span-1 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-4 z-10 relative">
                         <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Outcome Scorecard</h3>
-                        <span className="text-xs text-subtle-foreground font-mono">REVIEWED ONLY</span>
+                        <span className="text-xs text-subtle-foreground">REVIEWED ONLY</span>
                     </div>
                     <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
                         <OutcomeDistribution data={filteredData} />

@@ -26,7 +26,7 @@ export default function FocusWidget({
 
   return (
     <GlassErrorBoundary>
-      <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-border bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+      <Card className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl">
 
         {/* HEADER */}
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -40,7 +40,7 @@ export default function FocusWidget({
 
           {/* ── TASKS ── */}
           {todayTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-4 text-center font-mono text-xs italic uppercase tracking-widest text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-4 text-center text-xs italic uppercase tracking-widest text-muted-foreground">
               No focus tasks.
             </div>
           ) : (
@@ -49,7 +49,7 @@ export default function FocusWidget({
                 <FocusTaskItem key={task.id} task={task} onClick={() => onTaskClick?.(task)} />
               ))}
               {todayTasks.length > 4 && (
-                <li className="pt-1 text-xs text-muted-foreground font-mono">
+                <li className="pt-1 text-xs text-muted-foreground">
                   +{todayTasks.length - 4} more
                 </li>
               )}
@@ -63,8 +63,8 @@ export default function FocusWidget({
               <div className="space-y-1.5">
                 {todaySessions.slice(0, 2).map((s) => (
                   <div key={s.id} className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground font-mono truncate max-w-[60%]">{s.title}</span>
-                    <span className="text-xs text-muted-foreground font-mono">
+                    <span className="text-xs text-muted-foreground truncate max-w-[60%]">{s.title}</span>
+                    <span className="text-xs text-muted-foreground">
                       {new Date(s.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       {" – "}
                       {new Date(s.end).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
@@ -72,7 +72,7 @@ export default function FocusWidget({
                   </div>
                 ))}
                 {todaySessions.length > 2 && (
-                  <div className="text-xs text-muted-foreground font-mono">+{todaySessions.length - 2} more</div>
+                  <div className="text-xs text-muted-foreground">+{todaySessions.length - 2} more</div>
                 )}
               </div>
             </div>
@@ -90,10 +90,10 @@ export default function FocusWidget({
                   <div className="space-y-1.5">
                     {signals.velocity.map((v) => (
                       <div key={v.tag} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground font-mono">#{v.tag}</span>
-                        <span className={`text-xs font-mono px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-emerald-500/10 text-emerald-400" :
+                        <span className="text-xs text-muted-foreground">#{v.tag}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-emerald-500/10 text-emerald-400" :
                           v.velocity < 0 ? "bg-red-500/10 text-red-400" :
-                            "bg-zinc-800/50 text-subtle-foreground"
+                            "bg-secondary/50 text-subtle-foreground"
                           }`}>
                           {v.velocity > 0 ? "+" : ""}{v.velocity}
                         </span>
@@ -102,7 +102,7 @@ export default function FocusWidget({
                   </div>
                 </div>
               ) : (
-                <div className="text-xs font-mono text-muted-foreground italic text-center py-2">
+                <div className="text-xs text-muted-foreground italic text-center py-2">
                   No momentum data yet.
                 </div>
               )}
@@ -112,8 +112,8 @@ export default function FocusWidget({
                   <div className="space-y-1.5">
                     {signals.staleness.map((s) => (
                       <div key={s.project.id} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground font-mono truncate">{s.project.name}</span>
-                        <span className="text-red-400/70 text-xs font-mono">{s.lastActivityDays}d idle</span>
+                        <span className="text-xs text-muted-foreground truncate">{s.project.name}</span>
+                        <span className="text-red-400/70 text-xs">{s.lastActivityDays}d idle</span>
                       </div>
                     ))}
                   </div>

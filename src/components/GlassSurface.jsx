@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const GlassSurface = ({ children, className = "", withGlow = false, ...props }) => {
     return (
-        <div className={cn("relative w-full h-full overflow-hidden rounded-[20px]", className)} {...props}>
+        <div className={cn("relative w-full h-full overflow-hidden rounded-xl", className)} {...props}>
             {/* Optional Internal Glow (ColorBends) */}
             {withGlow && (
                 <div className="absolute inset-0 z-0">

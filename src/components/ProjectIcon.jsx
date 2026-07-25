@@ -442,13 +442,13 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
+                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
                             Select Icon
                         </span>
                         <button
                             aria-label="Close"
                             onClick={onClose}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-white/6 hover:text-foreground-secondary transition-colors"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-overlay hover:text-foreground-secondary transition-colors"
                         >
                             <CancelSquare size={14} className="shrink-0" />
                         </button>
@@ -527,7 +527,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                         {/* Apply */}
                         <button
                             onClick={handleConfirm}
-                            className="w-full py-2.5 rounded-xl border border-border bg-white/6 text-white text-xs uppercase tracking-[0.15em] font-bold font-mono hover:bg-overlay transition-colors"
+                            className="w-full py-2.5 rounded-xl border border-border bg-overlay text-white text-xs uppercase tracking-[0.15em] font-bold hover:bg-overlay transition-colors"
                         >
                             Apply
                         </button>

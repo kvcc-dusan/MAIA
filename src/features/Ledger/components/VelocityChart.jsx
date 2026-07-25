@@ -33,7 +33,7 @@ export function VelocityChart({ data }) {
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-faint-foreground text-xs uppercase font-mono tracking-wider">
+            <div className="h-full w-full flex items-center justify-center text-faint-foreground text-xs uppercase tracking-wider">
                 No activity
             </div>
         );

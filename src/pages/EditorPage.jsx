@@ -33,7 +33,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
 
   if (!note) {
     return (
-      <div className="h-full grid place-items-center text-muted-foreground font-mono">
+      <div className="h-full grid place-items-center text-muted-foreground">
         <div className="flex flex-col items-center gap-2">
           <ProjectIcon name="quill" size={32} className="opacity-20" />
           <span className="text-xs">Select a note to begin.</span>
@@ -68,7 +68,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 className="bg-transparent outline-hidden font-sans font-semibold text-white placeholder:text-subtle-foreground"
                 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
               />
-              <div className="flex items-center gap-3 text-xs text-muted-foreground font-mono uppercase tracking-widest">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase tracking-widest">
                 <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 {local.project && (
                   <>
@@ -149,7 +149,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
           className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
           style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
         >
-          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground font-mono shadow-2xl pointer-events-auto">
+          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground shadow-2xl pointer-events-auto">
             <div className="flex items-center gap-3 pr-3 border-r border-border">
               <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
               <span className="text-faint-foreground">•</span>

@@ -199,24 +199,16 @@
      fills) so `white` can be retargeted later without breaking them. */
   --color-pure: #ffffff;
 
-  /* --- MIGRATION COMPAT LAYER -------------------------------------------
-     Remaps the legacy palette onto the new ramp so ~980 existing utility
-     usages adopt it with zero file edits, and the Sprint 4 codemod that
-     renames them is a provable visual no-op.
+  /* The migration compat layer that used to live here is gone — its job is
+     done. It remapped the legacy zinc palette onto the new ramp so ~900
+     existing utilities adopted the theme with no file edits, which is what
+     made the Sprint 4 rename a provable no-op.
 
-     DELETE THIS BLOCK when `npm run lint:tokens` reports zero hits. It is
-     the migration progress bar — while it exists, the rename isn't done. */
-  --color-zinc-50: var(--foreground);
-  --color-zinc-100: var(--foreground);
-  --color-zinc-200: var(--foreground);
-  --color-zinc-300: oklch(0.87 0 0);
-  --color-zinc-400: var(--muted-foreground);
-  --color-zinc-500: var(--muted-foreground);
-  --color-zinc-600: var(--subtle-foreground);
-  --color-zinc-700: oklch(0.45 0 0);
-  --color-zinc-800: var(--secondary);
-  --color-zinc-900: var(--card);
-  --color-zinc-950: var(--background);
+     `initial` unsets the whole namespace rather than merely removing the
+     override. A stray `text-zinc-500` now generates no rule at all and shows
+     up as unstyled text, instead of silently falling back to stock Tailwind
+     zinc and drifting off-theme again. */
+  --color-zinc-*: initial;
 }
 
 /* Non-colour tokens use a plain `@theme` (not `inline`) so Tailwind emits them
@@ -225,8 +217,8 @@
 @theme {
   /* --- type --------------------------------------------------------------
      7 steps. 0.75rem is the floor — nothing in the UI goes below 12px.
-     The two fluid sizes still in use (fluid-3xs x180, fluid-2xs x8) are
-     aliased to that floor, which lifts the old 8px type in one line. */
+     The old 8-10px fluid scale is gone; the Sprint 4 codemod moved its 156
+     call sites onto these steps. */
   --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
   --font-heading: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
@@ -245,16 +237,6 @@
   --text-2xl--line-height: 1.25;
   --text-3xl: 2.25rem;
   --text-3xl--line-height: 1.15;
-
-  --text-fluid-3xs: 0.75rem;
-  --text-fluid-2xs: 0.75rem;
-  --text-fluid-xs: 0.75rem;
-  --text-fluid-sm: 0.875rem;
-  --text-fluid-base: 1rem;
-  --text-fluid-lg: 1.125rem;
-  --text-fluid-xl: 1.375rem;
-  --text-fluid-2xl: 1.75rem;
-  --text-fluid-3xl: 2.25rem;
 
   /* --- radius (preset scale, monotonic) ---------------------------------- */
   --radius-sm: calc(var(--radius) * 0.6);

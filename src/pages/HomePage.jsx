@@ -113,7 +113,7 @@ export default function TodayPage({
               <span className="text-muted-foreground">{greeting}</span>{" "}
               <span className="text-white">{userName || "Dušan"}.</span>
             </h1>
-            <p className="home-quote font-sans italic text-white/45">
+            <p className="home-quote font-sans italic text-foreground/45">
               &ldquo;{quote}&rdquo;
             </p>
           </div>

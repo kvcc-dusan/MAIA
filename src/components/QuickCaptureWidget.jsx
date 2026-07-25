@@ -51,7 +51,7 @@ export default function QuickCaptureWidget({
 
     return (
         <GlassErrorBoundary>
-            <Card className="flex h-full w-full flex-col overflow-hidden rounded-[24px] border border-border bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+            <Card className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl">
 
                 {/* HEADER */}
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
@@ -59,7 +59,7 @@ export default function QuickCaptureWidget({
                         Quick Capture
                     </CardTitle>
                     {todayEntries.length > 0 && (
-                        <span className="text-xs font-mono text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                             {todayEntries.length} today
                         </span>
                     )}
@@ -72,7 +72,7 @@ export default function QuickCaptureWidget({
                         onChange={(e) => setCaptureContent(e.target.value)}
                         placeholder="What's on your mind…"
                         rows={2}
-                        className="w-full resize-none bg-transparent font-mono text-sm text-foreground placeholder:text-muted-foreground/50 outline-hidden leading-relaxed"
+                        className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-hidden leading-relaxed"
                     />
                 </CardContent>
 
@@ -112,7 +112,7 @@ export default function QuickCaptureWidget({
                     }}
                 >
                     {todayEntries.length === 0 ? (
-                        <div className="text-xs text-muted-foreground font-mono italic text-center py-2">
+                        <div className="text-xs text-muted-foreground italic text-center py-2">
                             No entries yet today.
                         </div>
                     ) : (
@@ -124,12 +124,12 @@ export default function QuickCaptureWidget({
                                         onOpenNote?.(entry.id);
                                         setShowEntries(false);
                                     }}
-                                    className="w-full text-left pl-3 border-l border-border hover:border-white/30 transition-colors"
+                                    className="w-full text-left pl-3 border-l border-border hover:border-border-strong transition-colors"
                                 >
-                                    <div className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider">
                                         {new Date(entry.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </div>
-                                    <div className="text-xs text-muted-foreground font-mono leading-snug line-clamp-1 hover:text-foreground transition-colors">
+                                    <div className="text-xs text-muted-foreground leading-snug line-clamp-1 hover:text-foreground transition-colors">
                                         {entry.title}
                                     </div>
                                 </button>

@@ -51,7 +51,7 @@ export default function VaultSetup() {
   if (notesMeta.status === "loading") {
     return (
       <div className="fixed inset-0 z-200 flex items-center justify-center bg-black">
-        <span className="font-mono text-xs uppercase tracking-widest text-white/40 animate-pulse">
+        <span className="text-xs uppercase tracking-widest text-foreground/40 animate-pulse">
           Opening vault…
         </span>
       </div>
@@ -62,12 +62,12 @@ export default function VaultSetup() {
 
   return (
     <div className="fixed inset-0 z-200 flex items-center justify-center bg-black font-sans text-white">
-      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-[24px] border border-border bg-black/80 p-8 backdrop-blur-xl">
+      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-2xl border border-border bg-black/80 p-8 backdrop-blur-xl">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold tracking-tight">
             {isError ? "Vault unavailable" : "Choose your vault"}
           </h2>
-          <p className="text-sm leading-relaxed text-white/60">
+          <p className="text-sm leading-relaxed text-foreground/60">
             {isError
               ? `MAIA couldn't open the vault${getVaultPath() ? ` at "${getVaultPath()}"` : ""}. The folder may have moved or be offline.`
               : "Pick a folder where your notes will live as plain markdown files — readable by Obsidian, synced by iCloud, owned by you."}
@@ -92,7 +92,7 @@ export default function VaultSetup() {
               type="button"
               onClick={() => notesMeta.reload()}
               disabled={isBusy}
-              className="rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:bg-overlay disabled:opacity-50"
+              className="rounded-full border border-border px-5 py-2 text-sm text-foreground/70 transition hover:bg-overlay disabled:opacity-50"
             >
               Retry
             </button>

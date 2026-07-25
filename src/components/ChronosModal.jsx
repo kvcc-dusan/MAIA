@@ -344,7 +344,7 @@ export default function ChronosModal({
 
       <div
         className={cn(
-          "w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-[32px] overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
+          "w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-3xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
           "border border-border bg-black/80 backdrop-blur-xl",
           "grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
         )}
@@ -361,7 +361,7 @@ export default function ChronosModal({
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2 pt-0">
-                <h3 className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">Tasks</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">Tasks</h3>
                 <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
@@ -390,7 +390,7 @@ export default function ChronosModal({
 
             <div className="space-y-4">
               <div className="flex items-center justify-between group py-2">
-                <h3 className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">Signals</h3>
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">Signals</h3>
                 <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                   <PlusSignSquare size={16} />
                 </button>
@@ -463,7 +463,7 @@ export default function ChronosModal({
 
                 <div className="flex-1 border-t border-border-subtle flex flex-col min-h-0 bg-black/20 overflow-hidden">
                   <div className="p-4 px-6 border-b border-border-subtle flex-none flex items-center justify-between bg-black/10 z-10">
-                    <span className="text-xs font-bold font-mono text-muted-foreground uppercase tracking-[0.15em]">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">
                       Sessions
                     </span>
                   </div>
@@ -490,7 +490,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -516,7 +516,7 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Add details..." value={taskDraft.description} onChange={e => setTaskDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 
@@ -540,7 +540,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -552,11 +552,11 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">Time</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">Time</label>
                     <div className="grid grid-cols-[96px_1fr] gap-3 items-start">
                       <div className="grid grid-cols-2 gap-[3px] bg-overlay-subtle rounded-xl p-[3px] border border-border min-h-[46px]">
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>In</button>
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-[17px] text-xs font-mono font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>At</button>
+                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-xl text-xs font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>In</button>
+                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-xl text-xs font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>At</button>
                       </div>
 
                       {signalDraft.mode === 'in' ? (
@@ -583,7 +583,7 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Signal details..." value={signalDraft.description} onChange={e => setSignalDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 
@@ -607,7 +607,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
                     <input
                       autoFocus
                       className={cn(INPUT_CLASS, "w-full p-4")}
@@ -631,7 +631,7 @@ export default function ChronosModal({
                   />
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Project</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Project</label>
                     <PillSelect
                       value={sessionDraft.linkedProjectId}
                       options={projects.map(p => ({ value: p.id, label: p.name }))}
@@ -642,7 +642,7 @@ export default function ChronosModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
                     <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
                   </div>
 

@@ -8,7 +8,7 @@ export default function FocusTaskItem({ task, onClick }) {
   return (
     <li
       onClick={onClick}
-      className="flex items-center gap-3 text-sm text-card-foreground hover:text-white/50 font-mono font-medium cursor-pointer rounded px-2 py-1 transition-colors -mx-2"
+      className="flex items-center gap-3 text-sm text-card-foreground hover:text-foreground/50 font-medium cursor-pointer rounded px-2 py-1 transition-colors -mx-2"
     >
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0 transition-opacity"

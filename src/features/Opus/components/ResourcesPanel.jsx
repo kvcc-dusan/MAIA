@@ -37,15 +37,15 @@ export default function ResourcesPanel({ project, updateProject }) {
     };
 
     return (
-        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
+        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
                 <div className="flex items-center gap-2">
                     <Link2 size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
+                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
                         Uplinks
                     </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full font-mono">
+                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
                         {(project.links || []).length}
                     </span>
                 </div>
@@ -93,7 +93,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                         onKeyDown={e => { if (e.key === 'Enter') addLink(); if (e.key === 'Escape') setIsAdding(false); }}
                         onBlur={addLink}
                         placeholder="https://..."
-                        className="w-full bg-overlay-subtle border border-border rounded-xl text-white text-xs outline-hidden focus:outline-hidden focus:border-white/25 transition-all placeholder:text-subtle-foreground font-mono px-3 py-2.5"
+                        className="w-full bg-overlay-subtle border border-border rounded-xl text-white text-xs outline-hidden focus:outline-hidden focus:border-border-strong transition-all placeholder:text-subtle-foreground px-3 py-2.5"
                     />
                 )}
 

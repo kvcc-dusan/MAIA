@@ -40,7 +40,7 @@ export function CalibrationChart({ data }) {
 
     if (chartData.length === 0) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-faint-foreground font-mono text-xs uppercase tracking-wider">
+            <div className="h-full w-full flex items-center justify-center text-faint-foreground text-xs uppercase tracking-wider">
                 Not enough data
             </div>
         );

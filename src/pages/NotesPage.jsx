@@ -286,7 +286,7 @@ export default function NotesOverview({
 
   return (
     <div
-      className="h-full w-full relative bg-black font-mono text-foreground overflow-y-auto custom-scrollbar"
+      className="h-full w-full relative bg-black text-foreground overflow-y-auto custom-scrollbar"
       onClick={(e) => {
         if (selectMode && e.target === e.currentTarget) {
           exitSelectMode();
@@ -299,8 +299,8 @@ export default function NotesOverview({
         {/* Header: Full Width, Opus Style */}
         <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
-            <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono ml-1">Codex</span>
-            <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground font-mono">
+            <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold ml-1">Codex</span>
+            <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground">
               {viewNotes.length}
             </span>
           </div>
@@ -329,7 +329,7 @@ export default function NotesOverview({
 
             <button
               onClick={() => setSort(s => s === 'recent' ? 'az' : 'recent')}
-              className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground font-mono transition-colors flex items-center gap-2"
+              className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground transition-colors flex items-center gap-2"
             >
               {sort === 'recent' ? 'RECENT' : 'A-Z'}
               <ProjectIcon name="filter" size={14} />
@@ -360,7 +360,7 @@ export default function NotesOverview({
                     className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-emerald-400 group transition-colors"
                   >
                     <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-mono">Seed Data</span>
+                    <span className="text-xs">Seed Data</span>
                   </button>
 
                   {/* Delete All */}
@@ -370,7 +370,7 @@ export default function NotesOverview({
                       className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-red-400 group transition-colors"
                     >
                       <Delete01 size={14} className="group-hover:scale-110 transition-transform" />
-                      <span className="text-xs font-mono">Delete All</span>
+                      <span className="text-xs">Delete All</span>
                     </button>
                   )}
                 </div>
@@ -434,7 +434,7 @@ export default function NotesOverview({
                     group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden
                     min-h-[200px] backdrop-blur-xs
                     ${isSelected
-                    ? "bg-overlay border-white/30 ring-1 ring-overlay-strong"
+                    ? "bg-overlay border-border-strong ring-1 ring-overlay-strong"
                     : "bg-overlay-subtle border-border-subtle hover:bg-overlay hover:border-border"
                   }
                   `}
@@ -456,7 +456,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className="text-[11px] font-mono text-[#71717a] leading-normal line-clamp-6">
+                  <p className="text-xs text-[#71717a] leading-normal line-clamp-6">
                     {previewText}
                   </p>
                 </div>
@@ -465,7 +465,7 @@ export default function NotesOverview({
                 <div className="flex items-center justify-between mt-auto pt-3 z-10">
                   <div className="flex items-center gap-3 overflow-hidden">
                     {/* Date */}
-                    <span className="text-xs font-mono font-medium text-subtle-foreground uppercase tracking-wider shrink-0">
+                    <span className="text-xs font-medium text-subtle-foreground uppercase tracking-wider shrink-0">
                       {dateDisplay}
                     </span>
 
@@ -478,7 +478,7 @@ export default function NotesOverview({
                     {(n.projectIds || []).length > 0 && (() => {
                       const linkedProject = projects.find(p => p.id === n.projectIds[0]);
                       return linkedProject ? (
-                        <span className="text-[10px] font-mono text-[#71717a] bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
+                        <span className="text-xs text-[#71717a] bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
                           {linkedProject.name}
                         </span>
                       ) : null;

@@ -11,8 +11,8 @@ import { useLongPress } from "../hooks/useLongPress";
    ────────────────────────────────────────────────────────── */
 
 const POPOVER_CLASS = "bg-[#09090b] border border-border shadow-2xl rounded-2xl";
-const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-foreground placeholder:text-zinc-700/50 font-mono transition-all resize-none p-0 focus:ring-0";
-const LABEL_CLASS = "text-xs font-bold uppercase tracking-widest text-subtle-foreground font-mono mb-3 block";
+const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-foreground placeholder:text-faint-foreground/50 transition-all resize-none p-0 focus:ring-0";
+const LABEL_CLASS = "text-xs font-bold uppercase tracking-widest text-subtle-foreground mb-3 block";
 
 // Shared color tokens
 const STAKES_DOT = { high: '#f43f5e', medium: '#f59e0b', low: '#6366f1' };
@@ -43,13 +43,13 @@ function ConfirmModal({ message, onConfirm, onCancel, danger = true, confirmLabe
                 className="w-full max-w-sm mx-4 bg-black/95 backdrop-blur-xl border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
-                <p className="text-sm font-mono text-foreground-secondary leading-relaxed mb-6">{message}</p>
+                <p className="text-sm text-foreground-secondary leading-relaxed mb-6">{message}</p>
                 <div className="flex justify-end gap-4">
-                    <button onClick={onCancel} className="text-xs font-mono text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
+                    <button onClick={onCancel} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
                     <button
                         onClick={onConfirm}
                         className={cn(
-                            "text-xs font-bold font-mono uppercase tracking-wider transition-colors",
+                            "text-xs font-bold uppercase tracking-wider transition-colors",
                             danger ? "text-red-400 hover:text-red-300" : "text-emerald-400 hover:text-emerald-300"
                         )}
                     >
@@ -87,10 +87,10 @@ function RenameModal({ initialValue, onConfirm, onCancel }) {
                     className={cn(INPUT_CLEAN, "text-sm border-b border-border pb-2")}
                 />
                 <div className="flex justify-end gap-4 mt-6">
-                    <button onClick={onCancel} className="text-xs font-mono text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
+                    <button onClick={onCancel} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
                     <button
                         onClick={() => value.trim() && onConfirm(value.trim())}
-                        className="text-xs font-bold font-mono uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors"
+                        className="text-xs font-bold uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors"
                     >
                         Rename
                     </button>
@@ -127,11 +127,11 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
+                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2 font-mono">
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2">
                         <Scale size={14} className="text-muted-foreground" />
                         {isEditing ? "Edit Decision" : "Log Decision"}
                     </h2>
@@ -159,7 +159,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                                         type="button"
                                         onClick={() => setDraft({ ...draft, stakes: s })}
                                         className={cn(
-                                            "px-3 py-1.5 rounded-lg text-xs font-bold font-mono uppercase tracking-wider transition-all",
+                                            "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                                             draft.stakes === s
                                                 ? (s === 'high' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : s === 'medium' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' : 'bg-[#6366f1]/10 text-[#6366f1]')
                                                 : 'text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle'
@@ -179,7 +179,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                                         type="button"
                                         onClick={() => setDraft({ ...draft, reversibility: r })}
                                         className={cn(
-                                            "px-3 py-1.5 rounded-lg text-xs font-bold font-mono uppercase tracking-wider transition-all",
+                                            "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                                             draft.reversibility === r
                                                 ? 'bg-overlay text-foreground'
                                                 : 'text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle'
@@ -205,7 +205,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <label className={cn(LABEL_CLASS, "mb-0")}>Confidence</label>
-                            <span className="text-xs font-mono text-muted-foreground tabular-nums">{draft.confidence}%</span>
+                            <span className="text-xs text-muted-foreground tabular-nums">{draft.confidence}%</span>
                         </div>
                         <input
                             type="range"
@@ -217,8 +217,8 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                     </div>
 
                     <div className="flex justify-end gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="text-xs font-mono text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
-                        <button type="submit" className="text-xs font-bold font-mono uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors">
+                        <button type="button" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
+                        <button type="submit" className="text-xs font-bold uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors">
                             {isEditing ? "Save Changes" : "Log Decision"}
                         </button>
                     </div>
@@ -242,28 +242,28 @@ function ReviewModal({ decision, onClose, onReview }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
+                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono">Review Outcome</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white">Review Outcome</h2>
                     <CloseButton onClick={onClose} />
                 </div>
 
                 <div className="px-8 pb-8 space-y-6">
                     {/* Decision Summary */}
                     <div>
-                        <div className="text-xl font-medium text-foreground font-mono mb-3">{decision.title}</div>
+                        <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
                         {/* Confidence prediction — core of calibration */}
                         <div className="flex items-center gap-2 mb-3">
-                            <span className="text-xs text-subtle-foreground font-mono uppercase tracking-widest">You predicted</span>
-                            <span className="text-sm font-bold font-mono text-white">{decision.confidence}%</span>
-                            <span className="text-xs text-subtle-foreground font-mono uppercase tracking-widest">confidence</span>
+                            <span className="text-xs text-subtle-foreground uppercase tracking-widest">You predicted</span>
+                            <span className="text-sm font-bold text-white">{decision.confidence}%</span>
+                            <span className="text-xs text-subtle-foreground uppercase tracking-widest">confidence</span>
                         </div>
                         {decision.assumptions && decision.assumptions.length > 0 && (
                             <div className="space-y-1 pl-3 border-l-2 border-border-subtle">
                                 {decision.assumptions.map((a, i) => (
-                                    <div key={i} className="text-xs font-mono text-muted-foreground leading-relaxed">• {a}</div>
+                                    <div key={i} className="text-xs text-muted-foreground leading-relaxed">• {a}</div>
                                 ))}
                             </div>
                         )}
@@ -288,7 +288,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                                     key={s}
                                     onClick={() => setStatus(s)}
                                     className={cn(
-                                        "px-4 py-2 rounded-lg text-xs font-bold font-mono uppercase tracking-wider transition-all",
+                                        "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                                         status === s
                                             ? (s === 'success' ? 'bg-[#10b981]/10 text-[#10b981]' : s === 'failure' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : 'bg-[#f59e0b]/10 text-[#f59e0b]')
                                             : 'text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle'
@@ -301,10 +301,10 @@ function ReviewModal({ decision, onClose, onReview }) {
                     </div>
 
                     <div className="flex justify-end gap-4 pt-4">
-                        <button type="button" onClick={onClose} className="text-xs font-mono text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
+                        <button type="button" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
                         <button
                             onClick={() => onReview({ outcome, status })}
-                            className="text-xs font-bold font-mono uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors"
+                            className="text-xs font-bold uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors"
                         >
                             Complete Review
                         </button>
@@ -326,27 +326,27 @@ function DecisionDetailModal({ decision, onClose }) {
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
+                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white font-mono">Decision Review</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white">Decision Review</h2>
                     <CloseButton onClick={onClose} />
                 </div>
 
                 <div className="px-8 pb-8 space-y-6">
                     {/* Decision Title & Tags */}
                     <div>
-                        <div className="text-xl font-medium text-foreground font-mono mb-3">{decision.title}</div>
+                        <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold font-mono flex items-center gap-1.5">
+                            <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: STAKES_DOT[decision.stakes] || STAKES_DOT.low }} />
                                 {decision.stakes}
                             </span>
-                            <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold font-mono">
+                            <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
                                 {decision.reversibility}
                             </span>
-                            <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold font-mono">
+                            <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
                                 {decision.confidence}% Conf
                             </span>
                         </div>
@@ -358,7 +358,7 @@ function DecisionDetailModal({ decision, onClose }) {
                             <div className={LABEL_CLASS}>Assumptions</div>
                             <div className="space-y-1.5 pl-3 border-l-2 border-border">
                                 {decision.assumptions.map((a, i) => (
-                                    <div key={i} className="text-xs font-mono text-muted-foreground leading-relaxed">• {a}</div>
+                                    <div key={i} className="text-xs text-muted-foreground leading-relaxed">• {a}</div>
                                 ))}
                             </div>
                         </div>
@@ -368,7 +368,7 @@ function DecisionDetailModal({ decision, onClose }) {
                     {decision.outcome && (
                         <div className="pt-4 border-t border-border-subtle">
                             <div className={LABEL_CLASS}>Actual Outcome</div>
-                            <div className="text-sm text-foreground-secondary font-mono leading-relaxed whitespace-pre-wrap">{decision.outcome}</div>
+                            <div className="text-sm text-foreground-secondary leading-relaxed whitespace-pre-wrap">{decision.outcome}</div>
                         </div>
                     )}
 
@@ -385,7 +385,7 @@ function DecisionDetailModal({ decision, onClose }) {
 
                     {/* Reviewed Date */}
                     {decision.reviewedAt && (
-                        <div className="text-xs text-subtle-foreground font-mono uppercase tracking-wider pt-2">
+                        <div className="text-xs text-subtle-foreground uppercase tracking-wider pt-2">
                             Reviewed {new Date(decision.reviewedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </div>
                     )}
@@ -428,9 +428,9 @@ function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, o
             onTouchMove={longPress.onTouchMove}
             onTouchEnd={longPress.onTouchEnd}
             className={cn(
-                "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden font-mono backdrop-blur-xs",
+                "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden backdrop-blur-xs",
                 isSelected
-                    ? "bg-overlay border-white/30 ring-1 ring-overlay-strong"
+                    ? "bg-overlay border-border-strong ring-1 ring-overlay-strong"
                     : isReviewed
                         ? "h-auto min-h-[200px] bg-overlay-subtle border-border-subtle opacity-70 hover:opacity-100 hover:bg-overlay hover:border-border"
                         : "h-auto min-h-[200px] bg-overlay-subtle border-border-subtle hover:bg-overlay hover:border-border"
@@ -529,8 +529,8 @@ function DecisionCard({ d, onReview, onView, isSelected, selectMode, onToggle, o
 function SectionDivider({ label, count }) {
     return (
         <div className="col-span-full flex items-center gap-3 pt-2 pb-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-subtle-foreground font-mono">{label}</span>
-            <span className="text-xs text-faint-foreground font-mono tabular-nums">{count}</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-subtle-foreground">{label}</span>
+            <span className="text-xs text-faint-foreground tabular-nums">{count}</span>
             <div className="flex-1 h-px bg-overlay-subtle" />
         </div>
     );
@@ -794,7 +794,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
 
     return (
         <div
-            className="h-full w-full relative bg-black font-mono text-foreground overflow-y-auto custom-scrollbar"
+            className="h-full w-full relative bg-black text-foreground overflow-y-auto custom-scrollbar"
             onClick={() => { if (selectMode) exitSelectMode(); }}
         >
             <div className="w-full px-page py-8 flex flex-col gap-8">
@@ -802,8 +802,8 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 {/* Header */}
                 <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-3 flex-wrap">
                     <div className="flex items-center gap-4">
-                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono ml-1">Ledger</span>
-                        <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground font-mono">
+                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold ml-1">Ledger</span>
+                        <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground">
                             {ledger.length}
                         </span>
                     </div>
@@ -820,7 +820,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                         {/* Sort toggle — cycles recent → a-z → stakes */}
                         <button
                             onClick={() => setSort(s => SORT_CYCLE[s])}
-                            className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground font-mono transition-colors flex items-center gap-2"
+                            className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground transition-colors flex items-center gap-2"
                         >
                             {SORT_LABEL[sort]}
                             <Filter size={14} />
@@ -838,7 +838,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             </button>
                             {showSettings && (
                                 <div className={cn(POPOVER_CLASS, "absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden py-1")}>
-                                    <div className="px-4 py-2 text-xs uppercase tracking-widest text-subtle-foreground font-bold border-b border-border-subtle mb-1 font-mono">
+                                    <div className="px-4 py-2 text-xs uppercase tracking-widest text-subtle-foreground font-bold border-b border-border-subtle mb-1">
                                         Actions
                                     </div>
                                     <button
@@ -846,7 +846,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                         className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-[#10b981] group transition-colors"
                                     >
                                         <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
-                                        <span className="text-xs font-mono">Seed Data</span>
+                                        <span className="text-xs">Seed Data</span>
                                     </button>
                                     {ledger.length > 0 && (
                                         <button
@@ -854,7 +854,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                             className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-red-400 group transition-colors border-t border-border-subtle"
                                         >
                                             <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
-                                            <span className="text-xs font-mono">Delete All</span>
+                                            <span className="text-xs">Delete All</span>
                                         </button>
                                     )}
                                 </div>
@@ -889,7 +889,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                 key={f.id}
                                 onClick={() => setFilterStatus(f.id)}
                                 className={cn(
-                                    "px-3 py-1 text-xs font-bold font-mono uppercase tracking-wider rounded-md transition-all",
+                                    "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
                                     filterStatus === f.id ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
                                 )}
                             >
@@ -910,7 +910,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                 key={f.id}
                                 onClick={() => setFilterStakes(f.id)}
                                 className={cn(
-                                    "px-3 py-1 text-xs font-bold font-mono uppercase tracking-wider rounded-md transition-all flex items-center gap-1.5",
+                                    "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md transition-all flex items-center gap-1.5",
                                     filterStakes === f.id ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
                                 )}
                             >
@@ -924,7 +924,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     {isFiltered && (
                         <button
                             onClick={() => { setFilterStatus('all'); setFilterStakes('all'); }}
-                            className="text-xs text-subtle-foreground hover:text-muted-foreground font-mono uppercase tracking-wider transition-colors"
+                            className="text-xs text-subtle-foreground hover:text-muted-foreground uppercase tracking-wider transition-colors"
                         >
                             Clear
                         </button>
@@ -940,14 +940,14 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     {ledger.length === 0 && (
                         <div className="col-span-full py-24 flex flex-col items-center justify-center text-subtle-foreground opacity-50 select-none">
                             <Scale size={40} className="mb-4 opacity-20" />
-                            <p className="text-sm font-light uppercase tracking-widest font-mono">No decisions recorded</p>
+                            <p className="text-sm font-light uppercase tracking-widest">No decisions recorded</p>
                         </div>
                     )}
 
                     {/* Filtered empty state */}
                     {ledger.length > 0 && !hasResults && (
                         <div className="col-span-full py-16 flex flex-col items-center justify-center text-faint-foreground select-none">
-                            <p className="text-xs font-mono uppercase tracking-widest">No decisions match this filter</p>
+                            <p className="text-xs uppercase tracking-widest">No decisions match this filter</p>
                         </div>
                     )}
 

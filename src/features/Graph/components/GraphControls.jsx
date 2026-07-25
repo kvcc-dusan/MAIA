@@ -73,7 +73,7 @@ export default function GraphControls({
 
             {/* Panel Drawer - Floating Right Sidebar (Below Toggle) */}
             <div
-                className={`absolute top-20 right-6 bottom-6 w-80 z-40 bg-black/90 backdrop-blur-xl border border-border rounded-2xl transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform flex flex-col font-mono shadow-2xl ${isPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'
+                className={`absolute top-20 right-6 bottom-6 w-80 z-40 bg-black/90 backdrop-blur-xl border border-border rounded-2xl transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform flex flex-col shadow-2xl ${isPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'
                     }`}
             >
                 {/* Header */}
@@ -105,7 +105,7 @@ export default function GraphControls({
                                     <button key={res.id} onClick={() => handleZoomToNode(res.id)}
                                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-overlay-subtle text-left group transition-colors">
                                         <div className="w-2 h-2 rounded-full ring-1 ring-overlay-strong group-hover:ring-white/50 transition-all" style={{ background: res.color }} />
-                                        <span className="text-xs text-muted-foreground group-hover:text-foreground truncate font-mono">{res.title}</span>
+                                        <span className="text-xs text-muted-foreground group-hover:text-foreground truncate">{res.title}</span>
                                     </button>
                                 ))}
                             </div>
@@ -138,7 +138,7 @@ export default function GraphControls({
 
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Node Size</span>
                                     <span>{nodeSize}x</span>
                                 </div>
@@ -152,7 +152,7 @@ export default function GraphControls({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Link Thickness</span>
                                     <span>{linkThickness}px</span>
                                 </div>
@@ -166,7 +166,7 @@ export default function GraphControls({
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Text Size</span>
                                     <span>{fontSize}x</span>
                                 </div>
@@ -188,7 +188,7 @@ export default function GraphControls({
                         <div className="space-y-4">
                             {/* Entropy (Repel) */}
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Entropy</span>
                                     <span>{repelForce}</span>
                                 </div>
@@ -203,7 +203,7 @@ export default function GraphControls({
 
                             {/* Entanglement (Link Distance) */}
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>Entanglement</span>
                                     <span>{linkDistance}</span>
                                 </div>
@@ -223,12 +223,12 @@ export default function GraphControls({
                         <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Momentum</div>
                         <div className="flex flex-wrap gap-2">
                             {Array.from(hotTags).slice(0, 10).map(tag => (
-                                <span key={tag} className="text-xs bg-overlay-subtle border border-border text-muted-foreground px-2.5 py-1 rounded-full hover:bg-overlay hover:text-white transition-colors cursor-default font-mono">
+                                <span key={tag} className="text-xs bg-overlay-subtle border border-border text-muted-foreground px-2.5 py-1 rounded-full hover:bg-overlay hover:text-white transition-colors cursor-default">
                                     #{tag}
                                 </span>
                             ))}
                             {hotTags.size === 0 && (
-                                <span className="text-xs text-faint-foreground italic font-mono">No trending tags</span>
+                                <span className="text-xs text-faint-foreground italic">No trending tags</span>
                             )}
                         </div>
                     </div>
@@ -248,9 +248,9 @@ export default function GraphControls({
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-2 h-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                                        <span className="truncate max-w-[120px] font-mono">{c.name}</span>
+                                        <span className="truncate max-w-[120px]">{c.name}</span>
                                     </div>
-                                    <span className="text-subtle-foreground font-mono text-xs">{c.size}</span>
+                                    <span className="text-subtle-foreground text-xs">{c.size}</span>
                                 </button>
                             ))}
                         </div>

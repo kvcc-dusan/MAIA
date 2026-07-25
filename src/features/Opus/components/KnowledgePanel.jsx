@@ -23,16 +23,16 @@ export default function KnowledgePanel({ project, selectNote }) {
     );
 
     return (
-        <div className="flex flex-col rounded-2xl bg-zinc-900/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
+        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
                 <div className="flex items-center gap-2">
                     <Share2 size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold font-mono">
+                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
                         Nodes
                     </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full font-mono">
+                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
                         {linkedNotes.length}
                     </span>
                 </div>
@@ -51,7 +51,7 @@ export default function KnowledgePanel({ project, selectNote }) {
                 {linkedNotes.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ background: PROJECT_COLOR, boxShadow: `0 0 12px ${PROJECT_COLOR}66` }} />
-                        <span className="text-faint-foreground text-xs italic font-mono">No linked notes</span>
+                        <span className="text-faint-foreground text-xs italic">No linked notes</span>
                     </div>
                 ) : view === 'graph' ? (
                     <MiniGraph key={project.id} project={project} notes={linkedNotes} onOpenNote={selectNote} />
@@ -73,11 +73,11 @@ function ListView({ notes, onOpenNote }) {
                     onClick={() => onOpenNote?.(n.id)}
                     className="w-full text-left px-5 py-2.5 flex flex-col gap-0.5 hover:bg-overlay-subtle transition-colors group"
                 >
-                    <span className="text-xs font-mono text-foreground-secondary group-hover:text-white transition-colors truncate">
+                    <span className="text-xs text-foreground-secondary group-hover:text-white transition-colors truncate">
                         {n.title || 'Untitled'}
                     </span>
                     {n.content && (
-                        <span className="text-xs font-mono text-subtle-foreground truncate">
+                        <span className="text-xs text-subtle-foreground truncate">
                             {n.content.replace(/[#*`\[\]]/g, '').slice(0, 55)}
                         </span>
                     )}
@@ -228,7 +228,7 @@ function MiniGraph({ project, notes, onOpenNote }) {
             .attr('font-size', 9).attr('fill', '#ffffff').attr('opacity', 0)
             .attr('text-anchor', 'middle').attr('dy', -11)
             .style('pointer-events', 'none')
-            .style('font-family', 'var(--font-mono, monospace)')
+            .style('font-family', 'var(--, monospace)')
             .style('user-select', 'none');
 
         /* Tick — NO boundary clamping, zoom + drag work freely */

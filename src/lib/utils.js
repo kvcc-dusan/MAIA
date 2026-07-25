@@ -17,11 +17,6 @@ const PRIORITY_TOKENS = {
 const twMerge = extendTailwindMerge({
     extend: {
         classGroups: {
-            'font-size': [
-                // Legacy aliases, removed by the Sprint 4 codemod.
-                'text-fluid-3xs', 'text-fluid-2xs', 'text-fluid-xs', 'text-fluid-sm',
-                'text-fluid-base', 'text-fluid-lg', 'text-fluid-xl', 'text-fluid-2xl', 'text-fluid-3xl',
-            ],
             'z-index': [
                 'z-sticky', 'z-dock', 'z-drawer', 'z-overlay',
                 'z-dialog', 'z-popover', 'z-tooltip', 'z-toast',

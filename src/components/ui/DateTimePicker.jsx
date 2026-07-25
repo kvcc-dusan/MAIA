@@ -106,7 +106,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
 
   return (
     <div className="relative space-y-2" ref={ref}>
-      {label && <label className="text-xs font-mono text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
+      {label && <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">{label}</label>}
       <button
         onClick={() => setOpen(!open)}
         className={cn(INPUT_CLASS, "w-full p-3 flex justify-between items-center text-left min-h-[46px]")}
@@ -114,7 +114,7 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
       >
         <div className="flex items-center gap-3 truncate">
           <Calendar03 size={14} className="text-muted-foreground shrink-0" />
-          <span className="truncate flex-1 font-mono">{formatDisplay(value)}</span>
+          <span className="truncate flex-1">{formatDisplay(value)}</span>
         </div>
       </button>
 
@@ -129,8 +129,8 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
               {/* Tabs */}
               {!dateOnly && (
                 <div className="flex bg-overlay-subtle p-[3px] rounded-xl mb-4 gap-[3px]">
-                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'date' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Date</button>
-                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-[17px] font-medium font-mono transition-all", tab === 'time' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Time</button>
+                  <button onClick={() => setTab('date')} className={cn("flex-1 py-1.5 text-xs rounded-xl font-medium transition-all", tab === 'date' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Date</button>
+                  <button onClick={() => setTab('time')} className={cn("flex-1 py-1.5 text-xs rounded-xl font-medium transition-all", tab === 'time' ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}>Time</button>
                 </div>
               )}
 
@@ -197,13 +197,13 @@ export function DateTimePicker({ label, value, onChange, dateOnly = false }) {
                     <div className="grid grid-cols-2 gap-[3px] bg-overlay-subtle p-[3px] rounded-xl border border-border w-fit">
                       <button
                         onClick={() => setTimePart('ampm', 'AM')}
-                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-bold transition-all", !isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
                       >
                         AM
                       </button>
                       <button
                         onClick={() => setTimePart('ampm', 'PM')}
-                        className={cn("px-5 py-1.5 rounded-full text-xs font-mono font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
+                        className={cn("px-5 py-1.5 rounded-full text-xs font-bold transition-all", isPm ? "bg-white text-black shadow-sm" : "text-muted-foreground hover:text-white")}
                       >
                         PM
                       </button>

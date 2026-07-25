@@ -133,7 +133,7 @@ function GraphRenderer({
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element")
-            .style("font-family", "var(--font-mono)");
+            .style("font-family", "var(--)");
 
         // Interactions
         node

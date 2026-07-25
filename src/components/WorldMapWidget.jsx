@@ -115,25 +115,25 @@ export default function WorldMapWidget({ weather }) {
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <Card className="home-map-card relative flex w-full flex-col overflow-hidden rounded-[24px] border border-border bg-zinc-900/40 shadow-lg backdrop-blur-xl">
+        <Card className="home-map-card relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl">
             {/* HEADER: Date & Location Info */}
             <div className="relative z-20 flex items-start justify-between p-6 pb-4">
                 {/* Left: Date */}
                 <div className="flex flex-col items-start text-left">
-                    <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
+                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
                         {dayName}
                     </div>
-                    <div className="mt-1.5 font-mono text-xs leading-none uppercase tracking-widest text-muted-foreground">
+                    <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
                         {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
                     </div>
                 </div>
 
                 {/* Right: Location */}
                 <div className="flex flex-col items-end text-right">
-                    <div className="text-sm font-mono font-medium leading-none tracking-wide text-card-foreground">
+                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
-                    <div className="mt-1.5 font-mono text-xs leading-none uppercase tracking-widest text-muted-foreground">
+                    <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
                         EUROPE/LJUBLJANA
                     </div>
                 </div>
@@ -147,11 +147,11 @@ export default function WorldMapWidget({ weather }) {
             {/* FOOTER: Temp & Time */}
             <CardFooter className="relative z-20 flex items-center justify-between border-t border-border-subtle bg-muted/20 p-4 py-3">
                 <div className="flex flex-col">
-                    <span className="font-mono text-xs tracking-wide text-muted-foreground">
+                    <span className="text-xs tracking-wide text-muted-foreground">
                         {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
                     </span>
                 </div>
-                <span className="font-mono text-xs tracking-wide text-muted-foreground">{timeStr}</span>
+                <span className="text-xs tracking-wide text-muted-foreground">{timeStr}</span>
             </CardFooter>
         </Card>
     );

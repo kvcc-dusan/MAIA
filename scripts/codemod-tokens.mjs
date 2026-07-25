@@ -82,7 +82,58 @@ const PHASE_A = [
   [p('text-fluid-3xl'), 'text-3xl'],
 ];
 
-const RULES = { a: PHASE_A }[phase];
+// Phase B consolidates rather than renames. These DO change pixels.
+const PHASE_B = [
+  // --- zinc with an opacity modifier. Phase A's guard deliberately skipped
+  //     these (the `/` is in the lookahead), so they are handled explicitly. ---
+  [/-zinc-300\//g, '-foreground-secondary/'],
+  [/-zinc-400\//g, '-muted-foreground/'],
+  [/-zinc-500\//g, '-muted-foreground/'],
+  [/-zinc-600\//g, '-subtle-foreground/'],
+  [/-zinc-700\//g, '-faint-foreground/'],
+  [/-zinc-800\//g, '-secondary/'],
+  [/-zinc-900\//g, '-card/'],
+
+  // --- the long tail of one-off border opacities, collapsed to three steps ---
+  [p('border-white/0'), 'border-transparent'],
+  [p('border-white/6'), 'border-border'],
+  [p('border-white/8'), 'border-border'],
+  [p('border-white/12'), 'border-border'],
+  [p('border-white/15'), 'border-border'],
+  [p('border-white/25'), 'border-border-strong'],
+  [p('border-white/30'), 'border-border-strong'],
+
+  // --- same for background overlays ---
+  [p('bg-white/2'), 'bg-overlay-subtle'],
+  [p('bg-white/3'), 'bg-overlay-subtle'],
+  [p('bg-white/4'), 'bg-overlay-subtle'],
+  [p('bg-white/6'), 'bg-overlay'],
+  [p('bg-white/8'), 'bg-overlay'],
+  [p('bg-white/12'), 'bg-overlay'],
+
+  // --- translucent text. white and foreground differ by 1.5% lightness. ---
+  [/text-white\/(\d{1,3})/g, 'text-foreground/$1'],
+
+  // --- radius: adopt the preset's scale in place of MAIA's ad-hoc values ---
+  [p('rounded-\\[17px\\]'), 'rounded-xl'],
+  [p('rounded-\\[20px\\]'), 'rounded-xl'],
+  [p('rounded-\\[24px\\]'), 'rounded-2xl'],
+  [p('rounded-\\[32px\\]'), 'rounded-3xl'],
+
+  // --- arbitrary font sizes, onto the 12px floor ---
+  [p('text-\\[8px\\]'), 'text-xs'],
+  [p('text-\\[9px\\]'), 'text-xs'],
+  [p('text-\\[10px\\]'), 'text-xs'],
+  [p('text-\\[11px\\]'), 'text-xs'],
+
+  // --- retire mono as the UI voice (Sprint 1 decision). It survives only in
+  //     .prose pre/code, which lives in CSS and is untouched here. ---
+  [/ font-mono\b/g, ''],
+  [/\bfont-mono /g, ''],
+  [p('font-mono'), ''],
+];
+
+const RULES = { a: PHASE_A, b: PHASE_B }[phase];
 if (!RULES) {
   console.error(`Unknown phase "${phase}".`);
   process.exit(1);
@@ -101,10 +152,14 @@ for (const file of files) {
   try { src = readFileSync(file, 'utf8'); } catch { continue; }
   const before = src;
   for (const [re, to] of RULES) {
-    src = src.replace(re, (m) => {
-      perRule.set(re.source, (perRule.get(re.source) || 0) + 1);
-      return to;
-    });
+    // Count via a separate match pass rather than a callback replacer: a
+    // callback returns its string literally, so `$1` back-references would
+    // never be substituted (this silently produced `text-foreground/$1`).
+    const hits = src.match(re);
+    if (hits) {
+      perRule.set(re.source, (perRule.get(re.source) || 0) + hits.length);
+      src = src.replace(re, to);
+    }
   }
   if (src !== before) {
     touched++;
