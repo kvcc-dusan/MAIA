@@ -36,7 +36,11 @@ function Field({
     .join(" ") || undefined;
 
   // Inject the association onto the control without every caller repeating it.
-  const control = React.isValidElement(children)
+  //
+  // Passing `htmlFor` opts out: it means the caller has its own layout around
+  // the control (an icon button beside the input, say) and wires the id itself.
+  // Cloning in that case would put the id on a wrapper div and duplicate it.
+  const control = React.isValidElement(children) && !htmlFor
     ? React.cloneElement(children, {
         id: children.props.id ?? id,
         "aria-invalid": error ? true : children.props["aria-invalid"],

@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import ProjectIcon, { IconPicker } from "./ProjectIcon";
-import { CancelSquare as X, FolderAdd as FolderPlus } from "./ui/CustomIcon.jsx";
-import { cn } from "@/lib/utils";
-
-// Minimal Input Style (Shared with Ledger)
-const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-foreground placeholder:text-faint-foreground/50 transition-all resize-none p-0 focus:ring-0";
+import { AppDialog } from "@/components/composed/AppDialog";
+import { Field } from "@/components/composed/Field";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState("");
     const [icon, setIcon] = useState("terminal");
     const [iconColor, setIconColor] = useState("white");
     const [showPicker, setShowPicker] = useState(false);
-    const inputRef = useRef(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -19,85 +18,71 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
             setIcon("terminal");
             setIconColor("white");
             setShowPicker(false);
-            setTimeout(() => inputRef.current?.focus(), 100);
+            setError(null);
         }
     }, [isOpen]);
 
-    if (!isOpen) return null;
-
     const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!name.trim()) return;
-        onCreate({ name, icon, iconColor });
+        e?.preventDefault();
+        // This used to `return` silently on an empty name, so the Create button
+        // simply did nothing and never said why.
+        if (!name.trim()) {
+            setError("Give the project a name.");
+            return;
+        }
+        onCreate({ name: name.trim(), icon, iconColor });
         onClose();
     };
 
     return (
-        <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
-            onClick={onClose}
-        >
-            <div
-                className="w-full max-w-md mx-4 bg-[#09090b] border border-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
-                onClick={e => e.stopPropagation()}
+        <>
+            <AppDialog
+                open={isOpen}
+                onClose={onClose}
+                size="sm"
+                title="New project"
+                contentClassName="overflow-visible"
+                footer={
+                    <>
+                        <Button variant="outline" onClick={onClose}>Cancel</Button>
+                        <Button onClick={handleSubmit}>Create</Button>
+                    </>
+                }
             >
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
-                    <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
-                        New Project
-                    </span>
-                    <button
-                        onClick={onClose}
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-overlay hover:text-foreground-secondary transition-colors"
-                    >
-                        <X size={12} />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-5 space-y-5">
-                    {/* Icon + Name row */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setShowPicker(true)}
-                            className="w-11 h-11 rounded-xl bg-overlay-subtle border border-border flex items-center justify-center text-muted-foreground hover:text-white hover:bg-overlay hover:border-border transition-all shrink-0"
-                            title="Choose icon"
-                        >
-                            <ProjectIcon name={icon} size={20} color={iconColor} />
-                        </button>
-
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            onKeyDown={e => e.key === 'Escape' && onClose()}
-                            placeholder="Project name..."
-                            className="flex-1 bg-transparent outline-hidden text-white text-base font-medium placeholder:text-faint-foreground"
-                        />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-3 pt-1">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground-secondary hover:bg-overlay-subtle transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-[0.12em] bg-white/[0.07] border border-border text-white hover:bg-overlay transition-colors"
-                        >
-                            Create
-                        </button>
-                    </div>
+                {/* The icon button sits inside Field's control slot so it stays
+                    aligned with the input regardless of whether an error message
+                    is showing. */}
+                <form onSubmit={handleSubmit}>
+                    <Field label="Name" error={error} required htmlFor="new-project-name">
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowPicker(true)}
+                                aria-label="Choose project icon"
+                                className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-overlay-subtle text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            >
+                                <ProjectIcon name={icon} size={18} color={iconColor} />
+                            </button>
+                            <Input
+                                id="new-project-name"
+                                autoFocus
+                                value={name}
+                                placeholder="Project name…"
+                                aria-invalid={error ? true : undefined}
+                                aria-describedby={error ? "new-project-name-error" : undefined}
+                                onChange={(e) => {
+                                    setName(e.target.value);
+                                    if (error) setError(null);
+                                }}
+                            />
+                        </div>
+                    </Field>
                 </form>
-            </div>
+            </AppDialog>
 
-            {/* Nested Icon Picker */}
-            {showPicker && (
+            {/* Sibling rather than nested: the picker is its own overlay, and
+                rendering it inside the dialog's tree trapped it there. */}
+            {isOpen && showPicker && (
                 <IconPicker
                     currentIcon={icon}
                     currentColor={iconColor}
@@ -109,6 +94,6 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                     onClose={() => setShowPicker(false)}
                 />
             )}
-        </div>
+        </>
     );
 }

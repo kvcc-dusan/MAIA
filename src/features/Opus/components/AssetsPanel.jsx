@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { toast } from "sonner";
+import { AppDialog } from "@/components/composed/AppDialog";
 import { useData } from "../../../context/DataContext";
 import { UploadSquare01 as Upload, CancelSquare as X, File01 as FileIcon, Folder01 as Folder, Link04 as ExternalLink } from "../../../components/ui/CustomIcon.jsx";
 import { uid } from "../../../lib/ids";
@@ -20,7 +22,7 @@ export default function AssetsPanel({ project }) {
         files.forEach(file => {
             // Limit size (~5MB for localStorage)
             if (file.size > 5 * 1024 * 1024) {
-                alert(`File "${file.name}" is too large. Max 5MB.`);
+                toast.error(`"${file.name}" is too large — 5MB max.`);
                 return;
             }
 
@@ -153,31 +155,26 @@ export default function AssetsPanel({ project }) {
             </div>
             </div>
 
-            {/* Preview Modal */}
-            {previewAsset && (
-                <>
-                    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center" onClick={() => setPreviewAsset(null)}>
-                        <div className="max-w-[80vw] max-h-[80vh] relative" onClick={e => e.stopPropagation()}>
-                            <button
-                                onClick={() => setPreviewAsset(null)}
-                                className="absolute -top-10 right-0 text-muted-foreground hover:text-white transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                            {isImage(previewAsset.type) ? (
-                                <img src={previewAsset.dataUrl} alt={previewAsset.name} className="max-w-full max-h-[80vh] rounded-xl" />
-                            ) : (
-                                <div className="bg-card border border-border rounded-xl p-8 text-center">
-                                    <FileIcon size={48} className="text-muted-foreground mx-auto mb-4" />
-                                    <p className="text-white text-sm">{previewAsset.name}</p>
-                                    <p className="text-muted-foreground text-xs mt-1">{previewAsset.type}</p>
-                                </div>
-                            )}
-                            <div className="text-center mt-3 text-muted-foreground text-xs">{previewAsset.name}</div>
-                        </div>
+            <AppDialog
+                open={!!previewAsset}
+                onClose={() => setPreviewAsset(null)}
+                size="xl"
+                title={previewAsset?.name}
+            >
+                {previewAsset && (isImage(previewAsset.type) ? (
+                    <img
+                        src={previewAsset.dataUrl}
+                        alt={previewAsset.name}
+                        className="mx-auto max-h-[70vh] max-w-full rounded-xl"
+                    />
+                ) : (
+                    <div className="rounded-xl border border-border bg-card p-8 text-center">
+                        <FileIcon size={48} className="mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-sm text-foreground">{previewAsset.name}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{previewAsset.type}</p>
                     </div>
-                </>
-            )}
+                ))}
+            </AppDialog>
         </div>
     );
 }

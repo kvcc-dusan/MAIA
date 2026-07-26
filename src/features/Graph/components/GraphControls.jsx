@@ -66,14 +66,14 @@ export default function GraphControls({
             {/* Click-away backdrop (closes panel when clicking outside) */}
             {isPanelOpen && (
                 <div
-                    className="fixed inset-0 z-30"
+                    className="fixed inset-0 z-drawer"
                     onClick={() => setIsPanelOpen(false)}
                 />
             )}
 
             {/* Panel Drawer - Floating Right Sidebar (Below Toggle) */}
             <div
-                className={`absolute top-20 right-6 bottom-6 w-80 z-40 bg-black/90 backdrop-blur-xl border border-border rounded-2xl transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] will-change-transform flex flex-col shadow-2xl ${isPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'
+                className={`absolute top-20 right-4 bottom-6 left-4 sm:left-auto sm:right-6 sm:w-80 z-overlay bg-popover/90 supports-backdrop-filter:backdrop-blur-xl border border-border rounded-2xl transition-all duration-300 ease-maia will-change-transform flex flex-col shadow-2xl ${isPanelOpen ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'
                     }`}
             >
                 {/* Header */}

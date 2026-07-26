@@ -50,7 +50,7 @@ export default function VaultSetup() {
   if (notesMeta.status === "ready") return null;
   if (notesMeta.status === "loading") {
     return (
-      <div className="fixed inset-0 z-200 flex items-center justify-center bg-black">
+      <div className="fixed inset-0 z-dialog flex items-center justify-center bg-background">
         <span className="text-xs uppercase tracking-widest text-foreground/40 animate-pulse">
           Opening vault…
         </span>
@@ -61,8 +61,8 @@ export default function VaultSetup() {
   const isError = notesMeta.status === "error" || migrationError;
 
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black font-sans text-white">
-      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-2xl border border-border bg-black/80 p-8 backdrop-blur-xl">
+    <div className="fixed inset-0 z-dialog flex items-center justify-center bg-background font-sans text-foreground">
+      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-2xl border border-border bg-card p-8">
         <div className="space-y-2">
           <h2 className="text-xl font-semibold tracking-tight">
             {isError ? "Vault unavailable" : "Choose your vault"}
@@ -73,7 +73,7 @@ export default function VaultSetup() {
               : "Pick a folder where your notes will live as plain markdown files — readable by Obsidian, synced by iCloud, owned by you."}
           </p>
           {migrationError && (
-            <p className="text-xs text-red-400/80">
+            <p className="text-xs text-destructive">
               Migration failed: {String(migrationError.message || migrationError)}
             </p>
           )}
@@ -83,7 +83,7 @@ export default function VaultSetup() {
             type="button"
             onClick={handlePick}
             disabled={isBusy}
-            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-white/85 disabled:opacity-50"
+            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-foreground/85 disabled:opacity-50"
           >
             {isBusy ? "Working…" : isError ? "Pick vault folder" : "Choose folder"}
           </button>
