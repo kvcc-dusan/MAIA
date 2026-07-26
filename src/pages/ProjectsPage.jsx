@@ -1,5 +1,6 @@
 // @maia:projects
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { createPortal } from "react-dom";
 import { uid } from "../lib/ids.js";
 import GlassSurface from "../components/GlassSurface";
@@ -82,8 +83,12 @@ export default function Projects({
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p));
   }, [setProjects]);
 
-  const deleteProject = (id) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
+  const [pendingDelete, setPendingDelete] = useState(null);
+
+  const deleteProject = (id) => setPendingDelete(id);
+
+  const confirmDeleteProject = () => {
+    const id = pendingDelete;
     setProjects(prev => prev.filter(p => p.id !== id));
     if (activeId === id) setActiveId(null);
   }
@@ -372,6 +377,15 @@ export default function Projects({
           />
         );
       })()}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={confirmDeleteProject}
+        title="Delete this project?"
+        description="This can't be undone. Notes linked to it are kept."
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

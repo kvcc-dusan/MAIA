@@ -1,4 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
+import { PromptDialog } from "@/components/composed/PromptDialog";
 import ProjectIcon from "../components/ProjectIcon";
 import { StickyNote03, Pin, CheckmarkSquare02, Delete01, Pen01 } from "../components/ui/CustomIcon.jsx";
 import { useData } from "../context/DataContext";
@@ -236,7 +239,7 @@ export default function NotesOverview({
       const has = prev.includes(id);
       if (has) return prev.filter((x) => x !== id);
       if (prev.length >= PIN_LIMIT) {
-        window.alert(`You can pin up to ${PIN_LIMIT} notes.`);
+        toast.warning(`You can pin up to ${PIN_LIMIT} notes.`);
         return prev;
       }
       return [...prev, id];
@@ -245,6 +248,9 @@ export default function NotesOverview({
 
   // state for custom delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Replaces the window.confirm / window.prompt calls this page used to make.
+  const [confirm, setConfirm] = useState(null);
+  const [renaming, setRenaming] = useState(null);
 
   const handleDeleteAll = () => {
     setShowDeleteConfirm(true);
@@ -258,10 +264,11 @@ export default function NotesOverview({
   // Bulk actions for multi-select
   const bulkDelete = () => {
     if (selected.size === 0) return;
-    if (window.confirm(`Delete ${selected.size} note${selected.size > 1 ? 's' : ''}?`)) {
-      selected.forEach(id => onDelete(id));
-      exitSelectMode();
-    }
+    setConfirm({
+      description: `Delete ${selected.size} note${selected.size > 1 ? 's' : ''}? This can't be undone.`,
+      confirmLabel: "Delete",
+      onConfirm: () => { selected.forEach(id => onDelete(id)); exitSelectMode(); },
+    });
   };
 
   const bulkPin = () => {
@@ -352,9 +359,12 @@ export default function NotesOverview({
                   {/* Seed Data */}
                   <button
                     onClick={() => {
-                      if (window.confirm("Replace all data with sample data?")) {
-                        generateSamples();
-                      }
+                      setConfirm({
+                        title: "Replace all data?",
+                        description: "This overwrites your current notes, projects and decisions with sample data.",
+                        confirmLabel: "Replace",
+                        onConfirm: generateSamples,
+                      });
                       setShowSettings(false);
                     }}
                     className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-emerald-400 group transition-colors"
@@ -593,8 +603,7 @@ export default function NotesOverview({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     const curr = notes.find(x => x.id === menu.id);
-                    const title = window.prompt("Rename note", curr?.title || "");
-                    if (title != null) onRename(menu.id, title.trim());
+                    setRenaming({ id: menu.id, title: curr?.title || "" });
                     setMenu(m => ({ ...m, open: false }));
                   }}
                 >
@@ -634,33 +643,35 @@ export default function NotesOverview({
         )
       }
 
-      {/* Delete Confirmation Modal */}
-      {
-        showDeleteConfirm && (
-          <div className="fixed inset-0 z-150 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="w-full max-w-sm bg-[#09090b] border border-border rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200">
-              <h3 className="text-lg font-bold text-white mb-2">Delete All Notes?</h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                This action cannot be undone. All {notes.length} notes will be permanently removed.
-              </p>
-              <div className="flex items-center gap-3 justify-end">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 text-xs font-medium text-foreground-secondary hover:text-white hover:bg-overlay-subtle rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteAll}
-                  className="px-4 py-2 text-xs font-bold text-black bg-white hover:bg-foreground rounded-lg transition-colors"
-                >
-                  Delete All
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
+      {/* All confirmations and the rename prompt now share one component
+          each, instead of a bespoke modal plus three native browser dialogs. */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDeleteAll}
+        title="Delete all notes?"
+        description={`This can't be undone. All ${notes.length} notes will be permanently removed.`}
+        confirmLabel="Delete all"
+      />
+
+      <ConfirmDialog
+        open={!!confirm}
+        onClose={() => setConfirm(null)}
+        onConfirm={() => confirm?.onConfirm()}
+        title={confirm?.title}
+        description={confirm?.description}
+        confirmLabel={confirm?.confirmLabel || "Delete"}
+      />
+
+      <PromptDialog
+        open={!!renaming}
+        onClose={() => setRenaming(null)}
+        onSubmit={(title) => onRename(renaming.id, title)}
+        title="Rename note"
+        label="Title"
+        initialValue={renaming?.title || ""}
+        submitLabel="Rename"
+      />
 
     </div >
   );
