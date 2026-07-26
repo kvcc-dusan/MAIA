@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Widget } from "./composed/Widget.jsx";
 import { getOrdinalSuffix } from "@/lib/utils";
 
 export const MapVisual = React.memo(({ coords, topology }) => {
@@ -71,8 +71,8 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                     >
                         <div className="flex h-full w-full items-center justify-center">
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: '#10b981' }}></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: '#10b981' }}></span>
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: "var(--success)" }}></span>
+                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "var(--success)" }}></span>
                             </span>
                         </div>
                     </foreignObject>
@@ -84,7 +84,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
 
 
 
-export default function WorldMapWidget({ weather }) {
+export default function WorldMapWidget({ weather, now = new Date(), timeZoneLabel, ...shell }) {
     const { temp, place, condition, coords } = weather || {};
 
     // Lazy load map data
@@ -100,12 +100,8 @@ export default function WorldMapWidget({ weather }) {
         return () => { mounted = false; };
     }, []);
 
-    // Real-time clock
-    const [now, setNow] = useState(new Date());
-    useEffect(() => {
-        const t = setInterval(() => setNow(new Date()), 1000);
-        return () => clearInterval(t);
-    }, []);
+    // The clock ticks once, on the page, and is passed down — this widget used
+    // to run a second independent 1s interval.
 
     // Formatters
     const dayName = now.toLocaleDateString("en-US", { weekday: 'long' });
@@ -115,9 +111,20 @@ export default function WorldMapWidget({ weather }) {
     const timeStr = now.toLocaleTimeString("en-US", { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
     return (
-        <Card className="home-map-card relative flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl">
-            {/* HEADER: Date & Location Info */}
-            <div className="relative z-20 flex items-start justify-between p-6 pb-4">
+        <Widget
+            title="Today"
+            bodyClassName="flex min-h-0 flex-col px-0 pt-0 pb-0"
+            footer={
+                <>
+                    <span className="text-xs tracking-wide text-muted-foreground">
+                        {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
+                    </span>
+                    <span className="text-xs tabular-nums tracking-wide text-muted-foreground">{timeStr}</span>
+                </>
+            }
+            {...shell}
+        >
+            <div className="flex flex-none items-start justify-between px-5 pb-3">
                 {/* Left: Date */}
                 <div className="flex flex-col items-start text-left">
                     <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
@@ -134,25 +141,16 @@ export default function WorldMapWidget({ weather }) {
                         {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
                     </div>
                     <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
-                        EUROPE/LJUBLJANA
+                        {timeZoneLabel || Intl.DateTimeFormat().resolvedOptions().timeZone}
                     </div>
                 </div>
             </div>
 
-            {/* CENTER SECTION: Expanded Height for breathing room */}
-            <CardContent className="home-map-body relative z-10 w-full overflow-hidden bg-transparent p-0">
+            {/* The map no longer depends on an `@container home` breakpoint to be
+                visible — the shell owns sizing, so it renders wherever it's placed. */}
+            <div className="relative min-h-24 w-full flex-1 overflow-hidden">
                 <MapVisual coords={coords} topology={topology} />
-            </CardContent>
-
-            {/* FOOTER: Temp & Time */}
-            <CardFooter className="relative z-20 flex items-center justify-between border-t border-border-subtle bg-muted/20 p-4 py-3">
-                <div className="flex flex-col">
-                    <span className="text-xs tracking-wide text-muted-foreground">
-                        {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
-                    </span>
-                </div>
-                <span className="text-xs tracking-wide text-muted-foreground">{timeStr}</span>
-            </CardFooter>
-        </Card>
+            </div>
+        </Widget>
     );
 }

@@ -97,19 +97,22 @@ const MobileTabBar = ({ items }) => {
                         whileTap={{ scale: 0.92 }}
                         aria-label={item.label}
                         aria-current={item.isActive ? "page" : undefined}
-                        className="flex h-full min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5 transition-colors"
+                        className="flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 transition-colors"
                     >
                         {item.icon && (
                             <item.icon
                                 className={cn(
-                                    "size-[19px] transition-all duration-200",
+                                    "size-[19px] shrink-0 transition-all duration-200",
                                     item.isActive ? "text-foreground" : "text-muted-foreground"
                                 )}
                                 strokeWidth={item.isActive ? 2.2 : 1.8}
                             />
                         )}
+                        {/* At the 12px type floor five labels no longer fit 375px
+                            edge to edge; tracking-normal + truncate keeps them from
+                            colliding rather than dropping below the floor again. */}
                         <span className={cn(
-                            "text-xs font-medium uppercase leading-none tracking-wider transition-colors duration-200",
+                            "w-full truncate text-center text-xs font-medium uppercase leading-none transition-colors duration-200",
                             item.isActive ? "text-foreground" : "text-subtle-foreground"
                         )}>
                             {item.label}

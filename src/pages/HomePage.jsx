@@ -1,56 +1,52 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 
-import WorldMapWidget from "../components/WorldMapWidget.jsx";
-import { GlassErrorBoundary } from "../components/GlassErrorBoundary.jsx";
-import FocusWidget from "../components/FocusWidget.jsx";
-import QuickCaptureWidget from "../components/QuickCaptureWidget.jsx";
+import TodayGrid from "../features/Today/TodayGrid.jsx";
+import { reconcileLayout, DEFAULT_LAYOUT } from "../features/Today/widgets.js";
+import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { useHomeGreeting } from "../hooks/useHomeGreeting.js";
 import { useWeather } from "../hooks/useWeather.js";
 import { useSignals } from "../hooks/useSignals.js";
+import { STORAGE_KEYS, USER_NAME } from "../lib/constants.js";
 
 /* -------------------------------------------
-   Home / Today  — Single-screen dashboard
+   Today — widget dashboard
 ------------------------------------------- */
 
 export default function TodayPage({
   tasks = [],
   notes = [],
   projects = [],
-  ledger = [],
   sessions = [],
-  reminders = [],
   createNote,
-  updateNote,
   onOpenPulse,
   onOpenNote,
 }) {
-  const { now, quote, greeting } = useHomeGreeting();
+  const { quote, greeting } = useHomeGreeting();
   const { weather } = useWeather();
   const [captureContent, setCaptureContent] = useState("");
 
-  const userName = "Dušan";
+  const [storedLayout, setStoredLayout] = useLocalStorage(STORAGE_KEYS.TODAY_LAYOUT, DEFAULT_LAYOUT);
+  const layout = useMemo(() => reconcileLayout(storedLayout), [storedLayout]);
 
-  // Today's date string
+  // One clock for the page. WorldMapWidget used to run its own 1s interval on
+  // top of the greeting hook's, so two timers were re-rendering independently.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
   const todayStr = useMemo(() => now.toDateString(), [now]);
-
-  // Stable callback for the button
   const openPulse = useCallback(() => onOpenPulse?.(), [onOpenPulse]);
 
-  // Today's tasks (for FocusWidget)
   const todayTasks = useMemo(() => {
-    // 1. Next Actions from ACTIVE Projects
-    // Sort projects by their order in the list (assuming user order implies priority)
-    const activeProjects = projects.filter(p => p.status === "Active");
-
-    let actions = [];
-    activeProjects.forEach(p => {
-      const pTask = tasks.find(t => t.projectId === p.id && t.isNextAction && !t.done);
-      if (pTask) {
-        actions.push({ ...pTask, isProject: true, contextLabel: p.name });
-      }
+    const activeProjects = projects.filter((p) => p.status === "Active");
+    const actions = [];
+    activeProjects.forEach((p) => {
+      const pTask = tasks.find((t) => t.projectId === p.id && t.isNextAction && !t.done);
+      if (pTask) actions.push({ ...pTask, isProject: true, contextLabel: p.name });
     });
 
-    // 2. Global Inbox Tasks (Newest First)
     const inboxTasks = tasks
       .filter((t) => !t.done && !t.projectId)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -59,91 +55,78 @@ export default function TodayPage({
     return [...actions, ...inboxTasks];
   }, [tasks, projects]);
 
-  const handleTaskClick = useCallback((task) => {
-    if (task.isProject && task.projectId) {
-      // Navigate to Project
-      onOpenNote?.(task.projectId, "project");
-    } else {
-      // Open Chronos for global tasks
-      onOpenPulse?.();
-    }
-  }, [onOpenNote, onOpenPulse]);
+  const handleTaskClick = useCallback(
+    (task) => {
+      if (task.isProject && task.projectId) onOpenNote?.(task.projectId, "project");
+      else onOpenPulse?.();
+    },
+    [onOpenNote, onOpenPulse]
+  );
 
-  // Recent #journal notes (today)
-  const todayEntries = useMemo(() => {
-    return notes
-      .filter((n) => {
-        const isToday = new Date(n.createdAt).toDateString() === todayStr;
-        const isJournal = (n.tags || []).some((t) => t.toLowerCase() === "journal");
-        return isToday && isJournal;
-      })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [notes, todayStr]);
+  const todayEntries = useMemo(
+    () =>
+      notes
+        .filter((n) => {
+          const isToday = new Date(n.createdAt).toDateString() === todayStr;
+          const isJournal = (n.tags || []).some((t) => t.toLowerCase() === "journal");
+          return isToday && isJournal;
+        })
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [notes, todayStr]
+  );
 
-  // Shared signals hook
   const signals = useSignals(notes, projects, { velocityLimit: 5, stalenessLimit: 3 });
 
-  // Quick Capture → creates a Note with #journal tag (atomic)
   const handleCapture = useCallback(() => {
     if (!captureContent.trim()) return;
     const firstLine = captureContent.split("\n")[0].replace(/^#+\s*/, "").trim().slice(0, 40);
     const title = `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })} — ${firstLine || "Quick note"}`;
-
-    createNote?.({
-      title,
-      content: captureContent,
-      tags: ["journal"],
-    });
+    createNote?.({ title, content: captureContent, tags: ["journal"] });
     setCaptureContent("");
   }, [captureContent, createNote]);
 
+  // One bag of props for every widget; each picks what it needs and ignores the
+  // rest. Keeps the registry from having to describe per-widget wiring.
+  const widgetProps = {
+    // clock-map
+    weather,
+    now,
+    // focus
+    todayTasks,
+    sessions,
+    signals,
+    onOpenPulse: openPulse,
+    onTaskClick: handleTaskClick,
+    // capture
+    captureContent,
+    setCaptureContent,
+    onCapture: handleCapture,
+    todayEntries,
+    onOpenNote,
+  };
+
   return (
-    <div className="relative flex flex-col h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-black font-sans text-white selection:bg-overlay-strong">
+    <div className="relative h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-background font-sans text-foreground selection:bg-overlay-strong">
+      <div className="home-bg pointer-events-none absolute inset-0 z-0" />
 
-      {/* Near-black background with a faint vignette */}
-      <div className="home-bg absolute inset-0 pointer-events-none z-0" />
-
-      {/* Centered composition — greeting above, widgets in a row beneath */}
-      <div className="flex-1 w-full relative z-10 home-hero">
-        <div className="home-stack min-h-full w-full px-page">
-
-          {/* Greeting */}
-          <div className="home-greeting-block text-center">
-            <h1 className="home-greeting font-sans font-medium tracking-tight">
-              <span className="text-muted-foreground">{greeting}</span>{" "}
-              <span className="text-white">{userName || "Dušan"}.</span>
-            </h1>
-            <p className="home-quote font-sans italic text-foreground/45">
-              &ldquo;{quote}&rdquo;
-            </p>
-          </div>
-
-          {/* Widgets row — wraps to a stack on narrow windows */}
-          <div className="home-widgets-row">
-            <GlassErrorBoundary>
-              <WorldMapWidget weather={weather} />
-            </GlassErrorBoundary>
-
-            <FocusWidget
-              todayTasks={todayTasks}
-              sessions={sessions}
-              signals={signals}
-              onOpenPulse={openPulse}
-              onTaskClick={handleTaskClick}
-            />
-
-            <QuickCaptureWidget
-              captureContent={captureContent}
-              setCaptureContent={setCaptureContent}
-              onCapture={handleCapture}
-              todayEntries={todayEntries}
-              onOpenNote={onOpenNote}
-            />
-          </div>
-        </div>
+      <div className="home-hero relative z-10 flex min-h-full w-full flex-col">
+        <TodayGrid
+          layout={layout}
+          setLayout={setStoredLayout}
+          widgetProps={widgetProps}
+          greeting={
+            <div className="home-greeting-block">
+              <h1 className="home-greeting font-sans font-medium tracking-tight">
+                <span className="text-muted-foreground">{greeting}</span>{" "}
+                <span className="text-foreground">{USER_NAME}.</span>
+              </h1>
+              <p className="home-quote font-sans italic text-foreground/45">
+                &ldquo;{quote}&rdquo;
+              </p>
+            </div>
+          }
+        />
       </div>
-
     </div>
   );
 }
-

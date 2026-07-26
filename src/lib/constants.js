@@ -27,7 +27,11 @@ export const STORAGE_KEYS = {
   TASKS: 'maia.tasks',
   REMINDERS: 'maia.reminders',
   SESSIONS: 'maia.sessions',
+  TODAY_LAYOUT: 'maia.today.layout',
 };
+
+/** Single source for the greeting name; it was hardcoded inside HomePage. */
+export const USER_NAME = 'Dušan';
 
 /**
  * @deprecated Use <Field> + <Input> / <Textarea> instead. Retained only until

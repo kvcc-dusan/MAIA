@@ -1,6 +1,12 @@
-/* Home / Today — container-query layout.
-   The cqw/cqh font sizes here are a deliberate display-type exception
-   and sit off the 7-step scale on purpose. Do not flatten them. */
+/* Home / Today — container-query display type.
+   The cqw font sizes here are a deliberate exception to the 7-step scale: the
+   greeting is display type that should track the window, not the token ramp.
+   Do not flatten them.
+
+   Widget layout used to live here too — a hardcoded 3-column row plus
+   map-body visibility keyed to an `@container home` breakpoint. That is the
+   grid's job now (features/Today/TodayGrid.jsx). Keeping it in CSS is what
+   made WorldMapWidget silently lose its map body when moved. */
 
 .home-hero {
   container-type: inline-size;
@@ -12,25 +18,15 @@
   background:
     radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
     radial-gradient(140% 110% at 50% 115%, rgba(23, 38, 32, 0.55), transparent 65%),
-    #050505;
+    var(--background);
 }
 
-/* Centered vertical composition */
-.home-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(1.75rem, 5cqh, 3.5rem);
-  padding-top: clamp(1.5rem, 4vh, 3rem);
-  padding-bottom: calc(clamp(1.5rem, 4vh, 3rem) + 4.5rem);
-}
-
+/* Greeting sits bottom-left, so it aligns left rather than centred. */
 .home-greeting-block {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .home-greeting {
@@ -46,50 +42,3 @@
   max-width: 34rem;
   text-wrap: balance;
 }
-
-/* Widgets: one row on wide windows, wrapping to a stack on narrow ones */
-.home-widgets-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(0.75rem, 1.5cqw, 1.25rem);
-  width: 100%;
-  max-width: 26rem;
-  align-items: stretch;
-}
-
-@container home (min-width: 760px) {
-  .home-widgets-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 72rem;
-  }
-}
-
-/* Map body only when there's room for it */
-.home-map-body {
-  display: none;
-}
-
-.home-map-card {
-  min-height: 100px;
-  height: 100%;
-}
-
-@container home (min-width: 760px) {
-  .home-map-body {
-    display: block;
-    flex: 1;
-    min-height: 120px;
-  }
-}
-
-@media (max-height: 640px) {
-  .home-map-body {
-    display: none;
-  }
-
-  .home-stack {
-    padding-top: clamp(0.75rem, 2vh, 1.5rem);
-    gap: 1.25rem;
-  }
-}
-

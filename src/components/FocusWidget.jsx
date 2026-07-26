@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card.jsx";
-import { GlassErrorBoundary } from "./GlassErrorBoundary.jsx";
+import { Widget } from "./composed/Widget.jsx";
 import FocusTaskItem from "./FocusTaskItem.jsx";
 
 /**
@@ -13,6 +12,7 @@ export default function FocusWidget({
   signals = { velocity: [], staleness: [] },
   onOpenPulse,
   onTaskClick,
+  ...shell
 }) {
   const [momentumOpen, setMomentumOpen] = useState(false);
 
@@ -25,18 +25,20 @@ export default function FocusWidget({
   }, [sessions, todayStr]);
 
   return (
-    <GlassErrorBoundary>
-      <Card className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl">
-
-        {/* HEADER */}
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-5 pt-5 pb-0">
-          <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Today's Focus
-          </CardTitle>
-        </CardHeader>
-
-        {/* BODY */}
-        <CardContent className="flex flex-1 flex-col gap-0 px-5 pt-3 pb-5">
+    <Widget
+      title="Today's Focus"
+      footer={
+        <button
+          onClick={() => setMomentumOpen((v) => !v)}
+          aria-expanded={momentumOpen}
+          className="ml-auto text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Momentum
+        </button>
+      }
+      {...shell}
+    >
+      <div className="flex h-full flex-col">
 
           {/* ── TASKS ── */}
           {todayTasks.length === 0 ? (
@@ -79,11 +81,13 @@ export default function FocusWidget({
           )}
 
           {/* ── MOMENTUM (expandable, always present) ── */}
+          {/* grid-rows 0fr -> 1fr animates to the content's real height, so the
+              drawer no longer clips at a hardcoded 300px. */}
           <div
-            className="overflow-hidden transition-all duration-300 ease-out"
-            style={{ maxHeight: momentumOpen ? "300px" : "0px", opacity: momentumOpen ? 1 : 0 }}
+            className="grid transition-all duration-300 ease-out"
+            style={{ gridTemplateRows: momentumOpen ? "1fr" : "0fr", opacity: momentumOpen ? 1 : 0 }}
           >
-            <div className="border-t border-border-subtle pt-3 mt-3">
+            <div className="overflow-hidden border-t border-border-subtle pt-3 mt-3">
               {signals.velocity.length > 0 ? (
                 <div className="mb-3">
                   <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Momentum</div>
@@ -92,7 +96,7 @@ export default function FocusWidget({
                       <div key={v.tag} className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">#{v.tag}</span>
                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-success/10 text-success" :
-                          v.velocity < 0 ? "bg-red-500/10 text-red-400" :
+                          v.velocity < 0 ? "bg-destructive/10 text-destructive" :
                             "bg-secondary/50 text-subtle-foreground"
                           }`}>
                           {v.velocity > 0 ? "+" : ""}{v.velocity}
@@ -113,7 +117,7 @@ export default function FocusWidget({
                     {signals.staleness.map((s) => (
                       <div key={s.project.id} className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground truncate">{s.project.name}</span>
-                        <span className="text-red-400/70 text-xs">{s.lastActivityDays}d idle</span>
+                        <span className="text-destructive/70 text-xs">{s.lastActivityDays}d idle</span>
                       </div>
                     ))}
                   </div>
@@ -122,19 +126,7 @@ export default function FocusWidget({
             </div>
           </div>
 
-        </CardContent>
-
-        {/* FOOTER — always visible */}
-        <CardFooter className="relative z-20 flex items-center justify-end border-t border-border-subtle bg-muted/20 px-5 py-3">
-          <button
-            onClick={() => setMomentumOpen((v) => !v)}
-            className="text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Momentum
-          </button>
-        </CardFooter>
-
-      </Card>
-    </GlassErrorBoundary>
+      </div>
+    </Widget>
   );
 }
