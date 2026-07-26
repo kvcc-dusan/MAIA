@@ -90,7 +90,7 @@ export default function AssetsPanel({ project }) {
             <div className="flex-1 p-4 flex flex-col">
             <div
                 className={`flex-1 rounded-xl border-2 border-dashed transition-all ${isDragOver
-                    ? "border-[#10b981]/40 bg-[#10b981]/5"
+                    ? "border-success/40 bg-success/5"
                     : assets.length === 0
                         ? "border-border hover:border-border-strong cursor-pointer"
                         : "border-transparent"

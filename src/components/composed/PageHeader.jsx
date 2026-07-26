@@ -36,4 +36,20 @@ function PageHeader({ eyebrow, count, actions, className, children, ...props }) 
   );
 }
 
-export { PageHeader };
+/**
+ * The one page-title style. Notes and Ledger both hand-rolled their h1 with an
+ * inline `clamp(2rem, 3vw, 2.5rem)` and a hardcoded #fafafa — the largest type
+ * in the app, and off the token scale entirely. This puts titles back on it.
+ */
+function PageTitle({ className, children, ...props }) {
+  return (
+    <h1
+      className={cn("font-heading text-3xl font-semibold tracking-tight text-foreground", className)}
+      {...props}
+    >
+      {children}
+    </h1>
+  );
+}
+
+export { PageHeader, PageTitle };

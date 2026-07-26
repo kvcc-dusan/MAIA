@@ -91,7 +91,7 @@ export default function FocusWidget({
                     {signals.velocity.map((v) => (
                       <div key={v.tag} className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">#{v.tag}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-emerald-500/10 text-emerald-400" :
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${v.velocity > 0 ? "bg-success/10 text-success" :
                           v.velocity < 0 ? "bg-red-500/10 text-red-400" :
                             "bg-secondary/50 text-subtle-foreground"
                           }`}>

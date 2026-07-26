@@ -8,6 +8,7 @@ import { useLongPress } from "../hooks/useLongPress";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { PromptDialog } from "@/components/composed/PromptDialog";
 import { AppDialog } from "@/components/composed/AppDialog";
+import { PageTitle } from "@/components/composed/PageHeader";
 
 /* ──────────────────────────────────────────────────────────
    LedgerPage  –  Decision Journal & Cognitive Feedback Loop
@@ -18,8 +19,8 @@ const INPUT_CLEAN = "w-full bg-transparent border-none outline-hidden text-foreg
 const LABEL_CLASS = "text-xs font-bold uppercase tracking-widest text-subtle-foreground mb-3 block";
 
 // Shared color tokens
-const STAKES_DOT = { high: '#f43f5e', medium: '#f59e0b', low: '#6366f1' };
-const OUTCOME_DOT = { success: '#10b981', mixed: '#f59e0b', failure: '#f43f5e' };
+const STAKES_DOT = { high: 'var(--destructive)', medium: 'var(--warning)', low: 'var(--priority-1)' };
+const OUTCOME_DOT = { success: 'var(--success)', mixed: 'var(--warning)', failure: 'var(--destructive)' };
 
 // ─── New / Edit Decision Modal ───
 
@@ -62,7 +63,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                             placeholder="Decision Title..."
                             value={draft.title}
                             onChange={e => setDraft({ ...draft, title: e.target.value })}
-                            className={cn(INPUT_CLEAN, "text-xl font-medium placeholder:text-faint-foreground")}
+                            className={cn(INPUT_CLEAN, "text-lg font-medium placeholder:text-faint-foreground")}
                         />
                     </div>
 
@@ -78,7 +79,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                                         className={cn(
                                             "px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                                             draft.stakes === s
-                                                ? (s === 'high' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : s === 'medium' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' : 'bg-[#6366f1]/10 text-[#6366f1]')
+                                                ? (s === 'high' ? 'bg-destructive/10 text-destructive' : s === 'medium' ? 'bg-warning/10 text-warning' : 'bg-priority-1/10 text-priority-1')
                                                 : 'text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle'
                                         )}
                                     >
@@ -158,7 +159,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                 <div className="space-y-6">
                     {/* Decision Summary */}
                     <div>
-                        <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
+                        <div className="text-lg font-medium text-foreground mb-3">{decision.title}</div>
                         {/* Confidence prediction — core of calibration */}
                         <div className="flex items-center gap-2 mb-3">
                             <span className="text-xs text-subtle-foreground uppercase tracking-widest">You predicted</span>
@@ -195,7 +196,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                                     className={cn(
                                         "px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                                         status === s
-                                            ? (s === 'success' ? 'bg-[#10b981]/10 text-[#10b981]' : s === 'failure' ? 'bg-[#f43f5e]/10 text-[#f43f5e]' : 'bg-[#f59e0b]/10 text-[#f59e0b]')
+                                            ? (s === 'success' ? 'bg-success/10 text-success' : s === 'failure' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning')
                                             : 'text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle'
                                     )}
                                 >
@@ -230,7 +231,7 @@ function DecisionDetailModal({ decision, onClose }) {
                 <div className="space-y-6">
                     {/* Decision Title & Tags */}
                     <div>
-                        <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
+                        <div className="text-lg font-medium text-foreground mb-3">{decision.title}</div>
                         <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: STAKES_DOT[decision.stakes] || STAKES_DOT.low }} />
@@ -734,7 +735,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                                     </div>
                                     <button
                                         onClick={() => { seedData(); setShowSettings(false); }}
-                                        className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-[#10b981] group transition-colors"
+                                        className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-success group transition-colors"
                                     >
                                         <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
                                         <span className="text-xs">Seed Data</span>
@@ -754,9 +755,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     </div>
                 </div>
 
-                <h1 className="font-sans font-semibold text-[#fafafa] leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.5rem)', letterSpacing: '-0.02em' }}>
-                    Decisions
-                </h1>
+                <PageTitle>Decisions</PageTitle>
             </div>
 
             {/* Stats Overview */}

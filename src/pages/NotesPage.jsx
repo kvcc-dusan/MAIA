@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { PromptDialog } from "@/components/composed/PromptDialog";
+import { PageTitle } from "@/components/composed/PageHeader";
 import ProjectIcon from "../components/ProjectIcon";
 import { StickyNote03, Pin, CheckmarkSquare02, Delete01, Pen01 } from "../components/ui/CustomIcon.jsx";
 import { useData } from "../context/DataContext";
@@ -390,9 +391,7 @@ export default function NotesOverview({
 
         </div>
 
-        <h1 className="font-sans font-semibold text-[#fafafa] leading-none" style={{ fontSize: 'clamp(2rem, 3vw, 2.5rem)', letterSpacing: '-0.02em' }}>
-          All notes
-        </h1>
+        <PageTitle>All notes</PageTitle>
       </div>
 
       {/* Grid Container */}
@@ -456,7 +455,7 @@ export default function NotesOverview({
 
                 {/* Header: Title (Consistent top spacing, no divider) */}
                 <div className="z-10 mb-5">
-                  <h3 className="text-[15px] font-medium font-sans leading-tight line-clamp-2 text-[#fafafa] transition-colors">
+                  <h3 className="text-sm font-medium font-sans leading-tight line-clamp-2 text-foreground transition-colors">
                     {n.title || "Untitled Note"}
                   </h3>
                 </div>

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { AppDialog } from "@/components/composed/AppDialog";
+import { Button } from "@/components/ui/button";
 import { CancelSquare } from "./ui/CustomIcon.jsx";
 
 // ─── COLOR PALETTE ──────────────────────────────────────────
@@ -433,28 +435,20 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
     const accent = resolveColor(selectedColor);
 
     return (
-        <div
-            className="fixed inset-0 z-110 flex items-center justify-center bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
-            onClick={onClose}
+        <AppDialog
+            open
+            onClose={onClose}
+            size="sm"
+            title="Select icon"
+            footer={
+                <>
+                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleConfirm}>Apply</Button>
+                </>
+            }
         >
-            <div className="w-full max-w-[380px] px-4" onClick={e => e.stopPropagation()}>
-                <div className="bg-[#09090b] border border-border shadow-2xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="space-y-5">
 
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-5 pt-5 pb-4">
-                        <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
-                            Select Icon
-                        </span>
-                        <button
-                            aria-label="Close"
-                            onClick={onClose}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-subtle-foreground hover:bg-overlay hover:text-foreground-secondary transition-colors"
-                        >
-                            <CancelSquare size={14} className="shrink-0" />
-                        </button>
-                    </div>
-
-                    <div className="px-5 pb-5 space-y-5">
 
                         {/* Preview */}
                         <div className="flex justify-center">
@@ -524,16 +518,7 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                             })}
                         </div>
 
-                        {/* Apply */}
-                        <button
-                            onClick={handleConfirm}
-                            className="w-full py-2.5 rounded-xl border border-border bg-overlay text-white text-xs uppercase tracking-[0.15em] font-bold hover:bg-overlay transition-colors"
-                        >
-                            Apply
-                        </button>
-                    </div>
-                </div>
             </div>
-        </div>
+        </AppDialog>
     );
 }

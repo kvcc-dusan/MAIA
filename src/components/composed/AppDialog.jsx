@@ -61,7 +61,15 @@ function AppDialog({
     <Dialog open={open} onOpenChange={handleOpenChange} {...props}>
       <DialogContent
         showCloseButton={showCloseButton}
-        className={cn("flex flex-col gap-5", panelSizes({ size }), className)}
+        className={cn(
+          "flex flex-col gap-5",
+          // Without a ceiling, a tall body (the 58-icon picker, a long form)
+          // grows past the viewport and takes the title and footer with it.
+          // The body scrolls instead — see contentClassName below.
+          size !== "full" && "max-h-[min(85vh,calc(100dvh-4rem))]",
+          panelSizes({ size }),
+          className
+        )}
       >
         {hasHeader && (
           <DialogHeader>

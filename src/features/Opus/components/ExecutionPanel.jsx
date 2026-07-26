@@ -108,7 +108,7 @@ export default function ExecutionPanel({ project }) {
                         </div>
                         {/* Title row — title left-aligned, circle on right */}
                         <div className="flex items-center gap-3">
-                            <span className="flex-1 min-w-0 text-[17px] text-white font-medium leading-snug truncate">
+                            <span className="flex-1 min-w-0 text-base text-white font-medium leading-snug truncate">
                                 {nowTask.title}
                             </span>
                             <button

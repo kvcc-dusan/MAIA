@@ -1,116 +1,115 @@
 // @maia:command-palette
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import React from "react";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import {
+  FolderAdd,
+  StickyNote03,
+  ChronosIcon,
+  OpusIcon,
+  CodexIcon,
+  ConnexaIcon,
+  LedgerIcon,
+  Home08,
+} from "./ui/CustomIcon.jsx";
 
+/**
+ * Command palette on cmdk. The previous version hand-rolled filtering, arrow-key
+ * selection and scoring — cmdk owns all of that (plus type-ahead, groups and
+ * scroll-into-view, which the old one lacked). It also listed both "Go to Today"
+ * and "Go to Home" running the same navigation; there is one entry now.
+ */
 export default function CommandPalette({
   open,
   onClose,
   notes = [],
-  onOpenNote,        // (id) => void
-  onCreateNote,      // () => void
-  onCreateProject,   // () => void
-  go,                // (pageId) => void
-  onOpenCronos,      // () => void
+  onOpenNote,
+  onCreateNote,
+  onCreateProject,
+  go,
+  onOpenCronos,
 }) {
-  const [q, setQ] = useState("");
-  const [i, setI] = useState(0);
-  const inputRef = useRef(null);
+  const run = (fn) => () => {
+    onClose();
+    fn?.();
+  };
 
-  const text = (s) => (s || "").toLowerCase();
-  const score = (title) => text(title).includes(text(q)) ? (q ? 1 : 0.5) : 0;
+  const pages = [
+    { label: "Go to Today", icon: Home08, to: "home" },
+    { label: "Go to Opus", icon: OpusIcon, to: "projects" },
+    { label: "Go to Codex", icon: CodexIcon, to: "overview" },
+    { label: "Go to Conexa", icon: ConnexaIcon, to: "graph" },
+    { label: "Go to Ledger", icon: LedgerIcon, to: "ledgerPage" },
+  ];
 
-  const actions = [
-    { label: "New Project", run: () => { onClose(); onCreateProject?.(); } }, // Triggers In-App Modal
-    { label: "New Note", run: () => { onClose(); onCreateNote?.(); } },
-    { label: "Chronos", run: () => { onClose(); onOpenCronos?.(); } },
-
-    { label: "Go to Opus", run: () => { onClose(); go?.("projects"); } },
-    { label: "Go to Connexa", run: () => { onClose(); go?.("graph"); } },
-    { label: "Go to Codex", run: () => { onClose(); go?.("overview"); } },
-    { label: "Go to Today", run: () => { onClose(); go?.("home"); } },
-    { label: "Go to Ledger", run: () => { onClose(); go?.("ledgerPage"); } },
-    { label: "Go to Home", run: () => { onClose(); go?.("home"); } },
-  ].map(a => ({ ...a, _type: "action" }));
-
-  const noteItems = notes
-    .map(n => ({ _type: "note", label: n.title || "Untitled", noteId: n.id, run: () => { onClose(); onOpenNote?.(n.id); } }))
-    .filter(n => score(n.label));
-
-  const items = useMemo(() => {
-    const act = actions.filter(a => score(a.label));
-    const list = [...act, ...noteItems].sort((a, b) => score(b.label) - score(a.label));
-    return list.slice(0, 12);
-  }, [q, notes]); // eslint-disable-line
-
-  useEffect(() => {
-    if (open) {
-      setQ("");
-      setI(0);
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (!open) return;
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowDown") { e.preventDefault(); setI((x) => Math.min(x + 1, items.length - 1)); }
-      if (e.key === "ArrowUp") { e.preventDefault(); setI((x) => Math.max(x - 1, 0)); }
-      if (e.key === "Enter") { e.preventDefault(); items[i]?.run(); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, i, items, onClose]); // Added items to dependency array for safety
-
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity" onMouseDown={onClose}>
-      <div
+    <CommandDialog
+      open={open}
+      onOpenChange={(next) => !next && onClose()}
+      title="Command palette"
+      description="Search commands and notes"
+    >
+      {/* The base-luma CommandDialog doesn't provide the cmdk root itself —
+          without this wrapper the Input/List primitives have no context and
+          the palette renders nothing. */}
+      <Command>
+        <CommandInput placeholder="Type a command or search notes…" />
+        <CommandList>
+          <CommandEmpty>No matching commands or notes.</CommandEmpty>
 
-        className="mx-auto w-[90%] md:w-[600px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 border border-border bg-black/80 backdrop-blur-xl"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="p-4 border-b border-border-subtle">
-          <input
-            ref={inputRef}
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            placeholder="Type a command or search notes..."
-            className="w-full bg-transparent px-4 py-3 text-sm font-sans text-white placeholder:text-muted-foreground focus:outline-hidden focus:ring-0 font-medium"
-          />
-        </div>
-        <div className="max-h-[min(360px,calc(100dvh-200px))] overflow-auto p-2 space-y-1 custom-scrollbar">
-          {items.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-subtle-foreground">No matching commands or notes.</div>
-          )}
-          {items.map((it, idx) => (
-            <button
-              key={idx}
-              onMouseEnter={() => setI(idx)}
-              onClick={() => it.run()}
-              className={cn(
-                "w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center justify-between group outline-hidden",
-                i === idx ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors shrink-0",
-                  i === idx ? "bg-white text-black" : "bg-overlay-subtle text-muted-foreground group-hover:bg-overlay group-hover:text-foreground-secondary"
-                )}>
-                  {it._type === 'action' ? 'CMD' : 'DOC'}
-                </div>
-                <span>{it.label}</span>
-              </div>
-              {it._type === 'note' && <span className="text-xs opacity-40 uppercase tracking-[0.15em] font-medium">Note</span>}
-            </button>
+        <CommandGroup heading="Actions">
+          <CommandItem onSelect={run(onCreateNote)}>
+            <StickyNote03 size={16} />
+            New note
+          </CommandItem>
+          <CommandItem onSelect={run(onCreateProject)}>
+            <FolderAdd size={16} />
+            New project
+          </CommandItem>
+          <CommandItem onSelect={run(onOpenCronos)}>
+            <ChronosIcon size={16} />
+            Open Chronos
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Navigate">
+          {pages.map((p) => (
+            <CommandItem key={p.to} onSelect={run(() => go?.(p.to))}>
+              <p.icon size={16} />
+              {p.label}
+            </CommandItem>
           ))}
-        </div>
-        <div className="px-4 py-3 border-t border-border-subtle bg-black/40 text-xs text-subtle-foreground flex justify-between uppercase tracking-[0.15em] font-bold">
-          <span>Search, Navigate, Act</span>
-          <span>ESC to close</span>
-        </div>
-      </div>
-    </div>
+        </CommandGroup>
+
+        {notes.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Notes">
+              {notes.slice(0, 50).map((n) => (
+                <CommandItem
+                  key={n.id}
+                  value={`note ${n.title || "Untitled"} ${n.id}`}
+                  onSelect={run(() => onOpenNote?.(n.id))}
+                >
+                  <StickyNote03 size={16} />
+                  {n.title || "Untitled"}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+        </CommandList>
+      </Command>
+    </CommandDialog>
   );
 }

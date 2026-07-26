@@ -49,7 +49,7 @@ export default function ActivitySummary({ project }) {
     }, [tasks, sessions, project.id]);
 
     const trendConfig = {
-        increasing: { label: '↑', color: 'text-[#10b981]' },
+        increasing: { label: '↑', color: 'text-success' },
         stable: { label: '→', color: 'text-subtle-foreground' },
         declining: { label: '↓', color: 'text-red-400' },
     };

@@ -1,7 +1,7 @@
 // @maia:projects
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
-import { createPortal } from "react-dom";
 import { uid } from "../lib/ids.js";
 import GlassSurface from "../components/GlassSurface";
 import CreateProjectModal from "../components/CreateProjectModal";
@@ -94,29 +94,14 @@ export default function Projects({
   }
 
   // Sidebar context menu
-  const [ctxMenu, setCtxMenu] = useState(null); // { projectId, x, y }
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [iconPickerId, setIconPickerId] = useState(null);
   const renameInputRef = useRef(null);
 
-  const openCtxMenu = (e, projectId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const W = 176, H = 130;
-    const vw = window.innerWidth, vh = window.innerHeight;
-    let x = e.clientX + 4, y = e.clientY - 4;
-    if (x + W > vw - 8) x = e.clientX - W - 4;
-    if (y + H > vh - 8) y = vh - H - 8;
-    setCtxMenu({ projectId, x, y });
-  };
-
-  const closeCtx = () => setCtxMenu(null);
-
   const startRename = (p) => {
     setRenamingId(p.id);
     setRenameValue(p.name);
-    closeCtx();
     setTimeout(() => renameInputRef.current?.focus(), 30);
   };
 
@@ -188,9 +173,10 @@ export default function Projects({
             )}
 
             {activeList.map(p => (
+              <Menu.Context key={p.id}>
+                <Menu.ContextTrigger
+                  render={
               <div
-                key={p.id}
-                onContextMenu={e => openCtxMenu(e, p.id)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
                   ? isCollapsed
                     ? "bg-transparent border-transparent shadow-none"
@@ -219,6 +205,21 @@ export default function Projects({
                   )
                 )}
               </div>
+                  }
+                />
+                <Menu.ContextContent>
+                  <Menu.ContextItem onClick={() => startRename(p)}>
+                    <Pen01 size={14} /> Rename
+                  </Menu.ContextItem>
+                  <Menu.ContextItem onClick={() => setIconPickerId(p.id)}>
+                    <Setting06 size={14} /> Edit icon
+                  </Menu.ContextItem>
+                  <Menu.ContextSeparator />
+                  <ContextDangerItem onClick={() => deleteProject(p.id)}>
+                    <Delete01 size={14} /> Delete
+                  </ContextDangerItem>
+                </Menu.ContextContent>
+              </Menu.Context>
             ))}
 
             {otherList.length > 0 && effectiveWidth > 120 && (
@@ -333,37 +334,6 @@ export default function Projects({
         onCreate={handleCreateProject}
       />
 
-      {/* Sidebar context menu */}
-      {ctxMenu && createPortal(
-        <>
-          <div className="fixed inset-0 z-9998" onClick={closeCtx} onContextMenu={e => { e.preventDefault(); closeCtx(); }} />
-          <div
-            className="fixed z-9999 w-44 bg-[#09090b] border border-border rounded-2xl shadow-2xl p-1 animate-in fade-in zoom-in-95 duration-100"
-            style={{ left: ctxMenu.x, top: ctxMenu.y }}
-          >
-            {(() => {
-              const p = normalizedProjects.find(p => p.id === ctxMenu.projectId);
-              if (!p) return null;
-              return (
-                <>
-                  <CtxItem onClick={() => startRename(p)} icon={<Pen01 size={14} />}>Rename</CtxItem>
-                  <CtxItem onClick={() => { setIconPickerId(p.id); closeCtx(); }} icon={<Setting06 size={14} />}>Edit Icon</CtxItem>
-                  <div className="h-px bg-overlay my-1" />
-                  <CtxItem
-                    onClick={() => { deleteProject(p.id); closeCtx(); }}
-                    className="text-red-400 hover:bg-red-500/10"
-                    icon={<Delete01 size={14} />}
-                  >
-                    Delete
-                  </CtxItem>
-                </>
-              );
-            })()}
-          </div>
-        </>,
-        document.body
-      )}
-
       {/* Icon picker for sidebar */}
       {iconPickerId && (() => {
         const p = normalizedProjects.find(p => p.id === iconPickerId);
@@ -390,14 +360,4 @@ export default function Projects({
   );
 }
 
-function CtxItem({ onClick, icon, children, className = "text-foreground-secondary hover:bg-overlay hover:text-white" }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center gap-2.5 transition-colors ${className}`}
-    >
-      <span className="text-xs opacity-70">{icon}</span>
-      {children}
-    </button>
-  );
-}
+

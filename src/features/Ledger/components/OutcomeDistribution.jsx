@@ -41,7 +41,7 @@ export function OutcomeDistribution({ data }) {
     }
 
     return (
-        <div className="h-full w-full relative">
+        <div className="h-full w-full relative text-foreground">
             {/* Radar Chart - fills full height */}
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="55%" outerRadius="85%" data={chartData}>
@@ -52,11 +52,11 @@ export function OutcomeDistribution({ data }) {
                     />
                     <Radar
                         dataKey="value"
-                        stroke="#10b981"
+                        stroke="currentColor"
                         strokeWidth={1.5}
-                        fill="#10b981"
+                        fill="currentColor"
                         fillOpacity={0.06}
-                        dot={{ fill: '#10b981', r: 3, filter: 'drop-shadow(0 0 3px #10b981)' }}
+                        dot={{ fill: 'currentColor', r: 3, filter: 'drop-shadow(0 0 3px rgba(250,250,250,0.5))' }}
                     />
                     <Tooltip
                         content={({ active, payload }) => {
