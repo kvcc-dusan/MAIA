@@ -5,6 +5,9 @@ import { PlusSignSquare as Plus, AiMagic as Sparkles, Settings01 as Settings, De
 import { JudgmentOverview } from "@/features/Ledger/components/JudgmentOverview";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useLongPress } from "../hooks/useLongPress";
+import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
+import { PromptDialog } from "@/components/composed/PromptDialog";
+import { AppDialog } from "@/components/composed/AppDialog";
 
 /* ──────────────────────────────────────────────────────────
    LedgerPage  –  Decision Journal & Cognitive Feedback Loop
@@ -17,88 +20,6 @@ const LABEL_CLASS = "text-xs font-bold uppercase tracking-widest text-subtle-for
 // Shared color tokens
 const STAKES_DOT = { high: '#f43f5e', medium: '#f59e0b', low: '#6366f1' };
 const OUTCOME_DOT = { success: '#10b981', mixed: '#f59e0b', failure: '#f43f5e' };
-
-// ─── Shared Components ───
-
-function CloseButton({ onClick, className }) {
-    return (
-        <button
-            onClick={onClick}
-            className={cn("w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:bg-overlay-subtle hover:text-foreground-secondary transition-colors", className)}
-        >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-    );
-}
-
-// ─── Confirm Modal (replaces window.confirm) ───
-
-function ConfirmModal({ message, onConfirm, onCancel, danger = true, confirmLabel = "Confirm" }) {
-    return (
-        <div
-            className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
-            onClick={onCancel}
-        >
-            <div
-                className="w-full max-w-sm mx-4 bg-black/95 backdrop-blur-xl border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200"
-                onClick={e => e.stopPropagation()}
-            >
-                <p className="text-sm text-foreground-secondary leading-relaxed mb-6">{message}</p>
-                <div className="flex justify-end gap-4">
-                    <button onClick={onCancel} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
-                    <button
-                        onClick={onConfirm}
-                        className={cn(
-                            "text-xs font-bold uppercase tracking-wider transition-colors",
-                            danger ? "text-red-400 hover:text-red-300" : "text-emerald-400 hover:text-emerald-300"
-                        )}
-                    >
-                        {confirmLabel}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Rename Modal (replaces window.prompt) ───
-
-function RenameModal({ initialValue, onConfirm, onCancel }) {
-    const [value, setValue] = useState(initialValue || '');
-
-    return (
-        <div
-            className="fixed inset-0 z-200 flex items-center justify-center bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
-            onClick={onCancel}
-        >
-            <div
-                className="w-full max-w-sm mx-4 bg-black/95 backdrop-blur-xl border border-border rounded-2xl px-6 py-6 shadow-2xl animate-in zoom-in-95 duration-200"
-                onClick={e => e.stopPropagation()}
-            >
-                <label className={LABEL_CLASS}>Rename Decision</label>
-                <input
-                    autoFocus
-                    value={value}
-                    onChange={e => setValue(e.target.value)}
-                    onKeyDown={e => {
-                        if (e.key === 'Enter' && value.trim()) onConfirm(value.trim());
-                        if (e.key === 'Escape') onCancel();
-                    }}
-                    className={cn(INPUT_CLEAN, "text-sm border-b border-border pb-2")}
-                />
-                <div className="flex justify-end gap-4 mt-6">
-                    <button onClick={onCancel} className="text-xs text-muted-foreground hover:text-foreground-secondary transition-colors">Cancel</button>
-                    <button
-                        onClick={() => value.trim() && onConfirm(value.trim())}
-                        className="text-xs font-bold uppercase tracking-wider text-white hover:text-foreground-secondary transition-colors"
-                    >
-                        Rename
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // ─── New / Edit Decision Modal ───
 
@@ -122,23 +43,19 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
     };
 
     return (
-        <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
-            onClick={onClose}
+        <AppDialog
+            open
+            onClose={onClose}
+            size="lg"
+            title={
+                <span className="flex items-center gap-2">
+                    <Scale size={14} className="text-muted-foreground" />
+                    {isEditing ? "Edit Decision" : "Log Decision"}
+                </span>
+            }
         >
-            <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2">
-                        <Scale size={14} className="text-muted-foreground" />
-                        {isEditing ? "Edit Decision" : "Log Decision"}
-                    </h2>
-                    <CloseButton onClick={onClose} />
-                </div>
 
-                <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
                     <div>
                         <input
                             autoFocus
@@ -223,8 +140,7 @@ function NewDecisionModal({ onClose, onSubmit, initialData }) {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </AppDialog>
     );
 }
 
@@ -237,20 +153,9 @@ function ReviewModal({ decision, onClose, onReview }) {
     if (!decision) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
-            onClick={onClose}
-        >
-            <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white">Review Outcome</h2>
-                    <CloseButton onClick={onClose} />
-                </div>
+        <AppDialog open onClose={onClose} size="lg" title="Review Outcome">
 
-                <div className="px-8 pb-8 space-y-6">
+                <div className="space-y-6">
                     {/* Decision Summary */}
                     <div>
                         <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
@@ -310,8 +215,7 @@ function ReviewModal({ decision, onClose, onReview }) {
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
+        </AppDialog>
     );
 }
 
@@ -321,20 +225,9 @@ function DecisionDetailModal({ decision, onClose }) {
     if (!decision) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
-            onClick={onClose}
-        >
-            <div
-                className="w-full max-w-lg mx-4 bg-black/90 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[calc(100dvh-2rem)] overflow-y-auto"
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between px-8 pt-8 pb-4">
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white">Decision Review</h2>
-                    <CloseButton onClick={onClose} />
-                </div>
+        <AppDialog open onClose={onClose} size="lg" title="Decision Review">
 
-                <div className="px-8 pb-8 space-y-6">
+                <div className="space-y-6">
                     {/* Decision Title & Tags */}
                     <div>
                         <div className="text-xl font-medium text-foreground mb-3">{decision.title}</div>
@@ -390,8 +283,7 @@ function DecisionDetailModal({ decision, onClose }) {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+        </AppDialog>
     );
 }
 
@@ -745,14 +637,13 @@ export default function LedgerPage({ ledger = [], setLedger }) {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === "Escape") {
-                if (selectMode) exitSelectMode();
-                else if (confirm) setConfirm(null);
-            }
+            // Dialog dismissal is handled by Base UI; this only covers
+            // select mode, which is page state rather than an overlay.
+            if (e.key === "Escape" && selectMode) exitSelectMode();
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [exitSelectMode, selectMode, confirm]);
+    }, [exitSelectMode, selectMode]);
 
     // ─── Sorted & Filtered Decisions ───
 
@@ -1017,25 +908,24 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 />
             )}
 
-            {/* In-app Confirm Dialog */}
-            {confirm && (
-                <ConfirmModal
-                    message={confirm.message}
-                    danger={confirm.danger}
-                    confirmLabel={confirm.confirmLabel}
-                    onConfirm={() => { confirm.onConfirm(); setConfirm(null); }}
-                    onCancel={() => setConfirm(null)}
-                />
-            )}
+            <ConfirmDialog
+                open={!!confirm}
+                onClose={() => setConfirm(null)}
+                onConfirm={() => confirm?.onConfirm()}
+                description={confirm?.message}
+                confirmLabel={confirm?.confirmLabel || "Delete"}
+                tone={confirm?.danger === false ? "default" : "danger"}
+            />
 
-            {/* In-app Rename Dialog */}
-            {renaming && (
-                <RenameModal
-                    initialValue={renaming.title}
-                    onConfirm={(newTitle) => { onRename(renaming.id, newTitle); setRenaming(null); }}
-                    onCancel={() => setRenaming(null)}
-                />
-            )}
+            <PromptDialog
+                open={!!renaming}
+                onClose={() => setRenaming(null)}
+                onSubmit={(newTitle) => onRename(renaming.id, newTitle)}
+                title="Rename decision"
+                label="Title"
+                initialValue={renaming?.title || ""}
+                submitLabel="Rename"
+            />
 
             {/* Context Menu */}
             {menu.open && (
