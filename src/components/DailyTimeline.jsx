@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { isPastTime, hasOverlap, sameDay } from "../lib/time";
-import { Portal } from "./ui/portal";
-import { AnimatePresence } from "framer-motion";
+import { getSessionBlockClass } from "@/lib/sessionColors";
+import { SessionColorSwatches } from "./SessionColorSwatches";
+import { Menu } from "@/components/composed/Menu";
 import { Pen01, Delete01 } from "./ui/CustomIcon.jsx";
 
 const SLOT_HEIGHT = 40;
@@ -51,47 +53,18 @@ const SessionItem = memo(({
   height,
   isShort,
   isDragging,
-  isEditing,
   onDoubleClick,
-  onContextMenu,
   onMouseDownMove,
   onMouseDownResize,
-  onLongPress
 }) => {
-  const longPressRef = useRef(null);
-
-  if (isEditing) return null;
-
   const start = new Date(session.start);
   const end = new Date(session.end);
-
-  const handleTouchStart = (e) => {
-    longPressRef.current = setTimeout(() => {
-      longPressRef.current = null;
-      if (navigator.vibrate) navigator.vibrate(50);
-      const touch = e.touches[0];
-      onLongPress(touch, session);
-    }, 500);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressRef.current) {
-      clearTimeout(longPressRef.current);
-      longPressRef.current = null;
-    }
-  };
-
-  const handleTouchMove = () => {
-    if (longPressRef.current) {
-      clearTimeout(longPressRef.current);
-      longPressRef.current = null;
-    }
-  };
 
   return (
     <div
       className={cn(
-        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl bg-overlay backdrop-blur-xs border border-border px-3 overflow-hidden hover:bg-overlay hover:border-border-strong transition-all z-10 select-none group",
+        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl backdrop-blur-xs border px-3 overflow-hidden transition-all z-10 select-none group",
+        getSessionBlockClass(session.color),
         isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
         isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
       )}
@@ -100,26 +73,18 @@ const SessionItem = memo(({
         e.stopPropagation();
         onDoubleClick(session);
       }}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onContextMenu(e, session);
-      }}
       onMouseDown={(e) => onMouseDownMove(e, session)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
     >
-      <div className={cn("font-medium truncate text-white pointer-events-none", isShort ? "text-xs" : "text-xs")}>
+      <div className={cn("font-medium truncate pointer-events-none", isShort ? "text-xs" : "text-xs")}>
         {session.title}
       </div>
       {!isShort && session.description && (
-        <div className="text-xs text-muted-foreground line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
+        <div className="text-xs opacity-80 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
           {session.description}
         </div>
       )}
       <div className={cn(
-        "text-xs text-muted-foreground tracking-tight pointer-events-none",
+        "text-xs opacity-70 tracking-tight pointer-events-none",
         isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
         {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
@@ -132,12 +97,46 @@ const SessionItem = memo(({
   )
 });
 
+/**
+ * Session block plus its right-click / long-press menu.
+ *
+ * Base UI's ContextMenuTrigger provides right-click AND long-press-on-touch
+ * out of the box — the old code hand-rolled both (a `longPressRef` timer plus
+ * three touch handlers, and a duplicated viewport-clamp calculation also found
+ * in ExecutionPanel and ProjectsPage). `display: contents` on the trigger
+ * keeps it out of the box model entirely, so SessionItem's absolute
+ * positioning is untouched by the extra wrapping element.
+ */
+const SessionWithMenu = memo(({ session, onEdit, onDelete, onColorChange, ...itemProps }) => {
+  return (
+    <Menu.Context>
+      <Menu.ContextTrigger className="contents">
+        <SessionItem session={session} {...itemProps} />
+      </Menu.ContextTrigger>
+      <Menu.ContextContent>
+        <Menu.ContextLabel>Session</Menu.ContextLabel>
+        <div className="px-2 py-1.5">
+          <SessionColorSwatches value={session.color} onChange={(color) => onColorChange(session.id, color)} />
+        </div>
+        <Menu.ContextSeparator />
+        <Menu.ContextItem onClick={() => onEdit(session)}>
+          <Pen01 size={14} className="shrink-0" />
+          Edit Session
+        </Menu.ContextItem>
+        <Menu.ContextItem variant="destructive" onClick={() => onDelete(session.id)}>
+          <Delete01 size={14} className="shrink-0" />
+          Delete Session
+        </Menu.ContextItem>
+      </Menu.ContextContent>
+    </Menu.Context>
+  );
+});
+
 function DailyTimeline({
   sessions,
   setSessions,
   selectedDate,
   onOpenSessionForm,
-  editingSessionId,
 }) {
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -147,7 +146,6 @@ function DailyTimeline({
   const [dragSession, setDragSession] = useState(null);
 
   const [gridDraft, setGridDraft] = useState(null);
-  const [contextMenu, setContextMenu] = useState(null);
 
   const scrollContainerRef = useRef(null);
 
@@ -168,13 +166,6 @@ function DailyTimeline({
 
     scrollContainerRef.current.scrollTop = Math.max(0, (targetSlot - 1) * SLOT_HEIGHT);
   }, [selectedDate]);
-
-  // Context Menu cleanup
-  useEffect(() => {
-    const handleClick = () => setContextMenu(null);
-    window.addEventListener('click', handleClick);
-    return () => window.removeEventListener('click', handleClick);
-  }, []);
 
   const getSlotDate = useCallback((i) => {
     const d = new Date(selectedDate);
@@ -234,7 +225,7 @@ function DailyTimeline({
       }
 
       setGridDraft({ start, end });
-      openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none" });
+      openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none", color: "neutral" });
 
     } else if (dragMode === 'move' && dragSession) {
       const start = new Date(current);
@@ -244,8 +235,16 @@ function DailyTimeline({
       if (dragSession.id === 'draft') {
         setGridDraft({ start, end });
       } else {
-        const updated = { ...dragSession, start: start.toISOString(), end: end.toISOString() };
-        setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+        // Moving used to skip the checks `create` applies, so a session could
+        // be dragged into the past or on top of another one.
+        if (isPastTime(start)) {
+          toast.error("Cannot move a session into the past");
+        } else if (hasOverlap(start, end, sessions, dragSession.id)) {
+          toast.error("That time slot is already occupied");
+        } else {
+          const updated = { ...dragSession, start: start.toISOString(), end: end.toISOString() };
+          setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
+        }
       }
     } else if (dragMode === 'resize' && dragSession) {
       const start = new Date(dragSession.start);
@@ -254,6 +253,8 @@ function DailyTimeline({
 
       if (dragSession.id === 'draft') {
         setGridDraft({ start, end: newEnd });
+      } else if (hasOverlap(start, newEnd, sessions, dragSession.id)) {
+        toast.error("That time slot is already occupied");
       } else {
         const updated = { ...dragSession, end: newEnd.toISOString() };
         setSessions(prev => prev.map(s => s.id === updated.id ? updated : s));
@@ -279,7 +280,7 @@ function DailyTimeline({
     if (isPastTime(slotDate) || hasOverlap(slotDate, slotEnd, sessions)) return;
 
     setGridDraft({ start: slotDate, end: slotEnd });
-    openForm({ id: null, title: "", description: "", start: slotDate, end: slotEnd, linkedProjectId: "none" });
+    openForm({ id: null, title: "", description: "", start: slotDate, end: slotEnd, linkedProjectId: "none", color: "neutral" });
   }, [sessions, getSlotDate, openForm]);
 
   const onSessionDouble = useCallback((s) => {
@@ -289,49 +290,22 @@ function DailyTimeline({
       description: s.description || "",
       start: new Date(s.start),
       end: new Date(s.end),
-      linkedProjectId: s.linkedProjectId || "none"
+      linkedProjectId: s.linkedProjectId || "none",
+      color: s.color || "neutral",
     });
   }, [openForm]);
 
-  const onSessionContext = useCallback((e, s) => {
-    const menuWidth = 192; // w-48 = 12rem = 192px
-    const menuHeight = 120; // approximate height
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let x = e.clientX;
-    let y = e.clientY;
-
-    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
-    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
-    if (x < 8) x = 8;
-    if (y < 8) y = 8;
-
-    setContextMenu({ x, y, session: s });
-  }, []);
+  const onSessionEdit = useCallback((s) => onSessionDouble(s), [onSessionDouble]);
+  const onSessionDelete = useCallback((id) => setSessions(prev => prev.filter(s => s.id !== id)), [setSessions]);
+  const onSessionColorChange = useCallback((id, color) => {
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, color } : s));
+  }, [setSessions]);
 
   const onSessionMove = useCallback((e, s) => handleSessionMouseDown(e, s, 'move'), [handleSessionMouseDown]);
   const onSessionResize = useCallback((e, s) => handleSessionMouseDown(e, s, 'resize'), [handleSessionMouseDown]);
 
-  // Long-press handler for touch context menu on sessions
-  const onSessionLongPress = useCallback((touch, s) => {
-    const menuWidth = 192;
-    const menuHeight = 120;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let x = touch.clientX;
-    let y = touch.clientY;
-
-    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
-    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
-    if (x < 8) x = 8;
-    if (y < 8) y = 8;
-
-    setContextMenu({ x, y, session: s });
-  }, []);
-
-  // Touch handlers for creating sessions on the grid
+  // Touch handlers for creating sessions on the grid (unrelated to the
+  // session context menu, which gets touch support for free from Base UI)
   const getSlotFromY = useCallback((clientY) => {
     if (!scrollContainerRef.current) return 0;
     const rect = scrollContainerRef.current.getBoundingClientRect();
@@ -423,23 +397,22 @@ function DailyTimeline({
           const durationMins = (endMins - startMins) || 60;
           const top = (startMins / 30) * SLOT_HEIGHT;
           const height = (durationMins / 30) * SLOT_HEIGHT;
-          const isEditing = editingSessionId === s.id;
           const isShort = durationMins <= 30;
 
           return (
-            <SessionItem
+            <SessionWithMenu
               key={s.id}
               session={s}
               top={top}
               height={height}
               isShort={isShort}
               isDragging={isDragging}
-              isEditing={isEditing}
               onDoubleClick={onSessionDouble}
-              onContextMenu={onSessionContext}
               onMouseDownMove={onSessionMove}
               onMouseDownResize={onSessionResize}
-              onLongPress={onSessionLongPress}
+              onEdit={onSessionEdit}
+              onDelete={onSessionDelete}
+              onColorChange={onSessionColorChange}
             />
           )
         })}
@@ -467,7 +440,7 @@ function DailyTimeline({
               onMouseDown={(e) => handleSessionMouseDown(e, draftObj, 'move')}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none" });
+                openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none", color: "neutral" });
               }}
             >
               <div className="font-medium truncate italic text-foreground/70">New Session</div>
@@ -482,7 +455,9 @@ function DailyTimeline({
           )
         })()}
 
-        {/* Active drag preview */}
+        {/* Active drag preview. Was lg:left-24 while every placed session and
+            the draft preview use lg:left-28 — the block used to visibly jump
+            sideways the instant you released the drag. */}
         {isDragging && dragMode === 'create' && dragStart && dragCurrent && (() => {
           const start = new Date(Math.min(dragStart, dragCurrent));
           const end = new Date(Math.max(dragStart, dragCurrent) + 30 * 60000);
@@ -494,58 +469,12 @@ function DailyTimeline({
 
           return (
             <div
-              className="absolute left-16 sm:left-20 lg:left-24 right-2 sm:right-4 rounded-md bg-overlay border border-border-strong z-20 pointer-events-none"
+              className="absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-overlay border border-border-strong z-20 pointer-events-none"
               style={{ top: `${top}px`, height: `${height - 1}px` }}
             />
           )
         })()}
       </div>
-
-      {/* Context menu */}
-      <AnimatePresence>
-        {contextMenu && (
-          <Portal>
-            <div className="fixed inset-0 z-9998" onClick={() => setContextMenu(null)} />
-            <div
-              className="fixed bg-[#09090b] border border-border rounded-2xl shadow-2xl p-1 w-48 z-9999 overflow-hidden animate-in fade-in zoom-in-95 duration-100"
-              style={{ top: contextMenu.y, left: contextMenu.x }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.15em] border-b border-border-subtle mb-1">
-                Session
-              </div>
-              <button
-                className="w-full text-left px-3 py-2 text-xs text-foreground-secondary hover:bg-overlay hover:text-white rounded-xl transition-colors flex items-center gap-2"
-                onClick={() => {
-                  const s = contextMenu.session;
-                  openForm({
-                    id: s.id,
-                    title: s.title,
-                    description: s.description || "",
-                    start: new Date(s.start),
-                    end: new Date(s.end),
-                    linkedProjectId: s.linkedProjectId || "none"
-                  });
-                  setContextMenu(null);
-                }}
-              >
-                <Pen01 size={14} className="shrink-0" />
-                Edit Session
-              </button>
-              <button
-                className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-colors flex items-center gap-2"
-                onClick={() => {
-                  setSessions(prev => prev.filter(s => s.id !== contextMenu.session.id));
-                  setContextMenu(null);
-                }}
-              >
-                <Delete01 size={14} className="shrink-0" />
-                Delete Session
-              </button>
-            </div>
-          </Portal>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

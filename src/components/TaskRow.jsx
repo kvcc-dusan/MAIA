@@ -1,125 +1,93 @@
 import React, { useState } from "react";
-import * as Popover from "@radix-ui/react-popover";
-import * as ContextMenu from "@radix-ui/react-context-menu";
-import { AnimatePresence } from "framer-motion";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { cn, getPriorityColor } from "@/lib/utils";
-import { POPOVER_CLASS, TASK_PRIORITIES } from "@/lib/constants";
+import { TASK_PRIORITIES } from "@/lib/constants";
 import ProjectIcon from "./ProjectIcon";
 import { CloseButton } from "./ui/CloseButton";
 import { PriorityCheckbox } from "./ui/PriorityCheckbox";
-import { CancelSquare } from "./ui/CustomIcon.jsx";
 
 export default React.memo(TaskRow);
 
+/**
+ * Right-click menu and detail popover both move onto the app's one set of
+ * primitives (Base UI via composed/Menu and ui/popover) — this was the last
+ * file still importing Radix's context-menu/popover directly.
+ */
 function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
   const [open, setOpen] = useState(false);
 
-  // Derived
   const priorityLabel = TASK_PRIORITIES.find(p => p.value === (task.priority || 'p3'))?.label || 'Normal';
   const priorityColor = getPriorityColor(task.priority || 'p3');
 
   return (
-    <ContextMenu.Root>
-      <ContextMenu.Trigger className="block">
-        <Popover.Root open={open} onOpenChange={setOpen}>
-          <Popover.Trigger asChild>
-            <div
-              className="group flex items-center gap-3 p-3 rounded-xl bg-overlay-subtle border border-border-subtle hover:border-border transition-all hover:bg-overlay cursor-pointer"
-              onClick={(e) => {
-                // Prevent popover if clicking checkbox or delete
-                if (e.target.closest('button')) {
-                  e.preventDefault();
-                  return;
-                }
-              }}
-            >
-              <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
-              <div className="flex-1 min-w-0">
-                <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-muted-foreground line-through" : "text-foreground")}>{task.title}</div>
-                {task.due && <div className="text-xs text-muted-foreground mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
-              </div>
-              <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
+    <Menu.Context>
+      <Menu.ContextTrigger className="contents">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger
+            nativeButton={false}
+            render={
+              <div
+                className="group flex items-center gap-3 p-3 rounded-xl bg-overlay-subtle border border-border-subtle hover:border-border transition-all hover:bg-overlay cursor-pointer"
+                onClick={(e) => {
+                  if (e.target.closest('button')) {
+                    e.preventDefault();
+                    return;
+                  }
+                }}
+              />
+            }
+          >
+            <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
+            <div className="flex-1 min-w-0">
+              <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-muted-foreground line-through" : "text-foreground")}>{task.title}</div>
+              {task.due && <div className="text-xs text-muted-foreground mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
             </div>
-          </Popover.Trigger>
+            <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
+          </PopoverTrigger>
 
-          <AnimatePresence>
-            {open && (
-              <Popover.Portal>
-                <Popover.Content
-                  className={cn(POPOVER_CLASS, "z-9999 w-64 p-4 animate-in zoom-in-95 duration-200")}
-                  sideOffset={5}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-semibold text-white text-sm leading-tight">{task.title}</h4>
-                      <Popover.Close className="text-muted-foreground hover:text-white transition-colors shrink-0">
-                        <CancelSquare size={14} className="shrink-0" />
-                      </Popover.Close>
-                    </div>
+          <PopoverContent align="start" className="w-64 p-4">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground text-sm leading-tight">{task.title}</h4>
 
-                    {task.desc && <p className="text-xs text-muted-foreground leading-relaxed">{task.desc}</p>}
+              {task.desc && <p className="text-xs text-muted-foreground leading-relaxed">{task.desc}</p>}
 
-                    <div className="pt-2 border-t border-border-subtle flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-overlay-subtle border border-border">
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: priorityColor }} />
-                        <span className="text-xs text-foreground-secondary">{priorityLabel} Priority</span>
-                      </div>
-                      {task.due && (
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(task.due).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Popover.Arrow className="fill-[#09090b]" />
-                </Popover.Content>
-              </Popover.Portal>
-            )}
-          </AnimatePresence>
-        </Popover.Root>
-      </ContextMenu.Trigger>
+              <div className="pt-2 border-t border-border-subtle flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-overlay-subtle border border-border">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: priorityColor }} />
+                  <span className="text-xs text-foreground-secondary">{priorityLabel} Priority</span>
+                </div>
+                {task.due && (
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(task.due).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </Menu.ContextTrigger>
 
-      <ContextMenu.Portal>
-        <ContextMenu.Content className={cn(POPOVER_CLASS, "z-9999 w-48 p-1 animate-in fade-in duration-200 overflow-hidden")}>
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs text-foreground-secondary hover:bg-overlay hover:text-white rounded-xl cursor-pointer outline-hidden transition-colors"
-            onSelect={onEdit}
-          >
-            <span>Edit Task</span>
-          </ContextMenu.Item>
+      <Menu.ContextContent>
+        <Menu.ContextItem onClick={onEdit}>Edit Task</Menu.ContextItem>
 
-          <ContextMenu.Sub>
-            <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white rounded cursor-pointer outline-hidden transition-colors">
-              Assign to Project
-              <span>›</span>
-            </ContextMenu.SubTrigger>
-            <ContextMenu.Portal>
-              <ContextMenu.SubContent className={cn(POPOVER_CLASS, "z-9999 w-48 p-1 animate-in fade-in duration-200 ml-1")}>
-                {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-subtle-foreground italic">No projects</div>}
-                {projects.map(p => (
-                  <ContextMenu.Item
-                    key={p.id}
-                    className="flex items-center gap-2 px-3 py-2 text-xs text-foreground-secondary hover:bg-overlay hover:text-white rounded-xl cursor-pointer outline-hidden transition-colors"
-                    onSelect={() => onAssign(p.id)}
-                  >
-                    <ProjectIcon name={p.icon} size={14} className="text-muted-foreground group-hover:text-white" />
-                    <span className="truncate">{p.name}</span>
-                  </ContextMenu.Item>
-                ))}
-              </ContextMenu.SubContent>
-            </ContextMenu.Portal>
-          </ContextMenu.Sub>
+        <Menu.ContextSub>
+          <Menu.ContextSubTrigger>Assign to Project</Menu.ContextSubTrigger>
+          <Menu.ContextSubContent>
+            {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-subtle-foreground italic">No projects</div>}
+            {projects.map(p => (
+              <Menu.ContextItem key={p.id} onClick={() => onAssign(p.id)}>
+                <ProjectIcon name={p.icon} size={14} className="text-muted-foreground" />
+                <span className="truncate">{p.name}</span>
+              </Menu.ContextItem>
+            ))}
+          </Menu.ContextSubContent>
+        </Menu.ContextSub>
 
-          <ContextMenu.Separator className="h-px bg-overlay my-1" />
+        <Menu.ContextSeparator />
 
-          <ContextMenu.Item
-            className="flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl cursor-pointer outline-hidden transition-colors"
-            onSelect={onDelete}
-          >
-            Delete Task
-          </ContextMenu.Item>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
-    </ContextMenu.Root>
+        <ContextDangerItem onClick={onDelete}>Delete Task</ContextDangerItem>
+      </Menu.ContextContent>
+    </Menu.Context>
   );
 }

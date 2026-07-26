@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import ChronosModal from './ChronosModal';
 import React from 'react';
@@ -22,7 +22,8 @@ vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }) => <>{children}</>,
 }));
 
-// Mock react-dom createPortal
+// Mock react-dom createPortal so portalled dialog/menu content stays inside
+// the test container instead of being appended to document.body.
 vi.mock('react-dom', async () => {
   const actual = await vi.importActual('react-dom');
   return {
@@ -38,18 +39,22 @@ describe('ChronosModal', () => {
   const mockOnClose = vi.fn();
   const mockSetTasks = vi.fn();
   const mockSetReminders = vi.fn();
+  const mockSetSessions = vi.fn();
 
-  const reminders = [];
+  const baseProps = {
+    onClose: mockOnClose,
+    tasks: [],
+    setTasks: mockSetTasks,
+    reminders: [],
+    setReminders: mockSetReminders,
+    sessions: [],
+    setSessions: mockSetSessions,
+    projects: [],
+  };
 
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2024-02-06T12:00:00Z'));
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
+  // No frozen system time here: nothing in this suite asserts on a specific
+  // date, and fake timers deadlock userEvent's internal scheduling unless
+  // carefully configured — simplest to just not need them.
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -58,64 +63,34 @@ describe('ChronosModal', () => {
     cleanup();
   });
 
-  it('renders correctly (snapshot)', () => {
-    const props = {
-      onClose: mockOnClose,
-      tasks: [
-        { id: '1', title: 'Task 1', done: false, priority: 'p1' },
-        { id: '2', title: 'Task 2', done: true, priority: 'p2' },
-      ],
-      setTasks: mockSetTasks,
-      reminders: [
-        { id: 's1', title: 'Signal 1', scheduledAt: '2024-02-06T13:00:00Z', priority: 'high' }
-      ],
-      setReminders: mockSetReminders,
-      sessions: [],
-      setSessions: vi.fn(),
-    };
-
-    const { asFragment } = render(<ChronosModal {...props} />);
-    expect(asFragment()).toMatchSnapshot();
+  it('renders as a labelled dialog', () => {
+    render(<ChronosModal {...baseProps} />);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByText('Chronos')).toBeInTheDocument();
   });
 
-  it('renders with close button having aria-label', () => {
-    const tasks = [
-      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
-    ];
-    render(
-      <ChronosModal
-        onClose={mockOnClose}
-        tasks={tasks}
-        setTasks={mockSetTasks}
-        reminders={reminders}
-        setReminders={mockSetReminders}
-        sessions={[]}
-        setSessions={vi.fn()}
-      />
-    );
-
-    const closeButton = screen.getByLabelText('Close Modal');
+  it('closes via the standard dialog close button', () => {
+    render(<ChronosModal {...baseProps} />);
+    // AppDialog's own close button — every dialog in the app shares this
+    // affordance now, so it is named "Close", not "Close Modal".
+    const closeButton = screen.getByRole('button', { name: 'Close' });
     expect(closeButton).toBeInTheDocument();
   });
 
-  it('renders task close button with aria-label', () => {
-    // Note: TaskRow in HEAD might default to "Close", so checking if "Delete Task" is effective or "Close" is present
-    // Adjust expectations if TaskRow doesn't pass "Delete Task"
+  it('shows Tasks and Signals sections with add controls', () => {
+    render(<ChronosModal {...baseProps} />);
+    expect(screen.getByText('Tasks')).toBeInTheDocument();
+    expect(screen.getByText('Signals')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add Task')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add Signal')).toBeInTheDocument();
+  });
+
+  it('renders task delete button with aria-label', () => {
     const tasks = [
       { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
     ];
-    render(
-      <ChronosModal
-        onClose={mockOnClose}
-        tasks={tasks}
-        setTasks={mockSetTasks}
-        reminders={reminders}
-        setReminders={mockSetReminders}
-        sessions={[]}
-        setSessions={vi.fn()}
-      />
-    );
-
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
     const deleteButton = screen.getByLabelText('Delete Task');
     expect(deleteButton).toBeInTheDocument();
   });
@@ -124,45 +99,49 @@ describe('ChronosModal', () => {
     const tasks = [
       { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
     ];
-    render(
-      <ChronosModal
-        onClose={mockOnClose}
-        tasks={tasks}
-        setTasks={mockSetTasks}
-        reminders={reminders}
-        setReminders={mockSetReminders}
-        sessions={[]}
-        setSessions={vi.fn()}
-      />
-    );
-
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
     const buttons = screen.getAllByRole('button');
     const checkbox = buttons.find(b => b.getAttribute('aria-label')?.includes('Mark as done'));
     expect(checkbox).toBeInTheDocument();
   });
 
-  it.skip('handles Escape in DateTimePicker without closing modal', async () => {
-    const tasks = [
-      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
-    ];
+  it('opens the task form and shows an inline error on empty submit', async () => {
     const user = userEvent.setup();
-    render(
-      <ChronosModal
-        onClose={mockOnClose}
-        tasks={tasks}
-        setTasks={mockSetTasks}
-        reminders={reminders}
-        setReminders={mockSetReminders}
-        sessions={[]}
-        setSessions={vi.fn()}
-      />
-    );
+    render(<ChronosModal {...baseProps} />);
 
-    const addSignalBtns = screen.getAllByText('+');
-    // Assuming the second one is for signals.
-    if (addSignalBtns[1]) {
-      await user.click(addSignalBtns[1]);
-      // ... simplified interaction check given limited context ...
-    }
+    await user.click(screen.getByLabelText('Add Task'));
+    expect(screen.getByText('New Task')).toBeInTheDocument();
+    // Field renders a visible-but-aria-hidden '*' after required labels;
+    // testing-library's label matching includes it in textContent, so the
+    // computed label text is "Title*", not "Title".
+    expect(screen.getByLabelText('Title', { exact: false })).toBeInTheDocument();
+
+    // Submitting with an empty title used to silently no-op; it now says why.
+    await user.click(screen.getByRole('button', { name: 'Create Task' }));
+    expect(screen.getByText('Give the task a title.')).toBeInTheDocument();
+    expect(mockSetTasks).not.toHaveBeenCalled();
+  });
+
+  it('creates a task with a title and returns to the calendar view', async () => {
+    const user = userEvent.setup();
+    render(<ChronosModal {...baseProps} />);
+
+    await user.click(screen.getByLabelText('Add Task'));
+    await user.type(screen.getByLabelText('Title', { exact: false }), 'Write the report');
+    await user.click(screen.getByRole('button', { name: 'Create Task' }));
+
+    expect(mockSetTasks).toHaveBeenCalled();
+    expect(screen.queryByText('New Task')).not.toBeInTheDocument();
+  });
+
+  it('cancels the signal form back to the calendar', async () => {
+    const user = userEvent.setup();
+    render(<ChronosModal {...baseProps} />);
+
+    await user.click(screen.getByLabelText('Add Signal'));
+    expect(screen.getByText('New Signal')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByText('New Signal')).not.toBeInTheDocument();
   });
 });

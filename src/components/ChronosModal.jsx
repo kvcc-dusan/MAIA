@@ -1,20 +1,29 @@
 // @maia:chronos-modal
-import React, { useEffect, useMemo, useState } from "react";
-import { uid, isoNow } from "../lib/ids.js";
-import { ensurePermission, scheduleLocalNotification, rescheduleAll, clearScheduled } from "../utils/notify.js";
-import { cn } from "@/lib/utils";
-import { Folder01 as Folder, PlusSignSquare, ChevronRight } from "./ui/CustomIcon.jsx";
-
-import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS, INPUT_CLASS } from "../lib/constants";
-import { sameDay, toLocalInputValue, isPastTime, hasOverlap } from "../lib/time";
+import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CloseButton } from "./ui/CloseButton";
-import { CustomSelect } from "./ui/CustomSelect";
-import { DateTimePicker } from "./ui/DateTimePicker";
-import { PillSelect } from "./ui/PillSelect";
+import { uid, isoNow } from "../lib/ids.js";
+// rescheduleAll intentionally not called here — App.jsx already reschedules
+// whenever `reminders` changes, so a duplicate here just re-armed the same
+// timers on every Chronos open.
+import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../utils/notify.js";
+import { cn } from "@/lib/utils";
+import { AppDialog } from "@/components/composed/AppDialog";
+import { EntityForm } from "@/components/composed/EntityForm";
+import { Field } from "@/components/composed/Field";
+import { Select } from "@/components/composed/Select";
+import { DateTimeField } from "@/components/composed/DateTimeField";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Folder01 as FolderIcon } from "./ui/CustomIcon.jsx";
+import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+
+import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../lib/constants";
+import { sameDay, toLocalInputValue, isPastTime, hasOverlap } from "../lib/time";
 import TaskRow from "./TaskRow";
 import SignalRow from "./SignalRow";
 import DailyTimeline from "./DailyTimeline";
+import { SessionColorSwatches } from "./SessionColorSwatches";
 
 export default function ChronosModal({
   onClose,
@@ -28,24 +37,16 @@ export default function ChronosModal({
 }) {
   const today = new Date();
 
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
   const [selectedDate, setSelectedDate] = useState(() => new Date());
-
   const [rightView, setRightView] = useState("calendar");
+  const [formError, setFormError] = useState(null);
 
   const [signalDraft, setSignalDraft] = useState({
     id: null,
     title: "",
     description: "",
-    priority: "low",
+    priority: "p3",
     mode: "in",
     minutes: 15,
     at: toLocalInputValue(new Date()),
@@ -56,31 +57,38 @@ export default function ChronosModal({
     title: "",
     description: "",
     priority: "p3",
-    due: ""
+    due: "",
   });
+
+  const [sessionDraft, setSessionDraft] = useState({
+    id: null,
+    title: "",
+    description: "",
+    start: null,
+    end: null,
+    linkedProjectId: "none",
+    color: "neutral",
+  });
+
+  const closeForm = () => {
+    setRightView("calendar");
+    setFormError(null);
+  };
 
   const openTaskForm = (prefillDate = null, existingTask = null) => {
     if (existingTask) {
-      // Edit Mode
       setTaskDraft({
         id: existingTask.id,
         title: existingTask.title,
         description: existingTask.desc || "",
         priority: existingTask.priority || "p3",
-        due: existingTask.due ? toLocalInputValue(new Date(existingTask.due)) : ""
+        due: existingTask.due ? toLocalInputValue(new Date(existingTask.due)) : "",
       });
     } else {
-      // Create Mode
-      let base = prefillDate ? new Date(prefillDate) : (selectedDate ? new Date(selectedDate) : new Date());
-
-      setTaskDraft({
-        id: null,
-        title: "",
-        description: "",
-        priority: "p3",
-        due: toLocalInputValue(base),
-      });
+      const base = prefillDate ? new Date(prefillDate) : selectedDate ? new Date(selectedDate) : new Date();
+      setTaskDraft({ id: null, title: "", description: "", priority: "p3", due: toLocalInputValue(base) });
     }
+    setFormError(null);
     setRightView("task-form");
   };
 
@@ -89,10 +97,10 @@ export default function ChronosModal({
       setSignalDraft({
         id: existingSignal.id,
         title: existingSignal.title,
-        description: "", // Signals don't have desc usually
+        description: "",
         priority: existingSignal.priority || "p3",
-        mode: "at", // Edit always shows 'at'
-        at: existingSignal.scheduledAt ? toLocalInputValue(new Date(existingSignal.scheduledAt)) : toLocalInputValue(new Date())
+        mode: "at",
+        at: existingSignal.scheduledAt ? toLocalInputValue(new Date(existingSignal.scheduledAt)) : toLocalInputValue(new Date()),
       });
     } else {
       setSignalDraft({
@@ -105,17 +113,9 @@ export default function ChronosModal({
         at: toLocalInputValue(new Date()),
       });
     }
+    setFormError(null);
     setRightView("signal-form");
   };
-
-  const [sessionDraft, setSessionDraft] = useState({
-    id: null,
-    title: "",
-    description: "",
-    start: null,
-    end: null,
-    linkedProjectId: "none"
-  });
 
   const openSessionForm = (draft) => {
     setSessionDraft({
@@ -124,20 +124,142 @@ export default function ChronosModal({
       description: draft.description || "",
       start: draft.start ? new Date(draft.start) : null,
       end: draft.end ? new Date(draft.end) : null,
-      linkedProjectId: draft.linkedProjectId || "none"
+      linkedProjectId: draft.linkedProjectId || "none",
+      color: draft.color || "neutral",
     });
+    setFormError(null);
     setRightView("session-form");
+  };
+
+  const saveTask = () => {
+    const title = taskDraft.title.trim();
+    if (!title) {
+      setFormError("Give the task a title.");
+      return;
+    }
+
+    const dueIso = taskDraft.due ? new Date(taskDraft.due).toISOString() : null;
+
+    if (taskDraft.id) {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskDraft.id
+            ? { ...t, title, desc: taskDraft.description.trim() || undefined, due: dueIso, priority: taskDraft.priority }
+            : t
+        )
+      );
+    } else {
+      setTasks((prev) => [
+        {
+          id: uid(),
+          title,
+          desc: taskDraft.description.trim() || undefined,
+          done: false,
+          createdAt: isoNow(),
+          due: dueIso,
+          priority: taskDraft.priority,
+        },
+        ...prev,
+      ]);
+    }
+    closeForm();
+  };
+
+  const assignTask = (id, projectId) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, projectId } : t)));
+    const projectTitle = projects.find((p) => p.id === projectId)?.name || "Project";
+    toast.success(`Assigned to ${projectTitle}`);
+  };
+
+  const saveSignal = () => {
+    const title = signalDraft.title.trim();
+    if (!title) {
+      setFormError("Give the signal a title.");
+      return;
+    }
+
+    const when = signalDraft.mode === "in"
+      ? new Date(Date.now() + Number(signalDraft.minutes || 0) * 60000)
+      : new Date(signalDraft.at);
+    if (isNaN(when.getTime())) {
+      setFormError("That time isn't valid.");
+      return;
+    }
+    if (when < new Date()) {
+      toast.error("Time is in the past");
+      return;
+    }
+
+    if (signalDraft.id) {
+      setReminders((prev) =>
+        prev.map((s) =>
+          s.id === signalDraft.id
+            ? { ...s, title, description: signalDraft.description.trim() || undefined, priority: signalDraft.priority, scheduledAt: when.toISOString() }
+            : s
+        )
+      );
+      ensurePermission().then((ok) => {
+        if (ok) scheduleLocalNotification(signalDraft.id, title, when.toISOString());
+      });
+      toast.success(`Signal updated for ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+    } else {
+      const id = uid();
+      const newSignal = {
+        id,
+        title,
+        description: signalDraft.description.trim() || undefined,
+        scheduledAt: when.toISOString(),
+        createdAt: isoNow(),
+        delivered: false,
+        priority: signalDraft.priority,
+      };
+      setReminders((prev) => [newSignal, ...prev]);
+      ensurePermission().then((ok) => {
+        if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
+      });
+      toast.success(`Signal set for ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+    }
+    closeForm();
+  };
+
+  const handleInPresetChange = (val) => {
+    if (typeof val === "number") {
+      setSignalDraft((d) => ({ ...d, minutes: val }));
+      return;
+    }
+    const target = new Date();
+    switch (val) {
+      case "tonight":
+        target.setHours(21, 0, 0, 0);
+        break;
+      case "tm_morning":
+        target.setDate(target.getDate() + 1);
+        target.setHours(9, 0, 0, 0);
+        break;
+      case "tm_noon":
+        target.setDate(target.getDate() + 1);
+        target.setHours(12, 0, 0, 0);
+        break;
+      default:
+        break;
+    }
+    setSignalDraft((d) => ({ ...d, mode: "at", at: toLocalInputValue(target) }));
   };
 
   const saveSession = () => {
     const title = sessionDraft.title.trim();
-    if (!title || !sessionDraft.start || !sessionDraft.end) return;
-
+    if (!title) {
+      setFormError("Give the session a title.");
+      return;
+    }
+    if (!sessionDraft.start || !sessionDraft.end) {
+      setFormError("Set a start and end time.");
+      return;
+    }
     if (isPastTime(sessionDraft.start)) {
       toast.error("Cannot create sessions in the past");
       return;
     }
-
     if (hasOverlap(sessionDraft.start, sessionDraft.end, sessions, sessionDraft.id)) {
       toast.error("Time slot is already occupied");
       return;
@@ -149,144 +271,17 @@ export default function ChronosModal({
       description: sessionDraft.description.trim(),
       start: sessionDraft.start.toISOString(),
       end: sessionDraft.end.toISOString(),
-      linkedProjectId: sessionDraft.linkedProjectId === 'none' ? null : sessionDraft.linkedProjectId
+      linkedProjectId: sessionDraft.linkedProjectId === "none" ? null : sessionDraft.linkedProjectId,
+      color: sessionDraft.color || "neutral",
     };
 
     if (sessionDraft.id) {
-      setSessions(prev => prev.map(s => s.id === sessionDraft.id ? newSession : s));
+      setSessions((prev) => prev.map((s) => (s.id === sessionDraft.id ? newSession : s)));
     } else {
-      setSessions(prev => [...prev, newSession]);
+      setSessions((prev) => [...prev, newSession]);
     }
     closeForm();
   };
-
-  const closeForm = () => {
-    setRightView("calendar");
-  };
-
-  const saveTask = () => {
-    const title = taskDraft.title.trim();
-    if (!title) return;
-
-    const dueIso = taskDraft.due ? new Date(taskDraft.due).toISOString() : null;
-
-    if (taskDraft.id) {
-      // Update
-      setTasks(prev => prev.map(t => t.id === taskDraft.id ? {
-        ...t,
-        title,
-        desc: taskDraft.description.trim() || undefined,
-        due: dueIso,
-        priority: taskDraft.priority
-      } : t));
-    } else {
-      // Create
-      setTasks(prev => [
-        {
-          id: uid(),
-          title,
-          desc: taskDraft.description.trim() || undefined,
-          done: false,
-          createdAt: isoNow(),
-          due: dueIso,
-          priority: taskDraft.priority
-        },
-        ...prev,
-      ]);
-    }
-    closeForm();
-  };
-
-  const assignTask = (id, projectId) => {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, projectId } : t));
-    const projectTitle = projects.find(p => p.id === projectId)?.name || "Project";
-    toast.success(`Assigned to ${projectTitle}`);
-  };
-
-  const createSignal = () => { // Actually 'saveSignal' now
-    const title = signalDraft.title.trim();
-    if (!title) return;
-
-    const when =
-      signalDraft.mode === "in"
-        ? new Date(Date.now() + Number(signalDraft.minutes || 0) * 60000)
-        : new Date(signalDraft.at);
-    if (isNaN(when.getTime())) return;
-
-    if (when < new Date()) {
-      toast.error("Time is in the past");
-      return;
-    }
-
-    if (signalDraft.id) {
-      // Update logic
-      setReminders(prev => prev.map(s => s.id === signalDraft.id ? {
-        ...s,
-        title,
-        description: signalDraft.description.trim() || undefined,
-        priority: signalDraft.priority,
-        scheduledAt: when.toISOString()
-      } : s));
-      ensurePermission().then((ok) => {
-        if (ok) scheduleLocalNotification(signalDraft.id, title, when.toISOString());
-      });
-      toast.success(`Signal updated for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
-    } else {
-      // Create
-      const id = uid();
-      const newSignal = {
-        id,
-        title,
-        description: signalDraft.description.trim() || undefined,
-        scheduledAt: when.toISOString(),
-        createdAt: isoNow(),
-        delivered: false,
-        priority: signalDraft.priority
-      };
-      setReminders((prev) => [newSignal, ...prev]);
-      ensurePermission().then((ok) => {
-        if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
-      });
-      toast.success(`Signal set for ${when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
-    }
-    closeForm();
-  };
-
-  useEffect(() => {
-    rescheduleAll(reminders || []);
-  }, [reminders]);
-
-  const handleInPresetChange = (val) => {
-    if (typeof val === 'number') {
-      setSignalDraft(d => ({ ...d, minutes: val }));
-    } else {
-      // Handle smart presets
-      let target = new Date();
-
-      switch (val) {
-        case 'tonight':
-          target.setHours(21, 0, 0, 0); // 9 PM
-          break;
-        case 'tm_morning':
-          target.setDate(target.getDate() + 1);
-          target.setHours(9, 0, 0, 0); // 9 AM
-          break;
-        case 'tm_noon':
-          target.setDate(target.getDate() + 1);
-          target.setHours(12, 0, 0, 0); // 12 PM
-          break;
-        default: break;
-      }
-
-      setSignalDraft(d => ({
-        ...d,
-        mode: 'at',
-        at: toLocalInputValue(target)
-      }));
-    }
-  };
-
-  const rightWidth = Number(localStorage.getItem("pulse.rightWidth")) || 420;
 
   // Memoized Grid Cells
   const gridCells = useMemo(() => {
@@ -301,10 +296,9 @@ export default function ChronosModal({
     return cells;
   }, [view.y, view.m]);
 
-  // Memoized Task Lookup
   const tasksByDate = useMemo(() => {
     const map = {};
-    tasks.forEach(t => {
+    tasks.forEach((t) => {
       if (t.deleted || !t.due) return;
       const key = new Date(t.due).toDateString();
       if (!map[key]) map[key] = [];
@@ -313,16 +307,12 @@ export default function ChronosModal({
     return map;
   }, [tasks]);
 
-  const tasksOn = React.useCallback((date) => {
-    if (!date) return [];
-    return tasksByDate[date.toDateString()] || [];
-  }, [tasksByDate]);
+  const tasksOn = React.useCallback((date) => (date ? tasksByDate[date.toDateString()] || [] : []), [tasksByDate]);
 
-  const toggleTask = (id) => setTasks((prev) => prev.map((x) => {
-    if (x.id !== id) return x;
-    const isDone = !x.done;
-    return { ...x, done: isDone, completedAt: isDone ? isoNow() : null };
-  }));
+  const toggleTask = (id) =>
+    setTasks((prev) =>
+      prev.map((x) => (x.id !== id ? x : { ...x, done: !x.done, completedAt: !x.done ? isoNow() : null }))
+    );
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
 
   const upcomingSignals = useMemo(
@@ -330,333 +320,325 @@ export default function ChronosModal({
     [reminders]
   );
 
-  // Auto-cleanup: Remove expired sessions
-  useEffect(() => {
-    const now = new Date();
-    const activeSessions = sessions.filter(s => new Date(s.end) > now);
-    if (activeSessions.length !== sessions.length) {
-      setSessions(activeSessions);
-    }
-  }, [selectedDate]); // Run when date changes
+  const projectOptions = useMemo(() => projects.map((p) => ({ value: p.id, label: p.name })), [projects]);
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-300" onClick={onClose}>
-
-      <div
-        className={cn(
-          "w-full max-w-5xl h-[calc(100dvh-1.5rem)] sm:h-[85vh] mx-2 sm:mx-4 rounded-xl sm:rounded-3xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-300",
-          "border border-border bg-black/80 backdrop-blur-xl",
-          "grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_var(--right-width)]"
-        )}
-        style={{ '--right-width': `${rightWidth}px` }}
-        onClick={(e) => e.stopPropagation()}
-      >
-
-        <div className="h-full flex flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
-          <div className="flex-none px-6 sm:px-8 py-4 sm:py-6 pb-4 flex items-center justify-between bg-black/80 backdrop-blur-xl z-10">
-            <h2 className="text-2xl font-sans font-semibold text-white tracking-tight">Chronos</h2>
-            <CloseButton onClick={onClose} aria-label="Close Modal" />
-          </div>
-
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 pt-0 space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between group py-2 pt-0">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">Tasks</h3>
-                <button onClick={() => openTaskForm()} aria-label="Add Task" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                  <PlusSignSquare size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {(() => {
-                  const list = selectedDate ? tasksOn(selectedDate) : tasks.filter(t => !t.done);
-                  if (list.length === 0) {
-                    return <div className="py-8 text-center text-sm text-subtle-foreground italic">No tasks for {selectedDate ? "this day" : "now"}.</div>;
-                  }
-                  return list.map(t => (
-                    <TaskRow
-                      key={t.id}
-                      task={t}
-                      onToggle={() => toggleTask(t.id)}
-                      onDelete={() => deleteTask(t.id)}
-                      onEdit={() => openTaskForm(null, t)}
-                      onAssign={(projectId) => assignTask(t.id, projectId)}
-                      projects={projects}
-                    />
-                  ));
-                })()}
-              </div>
+    <AppDialog
+      open
+      onClose={onClose}
+      size="full"
+      title={<span className="text-xl font-semibold">Chronos</span>}
+      className="p-0 gap-0 grid-rows-[auto_1fr] overflow-hidden rounded-3xl"
+      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_420px]"
+    >
+      {/* Left column — Tasks + Signals */}
+      <div className="flex h-full flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
+        <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-2">
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Tasks</h3>
+              <button
+                onClick={() => openTaskForm()}
+                aria-label="Add Task"
+                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <PlusIcon size={16} />
+              </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between group py-2">
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">Signals</h3>
-                <button onClick={() => openSignalForm()} aria-label="Add Signal" className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-overlay text-muted-foreground hover:text-white transition-colors leading-none focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                  <PlusSignSquare size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {upcomingSignals.length === 0 && <div className="py-2 text-sm text-subtle-foreground italic">No active signals.</div>}
-                {upcomingSignals.map(s => (
-                  <SignalRow
-                    key={s.id}
-                    signal={s}
-                    onDelete={() => { clearScheduled(s.id); setReminders(p => p.filter(x => x.id !== s.id)); }}
-                    onEdit={() => openSignalForm(s)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="h-full bg-black/20 flex flex-col lg:border-l border-border-subtle relative overflow-hidden">
-          <div className="h-full flex flex-col">
-
-            {rightView === 'calendar' && (
-              <>
-                <div className="p-6 pb-2 flex-none flex items-center justify-between">
-                  <span className="text-sm font-medium text-white">
-                    {selectedDate ? selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : new Date(view.y, view.m, 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
-                  </span>
-                  <div className="flex gap-1">
-                    <button onClick={() => setView(v => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))} className="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                      <ChevronRight size={16} className="rotate-180" />
-                    </button>
-                    <button onClick={() => setView(v => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))} className="w-8 h-8 rounded-full hover:bg-overlay flex items-center justify-center text-muted-foreground hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="px-4 pb-4 flex-none">
-                  <div className="grid grid-cols-7 mb-2">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="text-center text-xs font-bold text-subtle-foreground py-1">{d}</div>)}
-                  </div>
-                  <div className="grid grid-cols-7 gap-y-0.5">
-                    {gridCells.map((d, i) => {
-                      const isToday = d && sameDay(d, today);
-                      const isSel = d && sameDay(d, selectedDate);
-                      const hasTasks = d && tasksOn(d).length > 0;
-                      const isPast = d && d < today && !sameDay(d, today);
-
-                      return (
-                        <div key={i} className="h-8">
-                          {d && (
-                            <button
-                              onClick={() => setSelectedDate(prev => prev && sameDay(prev, d) ? null : d)}
-                              className={cn(
-                                "w-full h-full rounded-lg flex flex-col items-center justify-center relative transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white",
-                                isSel ? "bg-white text-black shadow-lg scale-100 font-semibold" : isPast ? "text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground" : "text-muted-foreground hover:bg-overlay-subtle hover:text-white",
-                                isToday && !isSel ? "bg-overlay text-white border border-border" : ""
-                              )}
-                            >
-                              <span className="text-xs">{d.getDate()}</span>
-                            </button>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex-1 border-t border-border-subtle flex flex-col min-h-0 bg-black/20 overflow-hidden">
-                  <div className="p-4 px-6 border-b border-border-subtle flex-none flex items-center justify-between bg-black/10 z-10">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.15em]">
-                      Sessions
-                    </span>
-                  </div>
-
-                  <DailyTimeline
-                    sessions={sessions}
-                    setSessions={setSessions}
-                    selectedDate={selectedDate}
-                    onOpenSessionForm={openSessionForm}
-                    editingSessionId={rightView === 'session-form' ? sessionDraft.id : null}
-                  />
-                </div>
-              </>
-            )}
-
-            {rightView === 'task-form' && (
-              <div className="h-full overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
-                <div className="p-8 flex flex-col gap-5">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-white">
-                      {taskDraft.id ? "Edit Task" : "New Task"}
-                    </h2>
-                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
-                    <input
-                      autoFocus
-                      className={cn(INPUT_CLASS, "w-full p-4")}
-                      placeholder="What needs to be done?"
-                      value={taskDraft.title}
-                      onChange={e => setTaskDraft(d => ({ ...d, title: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && saveTask()}
-                    />
-                  </div>
-
-                  <CustomSelect
-                    label="Priority"
-                    value={taskDraft.priority}
-                    options={TASK_PRIORITIES}
-                    onChange={val => setTaskDraft(d => ({ ...d, priority: val }))}
-                  />
-
-                  <DateTimePicker
-                    label="Deadline"
-                    value={taskDraft.due}
-                    dateOnly={true}
-                    onChange={val => setTaskDraft(d => ({ ...d, due: val }))}
-                  />
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
-                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Add details..." value={taskDraft.description} onChange={e => setTaskDraft(d => ({ ...d, description: e.target.value }))} />
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button onClick={saveTask} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                      {taskDraft.id ? "Save Changes" : "Create Task"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {rightView === 'signal-form' && (
-              <div className="h-full overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
-                <div className="p-8 flex flex-col gap-5">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-white">
-                      {signalDraft.id ? "Edit Signal" : "New Signal"}
-                    </h2>
-                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
-                    <input
-                      autoFocus
-                      className={cn(INPUT_CLASS, "w-full p-4")}
-                      placeholder="Signal name..."
-                      value={signalDraft.title}
-                      onChange={e => setSignalDraft(d => ({ ...d, title: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && createSignal()}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1 block">Time</label>
-                    <div className="grid grid-cols-[96px_1fr] gap-3 items-start">
-                      <div className="grid grid-cols-2 gap-[3px] bg-overlay-subtle rounded-xl p-[3px] border border-border min-h-[46px]">
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'in' }))} className={cn("rounded-xl text-xs font-medium transition-all", signalDraft.mode === 'in' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>In</button>
-                        <button onClick={() => setSignalDraft(d => ({ ...d, mode: 'at' }))} className={cn("rounded-xl text-xs font-medium transition-all", signalDraft.mode === 'at' ? "bg-white text-black shadow" : "text-muted-foreground hover:text-white")}>At</button>
-                      </div>
-
-                      {signalDraft.mode === 'in' ? (
-                        <CustomSelect
-                          value={signalDraft.minutes}
-                          options={IN_PRESETS}
-                          onChange={handleInPresetChange}
-                          placeholder="Duration"
-                        />
-                      ) : (
-                        <DateTimePicker
-                          value={signalDraft.at}
-                          onChange={val => setSignalDraft(d => ({ ...d, at: val }))}
-                        />
-                      )}
+            <div className="space-y-2">
+              {(() => {
+                const list = selectedDate ? tasksOn(selectedDate) : tasks.filter((t) => !t.done);
+                if (list.length === 0) {
+                  return (
+                    <div className="py-8 text-center text-sm italic text-subtle-foreground">
+                      No tasks for {selectedDate ? "this day" : "now"}.
                     </div>
-                  </div>
-
-                  <CustomSelect
-                    label="Priority"
-                    value={signalDraft.priority}
-                    options={SIGNAL_PRIORITIES}
-                    onChange={val => setSignalDraft(d => ({ ...d, priority: val }))}
+                  );
+                }
+                return list.map((t) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    onToggle={() => toggleTask(t.id)}
+                    onDelete={() => deleteTask(t.id)}
+                    onEdit={() => openTaskForm(null, t)}
+                    onAssign={(projectId) => assignTask(t.id, projectId)}
+                    projects={projects}
                   />
+                ));
+              })()}
+            </div>
+          </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
-                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-36 resize-none custom-scrollbar")} placeholder="Signal details..." value={signalDraft.description} onChange={e => setSignalDraft(d => ({ ...d, description: e.target.value }))} />
-                  </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-2">
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Signals</h3>
+              <button
+                onClick={() => openSignalForm()}
+                aria-label="Add Signal"
+                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <PlusIcon size={16} />
+              </button>
+            </div>
 
-                  <div className="flex justify-end pt-2">
-                    <button onClick={createSignal} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                      {signalDraft.id ? "Save Changes" : "Create Signal"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {rightView === 'session-form' && (
-              <div className="h-full overflow-y-auto custom-scrollbar animate-in slide-in-from-right-4 duration-300">
-                <div className="p-8 flex flex-col gap-5">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-white">
-                      {sessionDraft.id ? "Edit Session" : "New Session"}
-                    </h2>
-                    <button onClick={closeForm} className="text-muted-foreground hover:text-white text-sm focus:outline-hidden focus-visible:underline">Cancel</button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Title</label>
-                    <input
-                      autoFocus
-                      className={cn(INPUT_CLASS, "w-full p-4")}
-                      placeholder="Deep work session..."
-                      value={sessionDraft.title}
-                      onChange={e => setSessionDraft(d => ({ ...d, title: e.target.value }))}
-                      onKeyDown={e => e.key === 'Enter' && saveSession()}
-                    />
-                  </div>
-
-                  <DateTimePicker
-                    label="Start"
-                    value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
-                    onChange={val => setSessionDraft(d => ({ ...d, start: new Date(val) }))}
-                  />
-
-                  <DateTimePicker
-                    label="End"
-                    value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
-                    onChange={val => setSessionDraft(d => ({ ...d, end: new Date(val) }))}
-                  />
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Project</label>
-                    <PillSelect
-                      value={sessionDraft.linkedProjectId}
-                      options={projects.map(p => ({ value: p.id, label: p.name }))}
-                      onChange={val => setSessionDraft(d => ({ ...d, linkedProjectId: val }))}
-                      placeholder="Link Project"
-                      icon={Folder}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold ml-1">Description</label>
-                    <textarea className={cn(INPUT_CLASS, "w-full p-4 h-32 resize-none custom-scrollbar")} placeholder="What will you work on..." value={sessionDraft.description} onChange={e => setSessionDraft(d => ({ ...d, description: e.target.value }))} />
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button onClick={saveSession} className="bg-white text-black font-semibold rounded-xl px-8 py-3 hover:bg-foreground transition-colors shadow-lg shadow-white/5 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
-                      {sessionDraft.id ? "Save Changes" : "Create Session"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="space-y-2">
+              {upcomingSignals.length === 0 && (
+                <div className="py-2 text-sm italic text-subtle-foreground">No active signals.</div>
+              )}
+              {upcomingSignals.map((s) => (
+                <SignalRow
+                  key={s.id}
+                  signal={s}
+                  onDelete={() => {
+                    clearScheduled(s.id);
+                    setReminders((p) => p.filter((x) => x.id !== s.id));
+                  }}
+                  onEdit={() => openSignalForm(s)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div >
+
+      {/* Right column — calendar, or whichever form is open */}
+      <div className="relative flex h-full flex-col overflow-hidden bg-muted/20">
+        {rightView === "calendar" && (
+          <>
+            <div className="flex flex-none items-center justify-between p-6 pb-2">
+              <span className="text-sm font-medium text-foreground">
+                {selectedDate
+                  ? selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
+                  : new Date(view.y, view.m, 1).toLocaleString("default", { month: "long", year: "numeric" })}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  aria-label="Previous month"
+                  onClick={() => setView((v) => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))}
+                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <ChevronLeftIcon size={16} />
+                </button>
+                <button
+                  aria-label="Next month"
+                  onClick={() => setView((v) => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))}
+                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <ChevronRightIcon size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-none px-4 pb-4">
+              <div className="mb-2 grid grid-cols-7">
+                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+                  <div key={i} className="py-1 text-center text-xs font-bold text-subtle-foreground">{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-y-0.5">
+                {gridCells.map((d, i) => {
+                  const isSel = d && sameDay(d, selectedDate);
+                  const isToday = d && sameDay(d, today);
+                  const isPast = d && d < today && !sameDay(d, today);
+
+                  return (
+                    <div key={i} className="h-8">
+                      {d && (
+                        <button
+                          onClick={() => setSelectedDate((prev) => (prev && sameDay(prev, d) ? null : d))}
+                          className={cn(
+                            "relative flex h-full w-full flex-col items-center justify-center rounded-lg transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+                            isSel
+                              ? "bg-primary font-semibold text-primary-foreground shadow-lg"
+                              : isPast
+                                ? "text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
+                                : "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground",
+                            isToday && !isSel && "border border-border bg-overlay text-foreground"
+                          )}
+                        >
+                          <span className="text-xs">{d.getDate()}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border-subtle">
+              <div className="flex-none border-b border-border-subtle p-4 px-6">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Sessions</span>
+              </div>
+              <DailyTimeline
+                sessions={sessions}
+                setSessions={setSessions}
+                selectedDate={selectedDate}
+                onOpenSessionForm={openSessionForm}
+              />
+            </div>
+          </>
+        )}
+
+        {rightView === "task-form" && (
+          <EntityForm
+            title={taskDraft.id ? "Edit Task" : "New Task"}
+            onCancel={closeForm}
+            onSubmit={saveTask}
+            submitLabel={taskDraft.id ? "Save Changes" : "Create Task"}
+          >
+            <Field label="Title" required error={formError}>
+              <Input
+                autoFocus
+                placeholder="What needs to be done?"
+                value={taskDraft.title}
+                onChange={(e) => setTaskDraft((d) => ({ ...d, title: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && saveTask()}
+              />
+            </Field>
+
+            <Select
+              label="Priority"
+              value={taskDraft.priority}
+              options={TASK_PRIORITIES}
+              onChange={(val) => setTaskDraft((d) => ({ ...d, priority: val }))}
+            />
+
+            <DateTimeField
+              label="Deadline"
+              value={taskDraft.due}
+              dateOnly
+              onChange={(val) => setTaskDraft((d) => ({ ...d, due: val }))}
+            />
+
+            <Field label="Description">
+              <Textarea
+                placeholder="Add details…"
+                className="h-36 resize-none"
+                value={taskDraft.description}
+                onChange={(e) => setTaskDraft((d) => ({ ...d, description: e.target.value }))}
+              />
+            </Field>
+          </EntityForm>
+        )}
+
+        {rightView === "signal-form" && (
+          <EntityForm
+            title={signalDraft.id ? "Edit Signal" : "New Signal"}
+            onCancel={closeForm}
+            onSubmit={saveSignal}
+            submitLabel={signalDraft.id ? "Save Changes" : "Create Signal"}
+          >
+            <Field label="Title" required error={formError}>
+              <Input
+                autoFocus
+                placeholder="Signal name…"
+                value={signalDraft.title}
+                onChange={(e) => setSignalDraft((d) => ({ ...d, title: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && saveSignal()}
+              />
+            </Field>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Time</span>
+              <div className="grid grid-cols-[112px_1fr] items-start gap-3">
+                <Tabs value={signalDraft.mode} onValueChange={(mode) => setSignalDraft((d) => ({ ...d, mode }))}>
+                  <TabsList className="h-9 w-full">
+                    <TabsTrigger value="in" className="flex-1">In</TabsTrigger>
+                    <TabsTrigger value="at" className="flex-1">At</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {signalDraft.mode === "in" ? (
+                  <Select
+                    value={signalDraft.minutes}
+                    options={IN_PRESETS}
+                    onChange={handleInPresetChange}
+                    placeholder="Duration"
+                  />
+                ) : (
+                  <DateTimeField value={signalDraft.at} onChange={(val) => setSignalDraft((d) => ({ ...d, at: val }))} />
+                )}
+              </div>
+            </div>
+
+            <Select
+              label="Priority"
+              value={signalDraft.priority}
+              options={SIGNAL_PRIORITIES}
+              onChange={(val) => setSignalDraft((d) => ({ ...d, priority: val }))}
+            />
+
+            <Field label="Description">
+              <Textarea
+                placeholder="Signal details…"
+                className="h-36 resize-none"
+                value={signalDraft.description}
+                onChange={(e) => setSignalDraft((d) => ({ ...d, description: e.target.value }))}
+              />
+            </Field>
+          </EntityForm>
+        )}
+
+        {rightView === "session-form" && (
+          <EntityForm
+            title={sessionDraft.id ? "Edit Session" : "New Session"}
+            onCancel={closeForm}
+            onSubmit={saveSession}
+            submitLabel={sessionDraft.id ? "Save Changes" : "Create Session"}
+          >
+            <Field label="Title" required error={formError}>
+              <Input
+                autoFocus
+                placeholder="Deep work session…"
+                value={sessionDraft.title}
+                onChange={(e) => setSessionDraft((d) => ({ ...d, title: e.target.value }))}
+                onKeyDown={(e) => e.key === "Enter" && saveSession()}
+              />
+            </Field>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Colour</span>
+              <SessionColorSwatches
+                value={sessionDraft.color}
+                onChange={(color) => setSessionDraft((d) => ({ ...d, color }))}
+              />
+            </div>
+
+            <DateTimeField
+              label="Start"
+              value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
+              onChange={(val) => setSessionDraft((d) => ({ ...d, start: new Date(val) }))}
+            />
+
+            <DateTimeField
+              label="End"
+              value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
+              onChange={(val) => setSessionDraft((d) => ({ ...d, end: new Date(val) }))}
+            />
+
+            <Select
+              label="Project"
+              icon={FolderIcon}
+              value={sessionDraft.linkedProjectId === "none" ? null : sessionDraft.linkedProjectId}
+              options={projectOptions}
+              placeholder="Link project"
+              clearLabel="No project"
+              onChange={(val) => setSessionDraft((d) => ({ ...d, linkedProjectId: val || "none" }))}
+            />
+
+            <Field label="Description">
+              <Textarea
+                placeholder="What will you work on…"
+                className="h-32 resize-none"
+                value={sessionDraft.description}
+                onChange={(e) => setSessionDraft((d) => ({ ...d, description: e.target.value }))}
+              />
+            </Field>
+          </EntityForm>
+        )}
+      </div>
+    </AppDialog>
   );
 }
