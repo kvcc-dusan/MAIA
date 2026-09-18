@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { toast } from "sonner";
 import { useLocalStorage } from "./useLocalStorage.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
+import { markdownToNote } from "../lib/noteFile.js";
+import { uid } from "../lib/ids.js";
 import {
   isTauri,
   getVaultPath,
   loadNotes,
   saveNote,
   deleteNoteFile,
+  watchVault,
+  VaultConflictError,
 } from "../lib/vault.js";
 
 const WRITE_DEBOUNCE_MS = 1000;
@@ -49,13 +54,28 @@ function useVaultNotes() {
     }
     try {
       const loaded = await loadNotes(vaultPath);
-      // Don't clobber notes that have edits waiting to hit disk
       setNotes((prev) => {
+        const loadedIds = new Set(loaded.map((n) => n.id));
+        // A clean (already-saved) note whose file is no longer in the vault
+        // was removed outside MAIA (Obsidian, Finder, `git checkout`, iCloud
+        // conflict resolution). It previously just vanished with no signal —
+        // now the user is told why.
+        const vanished = prev.filter((n) => !dirtyRef.current.has(n.id) && !loadedIds.has(n.id));
+        vanished.forEach((n) => {
+          toast.error(`"${n.title || "Untitled"}" is gone — its file was removed or moved outside MAIA.`);
+        });
+
         if (dirtyRef.current.size === 0) return loaded;
-        const dirty = new Map(
-          prev.filter((n) => dirtyRef.current.has(n.id)).map((n) => [n.id, n])
-        );
-        return loaded.map((n) => dirty.get(n.id) || n);
+
+        // Don't clobber notes that have edits waiting to hit disk. A dirty
+        // note that hasn't been written yet at all (brand new, still inside
+        // the debounce window) won't be in `loaded` — it must be kept as an
+        // extra, not dropped, or a reload right after creating a note would
+        // silently erase it.
+        const prevById = new Map(prev.map((n) => [n.id, n]));
+        const merged = loaded.map((n) => (dirtyRef.current.has(n.id) ? prevById.get(n.id) || n : n));
+        const extras = prev.filter((n) => dirtyRef.current.has(n.id) && !loadedIds.has(n.id));
+        return [...extras, ...merged];
       });
       prevNotesRef.current = null; // reset diff baseline after external reload
       setStatus("ready");
@@ -71,12 +91,34 @@ function useVaultNotes() {
     load();
   }, [load]);
 
-  // Re-read vault when the window regains focus (external edits: Obsidian, iCloud)
+  // Re-read vault when the window regains focus (belt-and-suspenders: the
+  // watcher below covers real-time external edits, focus covers anything
+  // it misses — a dropped fs event, a network volume, etc).
   useEffect(() => {
     if (status !== "ready") return;
     const onFocus = () => load();
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
+  }, [status, load]);
+
+  // Live-watch the vault folder so external edits (Obsidian, iCloud, git)
+  // show up without waiting for the window to regain focus.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const vaultPath = getVaultPath();
+    if (!vaultPath) return;
+    let unwatch = null;
+    let cancelled = false;
+    watchVault(vaultPath, load)
+      .then((fn) => {
+        if (cancelled) fn();
+        else unwatch = fn;
+      })
+      .catch((e) => console.error("[MAIA] Failed to watch vault folder", e));
+    return () => {
+      cancelled = true;
+      if (unwatch) unwatch();
+    };
   }, [status, load]);
 
   const flush = useCallback(async () => {
@@ -93,8 +135,40 @@ function useVaultNotes() {
         }
         dirtyRef.current.delete(item.id);
       } catch (e) {
-        console.error("[MAIA] Vault write failed — will retry on next change", e);
-        pendingRef.current.set(item.id, item); // keep for retry
+        if (e instanceof VaultConflictError) {
+          // Someone/something else changed this file since we last read it.
+          // Keep BOTH versions instead of picking a winner: the original
+          // slot reverts to what's actually on disk, and the edit we were
+          // about to save becomes its own note for the user to merge by hand.
+          console.warn("[MAIA] Vault conflict on save — keeping both versions", e);
+
+          const diskNote = markdownToNote(e.diskText, {
+            fallbackId: item.id,
+            fallbackTitle: item.note.title || "Untitled",
+          });
+          diskNote.id = item.id;
+
+          const conflictNote = {
+            ...item.note,
+            id: uid(),
+            title: `${item.note.title || "Untitled"} (conflict copy)`,
+          };
+
+          setNotes((prev) => [
+            conflictNote,
+            ...prev.map((n) => (n.id === item.id ? diskNote : n)),
+          ]);
+          // The notes-diff effect below picks up both the reverted original
+          // and the new conflict-copy note and schedules their writes.
+
+          toast.error(
+            `"${item.note.title || "Untitled"}" changed outside MAIA — your edit is kept as "${conflictNote.title}" for you to merge by hand.`
+          );
+        } else {
+          console.error("[MAIA] Vault write failed — will retry on next change", e);
+          pendingRef.current.set(item.id, item); // keep for retry
+          toast.error(`Couldn't save "${item.note?.title || "a note"}" to the vault — will retry.`);
+        }
       }
     }
   }, []);
@@ -130,14 +204,47 @@ function useVaultNotes() {
     };
   }, [notes, status, flush]);
 
-  // Flush pending writes when the app closes
+  // Flush pending writes when the app closes. `beforeunload` covers the web
+  // preview and most in-webview navigations; it is not guaranteed to fire
+  // for a native window-close/Cmd+Q in every Tauri configuration, so we also
+  // hook the window's own close-requested event and hold the close until the
+  // flush resolves.
   useEffect(() => {
     const onBeforeUnload = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       flush();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+
+    let unlisten = null;
+    let cancelled = false;
+    if (isTauri()) {
+      import("@tauri-apps/api/window")
+        .then(({ getCurrentWindow }) => {
+          if (cancelled) return;
+          return getCurrentWindow().onCloseRequested(async (event) => {
+            if (pendingRef.current.size === 0) return; // nothing to hold up
+            event.preventDefault();
+            if (timerRef.current) clearTimeout(timerRef.current);
+            try {
+              await flush();
+            } finally {
+              await getCurrentWindow().destroy();
+            }
+          });
+        })
+        .then((fn) => {
+          if (cancelled) fn?.();
+          else unlisten = fn;
+        })
+        .catch((e) => console.error("[MAIA] Failed to register close handler", e));
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("beforeunload", onBeforeUnload);
+      if (unlisten) unlisten();
+    };
   }, [flush]);
 
   const meta = useMemo(() => ({ status, error, reload: load }), [status, error, load]);

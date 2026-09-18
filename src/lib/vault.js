@@ -18,8 +18,28 @@ export const pickVaultFolder = async () => {
   return typeof selected === "string" ? selected : null;
 };
 
+/**
+ * Thrown by saveNote when the on-disk file has changed since MAIA last read
+ * it (an external editor — Obsidian, a text editor, iCloud resolving a
+ * sync conflict) and the caller's version would otherwise silently clobber
+ * it. Carries enough to let the caller preserve both sides.
+ */
+export class VaultConflictError extends Error {
+  constructor(id, { diskText, attemptedText, filename }) {
+    super(`Vault file "${filename}" changed on disk since it was last read.`);
+    this.name = "VaultConflictError";
+    this.noteId = id;
+    this.diskText = diskText;
+    this.attemptedText = attemptedText;
+    this.filename = filename;
+  }
+}
+
 // id → filename map, rebuilt on every loadNotes
 let fileMap = new Map();
+// id → markdown text as last read from (or written to) disk — the baseline
+// a save compares against to detect an external change.
+let contentMap = new Map();
 
 const joinPath = (dir, name) => `${dir.replace(/\/+$/, "")}/${name}`;
 
@@ -28,6 +48,7 @@ export const loadNotes = async (vaultPath) => {
   const entries = await readDir(vaultPath);
   const notes = [];
   const nextMap = new Map();
+  const nextContentMap = new Map();
 
   for (const entry of entries) {
     if (!entry.isFile || !entry.name.endsWith(".md")) continue;
@@ -38,9 +59,14 @@ export const loadNotes = async (vaultPath) => {
         fallbackTitle: entry.name.replace(/\.md$/, ""),
       });
       if (nextMap.has(note.id)) {
-        console.warn(`[MAIA] Duplicate note id "${note.id}" in vault — keeping last read (${entry.name})`);
+        // Don't just drop the loser — a silently vanished note is a data-loss
+        // bug in its own right. Give it a fresh id so both survive as
+        // separate notes; the user can tell them apart and delete the dupe.
+        console.warn(`[MAIA] Duplicate note id "${note.id}" in vault ("${entry.name}") — reassigning a new id so both are kept`);
+        note.id = uid();
       }
       nextMap.set(note.id, entry.name);
+      nextContentMap.set(note.id, text);
       notes.push(note);
     } catch (e) {
       console.error(`[MAIA] Failed to read vault file "${entry.name}"`, e);
@@ -48,19 +74,35 @@ export const loadNotes = async (vaultPath) => {
   }
 
   fileMap = nextMap;
+  contentMap = nextContentMap;
   notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   return notes;
 };
 
 export const saveNote = async (vaultPath, note) => {
-  const { writeTextFile, remove, exists } = await import("@tauri-apps/plugin-fs");
+  const { writeTextFile, remove, exists, readTextFile } = await import("@tauri-apps/plugin-fs");
   const taken = new Set(
     [...fileMap.entries()].filter(([id]) => id !== note.id).map(([, name]) => name)
   );
   const desired = noteFilename(note, taken);
   const current = fileMap.get(note.id);
+  const nextText = noteToMarkdown(note);
 
-  await writeTextFile(joinPath(vaultPath, desired), noteToMarkdown(note));
+  // Conflict check: if we have a prior baseline for this note and the file
+  // on disk no longer matches it, something else touched the file since we
+  // last read it. Overwriting blind would silently destroy that edit.
+  if (current) {
+    const path = joinPath(vaultPath, current);
+    if (await exists(path)) {
+      const onDisk = await readTextFile(path);
+      const baseline = contentMap.get(note.id);
+      if (baseline !== undefined && onDisk !== baseline && onDisk !== nextText) {
+        throw new VaultConflictError(note.id, { diskText: onDisk, attemptedText: nextText, filename: current });
+      }
+    }
+  }
+
+  await writeTextFile(joinPath(vaultPath, desired), nextText);
 
   if (current && current !== desired) {
     try {
@@ -72,6 +114,7 @@ export const saveNote = async (vaultPath, note) => {
     }
   }
   fileMap.set(note.id, desired);
+  contentMap.set(note.id, nextText);
 };
 
 export const deleteNoteFile = async (vaultPath, id) => {
@@ -84,7 +127,28 @@ export const deleteNoteFile = async (vaultPath, id) => {
     }
   } finally {
     fileMap.delete(id);
+    contentMap.delete(id);
   }
+};
+
+/**
+ * Watches the vault folder for changes made outside MAIA (Obsidian, iCloud,
+ * a text editor, `git pull`) and calls `onChange` — debounced, since a
+ * single external save can fire several raw fs events. Returns an unwatch
+ * function; no-ops (and warns) outside Tauri.
+ */
+export const watchVault = async (vaultPath, onChange, { debounceMs = 400 } = {}) => {
+  const { watchImmediate } = await import("@tauri-apps/plugin-fs");
+  let timer = null;
+  const scheduled = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(onChange, debounceMs);
+  };
+  const unwatch = await watchImmediate(vaultPath, () => scheduled());
+  return () => {
+    if (timer) clearTimeout(timer);
+    unwatch();
+  };
 };
 
 export const migrateFromLocalStorage = async (vaultPath, notes) => {
