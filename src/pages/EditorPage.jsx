@@ -7,7 +7,7 @@ import { useDebounced } from "../hooks/useDebounced.js";
 const modeKey = (id) => `maia:note-mode:${id}`;
 const widthKey = () => `maia:editor-wide`;
 
-export default function Editor({ note, updateNote, projects = [] }) {
+export default function Editor({ note, updateNote, projects = [], onOpenInternalLink }) {
   const [local, setLocal] = useState(note);
   const [mode, setMode] = useState(() => {
     if (note?.id) {
@@ -149,6 +149,7 @@ export default function Editor({ note, updateNote, projects = [] }) {
                 editable={editable}
                 onChange={handleContentChange}
                 onMetaChange={handleMetaChange}
+                onOpenInternalLink={onOpenInternalLink}
                 className="maia-editor"
               />
             </div>

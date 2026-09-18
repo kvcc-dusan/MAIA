@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { toast } from "sonner";
 
 // Context
 import { DataProvider, useData } from "./context/DataContext.jsx";
 import { rescheduleAll } from "./utils/notify.js";
+import { downloadBackup, readBackupFile } from "./lib/backup.js";
+import { isTauri as isTauriRuntime } from "./lib/vault.js";
 
 // Components
 import { Dock } from "./components/ui/dock.jsx";
@@ -21,6 +24,7 @@ import CommandPalette from "./components/CommandPalette.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 import VaultSetup from "./components/VaultSetup.jsx";
+import { ConfirmDialog } from "./components/composed/ConfirmDialog.jsx";
 import { Toaster } from "./components/ui/sonner.jsx";
 import { TooltipProvider } from "./components/ui/tooltip.jsx";
 
@@ -75,6 +79,72 @@ function AppContent() {
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
+
+  /* -----------------------------------------
+     Backup — export/import (STATE_OF_MAIA.md P0 #4: no export path existed)
+  ----------------------------------------- */
+  const importFileInputRef = useRef(null);
+  const [pendingImport, setPendingImport] = useState(null); // parsed backup awaiting confirmation
+
+  const handleExportBackup = useCallback(async () => {
+    try {
+      const wrote = await downloadBackup({ notes, projects, tasks, reminders, sessions, ledger });
+      if (wrote) toast.success("Backup saved.");
+    } catch (e) {
+      console.error("[MAIA] Export failed", e);
+      toast.error(`Export failed: ${e.message || e}`);
+    }
+  }, [notes, projects, tasks, reminders, sessions, ledger]);
+
+  const applyImport = useCallback((backup) => {
+    setNotes(backup.data.notes);
+    setProjects(backup.data.projects);
+    setTasks(backup.data.tasks);
+    setReminders(backup.data.reminders);
+    setSessions(backup.data.sessions);
+    setLedger(backup.data.ledger);
+    setPendingImport(null);
+    toast.success("Data restored from backup.");
+  }, [setNotes, setProjects, setTasks, setReminders, setSessions, setLedger]);
+
+  const handleImportBackup = useCallback(async () => {
+    try {
+      let backup;
+      if (isTauriRuntime()) {
+        const { open } = await import("@tauri-apps/plugin-dialog");
+        const path = await open({
+          multiple: false,
+          filters: [{ name: "MAIA Backup", extensions: ["json"] }],
+        });
+        if (!path) return;
+        backup = await readBackupFile(path);
+      } else {
+        importFileInputRef.current?.click();
+        return; // handleImportFileChange takes it from here
+      }
+      setPendingImport(backup);
+    } catch (e) {
+      console.error("[MAIA] Import failed", e);
+      toast.error(`Couldn't read that backup: ${e.message || e}`);
+    }
+  }, []);
+
+  const handleImportFileChange = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    try {
+      const backup = await readBackupFile(file);
+      setPendingImport(backup);
+    } catch (err) {
+      console.error("[MAIA] Import failed", err);
+      toast.error(`Couldn't read that backup: ${err.message || err}`);
+    }
+  }, []);
+
+  const importCounts = pendingImport
+    ? Object.entries(pendingImport.data).map(([k, v]) => `${v.length} ${k}`).join(", ")
+    : "";
 
   /* -----------------------------------------
      Derived State
@@ -318,6 +388,31 @@ function AppContent() {
         onCreateProject={handleCreateProject}
         go={go}
         onOpenCronos={handleOpenPulse}
+        onExportBackup={handleExportBackup}
+        onImportBackup={handleImportBackup}
+      />
+
+      {/* Web-build import path: Tauri uses its native file picker instead */}
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept="application/json"
+        className="hidden"
+        onChange={handleImportFileChange}
+      />
+
+      <ConfirmDialog
+        open={!!pendingImport}
+        onClose={() => setPendingImport(null)}
+        onConfirm={() => pendingImport && applyImport(pendingImport)}
+        title="Replace all data with this backup?"
+        description={
+          pendingImport
+            ? `This backup has ${importCounts}${pendingImport.exportedAt ? `, exported ${new Date(pendingImport.exportedAt).toLocaleString()}` : ""}. Everything currently in MAIA will be replaced — this can't be undone.`
+            : ""
+        }
+        confirmLabel="Replace data"
+        tone="danger"
       />
     </div>
   );

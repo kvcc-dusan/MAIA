@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
@@ -125,11 +125,42 @@ const MarkdownHighlight = Highlight.extend({
   },
 });
 
-/** WikiLink Highlighting: [[Title]] or [[Title|Alias]] */
+/** Finds the [[Title]] or [[Title|Alias]] span (if any) covering `pos`. */
+function wikiLinkAt(doc, pos) {
+  let match = null;
+  doc.descendants((node, nodePos) => {
+    if (match || !node.isText) return;
+    const regex = /\[\[([\s\S]+?)\]\]/g;
+    let m;
+    while ((m = regex.exec(node.text)) !== null) {
+      const from = nodePos + m.index;
+      const to = from + m[0].length;
+      if (pos >= from && pos <= to) {
+        match = m[1];
+        return;
+      }
+    }
+  });
+  return match;
+}
+
+/**
+ * WikiLink Highlighting + navigation: [[Title]] or [[Title|Alias]].
+ *
+ * Previously decoration-only (styling with no click handler) — `App.jsx`
+ * passed an `onOpenInternalLink` all the way down to `EditorPage`, which
+ * never wired it anywhere, so clicking a wikilink did nothing. `onOpenLink`
+ * closes that gap.
+ */
 const WikiLinkExtension = Extension.create({
   name: "wikiLink",
 
+  addOptions() {
+    return { onOpenLink: undefined };
+  },
+
   addProseMirrorPlugins() {
+    const onOpenLink = this.options.onOpenLink;
     return [
       new Plugin({
         key: new PluginKey('wiki-link-highlight'),
@@ -151,7 +182,7 @@ const WikiLinkExtension = Extension.create({
 
                   decorations.push(
                     Decoration.inline(from, to, {
-                      style: 'color: #0044FF; font-weight: bold;',
+                      style: 'color: #0044FF; font-weight: bold; cursor: pointer;',
                       class: 'maia-wikilink'
                     })
                   );
@@ -160,7 +191,16 @@ const WikiLinkExtension = Extension.create({
             });
 
             return DecorationSet.create(doc, decorations);
-          }
+          },
+          handleClick: (view, pos) => {
+            const raw = wikiLinkAt(view.state.doc, pos);
+            if (!raw) return false;
+            // [[Title|Alias]] — navigate by Title, not the displayed alias.
+            const title = raw.split('|')[0].trim();
+            if (!title) return false;
+            onOpenLink?.(title);
+            return true;
+          },
         }
       })
     ];
@@ -174,9 +214,19 @@ export default function EditorRich({
   value = "",
   onChange,
   onMetaChange,            // { tags, links, wordCount, charCount }
+  onOpenInternalLink,      // (title: string) => void — click a [[wikilink]]
   editable = true,
   className = "",
 }) {
+  // Read via a ref inside the extension so [[wikilink]] clicks always call
+  // the latest callback without forcing the whole TipTap editor (and its
+  // ProseMirror plugins) to be recreated whenever the parent's callback
+  // identity changes — see WikiLinkExtension below.
+  const onOpenInternalLinkRef = useRef(onOpenInternalLink);
+  useEffect(() => {
+    onOpenInternalLinkRef.current = onOpenInternalLink;
+  }, [onOpenInternalLink]);
+
   // Helper to emit meta + counts based on rendered text
   const emitMeta = useCallback((editor, onMetaChange) => {
     const raw = editor.getText();
@@ -223,7 +273,9 @@ export default function EditorRich({
     },
     extensions: [
       ...extensions,
-      WikiLinkExtension,
+      WikiLinkExtension.configure({
+        onOpenLink: (title) => onOpenInternalLinkRef.current?.(title),
+      }),
     ],
     onCreate: ({ editor }) => {
       emitMeta(editor, onMetaChange);

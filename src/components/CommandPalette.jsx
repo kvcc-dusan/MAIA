@@ -20,6 +20,7 @@ import {
   LedgerIcon,
   Home08,
 } from "./ui/CustomIcon.jsx";
+import { Download, Upload } from "lucide-react";
 
 /**
  * Command palette on cmdk. The previous version hand-rolled filtering, arrow-key
@@ -36,6 +37,8 @@ export default function CommandPalette({
   onCreateProject,
   go,
   onOpenCronos,
+  onExportBackup,
+  onImportBackup,
 }) {
   const run = (fn) => () => {
     onClose();
@@ -77,6 +80,14 @@ export default function CommandPalette({
           <CommandItem onSelect={run(onOpenCronos)}>
             <ChronosIcon size={16} />
             Open Chronos
+          </CommandItem>
+          <CommandItem onSelect={run(onExportBackup)}>
+            <Download size={16} />
+            Export all data (backup)
+          </CommandItem>
+          <CommandItem onSelect={run(onImportBackup)}>
+            <Upload size={16} />
+            Import backup…
           </CommandItem>
         </CommandGroup>
 
