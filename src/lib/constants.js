@@ -8,6 +8,12 @@ export const TASK_PRIORITIES = [
 // and signals are separate domains and may diverge.
 export const SIGNAL_PRIORITIES = TASK_PRIORITIES;
 
+export const SCHEDULES = [
+  { value: 'today', label: 'Today' },
+  { value: 'soon', label: 'Soon' },
+  { value: 'future', label: 'Future' },
+];
+
 export const IN_PRESETS = [
   { value: 5, label: '5 m' },
   { value: 10, label: '10 m' },
