@@ -1,7 +1,9 @@
 import React, { useCallback } from "react";
 import { Widget } from "./composed/Widget.jsx";
+import { EmptyState } from "./composed/EmptyState.jsx";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.jsx";
 import { ChevronRight } from "./ui/CustomIcon.jsx";
+import { StickyNote } from "lucide-react";
 
 /**
  * QuickCaptureWidget — journal capture plus today's entries.
@@ -42,9 +44,11 @@ export default function QuickCaptureWidget({
                         />
                         <PopoverContent side="top" align="start" className="w-64 p-4">
                             {todayEntries.length === 0 ? (
-                                <div className="py-2 text-center text-xs italic text-muted-foreground">
-                                    No entries yet today.
-                                </div>
+                                <EmptyState
+                                    icon={StickyNote}
+                                    title="No entries yet today"
+                                    size="inline"
+                                />
                             ) : (
                                 <div className="max-h-48 space-y-2.5 overflow-y-auto custom-scrollbar">
                                     {todayEntries.map((entry) => (

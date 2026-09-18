@@ -34,6 +34,9 @@ export const STORAGE_KEYS = {
   REMINDERS: 'maia.reminders',
   SESSIONS: 'maia.sessions',
   TODAY_LAYOUT: 'maia.today.layout',
+  // Last-good geolocation fix, so a denied/absent location provider doesn't
+  // strand the Today weather widget on "Locating…" forever.
+  WEATHER_COORDS: 'maia.weather.coords',
 };
 
 /** Single source for the greeting name; it was hardcoded inside HomePage. */

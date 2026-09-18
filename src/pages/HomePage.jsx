@@ -22,7 +22,8 @@ export default function TodayPage({
   onOpenNote,
 }) {
   const { quote, greeting } = useHomeGreeting();
-  const { weather } = useWeather();
+  const { weather, loading: weatherLoading, error: weatherError, refresh: retryWeather } =
+    useWeather();
   const [captureContent, setCaptureContent] = useState("");
 
   const [storedLayout, setStoredLayout] = useLocalStorage(STORAGE_KEYS.TODAY_LAYOUT, DEFAULT_LAYOUT);
@@ -90,6 +91,9 @@ export default function TodayPage({
   const widgetProps = {
     // clock-map
     weather,
+    weatherLoading,
+    weatherError,
+    retryWeather,
     now,
     // focus
     todayTasks,
@@ -105,6 +109,14 @@ export default function TodayPage({
     onOpenNote,
   };
 
+  // The header block. The greeting used to sit bottom-left under an empty
+  // middle; it anchors the page from the top now (hero-header decision).
+  const dateLabel = useMemo(
+    () =>
+      now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
+    [now]
+  );
+
   return (
     <div className="relative h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-background font-sans text-foreground selection:bg-overlay-strong">
       <div className="home-bg pointer-events-none absolute inset-0 z-0" />
@@ -116,6 +128,9 @@ export default function TodayPage({
           widgetProps={widgetProps}
           greeting={
             <div className="home-greeting-block">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                Today · {dateLabel}
+              </p>
               <h1 className="home-greeting font-sans font-medium tracking-tight">
                 <span className="text-muted-foreground">{greeting}</span>{" "}
                 <span className="text-foreground">{USER_NAME}.</span>

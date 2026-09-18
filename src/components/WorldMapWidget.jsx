@@ -2,6 +2,9 @@ import React, { useMemo, useEffect, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import { Widget } from "./composed/Widget.jsx";
+import { EmptyState } from "./composed/EmptyState.jsx";
+import { Button } from "./ui/button.jsx";
+import { MapPinOff, RefreshCw } from "lucide-react";
 import { getOrdinalSuffix } from "@/lib/utils";
 
 export const MapVisual = React.memo(({ coords, topology }) => {
@@ -56,7 +59,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
                 */}
                 <path
                     d={pathD}
-                    className="fill-black/50 stroke-white/10 stroke-[0.5]"
+                    className="fill-background stroke-border stroke-[0.5]"
                 />
 
                 {/* Location Dot */}
@@ -84,8 +87,21 @@ export const MapVisual = React.memo(({ coords, topology }) => {
 
 
 
-export default function WorldMapWidget({ weather, now = new Date(), timeZoneLabel, ...shell }) {
+export default function WorldMapWidget({
+  weather,
+  weatherLoading = false,
+  weatherError = null,
+  retryWeather,
+  now = new Date(),
+  timeZoneLabel,
+  ...shell
+}) {
     const { temp, place, condition, coords } = weather || {};
+    // A denied/absent location provider used to leave the widget on
+    // "Locating…" forever; with no fix and no cached one, say so and offer a
+    // retry instead.
+    const hasFix = Boolean(coords);
+    const isUnavailable = !hasFix && !weatherLoading && Boolean(weatherError);
 
     // Lazy load map data
     const [topology, setTopology] = useState(null);
@@ -138,7 +154,11 @@ export default function WorldMapWidget({ weather, now = new Date(), timeZoneLabe
                 {/* Right: Location */}
                 <div className="flex flex-col items-end text-right">
                     <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
-                        {place ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "") : "Locating..."}
+                        {isUnavailable
+                            ? "Location unavailable"
+                            : place
+                              ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "")
+                              : "Locating..."}
                     </div>
                     <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
                         {timeZoneLabel || Intl.DateTimeFormat().resolvedOptions().timeZone}
@@ -149,7 +169,20 @@ export default function WorldMapWidget({ weather, now = new Date(), timeZoneLabe
             {/* The map no longer depends on an `@container home` breakpoint to be
                 visible — the shell owns sizing, so it renders wherever it's placed. */}
             <div className="relative min-h-24 w-full flex-1 overflow-hidden">
-                <MapVisual coords={coords} topology={topology} />
+                {isUnavailable ? (
+                    <EmptyState
+                        icon={MapPinOff}
+                        title="No location fix"
+                        description="Enable location, or retry to use the last known position."
+                        action={
+                            <Button variant="outline" size="sm" onClick={() => retryWeather?.()}>
+                                <RefreshCw className="size-4" /> Retry
+                            </Button>
+                        }
+                    />
+                ) : (
+                    <MapVisual coords={coords} topology={topology} />
+                )}
             </div>
         </Widget>
     );

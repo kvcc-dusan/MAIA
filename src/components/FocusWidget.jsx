@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { Widget } from "./composed/Widget.jsx";
+import { EmptyState } from "./composed/EmptyState.jsx";
 import FocusTaskItem from "./FocusTaskItem.jsx";
+import { Crosshair } from "lucide-react";
 
 /**
  * FocusWidget — Today's Focus with tasks, sessions,
@@ -28,13 +30,18 @@ export default function FocusWidget({
     <Widget
       title="Today's Focus"
       footer={
-        <button
-          onClick={() => setMomentumOpen((v) => !v)}
-          aria-expanded={momentumOpen}
-          className="ml-auto text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Momentum
-        </button>
+        <>
+          <span className="text-xs tracking-wide text-muted-foreground">
+            {todaySessions.length > 0 && `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"}`}
+          </span>
+          <button
+            onClick={() => setMomentumOpen((v) => !v)}
+            aria-expanded={momentumOpen}
+            className="text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Momentum
+          </button>
+        </>
       }
       {...shell}
     >
@@ -42,9 +49,12 @@ export default function FocusWidget({
 
           {/* ── TASKS ── */}
           {todayTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-4 text-center text-xs italic uppercase tracking-widest text-muted-foreground">
-              No focus tasks.
-            </div>
+            <EmptyState
+              icon={Crosshair}
+              title="No focus tasks"
+              description="Today's next actions land here as you set them in Opus."
+              className="flex-1"
+            />
           ) : (
             <ul className="space-y-1 py-1">
               {todayTasks.slice(0, 4).map((task) => (
@@ -64,14 +74,21 @@ export default function FocusWidget({
               <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Sessions</div>
               <div className="space-y-1.5">
                 {todaySessions.slice(0, 2).map((s) => (
-                  <div key={s.id} className="flex items-center justify-between">
+                  // Clicking a session opens Chronos — the prop was plumbed
+                  // from the page but never consumed.
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => onOpenPulse?.()}
+                    className="flex w-full items-center justify-between text-left"
+                  >
                     <span className="text-xs text-muted-foreground truncate max-w-[60%]">{s.title}</span>
                     <span className="text-xs text-muted-foreground">
                       {new Date(s.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       {" – "}
                       {new Date(s.end).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                     </span>
-                  </div>
+                  </button>
                 ))}
                 {todaySessions.length > 2 && (
                   <div className="text-xs text-muted-foreground">+{todaySessions.length - 2} more</div>

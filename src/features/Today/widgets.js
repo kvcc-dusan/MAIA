@@ -28,7 +28,8 @@ export const WIDGETS = [
     defaultSpan: 2,
     canGrow: true,
     minHeight: "min-h-64",
-    select: ({ weather, now }) => ({ weather, now }),
+    select: ({ weather, weatherLoading, weatherError, retryWeather, now }) =>
+      ({ weather, weatherLoading, weatherError, retryWeather, now }),
   },
   {
     id: "focus",

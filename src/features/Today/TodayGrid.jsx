@@ -25,9 +25,13 @@ import { Check, Pencil, Plus } from "lucide-react";
  * The Today dashboard grid.
  *
  * Five columns on desktop, two on tablet, one on mobile. Widgets occupy one or
- * two columns and are reordered by dragging in edit mode. The greeting sits in
- * its own reserved area at the bottom-left, outside the sortable context, so it
- * can never be dragged or displaced.
+ * two columns and are reordered by dragging in edit mode.
+ *
+ * The greeting is the page's hero header: it anchors the top-left with the
+ * edit controls top-right, and the grid below stretches to fill the remaining
+ * height (`auto-rows-fr`) so the window never shows a dead middle. The desktop
+ * dock is a floating overlay, so the root reserves its height as bottom
+ * padding — content that reaches the bottom must clear it.
  */
 
 const SPAN_CLASS = {
@@ -111,40 +115,48 @@ export default function TodayGrid({ layout, setLayout, greeting, widgetProps }) 
   );
 
   return (
-    <div className="flex w-full flex-1 flex-col gap-6 px-page py-8">
-      <div className="flex items-center justify-end gap-2">
-        {isEditing && missing.length > 0 && (
-          <Menu.Root>
-            <Menu.Trigger
-              render={
-                <Button variant="outline" size="sm">
-                  <Plus className="size-4" /> Add widget
-                </Button>
-              }
-            />
-            <Menu.Content align="end">
-              {missing.map((w) => (
-                <Menu.Item key={w.id} onClick={() => add(w.id)}>
-                  {w.title}
-                </Menu.Item>
-              ))}
-            </Menu.Content>
-          </Menu.Root>
-        )}
-        <Button
-          variant={isEditing ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setIsEditing((v) => !v)}
-          aria-pressed={isEditing}
-        >
-          {isEditing ? <Check className="size-4" /> : <Pencil className="size-4" />}
-          {isEditing ? "Done" : "Edit"}
-        </Button>
-      </div>
+    // Mobile reserves the tab-bar height one level up (App wraps <main> with
+    // pb-(--dock-h)); only the desktop floating dock needs explicit clearance.
+    <div className="flex w-full flex-1 flex-col gap-6 px-page py-8 md:pb-[calc(var(--spacing-page)+var(--dock-h-desktop))]">
+      {/* Hero header — greeting top-left, layout controls top-right. */}
+      <header className="flex flex-none items-start justify-between gap-4">
+        {greeting}
+        <div className="flex flex-none items-center gap-2 pt-1">
+          {isEditing && missing.length > 0 && (
+            <Menu.Root>
+              <Menu.Trigger
+                render={
+                  <Button variant="outline" size="sm">
+                    <Plus className="size-4" /> Add widget
+                  </Button>
+                }
+              />
+              <Menu.Content align="end">
+                {missing.map((w) => (
+                  <Menu.Item key={w.id} onClick={() => add(w.id)}>
+                    {w.title}
+                  </Menu.Item>
+                ))}
+              </Menu.Content>
+            </Menu.Root>
+          )}
+          <Button
+            variant={isEditing ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setIsEditing((v) => !v)}
+            aria-pressed={isEditing}
+          >
+            {isEditing ? <Check className="size-4" /> : <Pencil className="size-4" />}
+            {isEditing ? "Done" : "Edit"}
+          </Button>
+        </div>
+      </header>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={ids} strategy={rectSortingStrategy}>
-          <div className="grid flex-1 auto-rows-min grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Rows share the leftover height (auto-rows-fr); min-h floors keep
+              the small-window case scrolling instead of crushing. */}
+          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {layout.map((entry) => (
               <SortableWidget
                 key={entry.id}
@@ -158,12 +170,6 @@ export default function TodayGrid({ layout, setLayout, greeting, widgetProps }) 
           </div>
         </SortableContext>
       </DndContext>
-
-      {/* Reserved greeting area — bottom-left, two of the five columns. Outside
-          the sortable context so it is never draggable or displaced. */}
-      <div className="mt-auto grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="sm:col-span-2">{greeting}</div>
-      </div>
     </div>
   );
 }
