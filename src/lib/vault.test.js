@@ -37,6 +37,10 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: vi.fn(() => Promise.resolve("/mock/vault")),
 }));
 
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn(() => Promise.resolve()),
+}));
+
 const VAULT = "/mock/vault";
 
 // Re-imported fresh per test file run; vault.js keeps module-level
@@ -48,6 +52,7 @@ describe("vault.js", () => {
   beforeEach(() => {
     fsState = { files: {} };
     vi.resetModules();
+    vi.clearAllMocks();
   });
 
   it("loadNotes reads every .md file in the vault into a note", async () => {
@@ -95,6 +100,28 @@ describe("vault.js", () => {
     expect(notes).toHaveLength(2);
     const ids = new Set(notes.map((n) => n.id));
     expect(ids.size).toBe(2);
+  });
+
+  it("pickVaultFolder grants runtime fs scope for the picked path (least-privilege: fs:scope in capabilities/default.json no longer covers $HOME/**)", async () => {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const { pickVaultFolder } = await importVault();
+
+    const picked = await pickVaultFolder();
+
+    expect(picked).toBe(VAULT);
+    expect(invoke).toHaveBeenCalledWith("allow_vault_scope", { path: VAULT });
+  });
+
+  it("pickVaultFolder returns null and skips the scope grant when the dialog is dismissed", async () => {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const { invoke } = await import("@tauri-apps/api/core");
+    open.mockResolvedValueOnce(null);
+
+    const { pickVaultFolder } = await importVault();
+    const picked = await pickVaultFolder();
+
+    expect(picked).toBeNull();
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it("saveNote writes a new file and updates it on subsequent saves", async () => {

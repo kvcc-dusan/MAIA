@@ -15,7 +15,16 @@ export const setVaultPath = (path) => localStorage.setItem(VAULT_PATH_KEY, path)
 export const pickVaultFolder = async () => {
   const { open } = await import("@tauri-apps/plugin-dialog");
   const selected = await open({ directory: true, title: "Choose your MAIA vault folder" });
-  return typeof selected === "string" ? selected : null;
+  if (typeof selected !== "string") return null;
+
+  // fs:scope in capabilities/default.json is intentionally near-empty (no
+  // more `$HOME/**`) — grant scope to exactly this picked folder at runtime
+  // instead. tauri-plugin-persisted-scope remembers the grant across
+  // restarts, so the user isn't asked to re-pick every launch.
+  const { invoke } = await import("@tauri-apps/api/core");
+  await invoke("allow_vault_scope", { path: selected });
+
+  return selected;
 };
 
 /**
