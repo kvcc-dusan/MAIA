@@ -3,7 +3,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { getPriorityColor } from "@/lib/utils";
 import { SIGNAL_PRIORITIES } from "@/lib/constants";
-import { CloseButton } from "./ui/CloseButton";
+import { formatTime } from "@/lib/time";
+import { CloseButton } from "@/components/ui/CloseButton";
 
 export default React.memo(SignalRow);
 
@@ -30,7 +31,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm text-foreground truncate">{signal.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{new Date(signal.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{formatTime(signal.scheduledAt)}</div>
             </div>
             <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Signal" />
           </PopoverTrigger>
@@ -49,7 +50,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
                   <span className="text-xs text-foreground-secondary">{priorityLabel}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(signal.scheduledAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  {formatTime(signal.scheduledAt)}
                 </span>
               </div>
             </div>

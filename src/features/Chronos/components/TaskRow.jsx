@@ -3,9 +3,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { cn, getPriorityColor } from "@/lib/utils";
 import { TASK_PRIORITIES } from "@/lib/constants";
-import ProjectIcon from "./ProjectIcon";
-import { CloseButton } from "./ui/CloseButton";
-import { PriorityCheckbox } from "./ui/PriorityCheckbox";
+import { formatTime, formatMonthDay } from "@/lib/time";
+import ProjectIcon from "@/components/ProjectIcon";
+import { CloseButton } from "@/components/ui/CloseButton";
+import { PriorityCheckbox } from "@/components/ui/PriorityCheckbox";
 
 export default React.memo(TaskRow);
 
@@ -41,7 +42,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
             <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
             <div className="flex-1 min-w-0">
               <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-muted-foreground line-through" : "text-foreground")}>{task.title}</div>
-              {task.due && <div className="text-xs text-muted-foreground mt-0.5">{new Date(task.due).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+              {task.due && <div className="text-xs text-muted-foreground mt-0.5">{formatTime(task.due)}</div>}
             </div>
             <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
           </PopoverTrigger>
@@ -59,7 +60,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
                 </div>
                 {task.due && (
                   <span className="text-xs text-muted-foreground">
-                    {new Date(task.due).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    {formatMonthDay(task.due)}
                   </span>
                 )}
               </div>

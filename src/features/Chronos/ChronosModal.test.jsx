@@ -6,8 +6,9 @@ import '@testing-library/jest-dom/vitest';
 import ChronosModal from './ChronosModal';
 import React from 'react';
 
-// Mock utils
-vi.mock('../utils/notify.js', () => ({
+// Mock utils — the path is relative to this file, so after the move from
+// src/components/ it points two levels up.
+vi.mock('../../utils/notify.js', () => ({
   ensurePermission: vi.fn(() => Promise.resolve(true)),
   scheduleLocalNotification: vi.fn(),
   rescheduleAll: vi.fn(),
@@ -103,6 +104,23 @@ describe('ChronosModal', () => {
     const buttons = screen.getAllByRole('button');
     const checkbox = buttons.find(b => b.getAttribute('aria-label')?.includes('Mark as done'));
     expect(checkbox).toBeInTheDocument();
+  });
+
+  it('gives every calendar day cell an accessible name with task state', () => {
+    // Today is always in the rendered month and selected by default; a task
+    // due today must surface in the cell's name ("…, 1 task, today, selected").
+    const tasks = [
+      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
+    ];
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
+
+    const todayCell = screen.getByRole('button', { name: /today, selected/ });
+    expect(todayCell).toBeInTheDocument();
+    expect(todayCell.getAttribute('aria-label')).toMatch(/, 1 task, today, selected$/);
+    expect(todayCell).toHaveAttribute('aria-current', 'date');
+    // No cell may remain an unnamed button — the old grid was ~30 of them.
+    const allCells = screen.getAllByRole('button').filter((b) => /^\d+$/.test(b.textContent));
+    allCells.forEach((cell) => expect(cell).toHaveAttribute('aria-label'));
   });
 
   it('opens the task form and shows an inline error on empty submit', async () => {

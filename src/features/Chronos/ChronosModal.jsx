@@ -1,29 +1,29 @@
 // @maia:chronos-modal
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { uid, isoNow } from "../lib/ids.js";
+import { uid, isoNow } from "../../lib/ids.js";
 // rescheduleAll intentionally not called here — App.jsx already reschedules
 // whenever `reminders` changes, so a duplicate here just re-armed the same
 // timers on every Chronos open.
-import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../utils/notify.js";
-import { cn } from "@/lib/utils";
+import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../../utils/notify.js";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { EntityForm } from "@/components/composed/EntityForm";
 import { Field } from "@/components/composed/Field";
 import { Select } from "@/components/composed/Select";
 import { DateTimeField } from "@/components/composed/DateTimeField";
+import { EmptyState } from "@/components/composed/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Folder01 as FolderIcon } from "./ui/CustomIcon.jsx";
-import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Folder01 as FolderIcon } from "@/components/ui/CustomIcon.jsx";
+import { PlusIcon, BellOff, ListTodo } from "lucide-react";
 
-import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../lib/constants";
-import { sameDay, toLocalInputValue, isPastTime, hasOverlap } from "../lib/time";
-import TaskRow from "./TaskRow";
-import SignalRow from "./SignalRow";
-import DailyTimeline from "./DailyTimeline";
-import { SessionColorSwatches } from "./SessionColorSwatches";
+import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../../lib/constants";
+import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap } from "../../lib/time";
+import TaskRow from "./components/TaskRow";
+import SignalRow from "./components/SignalRow";
+import DailyTimeline from "./components/DailyTimeline";
+import MonthCalendar from "./components/MonthCalendar";
 
 export default function ChronosModal({
   onClose,
@@ -201,7 +201,7 @@ export default function ChronosModal({
       ensurePermission().then((ok) => {
         if (ok) scheduleLocalNotification(signalDraft.id, title, when.toISOString());
       });
-      toast.success(`Signal updated for ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+      toast.success(`Signal updated for ${formatTime(when)}`);
     } else {
       const id = uid();
       const newSignal = {
@@ -217,7 +217,7 @@ export default function ChronosModal({
       ensurePermission().then((ok) => {
         if (ok) scheduleLocalNotification(id, title, newSignal.scheduledAt);
       });
-      toast.success(`Signal set for ${when.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+      toast.success(`Signal set for ${formatTime(when)}`);
     }
     closeForm();
   };
@@ -283,19 +283,6 @@ export default function ChronosModal({
     closeForm();
   };
 
-  // Memoized Grid Cells
-  const gridCells = useMemo(() => {
-    const monthStart = new Date(view.y, view.m, 1);
-    const monthEnd = new Date(view.y, view.m + 1, 0);
-    const startPad = (monthStart.getDay() + 6) % 7;
-    const daysInMonth = monthEnd.getDate();
-    const cells = [];
-    for (let i = 0; i < startPad; i++) cells.push(null);
-    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(view.y, view.m, d));
-    while (cells.length < 42) cells.push(null);
-    return cells;
-  }, [view.y, view.m]);
-
   const tasksByDate = useMemo(() => {
     const map = {};
     tasks.forEach((t) => {
@@ -329,14 +316,23 @@ export default function ChronosModal({
       size="full"
       title={<span className="text-xl font-semibold">Chronos</span>}
       className="p-0 gap-0 grid-rows-[auto_1fr] overflow-hidden rounded-3xl"
-      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,1fr)_420px]"
+      // The right rail carries calendar + timeline — heavier than the task
+      // list — so it gets the larger share. The left column scrolls.
+      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(320px,2fr)_minmax(0,3fr)]"
     >
       {/* Left column — Tasks + Signals */}
       <div className="flex h-full flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
         <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar p-6 sm:p-8">
           <div className="space-y-4">
             <div className="flex items-center justify-between py-2">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Tasks</h3>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Tasks</h3>
+                {/* Deselecting a day silently switched this list from "tasks
+                    on that day" to "all open tasks" — say which mode it's in. */}
+                <span className="text-xs text-subtle-foreground">
+                  {selectedDate ? formatDayLabel(selectedDate) : "All open"}
+                </span>
+              </div>
               <button
                 onClick={() => openTaskForm()}
                 aria-label="Add Task"
@@ -351,9 +347,15 @@ export default function ChronosModal({
                 const list = selectedDate ? tasksOn(selectedDate) : tasks.filter((t) => !t.done);
                 if (list.length === 0) {
                   return (
-                    <div className="py-8 text-center text-sm italic text-subtle-foreground">
-                      No tasks for {selectedDate ? "this day" : "now"}.
-                    </div>
+                    <EmptyState
+                      icon={ListTodo}
+                      title={selectedDate ? "No tasks for this day" : "No open tasks"}
+                      description={
+                        selectedDate
+                          ? "Add one, or pick a different day on the calendar."
+                          : "Tasks you create — here or in Opus — land here."
+                      }
+                    />
                   );
                 }
                 return list.map((t) => (
@@ -385,7 +387,11 @@ export default function ChronosModal({
 
             <div className="space-y-2">
               {upcomingSignals.length === 0 && (
-                <div className="py-2 text-sm italic text-subtle-foreground">No active signals.</div>
+                <EmptyState
+                  icon={BellOff}
+                  title="No active signals"
+                  description="Timed nudges you set here arrive as notifications."
+                />
               )}
               {upcomingSignals.map((s) => (
                 <SignalRow
@@ -407,65 +413,14 @@ export default function ChronosModal({
       <div className="relative flex h-full flex-col overflow-hidden bg-muted/20">
         {rightView === "calendar" && (
           <>
-            <div className="flex flex-none items-center justify-between p-6 pb-2">
-              <span className="text-sm font-medium text-foreground">
-                {selectedDate
-                  ? selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })
-                  : new Date(view.y, view.m, 1).toLocaleString("default", { month: "long", year: "numeric" })}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  aria-label="Previous month"
-                  onClick={() => setView((v) => ({ y: v.m === 0 ? v.y - 1 : v.y, m: (v.m + 11) % 12 }))}
-                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <ChevronLeftIcon size={16} />
-                </button>
-                <button
-                  aria-label="Next month"
-                  onClick={() => setView((v) => ({ y: v.m === 11 ? v.y + 1 : v.y, m: (v.m + 1) % 12 }))}
-                  className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <ChevronRightIcon size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-none px-4 pb-4">
-              <div className="mb-2 grid grid-cols-7">
-                {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                  <div key={i} className="py-1 text-center text-xs font-bold text-subtle-foreground">{d}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-y-0.5">
-                {gridCells.map((d, i) => {
-                  const isSel = d && sameDay(d, selectedDate);
-                  const isToday = d && sameDay(d, today);
-                  const isPast = d && d < today && !sameDay(d, today);
-
-                  return (
-                    <div key={i} className="h-8">
-                      {d && (
-                        <button
-                          onClick={() => setSelectedDate((prev) => (prev && sameDay(prev, d) ? null : d))}
-                          className={cn(
-                            "relative flex h-full w-full flex-col items-center justify-center rounded-lg transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
-                            isSel
-                              ? "bg-primary font-semibold text-primary-foreground shadow-lg"
-                              : isPast
-                                ? "text-subtle-foreground hover:bg-overlay-subtle hover:text-muted-foreground"
-                                : "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground",
-                            isToday && !isSel && "border border-border bg-overlay text-foreground"
-                          )}
-                        >
-                          <span className="text-xs">{d.getDate()}</span>
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <MonthCalendar
+              view={view}
+              setView={setView}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              today={today}
+              tasksOn={tasksOn}
+            />
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border-subtle">
               <div className="flex-none border-b border-border-subtle p-4 px-6">

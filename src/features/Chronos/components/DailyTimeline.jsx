@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { isPastTime, hasOverlap, sameDay } from "../lib/time";
+import { isPastTime, hasOverlap, sameDay, formatTime, formatHourLabel } from "../../../lib/time";
 import { getSessionBlockClass } from "@/lib/sessionColors";
 import { SessionColorSwatches } from "./SessionColorSwatches";
 import { Menu } from "@/components/composed/Menu";
-import { Pen01, Delete01 } from "./ui/CustomIcon.jsx";
+import { Pen01, Delete01 } from "@/components/ui/CustomIcon.jsx";
 
 const SLOT_HEIGHT = 40;
 
@@ -87,7 +87,7 @@ const SessionItem = memo(({
         "text-xs opacity-70 tracking-tight pointer-events-none",
         isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
       )}>
-        {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+        {formatTime(start)} - {formatTime(end)}
       </div>
       <div
         className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"
@@ -148,6 +148,13 @@ function DailyTimeline({
   const [gridDraft, setGridDraft] = useState(null);
 
   const scrollContainerRef = useRef(null);
+
+  // Minute ticker for the now-indicator.
+  const [nowTick, setNowTick] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNowTick(new Date()), 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
 
   // Auto-scroll to next available slot (today) or 8 AM (other dates)
   useEffect(() => {
@@ -366,9 +373,7 @@ function DailyTimeline({
           const slotDate = getSlotDate(i);
           const hour = Math.floor(i / 2);
           const isHourStart = i % 2 === 0;
-          const isPm = hour >= 12;
-          const h12 = hour % 12 || 12;
-          const label = `${h12.toString().padStart(2, '0')}:00 ${isPm ? 'PM' : 'AM'}`;
+          const label = formatHourLabel(hour);
 
           const slotEnd = new Date(slotDate.getTime() + 30 * 60000);
           const isPast = isPastTime(slotDate);
@@ -388,6 +393,26 @@ function DailyTimeline({
             />
           )
         })}
+
+        {/* Current-time indicator — the grid auto-scrolls to "now" but used to
+            never mark it. Minute ticker; today only. */}
+        {sameDay(selectedDate, nowTick) && (() => {
+          const mins = nowTick.getHours() * 60 + nowTick.getMinutes();
+          const top = (mins / 30) * SLOT_HEIGHT;
+          return (
+            <div
+              className="pointer-events-none absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 z-10 flex items-center gap-1.5"
+              style={{ top: `${top}px` }}
+              aria-hidden="true"
+            >
+              <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
+              <div className="h-px flex-1 bg-destructive/50" />
+              <span className="rounded-full bg-destructive/90 px-1.5 py-px text-xs font-medium leading-4 text-destructive-foreground">
+                {formatTime(nowTick)}
+              </span>
+            </div>
+          );
+        })()}
 
         {daySessions.map(s => {
           const start = new Date(s.start);
@@ -445,7 +470,7 @@ function DailyTimeline({
             >
               <div className="font-medium truncate italic text-foreground/70">New Session</div>
               <div className="text-xs text-muted-foreground truncate">
-                {start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                {formatTime(start)} - {formatTime(end)}
               </div>
               <div
                 className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"

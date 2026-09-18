@@ -19,7 +19,7 @@ import {
   ChronosIcon
 } from "./components/ui/CustomIcon.jsx";
 
-import ChronosModal from "./components/ChronosModal.jsx";
+import ChronosModal from "./features/Chronos/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
