@@ -31,6 +31,44 @@ export default function Editor({ note, updateNote, projects = [] }) {
     if (local) updateNote(local);
   }, [local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project], 250);
 
+  // These were previously created inline inside JSX props below the early
+  // return — a real Rules-of-Hooks violation (hook order changes whenever
+  // `note` flips between null and set). Hooks must run unconditionally on
+  // every render, so they're defined here instead.
+  const handleContentChange = useCallback(
+    (md) => setLocal((v) => ({ ...v, content: md })),
+    []
+  );
+
+  const handleMetaChange = useCallback((meta) => setLocal((v) => {
+    // 1. Tags: Replace duplicative merging with direct set (fixes #k #ks #ksva bug)
+    const newTags = meta.tags || [];
+
+    // 2. WikiLinks -> Projects
+    // Map [[Project Name]] to project IDs
+    let newProjectIds = [];
+    let newProjectName = null;
+
+    if (meta.links && meta.links.length > 0) {
+      // Find all projects mentioned in links
+      const linkedProjects = projects.filter(p =>
+        meta.links.some(link => link.toLowerCase() === p.name.toLowerCase())
+      );
+
+      if (linkedProjects.length > 0) {
+        newProjectIds = linkedProjects.map(p => p.id);
+        newProjectName = linkedProjects[0].name; // Use first found for legacy display
+      }
+    }
+
+    return {
+      ...v, ...meta,
+      tags: newTags,
+      projectIds: newProjectIds,
+      project: newProjectName || null
+    };
+  }), [projects]);
+
   if (!note) {
     return (
       <div className="h-full grid place-items-center text-muted-foreground">
@@ -109,35 +147,8 @@ export default function Editor({ note, updateNote, projects = [] }) {
               <EditorRich
                 value={local.content || ""}
                 editable={editable}
-                onChange={useCallback((md) => setLocal((v) => ({ ...v, content: md })), [])}
-                onMetaChange={useCallback((meta) => setLocal((v) => {
-                  // 1. Tags: Replace duplicative merging with direct set (fixes #k #ks #ksva bug)
-                  const newTags = meta.tags || [];
-
-                  // 2. WikiLinks -> Projects
-                  // Map [[Project Name]] to project IDs
-                  let newProjectIds = [];
-                  let newProjectName = null;
-
-                  if (meta.links && meta.links.length > 0) {
-                    // Find all projects mentioned in links
-                    const linkedProjects = projects.filter(p =>
-                      meta.links.some(link => link.toLowerCase() === p.name.toLowerCase())
-                    );
-
-                    if (linkedProjects.length > 0) {
-                      newProjectIds = linkedProjects.map(p => p.id);
-                      newProjectName = linkedProjects[0].name; // Use first found for legacy display
-                    }
-                  }
-
-                  return {
-                    ...v, ...meta,
-                    tags: newTags,
-                    projectIds: newProjectIds,
-                    project: newProjectName || null
-                  };
-                }), [projects])}
+                onChange={handleContentChange}
+                onMetaChange={handleMetaChange}
                 className="maia-editor"
               />
             </div>

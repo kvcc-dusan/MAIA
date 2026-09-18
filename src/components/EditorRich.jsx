@@ -5,6 +5,7 @@ import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Highlight from "@tiptap/extension-highlight";
 import Link from "@tiptap/extension-link";
 import { Markdown } from "tiptap-markdown";
+import markdownItMark from "markdown-it-mark";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Extension } from "@tiptap/core";
@@ -102,6 +103,28 @@ const AutoMarkdownShortcuts = Extension.create({
   },
 });
 
+/**
+ * Highlight, wired to round-trip through markdown as `==text==`.
+ * The stock @tiptap/extension-highlight has no markdown serializer at all
+ * (tiptap-markdown only knows how to serialize marks that declare
+ * `storage.markdown`), so a highlighted selection was silently written to
+ * disk as plain unmarked text on every save.
+ */
+const MarkdownHighlight = Highlight.extend({
+  addStorage() {
+    return {
+      markdown: {
+        serialize: { open: "==", close: "==", expelEnclosingWhitespace: true },
+        parse: {
+          setup(markdownit) {
+            markdownit.use(markdownItMark);
+          },
+        },
+      },
+    };
+  },
+});
+
 /** WikiLink Highlighting: [[Title]] or [[Title|Alias]] */
 const WikiLinkExtension = Extension.create({
   name: "wikiLink",
@@ -170,7 +193,7 @@ export default function EditorRich({
     }),
     TaskList,
     TaskItem.configure({ nested: true }),
-    Highlight,
+    MarkdownHighlight,
     Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
     HorizontalRule,
     Markdown.configure({

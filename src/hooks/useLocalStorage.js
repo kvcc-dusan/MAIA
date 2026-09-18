@@ -1,11 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 /**
  * Hook to persist state to localStorage with debounced writes.
  *
+ * Writes are debounced 1s to avoid blocking the main thread during rapid
+ * updates, but the pending write is flushed immediately on unmount and on
+ * `beforeunload` — a debounce must never be the reason an edit is lost when
+ * the user navigates away or quits.
+ *
  * @param {string} key - The localStorage key.
  * @param {*} initial - The initial value (or function returning it).
- * @returns {[*, Function]} - State and setter tuple.
+ * @returns {[*, Function, *]} - [state, setState, lastWriteError]
  */
 export function useLocalStorage(key, initial) {
   const [state, setState] = useState(() => {
@@ -14,32 +19,67 @@ export function useLocalStorage(key, initial) {
       if (raw) return JSON.parse(raw);
     } catch (e) {
       console.error(`[MAIA] Failed to parse localStorage key "${key}" — data may be corrupted`, e);
+      // Preserve the corrupt payload instead of silently discarding it —
+      // a bad parse should never mean the underlying bytes are gone for good.
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw != null) {
+          localStorage.setItem(`${key}.corrupt.${Date.now()}`, raw);
+        }
+      } catch {
+        // best-effort backup; if this also fails there's nothing more we can do
+      }
     }
     return typeof initial === "function" ? initial() : initial;
   });
 
-  // Debounced write to avoid blocking the main thread during rapid updates
-  const timerRef = useRef(null);
+  const [writeError, setWriteError] = useState(null);
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const dirtyRef = useRef(false); // true whenever a debounced write hasn't landed yet
+
+  const writeNow = useCallback(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(stateRef.current));
+      dirtyRef.current = false;
+      setWriteError(null);
+    } catch (e) {
+      console.error(`[MAIA] Failed to write localStorage key "${key}"`, e);
+      const isQuota = e.name === "QuotaExceededError" || e.code === 22;
+      if (isQuota) console.warn(`[MAIA] Storage quota exceeded writing "${key}"! Data was not saved.`);
+      setWriteError(e);
+    }
+  }, [key]);
+
+  // Debounce: schedule a write, only clearing (never flushing) the previous
+  // timer on cleanup — this effect's cleanup runs on every state change, not
+  // just unmount, so flushing here would defeat the debounce entirely.
   useEffect(() => {
-    // Clear any pending write so only the latest state is persisted
-    if (timerRef.current) clearTimeout(timerRef.current);
+    dirtyRef.current = true;
+    const timer = setTimeout(writeNow, 1000);
+    return () => clearTimeout(timer);
+  }, [state, writeNow]);
 
-    timerRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem(key, JSON.stringify(state));
-      } catch (e) {
-        console.error(`[MAIA] Failed to write localStorage key "${key}"`, e);
-        if (e.name === 'QuotaExceededError' || e.code === 22) {
-          console.warn('[MAIA] Storage quota exceeded! Data may not be saved.');
-        }
-      }
-    }, 1000); // 1-second debounce
-
+  // True unmount only (key is static per call site) — flush anything the
+  // debounce above hasn't written yet, so closing a modal/navigating away
+  // never drops the last edit.
+  useEffect(() => {
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (dirtyRef.current) writeNow();
     };
-  }, [key, state]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
-  return [state, setState];
+  // Native window close / quit may not run React unmount effects at all —
+  // flush unconditionally before the page goes away.
+  useEffect(() => {
+    const onUnload = () => {
+      if (dirtyRef.current) writeNow();
+    };
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
+  }, [writeNow]);
+
+  return [state, setState, writeError];
 }
