@@ -32,8 +32,11 @@ import { Download, Upload } from "lucide-react";
  *
  * Empty query shows the five most recent notes instead of a static action
  * list. The vendored CommandList's `max-h-72` is overridden here (its cn()
- * merges caller classes) — the `no-scrollbar` class it carries is dead CSS in
- * this repo, so the visible scrollbar comes from `custom-scrollbar`.
+ * merges caller classes). Rows are flat: grayish text at rest, text+icon
+ * turn white on hover/selection, and no row ever gets a background — the
+ * base-luma wrapper's presence-based data-selected: variant was lighting up
+ * every row (cmdk keeps data-selected="false" in the DOM), which is a
+ * tracked divergence now fixed in ui/command.jsx.
  */
 
 const MAX_NOTE_ITEMS = 50;
@@ -127,9 +130,8 @@ export default function CommandPalette({
             {pages.map((p) => (
               <CommandItem
                 key={p.to}
-                className="data-selected:bg-overlay"
-                onSelect={run(() => go?.(p.to))}
-              >
+                className="text-muted-foreground hover:text-foreground"
+                onSelect={run(() => go?.(p.to))}              >
                 <p.icon size={16} />
                 {p.label}
               </CommandItem>
@@ -139,23 +141,23 @@ export default function CommandPalette({
           <CommandSeparator />
 
           <CommandGroup heading="Actions">
-            <CommandItem className="data-selected:bg-overlay" onSelect={run(onCreateNote)}>
+            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onCreateNote)}>
               <StickyNote03 size={16} />
               New note
             </CommandItem>
-            <CommandItem className="data-selected:bg-overlay" onSelect={run(onCreateProject)}>
+            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onCreateProject)}>
               <FolderAdd size={16} />
               New project
             </CommandItem>
-            <CommandItem className="data-selected:bg-overlay" onSelect={run(onOpenCronos)}>
+            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onOpenCronos)}>
               <ChronosIcon size={16} />
               Open Chronos
             </CommandItem>
-            <CommandItem className="data-selected:bg-overlay" onSelect={run(onExportBackup)}>
+            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onExportBackup)}>
               <Download size={16} />
               Export all data (backup)
             </CommandItem>
-            <CommandItem className="data-selected:bg-overlay" onSelect={run(onImportBackup)}>
+            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onImportBackup)}>
               <Upload size={16} />
               Import backup…
             </CommandItem>
@@ -176,7 +178,7 @@ export default function CommandPalette({
 function NoteItem({ note, onOpenNote, run }) {
   return (
     <CommandItem
-      className="data-selected:bg-overlay"
+      className="text-muted-foreground hover:text-foreground"
       value={`note ${note.title || "Untitled"} ${note.id}`}
       onSelect={run(() => onOpenNote?.(note.id))}
     >
