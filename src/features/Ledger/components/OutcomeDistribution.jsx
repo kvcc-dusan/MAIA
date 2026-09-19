@@ -11,7 +11,7 @@ export function OutcomeDistribution({ data }) {
     const axisTick = resolveColor(cssVar('--subtle-foreground'));
     const dotGlow = tokenColor('--pure', 0.5);
 
-    const { chartData, total } = useMemo(() => {
+    const { chartData } = useMemo(() => {
         if (!data || data.length === 0) return { chartData: [], total: 0 };
 
         const counts = { success: 0, mixed: 0, failure: 0 };
