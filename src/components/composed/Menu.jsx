@@ -47,7 +47,14 @@ const Menu = {
   ContextTrigger: ContextMenuTrigger,
   ContextContent: ContextMenuContent,
   ContextItem: ContextMenuItem,
-  ContextLabel: ContextMenuLabel,
+  // Base UI's group label throws outside a group ("MenuGroupContext is
+  // missing") — right-clicking a session block used to gray-screen the whole
+  // app because of exactly that. The label owns its group now.
+  ContextLabel: (props) => (
+    <ContextMenuGroup>
+      <ContextMenuLabel {...props} />
+    </ContextMenuGroup>
+  ),
   ContextGroup: ContextMenuGroup,
   ContextSeparator: ContextMenuSeparator,
   ContextShortcut: ContextMenuShortcut,

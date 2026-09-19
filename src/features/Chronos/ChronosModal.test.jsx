@@ -74,12 +74,13 @@ describe('ChronosModal', () => {
     expect(screen.getAllByText('Chronos').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('closes via the standard dialog close button', () => {
+  it('closes via the Escape key', async () => {
+    const user = userEvent.setup();
     render(<ChronosModal {...baseProps} />);
-    // AppDialog's own close button — every dialog in the app shares this
-    // affordance now, so it is named "Close", not "Close Modal".
-    const closeButton = screen.getByRole('button', { name: 'Close' });
-    expect(closeButton).toBeInTheDocument();
+    // The dialog has no visible close button — Escape (and clicking outside)
+    // are the exits. Base UI routes both through onOpenChange(false).
+    await user.keyboard('{Escape}');
+    expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('shows Tasks and Signals sections with add controls', () => {

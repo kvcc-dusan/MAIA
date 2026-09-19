@@ -83,7 +83,7 @@ function DateTimeField({ label, value, onChange, dateOnly = false }) {
             <button
               type="button"
               aria-label={label ? `${label}: select date and time` : "Select date and time"}
-              className="flex h-9 w-full items-center gap-3 rounded-xl border border-transparent bg-input/50 px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+              className="flex h-9 w-full items-center gap-3 rounded-xl border border-border bg-transparent px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring"
             >
               <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate">{formatDisplay(value)}</span>

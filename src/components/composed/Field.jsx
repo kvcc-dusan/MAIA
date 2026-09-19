@@ -54,11 +54,6 @@ function Field({
       {label && (
         <Label htmlFor={id} className={labelClassName}>
           {label}
-          {required && (
-            <span className="text-destructive" aria-hidden="true">
-              *
-            </span>
-          )}
         </Label>
       )}
       {control}

@@ -322,6 +322,10 @@ export default function ChronosModal({
       open
       onClose={onClose}
       size="full"
+      // No visible close button: the X sat on top of the calendar's month
+      // chevrons and read as noise in every other right-rail state. Escape
+      // and clicking outside close the dialog — Base UI handles both.
+      showCloseButton={false}
       // The accessible name lives in a visually hidden dialog header; the
       // visible "Chronos" heading is the left column's own, matching the old
       // layout where the divider runs the full height of the modal.
