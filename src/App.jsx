@@ -232,7 +232,9 @@ function AppContent() {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setCmdOpen(true);
+        // Toggle, not open-only — ⌘K to dismiss is muscle memory, and the
+        // dock button was the sole closer before.
+        setCmdOpen((prev) => !prev);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -263,7 +265,6 @@ function AppContent() {
       <VaultSetup />
 
       {/* Dock (Floating Navigation) */}
-      {/* Dock (Floating Navigation) */}
       <Dock
         items={[
           { icon: Home08, label: "Today", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
@@ -273,7 +274,7 @@ function AppContent() {
           { icon: LedgerIcon, label: "Ledger", onClick: () => handleNavigate("ledgerPage"), isActive: currentPage === "ledgerPage" },
           { type: 'separator' },
           { icon: ChronosIcon, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
-          { icon: Search01, label: "Search", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
+          { icon: Search01, label: "Search ⌘K", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
         ]}
       />
 
