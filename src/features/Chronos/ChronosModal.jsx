@@ -7,6 +7,7 @@ import { uid, isoNow } from "../../lib/ids.js";
 // timers on every Chronos open.
 import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../../utils/notify.js";
 import { AppDialog } from "@/components/composed/AppDialog";
+import { SectionCard } from "@/components/composed/SectionCard";
 import { EntityForm } from "@/components/composed/EntityForm";
 import { Field } from "@/components/composed/Field";
 import { Select } from "@/components/composed/Select";
@@ -16,10 +17,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Folder01 as FolderIcon } from "@/components/ui/CustomIcon.jsx";
-import { PlusIcon, BellOff, ListTodo } from "lucide-react";
+import { PlusIcon, BellOff, ListTodo, BellRing, CalendarDays, Clock } from "lucide-react";
 
 import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../../lib/constants";
-import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap } from "../../lib/time";
+import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap, sameDay } from "../../lib/time";
 import TaskRow from "./components/TaskRow";
 import SignalRow from "./components/SignalRow";
 import DailyTimeline from "./components/DailyTimeline";
@@ -309,108 +310,127 @@ export default function ChronosModal({
 
   const projectOptions = useMemo(() => projects.map((p) => ({ value: p.id, label: p.name })), [projects]);
 
+  // The Sessions card header shows a count pill, like every other Opus card.
+  const daySessionCount = useMemo(
+    () => sessions.filter((s) => sameDay(new Date(s.start), selectedDate)).length,
+    [sessions, selectedDate]
+  );
+
+  // Which task list the card shows — pinned to the selected day, or every
+  // open task when no day is selected.
+  const visibleTasks = useMemo(
+    () => (selectedDate ? tasksOn(selectedDate) : tasks.filter((t) => !t.done)),
+    [selectedDate, tasksOn, tasks]
+  );
+
   return (
     <AppDialog
       open
       onClose={onClose}
       size="full"
       title={<span className="text-xl font-semibold">Chronos</span>}
-      className="p-0 gap-0 grid-rows-[auto_1fr] overflow-hidden rounded-3xl"
-      // The right rail carries calendar + timeline — heavier than the task
-      // list — so it gets the larger share. The left column scrolls.
-      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(320px,2fr)_minmax(0,3fr)]"
+      // The dialog surface is the app ground (bg-background), not the grey
+      // popover sheet — Chronos is floating cards on black, so the panel
+      // itself must recede. Padding here is the gutter around the card field;
+      // the gap-6 rhythm lives between the cards.
+      className="gap-4 overflow-hidden rounded-3xl bg-background p-4 sm:gap-6 sm:p-6"
+      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 gap-6 lg:grid-rows-1 lg:grid-cols-[minmax(320px,2fr)_minmax(0,3fr)]"
     >
-      {/* Left column — Tasks + Signals */}
-      <div className="flex h-full flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
-        <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar p-6 sm:p-8">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-2">
-              <div className="flex items-baseline gap-2">
-                <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Tasks</h3>
-                {/* Deselecting a day silently switched this list from "tasks
-                    on that day" to "all open tasks" — say which mode it's in. */}
-                <span className="text-xs text-subtle-foreground">
-                  {selectedDate ? formatDayLabel(selectedDate) : "All open"}
-                </span>
-              </div>
-              <button
-                onClick={() => openTaskForm()}
-                aria-label="Add Task"
-                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <PlusIcon size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {(() => {
-                const list = selectedDate ? tasksOn(selectedDate) : tasks.filter((t) => !t.done);
-                if (list.length === 0) {
-                  return (
-                    <EmptyState
-                      icon={ListTodo}
-                      title={selectedDate ? "No tasks for this day" : "No open tasks"}
-                      description={
-                        selectedDate
-                          ? "Add one, or pick a different day on the calendar."
-                          : "Tasks you create — here or in Opus — land here."
-                      }
-                    />
-                  );
+      {/* Left column — Tasks and Signals as two SectionCards. Both flex so the
+          column fills its height; sparse lists centre via my-auto so the
+          column never reads as abandoned. */}
+      <div className="flex min-h-0 flex-col gap-6">
+        <SectionCard
+          icon={ListTodo}
+          title="Tasks"
+          count={visibleTasks.length}
+          className="min-h-0 flex-[3]"
+          bodyClassName="flex min-h-0 flex-1 flex-col overflow-y-auto custom-scrollbar"
+          action={
+            <button
+              onClick={() => openTaskForm()}
+              aria-label="Add Task"
+              className="grid size-6 place-items-center rounded-md text-subtle-foreground transition-colors hover:bg-overlay-subtle hover:text-foreground-secondary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <PlusIcon size={14} />
+            </button>
+          }
+        >
+          {/* Deselecting a day silently switched this list from "tasks on that
+              day" to "all open tasks" — say which mode it's in. */}
+          <p className="flex-none px-5 pt-3 text-xs text-subtle-foreground">
+            {selectedDate ? `Showing ${formatDayLabel(selectedDate)}` : "Showing all open tasks"}
+          </p>
+          <div className="my-auto w-full space-y-2 px-5 py-5">
+            {visibleTasks.length === 0 ? (
+              <EmptyState
+                icon={ListTodo}
+                title={selectedDate ? "No tasks for this day" : "No open tasks"}
+                description={
+                  selectedDate
+                    ? "Add one, or pick a different day on the calendar."
+                    : "Tasks you create — here or in Opus — land here."
                 }
-                return list.map((t) => (
-                  <TaskRow
-                    key={t.id}
-                    task={t}
-                    onToggle={() => toggleTask(t.id)}
-                    onDelete={() => deleteTask(t.id)}
-                    onEdit={() => openTaskForm(null, t)}
-                    onAssign={(projectId) => assignTask(t.id, projectId)}
-                    projects={projects}
-                  />
-                ));
-              })()}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-2">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Signals</h3>
-              <button
-                onClick={() => openSignalForm()}
-                aria-label="Add Signal"
-                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <PlusIcon size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {upcomingSignals.length === 0 && (
-                <EmptyState
-                  icon={BellOff}
-                  title="No active signals"
-                  description="Timed nudges you set here arrive as notifications."
+              />
+            ) : (
+              visibleTasks.map((t) => (
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  onToggle={() => toggleTask(t.id)}
+                  onDelete={() => deleteTask(t.id)}
+                  onEdit={() => openTaskForm(null, t)}
+                  onAssign={(projectId) => assignTask(t.id, projectId)}
+                  projects={projects}
                 />
-              )}
-              {upcomingSignals.map((s) => (
-                <SignalRow
-                  key={s.id}
-                  signal={s}
-                  onDelete={() => {
-                    clearScheduled(s.id);
-                    setReminders((p) => p.filter((x) => x.id !== s.id));
-                  }}
-                  onEdit={() => openSignalForm(s)}
-                />
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        </div>
+        </SectionCard>
+
+        <SectionCard
+          icon={BellRing}
+          title="Signals"
+          count={upcomingSignals.length}
+          className="min-h-0 flex-[2]"
+          bodyClassName="flex min-h-0 flex-1 flex-col overflow-y-auto custom-scrollbar"
+          action={
+            <button
+              onClick={() => openSignalForm()}
+              aria-label="Add Signal"
+              className="grid size-6 place-items-center rounded-md text-subtle-foreground transition-colors hover:bg-overlay-subtle hover:text-foreground-secondary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <PlusIcon size={14} />
+            </button>
+          }
+        >
+          <div className="my-auto w-full space-y-2 px-5 py-5">
+            {upcomingSignals.length === 0 && (
+              <EmptyState
+                icon={BellOff}
+                title="No active signals"
+                description="Timed nudges you set here arrive as notifications."
+              />
+            )}
+            {upcomingSignals.map((s) => (
+              <SignalRow
+                key={s.id}
+                signal={s}
+                onDelete={() => {
+                  clearScheduled(s.id);
+                  setReminders((p) => p.filter((x) => x.id !== s.id));
+                }}
+                onEdit={() => openSignalForm(s)}
+              />
+            ))}
+          </div>
+        </SectionCard>
       </div>
 
-      {/* Right column — calendar, or whichever form is open */}
-      <div className="relative flex h-full flex-col overflow-hidden bg-muted/20">
+      {/* Right column — calendar + timeline as cards, or whichever form is
+          open (also carded, so every state of this column speaks the same
+          surface language). */}
+      <div className="flex min-h-0 flex-col gap-6">
         {rightView === "calendar" && (
           <>
             <MonthCalendar
@@ -422,21 +442,26 @@ export default function ChronosModal({
               tasksOn={tasksOn}
             />
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border-subtle">
-              <div className="flex-none border-b border-border-subtle p-4 px-6">
-                <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Sessions</span>
-              </div>
+            <SectionCard
+              icon={Clock}
+              title="Sessions"
+              count={daySessionCount}
+              className="min-h-0 flex-1"
+              bodyClassName="flex min-h-0 flex-1"
+            >
               <DailyTimeline
                 sessions={sessions}
                 setSessions={setSessions}
                 selectedDate={selectedDate}
                 onOpenSessionForm={openSessionForm}
               />
-            </div>
+            </SectionCard>
           </>
         )}
 
-        {rightView === "task-form" && (
+        {rightView !== "calendar" && (
+          <SectionCard className="min-h-0 flex-1" bodyClassName="flex min-h-0 flex-1 flex-col">
+            {rightView === "task-form" && (
           <EntityForm
             title={taskDraft.id ? "Edit Task" : "New Task"}
             onCancel={closeForm}
@@ -592,6 +617,8 @@ export default function ChronosModal({
               />
             </Field>
           </EntityForm>
+        )}
+          </SectionCard>
         )}
       </div>
     </AppDialog>

@@ -24,7 +24,11 @@ const PILL_CLASS =
  *   headings should pass as="h3" (KnowledgePanel precedent), inline eyebrows
  *   keep the default span.
  */
-function SectionLabel({ as: Tag = "span", className, children, ...props }) {
+function SectionLabel({ as = "span", className, children, ...props }) {
+  // `const Tag = as` rather than destructuring `as: Tag`: the JSX-only usage
+  // isn't tracked by no-unused-vars without eslint-plugin-react, and a
+  // lowercase destructured param trips it. Capitalized vars are exempt.
+  const Tag = as;
   return (
     <Tag className={cn(LABEL_CLASS, className)} {...props}>
       {children}

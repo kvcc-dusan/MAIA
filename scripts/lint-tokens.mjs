@@ -30,10 +30,15 @@ const RULES = [
 // Surfaces that legitimately need raw colour values: canvas/WebGL/chart libraries
 // take colour strings as props, not classes. Sprint 7 routes these through
 // lib/tokens.js; until then they are allowed.
+// lib/tokens.js(+test) are the token machinery itself — its hex is a canvas
+// probe sentinel, its tests exercise hex parsing. Counting them would bar the
+// tool from its own toolkit.
 const ALLOW = [
   'src/components/ui/CustomIcon.jsx',
   'src/components/__snapshots__/',
   'src/styles/tokens.css',
+  'src/lib/tokens.js',
+  'src/lib/tokens.test.js',
 ];
 
 // Vendored shadcn registry components. They follow the registry's own

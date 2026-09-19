@@ -5,6 +5,7 @@ import { PromptDialog } from "@/components/composed/PromptDialog";
 import { PageTitle } from "@/components/composed/PageHeader";
 import ProjectIcon from "../components/ProjectIcon";
 import { StickyNote03, Pin, CheckmarkSquare02, Delete01, Pen01 } from "../components/ui/CustomIcon.jsx";
+import { EmptyState } from "@/components/composed/EmptyState";
 import { useData } from "../context/DataContext";
 import { AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
 
@@ -518,10 +519,12 @@ export default function NotesOverview({
 
           {/* Empty State */}
           {viewNotes.length === 0 && (
-            <div className="col-span-full py-32 flex flex-col items-center justify-center text-subtle-foreground opacity-50 select-none">
-              <StickyNote03 size={48} className="mb-4 opacity-20" />
-              <p className="text-sm font-light uppercase tracking-widest">No notes found</p>
-            </div>
+            <EmptyState
+              size="page"
+              icon={StickyNote03}
+              title="No notes found"
+              className="col-span-full"
+            />
           )}
 
         </div>

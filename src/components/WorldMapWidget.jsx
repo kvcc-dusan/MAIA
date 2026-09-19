@@ -53,7 +53,7 @@ export const MapVisual = React.memo(({ coords, topology }) => {
             >
                 {/* 
                     Visual Fixes: 
-                    - Land: Distinct Dark Grey (#52525b / zinc-600) to stand out against Black/Zinc-900 bg.
+                    - Land: distinct dark grey to stand out against the glass ground.
                     - Sea: Transparent (shows the glass/glow behind).
                     - Stroke: Subtle border to define shapes.
                 */}

@@ -16,7 +16,7 @@ vi.mock('react-dom', async () => {
 });
 
 // cmdk measures its list; jsdom has neither class.
-global.ResizeObserver = class {
+globalThis.ResizeObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}

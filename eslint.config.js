@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // src-tauri/target holds Rust build artifacts that contain generated .js
+  // blobs — linting them produced ~26 phantom parse errors.
+  globalIgnores(['dist', 'src-tauri/target']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

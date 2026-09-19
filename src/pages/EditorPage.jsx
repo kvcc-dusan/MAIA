@@ -88,13 +88,13 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
   };
 
   return (
-    <div className="h-full w-full relative flex flex-col items-center bg-black">
+    <div className="h-full w-full relative flex flex-col items-center bg-background">
 
       {/* Main Content Area */}
       <div className={`w-full h-full flex flex-col min-h-0 z-10 transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
 
         {/* Clean Dark Panel */}
-        <div className="flex flex-col w-full h-full relative overflow-hidden bg-black/90 border border-border rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col w-full h-full relative overflow-hidden bg-background/90 border border-border rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
 
           {/* Header */}
           <div className="flex-none px-6 py-5 border-b border-border-subtle flex items-start gap-4 z-20">
@@ -103,7 +103,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
                 placeholder="Untitled Note"
-                className="bg-transparent outline-hidden font-sans font-semibold text-white placeholder:text-subtle-foreground"
+                className="bg-transparent outline-hidden font-sans font-semibold text-foreground placeholder:text-subtle-foreground"
                 style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
               />
               <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase tracking-widest">
@@ -122,7 +122,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
               {/* Width Toggle */}
               <button
                 onClick={toggleWide}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-white hover:bg-overlay hover:border-border-strong transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-foreground hover:bg-overlay hover:border-border-strong transition-all"
                 title={wide ? "Narrow View" : "Wide View"}
               >
                 {wide ? <CollapseIcon size={16} /> : <ExpandIcon size={16} />}
@@ -131,7 +131,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
               {/* Mode Toggle */}
               <button
                 onClick={toggleMode}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-white hover:bg-overlay hover:border-border-strong transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-foreground hover:bg-overlay hover:border-border-strong transition-all"
                 title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
               >
                 {editable ? <ReadIcon size={16} /> : <WriteIcon size={16} />}
@@ -161,7 +161,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
           className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
           style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
         >
-          <div className="flex items-center gap-4 px-4 py-2 bg-black/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground shadow-2xl pointer-events-auto">
+          <div className="flex items-center gap-4 px-4 py-2 bg-background/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground shadow-2xl pointer-events-auto">
             <div className="flex items-center gap-3 pr-3 border-r border-border">
               <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
               <span className="text-faint-foreground">•</span>

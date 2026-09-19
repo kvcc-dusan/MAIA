@@ -1,8 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { SectionCard } from "@/components/composed/SectionCard";
 import { CalibrationChart } from './CalibrationChart';
 import { VelocityChart } from './VelocityChart';
 import { OutcomeDistribution } from './OutcomeDistribution';
 import { cn } from "@/lib/utils";
+
+/**
+ * The Ledger's three chart panels, rendered as Opus section cards
+ * (translucent card + blur + hairline border + shadow) instead of flat black
+ * panels. The chart bodies adapt to the card height via flexbox.
+ */
+
+const CARD_BODY = "flex-1 min-h-0 px-5 pb-5 pt-4";
+
+// Right-aligned caption in each card header ("EXP VS ACT" etc.)
+const CARD_ACTION = "text-xs text-subtle-foreground uppercase tracking-wider";
 
 export function JudgmentOverview({ ledger }) {
     const [timeRange, setTimeRange] = useState('all'); // '30d', '90d', 'all'
@@ -36,7 +48,7 @@ export function JudgmentOverview({ ledger }) {
             {/* Header & Filters */}
             <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                 <div>
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-white flex items-center gap-2">
+                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-foreground flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_10px_var(--success)]"></span>
                         Judgment Overview
                     </h2>
@@ -54,7 +66,7 @@ export function JudgmentOverview({ ledger }) {
                                 onClick={() => setTimeRange(t.id)}
                                 className={cn(
                                     "px-3 py-1 text-xs font-bold uppercase rounded-md transition-all",
-                                    timeRange === t.id ? "bg-overlay text-white shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
+                                    timeRange === t.id ? "bg-overlay text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
                                 )}
                             >
                                 {t.label}
@@ -68,7 +80,7 @@ export function JudgmentOverview({ ledger }) {
                         className={cn(
                             "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all",
                             stakesFilter === 'high'
-                                ? "bg-red-500/10 border-red-500/20 text-red-400 shadow-[0_0_10px_rgba(239,68,68,0.1)]"
+                                ? "bg-destructive/10 border-destructive/20 text-destructive"
                                 : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground-secondary"
                         )}
                     >
@@ -80,38 +92,40 @@ export function JudgmentOverview({ ledger }) {
             {/* Charts Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 auto-rows-[200px] sm:auto-rows-[220px] lg:auto-rows-[240px]">
                 {/* 1. Calibration */}
-                <div className="lg:col-span-2 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-4 z-10 relative">
-                        <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Confidence Calibration</h3>
-                        <span className="text-xs text-subtle-foreground">EXP VS ACT</span>
-                    </div>
-                    <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/20 pointer-events-none" />
-                    <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
+                <SectionCard
+                    className="lg:col-span-2"
+                    title="Confidence Calibration"
+                    action={<span className={CARD_ACTION}>Exp vs Act</span>}
+                    bodyClassName={CARD_BODY}
+                >
+                    <div className="h-full w-full relative">
                         <CalibrationChart data={filteredData} />
                     </div>
-                </div>
+                </SectionCard>
 
                 {/* 2. Velocity */}
-                <div className="lg:col-span-2 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-4 z-10 relative">
-                        <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Decision Velocity</h3>
-                        <span className="text-xs text-subtle-foreground">WEEKLY VOLUME</span>
-                    </div>
-                    <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
+                <SectionCard
+                    className="lg:col-span-2"
+                    title="Decision Velocity"
+                    action={<span className={CARD_ACTION}>Weekly Volume</span>}
+                    bodyClassName={CARD_BODY}
+                >
+                    <div className="h-full w-full relative">
                         <VelocityChart data={filteredData} />
                     </div>
-                </div>
+                </SectionCard>
 
                 {/* 3. Outcomes */}
-                <div className="md:col-span-2 lg:col-span-1 bg-black border border-border rounded-2xl p-5 relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-4 z-10 relative">
-                        <h3 className="text-xs font-bold text-foreground-secondary uppercase tracking-wider">Outcome Scorecard</h3>
-                        <span className="text-xs text-subtle-foreground">REVIEWED ONLY</span>
-                    </div>
-                    <div className="h-[120px] sm:h-[140px] lg:h-[160px] w-full relative z-0">
+                <SectionCard
+                    className="md:col-span-2 lg:col-span-1"
+                    title="Outcome Scorecard"
+                    action={<span className={CARD_ACTION}>Reviewed Only</span>}
+                    bodyClassName={CARD_BODY}
+                >
+                    <div className="h-full w-full relative">
                         <OutcomeDistribution data={filteredData} />
                     </div>
-                </div>
+                </SectionCard>
             </div>
         </div>
     );

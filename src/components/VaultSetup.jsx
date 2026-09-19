@@ -83,7 +83,7 @@ export default function VaultSetup() {
             type="button"
             onClick={handlePick}
             disabled={isBusy}
-            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-foreground/85 disabled:opacity-50"
+            className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:bg-foreground/85 disabled:opacity-50"
           >
             {isBusy ? "Working…" : isError ? "Pick vault folder" : "Choose folder"}
           </button>

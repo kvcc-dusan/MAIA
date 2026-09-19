@@ -2,7 +2,9 @@ import React, { useMemo } from 'react';
 import { useData } from "../../../context/DataContext";
 import { cn } from "@/lib/utils";
 
-export function useProjectVitality(project) {
+// Internal hook — not exported: react-refresh requires components-only
+// exports from component files.
+function useProjectVitality(project) {
     const { tasks, sessions } = useData();
 
     return useMemo(() => {

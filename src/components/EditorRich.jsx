@@ -182,7 +182,9 @@ const WikiLinkExtension = Extension.create({
 
                   decorations.push(
                     Decoration.inline(from, to, {
-                      style: 'color: #0044FF; font-weight: bold; cursor: pointer;',
+                      // --info is the link accent token; the decoration is an
+                      // inline style, so var() resolves live with the theme
+                      style: 'color: var(--info); font-weight: bold; cursor: pointer;',
                       class: 'maia-wikilink'
                     })
                   );

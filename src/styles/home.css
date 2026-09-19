@@ -13,11 +13,13 @@
   container-name: home;
 }
 
-/* Near-black canvas: barely-there vignette, no motion */
+/* Near-black canvas: barely-there vignette, no motion. The two color-mix
+   layers reproduce the old rgba literals (white @3.5% top glow, a dark
+   success-tinted bloom at the bottom) against the token ground. */
 .home-bg {
   background:
-    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 60%),
-    radial-gradient(140% 110% at 50% 115%, rgba(23, 38, 32, 0.55), transparent 65%),
+    radial-gradient(120% 90% at 50% 0%, color-mix(in oklch, var(--foreground) 3.5%, transparent), transparent 60%),
+    radial-gradient(140% 110% at 50% 115%, color-mix(in oklch, color-mix(in oklch, var(--success) 12%, var(--background)) 55%, transparent), transparent 65%),
     var(--background);
 }
 

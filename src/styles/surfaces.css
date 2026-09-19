@@ -29,3 +29,19 @@
   border: 1px solid color-mix(in oklch, var(--success) 32%, transparent);
   color: color-mix(in oklch, var(--success) 55%, var(--foreground));
 }
+
+/* Reduced motion: the app leans on entrance/transform animations
+   (tw-animate-css utilities, dock motion, drag transitions). This is the
+   global floor — kill transforms and transitions, keep opacity so state
+   changes remain visible. Framer Motion reads this automatically for
+   `motion.*` components; everything CSS-driven gets it for free. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

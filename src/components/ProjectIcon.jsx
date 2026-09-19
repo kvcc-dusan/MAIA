@@ -2,16 +2,12 @@ import React, { useState } from "react";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { Button } from "@/components/ui/button";
 import { CancelSquare } from "./ui/CustomIcon.jsx";
-
-// ─── COLOR PALETTE ──────────────────────────────────────────
-export const ICON_COLORS = [
-    { id: "white",  label: "White",   value: "#ffffff" },
-    { id: "blue",   label: "Blue",    value: "#6366f1" },
-    { id: "orange", label: "Orange",  value: "#f97316" },
-    { id: "green",  label: "Green",   value: "#10b981" },
-    { id: "amber",  label: "Amber",   value: "#f59e0b" },
-    { id: "rose",   label: "Rose",    value: "#f43f5e" },
-];
+import {
+    ICON_COLORS,
+    PICKER_ICONS,
+    resolveColor,
+    fade,
+} from "@/lib/projectIcons.js";
 
 // ─── ICON REGISTRY ──────────────────────────────────────────
 // Each icon has one or more path "d" values extracted from the
@@ -373,29 +369,6 @@ const ICONS = {
     },
 };
 
-// Ordered list of icon IDs shown in the picker (6 × 10 = 60)
-const PICKER_ICONS = [
-    "code", "globe", "compass", "flag", "planet", "shield",
-    "heart", "bookmark", "suitcase", "creditcard", "chartline", "checkbox",
-    "bulb", "coffee", "cupcake", "leaf", "sun", "waterdrop",
-    "firstaid", "shuffle", "show", "reload", "package", "radio",
-    "users", "wavycheck", "wavy", "circle", "square", "triangle",
-    "view_3d", "rotate_3d", "activity", "ai_brain", "airplane", "barns",
-    "biscuit", "building", "china_temple", "claude", "constellation", "truck",
-    "global", "laurel", "money_bag", "mortar", "origami", "perplexity",
-    "plant", "receipt", "satellite", "saturn", "basket", "sticker",
-    "study_lamp", "telescope", "tree_palm", "yoga",
-];
-
-export const ICON_PRESETS = PICKER_ICONS;
-
-// ─── HELPERS ────────────────────────────────────────────────
-export function resolveColor(colorId) {
-    if (!colorId || colorId === 'white') return '#ffffff';
-    const found = ICON_COLORS.find(c => c.id === colorId);
-    return found ? found.value : '#ffffff';
-}
-
 // ─── ICON COMPONENT ─────────────────────────────────────────
 export default function ProjectIcon({ name, size = 20, color, className = "" }) {
     const icon = ICONS[name] || ICONS.code;
@@ -455,9 +428,9 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                             <div
                                 className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center transition-all duration-300"
                                 style={{
-                                    background: `radial-gradient(circle at 40% 35%, ${accent}18 0%, #09090b 70%)`,
-                                    border: `1px solid ${accent}30`,
-                                    boxShadow: `0 0 32px ${accent}18`,
+                                    background: `radial-gradient(circle at 40% 35%, ${fade(accent, 9)} 0%, var(--background) 70%)`,
+                                    border: `1px solid ${fade(accent, 19)}`,
+                                    boxShadow: `0 0 32px ${fade(accent, 9)}`,
                                 }}
                             >
                                 <ProjectIcon name={selectedIcon} size={32} color={selectedColor} />
@@ -476,11 +449,11 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                                         className="relative w-7 h-7 rounded-full transition-all duration-200 flex items-center justify-center"
                                         style={{
                                             background: isActive
-                                                ? `radial-gradient(circle, ${c.value}cc 0%, ${c.value}66 100%)`
-                                                : `radial-gradient(circle, ${c.value}55 0%, ${c.value}33 100%)`,
-                                            boxShadow: isActive ? `0 0 10px ${c.value}50` : 'none',
+                                                ? `radial-gradient(circle, ${fade(c.value, 80)} 0%, ${fade(c.value, 40)} 100%)`
+                                                : `radial-gradient(circle, ${fade(c.value, 33)} 0%, ${fade(c.value, 20)} 100%)`,
+                                            boxShadow: isActive ? `0 0 10px ${fade(c.value, 31)}` : 'none',
                                             transform: isActive ? 'scale(1.15)' : 'scale(1)',
-                                            outline: isActive ? `1.5px solid ${c.value}60` : 'none',
+                                            outline: isActive ? `1.5px solid ${fade(c.value, 38)}` : 'none',
                                             outlineOffset: '2px',
                                         }}
                                     />
@@ -501,16 +474,16 @@ export function IconPicker({ currentIcon, currentColor, onSelect, onClose }) {
                                         aria-label={iconName}
                                         className="aspect-square rounded-xl flex items-center justify-center transition-all duration-150"
                                         style={isActive ? {
-                                            background: `${accent}20`,
-                                            border: `1px solid ${accent}40`,
+                                            background: fade(accent, 13),
+                                            border: `1px solid ${fade(accent, 25)}`,
                                             color: accent,
                                         } : {
-                                            background: 'rgba(255,255,255,0.04)',
-                                            border: '1px solid rgba(255,255,255,0.06)',
-                                            color: '#52525b',
+                                            background: 'var(--overlay-subtle)',
+                                            border: '1px solid var(--border-subtle)',
+                                            color: 'var(--faint-foreground)',
                                         }}
-                                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-                                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--overlay)'; }}
+                                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'var(--overlay-subtle)'; }}
                                     >
                                         <ProjectIcon name={iconName} size={16} color={isActive ? selectedColor : undefined} />
                                     </button>

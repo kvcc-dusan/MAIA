@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -12,7 +12,7 @@ const DockIconButton = React.forwardRef(
             <Tooltip>
                 <TooltipTrigger
                     render={
-                        <motion.button
+                        <Motion.button
                             ref={ref}
                             whileHover={{ scale: 1.1, y: -2 }}
                             whileTap={{ scale: 0.95 }}
@@ -29,7 +29,7 @@ const DockIconButton = React.forwardRef(
                             {Icon
                                 ? <Icon className="size-[18px] sm:size-5" strokeWidth={isActive ? 2.2 : 1.8} />
                                 : <div className="size-5 rounded-full bg-destructive/20" />}
-                        </motion.button>
+                        </Motion.button>
                     }
                 />
                 {/* Replaces the hand-rolled hover bubble; keeps the dock's
@@ -51,7 +51,7 @@ const DesktopDock = React.forwardRef(({ items, className }, ref) => {
             className={cn("safe-bottom pointer-events-none fixed inset-x-0 bottom-4 z-dock hidden items-center justify-center md:flex", className)}
         >
             <div className="pointer-events-auto relative flex w-fit items-center justify-center">
-                <motion.div
+                <Motion.div
                     className={cn(
                         "flex items-center gap-1 rounded-3xl p-1.5 px-2 sm:gap-2 sm:p-2 sm:px-3",
                         "border border-border bg-glass/80 supports-backdrop-filter:backdrop-blur-xl",
@@ -65,7 +65,7 @@ const DesktopDock = React.forwardRef(({ items, className }, ref) => {
                             <DockIconButton key={item.label || index} {...item} />
                         )
                     ))}
-                </motion.div>
+                </Motion.div>
             </div>
         </div>
     );
@@ -91,7 +91,7 @@ const MobileTabBar = ({ items }) => {
         >
             <div className="flex h-(--dock-h) items-center border-t border-border-subtle bg-glass/80 supports-backdrop-filter:backdrop-blur-xl">
                 {primaryItems.map((item, i) => (
-                    <motion.button
+                    <Motion.button
                         key={item.label || i}
                         onClick={item.onClick}
                         whileTap={{ scale: 0.92 }}
@@ -117,7 +117,7 @@ const MobileTabBar = ({ items }) => {
                         )}>
                             {item.label}
                         </span>
-                    </motion.button>
+                    </Motion.button>
                 ))}
 
                 {/* Tools are icon-only on mobile. With the type floor raised to
@@ -127,7 +127,7 @@ const MobileTabBar = ({ items }) => {
                     <>
                         <div className="mx-1 h-5 w-px flex-none bg-border" />
                         {toolItems.map((item, i) => (
-                            <motion.button
+                            <Motion.button
                                 key={item.label || i}
                                 onClick={item.onClick}
                                 whileTap={{ scale: 0.92 }}
@@ -143,7 +143,7 @@ const MobileTabBar = ({ items }) => {
                                         strokeWidth={item.isActive ? 2.2 : 1.8}
                                     />
                                 )}
-                            </motion.button>
+                            </Motion.button>
                         ))}
                     </>
                 )}

@@ -7,7 +7,9 @@ describe('cn utility', () => {
   });
 
   it('handles conditional classes', () => {
-    expect(cn('class1', true && 'class2', false && 'class3')).toBe('class1 class2');
+    const truthy = true;
+    const falsy = false;
+    expect(cn('class1', truthy && 'class2', falsy && 'class3')).toBe('class1 class2');
   });
 
   it('resolves tailwind conflicts', () => {

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useMemo, useCallback, useEffect } fro
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { useNotesStore } from "../hooks/useNotesStore.js";
 import { uid, isoNow } from "../lib/ids.js";
-import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { generateDummyData } from "../utils/dummyData.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
 

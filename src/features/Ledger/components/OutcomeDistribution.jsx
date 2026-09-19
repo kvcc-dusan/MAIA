@@ -1,9 +1,16 @@
 import React, { useMemo } from 'react';
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, Tooltip } from 'recharts';
-import { cn } from "@/lib/utils";
-
+import { cssVar, resolveColor, tokenColor } from '@/lib/tokens';
 
 export function OutcomeDistribution({ data }) {
+    // Recharts takes colour as plain strings, not classes — resolve the
+    // design tokens at render time instead of hardcoding hex/rgba literals.
+    // Resolved (not raw `var(--x)`) because Recharts applies these as SVG
+    // presentation attributes, where var() is not supported.
+    const gridStroke = resolveColor(cssVar('--border'));
+    const axisTick = resolveColor(cssVar('--subtle-foreground'));
+    const dotGlow = tokenColor('--pure', 0.5);
+
     const { chartData, total } = useMemo(() => {
         if (!data || data.length === 0) return { chartData: [], total: 0 };
 
@@ -45,10 +52,11 @@ export function OutcomeDistribution({ data }) {
             {/* Radar Chart - fills full height */}
             <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="55%" outerRadius="85%" data={chartData}>
-                    <PolarGrid stroke="#27272a" opacity={0.6} />
+                    {/* --border is white@10%, matching the original #27272a at 60% opacity */}
+                    <PolarGrid stroke={gridStroke} />
                     <PolarAngleAxis
                         dataKey="subject"
-                        tick={{ fill: '#52525b', fontSize: 8, fontFamily: 'monospace' }}
+                        tick={{ fill: axisTick, fontSize: 8, fontFamily: 'monospace' }}
                     />
                     <Radar
                         dataKey="value"
@@ -56,14 +64,14 @@ export function OutcomeDistribution({ data }) {
                         strokeWidth={1.5}
                         fill="currentColor"
                         fillOpacity={0.06}
-                        dot={{ fill: 'currentColor', r: 3, filter: 'drop-shadow(0 0 3px rgba(250,250,250,0.5))' }}
+                        dot={{ fill: 'currentColor', r: 3, filter: `drop-shadow(0 0 3px ${dotGlow})` }}
                     />
                     <Tooltip
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-border rounded-lg px-2 py-1 text-xs shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-white">
+                                    <div className="bg-popover/90 border border-border rounded-lg px-2 py-1 text-xs shadow-xl backdrop-blur-md uppercase font-bold tracking-wider text-foreground">
                                         {d.subject}: {d.value}
                                     </div>
                                 );
@@ -79,7 +87,7 @@ export function OutcomeDistribution({ data }) {
                 {chartData.map(d => (
                     <div key={d.subject} className="flex items-center gap-1.5 text-xs tracking-wider uppercase">
                         <span className="text-subtle-foreground font-bold">{d.subject}</span>
-                        <span className="text-subtle-foreground">{d.percent}%</span>
+                        <span className="text-subtle-foreground tabular-nums">{d.percent}%</span>
                     </div>
                 ))}
             </div>

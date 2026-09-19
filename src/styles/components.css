@@ -7,28 +7,28 @@
   /* 📌 CALLOUTS (Markdown-it callouts)                                         */
   /* ========================================================================== */
   .callout {
-    border-left: 3px solid #3f3f46;
+    border-left: 3px solid var(--border-strong);
     padding-left: 0.75rem;
   }
 
   .callout-info {
-    border-color: #38bdf8;
+    border-color: var(--info);
   }
 
   .callout-note {
-    border-color: #a78bfa;
+    border-color: var(--priority-1);
   }
 
   .callout-tip {
-    border-color: #34d399;
+    border-color: var(--success);
   }
 
   .callout-warning {
-    border-color: #f59e0b;
+    border-color: var(--warning);
   }
 
   .callout-danger {
-    border-color: #ef4444;
+    border-color: var(--destructive);
   }
 
   /* ========================================================================== */
@@ -36,7 +36,7 @@
   /* ========================================================================== */
   .tiptap,
   .prose {
-    color: #e4e4e7;
+    color: var(--foreground);
     font-family: var(--font-sans);
     line-height: 1.75;
     font-size: 1rem;
@@ -47,7 +47,7 @@
   .tiptap code,
   .prose pre,
   .prose code {
-    font-family: var(--);
+    font-family: var(--font-mono);
   }
 
   /* Headings */
@@ -67,7 +67,7 @@
     line-height: 1.3;
     margin: 1.75rem 0 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-subtle);
     letter-spacing: -0.01em;
   }
 
@@ -97,14 +97,14 @@
   /* Horizontal rules & code blocks */
   .tiptap hr,
   .prose hr {
-    border-color: #27272a;
+    border-color: var(--border);
     margin: 2rem 0;
   }
 
   .tiptap pre,
   .prose pre {
-    background: #0a0a0a;
-    border: 1px solid #27272a;
+    background: var(--background);
+    border: 1px solid var(--border);
     padding: 1rem;
     border-radius: 0.5rem;
     overflow: auto;
@@ -114,11 +114,11 @@
   /* Inline code */
   .tiptap code,
   .prose code {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--overlay);
     padding: 0.1em 0.3em;
     border-radius: 0.25rem;
     font-size: 0.85em;
-    color: #fb7185;
+    color: var(--destructive);
     /* Rose-400 for code contrast */
   }
 
@@ -139,8 +139,8 @@
   /* Highlight ==text== */
   .tiptap mark,
   .prose mark {
-    background: rgba(251, 191, 36, 0.2);
-    color: #fcd34d;
+    background: color-mix(in oklch, var(--warning) 20%, transparent);
+    color: var(--warning);
     padding: 0 0.2rem;
     border-radius: 0.2rem;
   }
@@ -152,7 +152,7 @@
     /* Accent color */
     margin: 1rem 0;
     padding-left: 1rem;
-    color: #a1a1aa;
+    color: var(--muted-foreground);
     font-style: italic;
   }
 
@@ -264,8 +264,8 @@
   -moz-appearance: none;
   width: var(--task-box);
   height: var(--task-box);
-  border: 1px solid #fff;
-  background: #000;
+  border: 1px solid var(--foreground);
+  background: var(--background);
   border-radius: 4px;
   margin: 0;
   outline: none;
@@ -274,8 +274,8 @@
 
 .tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked,
 .prose .contains-task-list .task-list-item-checkbox:checked {
-  background: #fff;
-  border-color: #fff;
+  background: var(--foreground);
+  border-color: var(--foreground);
 }
 
 .tiptap ul[data-type="taskList"]>li input[type="checkbox"]:checked::after,
@@ -313,7 +313,7 @@
   top: 0.25rem;
   bottom: 0.25rem;
   width: 1px;
-  background: #2a2a2a;
+  background: var(--border-subtle);
 }
 
 /* ========================================================================== */
@@ -345,13 +345,13 @@
 /* Placeholder — rendered via CSS ::before, perfectly aligned with caret */
 .maia-editor .ProseMirror.is-editor-empty::before {
   content: attr(data-placeholder);
-  color: #52525b;
+  color: var(--faint-foreground);
   /* zinc-600 */
   pointer-events: none;
   float: left;
   height: 0;
   width: 100%;
-  font-family: var(--);
+  font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: inherit;
 }

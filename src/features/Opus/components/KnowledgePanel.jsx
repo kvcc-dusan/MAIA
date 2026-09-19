@@ -21,7 +21,7 @@ const DOT_PATTERN   = tokenColor('--foreground', 0.07);
 const LINK_MUTED    = tokenColor('--foreground', 0.03);
 const GLOW_COLOR    = tokenColor('--chart-3', 0.4); // the old `${PROJECT_COLOR}66` glow, 0x66 = 40%
 /* Hovered node fill / label text: --foreground (0.985) is the ramp's white;
-   the literals it replaces were #ffffff. */
+   it replaces the raw white literal the old code hardcoded. */
 const HOVER_COLOR   = resolveColor(cssVar('--foreground'));
 
 /* ─── Panel shell ─── */
@@ -47,7 +47,7 @@ export default function KnowledgePanel({ project, selectNote }) {
                 <button
                     onClick={() => setView(v => v === 'graph' ? 'list' : 'graph')}
                     className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
-                    title={view === 'graph' ? 'Switch to list view' : 'Switch to graph view'}
+                    aria-label={view === 'graph' ? 'Switch to list view' : 'Switch to graph view'}
                 >
                     {view === 'graph' ? <List size={12} /> : <Network size={12} />}
                 </button>
@@ -82,7 +82,7 @@ function ListView({ notes, onOpenNote }) {
                     </span>
                     {n.content && (
                         <span className="text-xs text-subtle-foreground truncate">
-                            {n.content.replace(/[#*`\[\]]/g, '').slice(0, 55)}
+                            {n.content.replace(/[#*`[\]]/g, '').slice(0, 55)}
                         </span>
                     )}
                 </button>

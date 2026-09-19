@@ -6,6 +6,7 @@ import { uid } from "../lib/ids.js";
 import GlassSurface from "../components/GlassSurface";
 import CreateProjectModal from "../components/CreateProjectModal";
 import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
+import { EmptyState } from "@/components/composed/EmptyState";
 import { Briefcase08, Pen01, Setting06, Delete01, PlusSignSquare, LayoutAlignLeft, LayoutAlignRight } from "../components/ui/CustomIcon.jsx";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
 
@@ -30,10 +31,8 @@ const withDefaults = (p) => ({
 });
 
 export default function Projects({
-  notes,
   projects,
   setProjects,
-  setNotes,
   selectNote,
   targetProjectId,
   isCreateModalOpen,
@@ -136,11 +135,11 @@ export default function Projects({
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <div className="h-full w-full flex relative overflow-hidden bg-black text-foreground">
+    <div className="h-full w-full flex relative overflow-hidden bg-background text-foreground">
 
       {/* Mobile sidebar backdrop */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={closeMobile} />
+        <div className="md:hidden fixed inset-0 z-overlay bg-background/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={closeMobile} />
       )}
 
       {/* Main Container */}
@@ -148,7 +147,7 @@ export default function Projects({
 
         {/* SIDEBAR: Project List — hidden on mobile, overlay when mobileOpen */}
         <div
-          className={`flex-none h-full border-r border-border bg-black flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
+          className={`flex-none h-full border-r border-border bg-background flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
             ${mobileOpen ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'hidden md:flex'}`}
           style={{ width: mobileOpen ? 280 : effectiveWidth }}
         >
@@ -160,7 +159,8 @@ export default function Projects({
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center transition-colors shrink-0 text-muted-foreground hover:text-white outline-hidden"
+              aria-label="New project"
+              className="flex items-center justify-center transition-colors shrink-0 text-muted-foreground hover:text-foreground outline-hidden"
             >
               <PlusSignSquare size={20} />
             </button>
@@ -169,7 +169,7 @@ export default function Projects({
           {/* List */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
             {activeList.length === 0 && effectiveWidth > 120 && (
-              <div className="p-4 text-center text-xs text-subtle-foreground italic">No active projects.</div>
+              <EmptyState size="inline" title="No active projects" className="py-4" />
             )}
 
             {activeList.map(p => (
@@ -180,13 +180,13 @@ export default function Projects({
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
                   ? isCollapsed
                     ? "bg-transparent border-transparent shadow-none"
-                    : "bg-overlay-subtle border-border text-white shadow-lg"
+                    : "bg-overlay-subtle border-border text-foreground shadow-lg"
                   : "border-transparent text-muted-foreground hover:text-foreground-secondary " + (isCollapsed ? "" : "hover:bg-overlay-subtle")
                   } ${effectiveWidth < 120 ? 'justify-center' : ''}`}
                 onClick={() => { setActiveId(p.id); closeMobile(); }}
                 title={effectiveWidth < 120 ? p.name : ''}
               >
-                <span className={`shrink-0 ${p.id === activeId ? "text-white" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
+                <span className={`shrink-0 ${p.id === activeId ? "text-foreground" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
                   <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
                 </span>
                 {effectiveWidth >= 120 && (
@@ -198,7 +198,7 @@ export default function Projects({
                       onBlur={commitRename}
                       onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
                       onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-white outline-hidden min-w-0"
+                      className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-foreground outline-hidden min-w-0"
                     />
                   ) : (
                     <span className="font-medium truncate text-sm flex-1">{p.name}</span>
@@ -229,7 +229,8 @@ export default function Projects({
                   <button
                     key={p.id}
                     onClick={() => setActiveId(p.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-overlay-subtle text-white" : "text-subtle-foreground hover:bg-overlay-subtle"
+                    aria-label={`Open archived project ${p.name}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-overlay-subtle text-foreground" : "text-subtle-foreground hover:bg-overlay-subtle"
                       }`}
                   >
                     <span className="text-sm grayscale">
@@ -245,7 +246,7 @@ export default function Projects({
           {/* Collapse Toggle */}
           {/* Mobile Sidebar Settings (Only visible on mobile when a project is active) */}
           {mobileOpen && activeProject && (
-            <div className="flex-none border-t border-border-subtle p-4 flex flex-col gap-2 bg-black/50">
+            <div className="flex-none border-t border-border-subtle p-4 flex flex-col gap-2 bg-background/50">
               <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-2">
                 Manage {activeProject.name}
               </div>
@@ -256,7 +257,7 @@ export default function Projects({
                     setProjects(prev => prev.map(p => p.id === activeId ? { ...p, status } : p));
                     closeMobile();
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-overlay text-white" : "border border-transparent text-muted-foreground hover:text-white hover:bg-overlay-subtle"
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-overlay text-foreground" : "border border-transparent text-muted-foreground hover:text-foreground hover:bg-overlay-subtle"
                     }`}
                 >
                   Set to {status === 'Done' ? 'Archived' : status}
@@ -268,7 +269,7 @@ export default function Projects({
                   deleteProject(activeId);
                   closeMobile();
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs text-red-500 hover:bg-red-500/10 transition-colors"
+                className="w-full text-left px-3 py-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors"
               >
                 Delete Project
               </button>
@@ -279,8 +280,8 @@ export default function Projects({
           <div className={`hidden md:flex flex-none border-t border-border-subtle p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
             <button
               onClick={toggleCollapse}
-              className="flex items-center justify-center text-muted-foreground hover:text-white transition-colors outline-hidden"
-              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors outline-hidden"
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? (
                 <LayoutAlignRight size={20} strokeWidth="1.5" />
@@ -298,7 +299,7 @@ export default function Projects({
           <div className="md:hidden flex items-center gap-3 px-4 pt-4 pb-2 border-b border-border-subtle">
             <button
               onClick={() => setMobileOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-overlay-subtle border border-border text-muted-foreground hover:text-white hover:bg-overlay transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-overlay-subtle border border-border text-muted-foreground hover:text-foreground hover:bg-overlay transition-colors"
               aria-label="Open project list"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>

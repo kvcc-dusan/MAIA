@@ -27,6 +27,7 @@ import VaultSetup from "./components/VaultSetup.jsx";
 import { ConfirmDialog } from "./components/composed/ConfirmDialog.jsx";
 import { Toaster } from "./components/ui/sonner.jsx";
 import { TooltipProvider } from "./components/ui/tooltip.jsx";
+import { MotionConfig } from "framer-motion";
 
 // Pages
 import HomePage from "./pages/HomePage.jsx";
@@ -257,6 +258,10 @@ function AppContent() {
      Layout
   ----------------------------------------- */
   return (
+    // reducedMotion="user" makes every motion.* component honor the OS
+    // reduced-motion setting (transforms collapse, opacity stays) — the
+    // stylesheet media query in surfaces.css covers the CSS-driven motion.
+    <MotionConfig reducedMotion="user">
     <div
       className="w-full bg-background text-foreground grid min-h-0 relative"
       style={{ gridTemplateRows: "1fr", height: "calc(var(--vh, 1vh) * 100)" }}
@@ -416,6 +421,7 @@ function AppContent() {
         tone="danger"
       />
     </div>
+    </MotionConfig>
   );
 }
 

@@ -26,7 +26,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                 type: 'link'
             };
             updateProject(project.id, { links: [...(project.links || []), newLink] });
-        } catch (e) {
+        } catch {
             // Invalid URL
         }
         setNewLinkUrl("");

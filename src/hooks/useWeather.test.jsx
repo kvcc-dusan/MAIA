@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { useWeather } from "./useWeather";
 import { STORAGE_KEYS } from "../lib/constants.js";

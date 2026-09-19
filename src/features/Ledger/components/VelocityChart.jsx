@@ -1,7 +1,16 @@
 import React, { useMemo } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, Tooltip } from 'recharts';
+import { cssVar, resolveColor, tokenColor } from '@/lib/tokens';
 
 export function VelocityChart({ data }) {
+    // Recharts takes colour as plain strings, not classes — resolve the
+    // design tokens at render time instead of hardcoding hex/rgba literals.
+    // Resolved (not raw `var(--x)`) because Recharts applies these as SVG
+    // presentation attributes, where var() is not supported.
+    const axisTick = resolveColor(cssVar('--subtle-foreground'));
+    const cursorStroke = resolveColor(cssVar('--overlay-subtle'));
+    const dotGlow = tokenColor('--pure', 0.5);
+
     const chartData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
@@ -53,19 +62,19 @@ export function VelocityChart({ data }) {
                         dataKey="label"
                         interval="preserveStartEnd"
                         minTickGap={24}
-                        tick={{ fill: '#52525b', fontSize: 9, fontFamily: 'monospace' }}
+                        tick={{ fill: axisTick, fontSize: 9, fontFamily: 'monospace' }}
                         tickLine={false}
                         axisLine={false}
                     />
                     <Tooltip
-                        cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 1 }}
+                        cursor={{ stroke: cursorStroke, strokeWidth: 1 }}
                         content={({ active, payload }) => {
                             if (active && payload && payload.length) {
                                 const d = payload[0].payload;
                                 return (
-                                    <div className="bg-black/90 border border-border rounded-lg px-3 py-2 text-xs shadow-xl backdrop-blur-md">
+                                    <div className="bg-popover/90 border border-border rounded-lg px-3 py-2 text-xs shadow-xl backdrop-blur-md">
                                         <div className="text-muted-foreground mb-1">{d.label}</div>
-                                        <div className="text-white font-bold">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
+                                        <div className="text-foreground font-bold tabular-nums">{d.count} {d.count === 1 ? 'Decision' : 'Decisions'}</div>
                                     </div>
                                 );
                             }
@@ -79,7 +88,7 @@ export function VelocityChart({ data }) {
                         strokeWidth={1.5}
                         fill="url(#velocityGradient)"
                         dot={{ fill: 'currentColor', r: 2, strokeWidth: 0 }}
-                        activeDot={{ fill: 'currentColor', r: 4, strokeWidth: 0, filter: 'drop-shadow(0 0 4px rgba(250,250,250,0.5))' }}
+                        activeDot={{ fill: 'currentColor', r: 4, strokeWidth: 0, filter: `drop-shadow(0 0 4px ${dotGlow})` }}
                     />
                 </AreaChart>
             </ResponsiveContainer>

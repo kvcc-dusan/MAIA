@@ -18,8 +18,6 @@ export default function GraphControls({
     setShowOrphans,
     showGhostNodes,
     setShowGhostNodes,
-    showSignals,
-    setShowSignals,
     nodeSize,
     setNodeSize,
     linkThickness,

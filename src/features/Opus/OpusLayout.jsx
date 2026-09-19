@@ -17,7 +17,7 @@ import ProjectContext from "./components/ProjectContext";
  * LAYER 2: Resources        — Intel | Assets | Uplinks (3-col grid)
  * LAYER 3: ProjectContext   — Collapsed directive + metadata
  */
-export default function OpusLayout({ projectId, selectNote, onDeleteProject }) {
+export default function OpusLayout({ projectId, selectNote }) {
     const { projects, updateProject } = useData();
 
     const project = projects.find(p => p.id === projectId);
