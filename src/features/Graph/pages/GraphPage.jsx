@@ -5,30 +5,18 @@ import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js"
 import { GlassCard } from "../../../components/GlassCard";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
+import { clusterColors, graphTheme } from "@/lib/tokens";
 
-/* -----------------------------------------
-   Theme Constants
------------------------------------------ */
-const COLORS = [
-  "#2dd4bf", // Teal (Growth)
-  "#f472b6", // Pink (Creative)
-  "#fbbf24", // Amber (Energy)
-  "#818cf8", // Indigo (Deep)
-  "#34d399", // Emerald
-  "#a78bfa", // Violet
-];
-
-const THEME = {
-  bg: "#000000",
-  nodeFill: "#e4e4e7", // zinc-200 (Light Gray)
-  nodeActive: "#ffffff", // Pure White
-  nodeStroke: "none",
-  link: "rgba(255,255,255,0.12)",
-  text: "#a1a1aa", // zinc-400
-  textActive: "#f4f4f5", // zinc-100
-};
+// Cluster + canvas colors resolve from the design tokens (lib/tokens.js);
+// they used to be literal hexes duplicated three ways across the Graph files.
 
 export default function GraphPage({ notes, projects = [], onOpenNote }) {
+  // Resolved per mount, not at module scope: these read computed styles, and
+  // at import time the stylesheet may not be applied yet — which would resolve
+  // every token to the fallback grey and silently flatten the whole palette.
+  const COLORS = useMemo(() => clusterColors(), []);
+  const THEME = useMemo(() => graphTheme(), []);
+
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
   const zoomRef = useRef(null); // Store zoom behavior
@@ -114,7 +102,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       realId: p.id,
       title: p.name,
       type: "project",
-      color: "#3f3f46", // zinc-700 — matches Opus Nodes widget
+      color: THEME.text, // dim gray — matches Opus Nodes widget
       val: 3, // Smaller fixed size (~5% larger)
       tags: ["Project"],
     }));
@@ -153,7 +141,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
               id: `ghost-${normT}`,
               title: t,
               type: 'ghost',
-              color: '#3f3f46', // Zinc 700
+              color: THEME.text,
               val: 1,
               tags: ['Missing'],
             };
@@ -189,7 +177,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     }
 
     return { nodes: allNodes, links: d3Links };
-  }, [notes, projects, analysis, showOnlyProjects, showGhostNodes, showOrphans]);
+  }, [notes, projects, analysis, showOnlyProjects, showGhostNodes, showOrphans, COLORS, THEME]);
 
 
   // --- ZOOM HELPER (Passed to Controls) ---
@@ -234,7 +222,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   }, []);
 
   return (
-    <div className="relative w-full h-full bg-black overflow-hidden">
+    <div className="relative w-full h-full bg-background overflow-hidden">
 
       <GraphRenderer
         nodes={nodes}
@@ -288,10 +276,10 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       {/* Hover Info Card */}
       {hoveredNode && (
         <div
-          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-black/90 backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl"
+          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-elevated backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl"
           style={{ top: 80, right: 24 }}
         >
-          <div className="text-white font-medium text-xs leading-tight">{hoveredNode.title}</div>
+          <div className="text-foreground font-medium text-xs leading-tight">{hoveredNode.title}</div>
           <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-1">
             {hoveredNode.tags.length > 0
               ? hoveredNode.tags.map(t => <span key={t} className="bg-overlay-subtle border border-border px-1.5 py-0.5 rounded-full">#{t}</span>)

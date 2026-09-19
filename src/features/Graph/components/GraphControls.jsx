@@ -1,17 +1,9 @@
 // @maia:graph-controls
-import React from "react";
+import React, { useMemo } from "react";
 import { GlassCard, GlassInput } from "../../../components/GlassCard";
 import ProjectIcon from "../../../components/ProjectIcon";
 import { SettingsIcon, SearchIcon } from "../../../components/ui/CustomIcon.jsx";
-
-const COLORS = [
-    "#2dd4bf", // Teal (Growth)
-    "#f472b6", // Pink (Creative)
-    "#fbbf24", // Amber (Energy)
-    "#818cf8", // Indigo (Deep)
-    "#34d399", // Emerald
-    "#a78bfa", // Violet
-];
+import { clusterColors } from "@/lib/tokens";
 
 export default function GraphControls({
     isPanelOpen,
@@ -43,6 +35,10 @@ export default function GraphControls({
     setActiveCluster,
     clusters
 }) {
+    // Same palette the renderer paints clusters with — resolved per mount
+    // rather than at module scope so the stylesheet is guaranteed applied.
+    const COLORS = useMemo(() => clusterColors(), []);
+
     return (
         <>
             {/* Panel Toggle Button - Positioned top right, distinct */}

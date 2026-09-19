@@ -1,19 +1,14 @@
 // @maia:graph-renderer
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { select, drag, zoom, zoomIdentity } from "d3";
 import { dottedBg } from "../../../lib/theme.js";
 import { useGraphSimulation } from "../hooks/useGraphSimulation.js";
+import { cssVar, graphTheme, resolveColor } from "@/lib/tokens";
 
-// Theme Constants
-const THEME = {
-    bg: "#000000",
-    nodeFill: "#e4e4e7",
-    nodeActive: "#ffffff",
-    nodeStroke: "none",
-    link: "rgba(255,255,255,0.12)",
-    text: "#ffffff",
-    textActive: "#f4f4f5",
-};
+// Theme colors resolve from the design tokens at render time (see lib/tokens.js).
+// Resolved once per mount rather than at module scope: reading computed styles
+// at import time can run before the stylesheet is applied, which silently
+// yields empty values and paints the whole graph in fallback grey.
 
 function GraphRenderer({
     nodes,
@@ -36,6 +31,10 @@ function GraphRenderer({
 }) {
     const gRef = useRef(null);
     const initialZoomDone = useRef(false);
+
+    // Shared by every effect below — the search/cluster effect reads THEME too,
+    // so it can't live inside the draw effect.
+    const THEME = useMemo(() => graphTheme(), []);
 
     // Stable Refs for Callbacks
     const onOpenNoteRef = useRef(onOpenNote);
@@ -74,7 +73,7 @@ function GraphRenderer({
                 .attr("x", width / 2)
                 .attr("y", height / 2)
                 .attr("text-anchor", "middle")
-                .attr("fill", "#666")
+                .attr("fill", resolveColor(cssVar("--faint-foreground")))
                 .attr("font-family", "monospace")
                 .style("pointer-events", "none");
         }
@@ -133,7 +132,7 @@ function GraphRenderer({
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element")
-            .style("font-family", "var(--)");
+            .style("font-family", "var(--font-mono)");
 
         // Interactions
         node
@@ -147,7 +146,7 @@ function GraphRenderer({
             })
             .on("mouseover", (e, d) => {
                 setHoveredNodeRef.current?.(d);
-                link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? "#fff" : THEME.link)
+                link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? THEME.nodeActive : THEME.link)
                     .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
                 node.attr("opacity", n => {
@@ -237,7 +236,7 @@ function GraphRenderer({
         return () => {
             simulation.on("tick", null);
         };
-    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef]);
+    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef, THEME]);
 
     // --- VISUAL UPDATES (No Re-render) ---
     useEffect(() => {
@@ -285,7 +284,7 @@ function GraphRenderer({
             link.style("opacity", 1).attr("stroke-opacity", 1);
             label.style("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : (d.val > 2 ? 1 : 0.5));
         }
-    }, [query, activeCluster, nodes, svgRef]);
+    }, [query, activeCluster, nodes, svgRef, THEME]);
 
 
     function createDrag(simulation) {
