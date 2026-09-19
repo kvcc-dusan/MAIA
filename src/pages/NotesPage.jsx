@@ -294,7 +294,7 @@ export default function NotesOverview({
 
   return (
     <div
-      className="h-full w-full relative bg-black text-foreground overflow-y-auto custom-scrollbar"
+      className="h-full w-full relative bg-background text-foreground overflow-y-auto custom-scrollbar"
       onClick={(e) => {
         if (selectMode && e.target === e.currentTarget) {
           exitSelectMode();
@@ -305,7 +305,7 @@ export default function NotesOverview({
       <div className="w-full px-page py-8 flex flex-col gap-8">
 
         {/* Header: Full Width, Opus Style */}
-        <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-2 flex-wrap">
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
             <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold ml-1">Codex</span>
             <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground">
@@ -318,7 +318,7 @@ export default function NotesOverview({
             {/* New Note Button (Header) */}
             <button
               onClick={onCreateNote}
-              className="h-8 px-3 rounded-lg bg-white text-black hover:bg-foreground flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-95"
+              className="h-8 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-foreground flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_var(--overlay)] active:scale-95"
               title="Create New Note"
             >
               <StickyNote03 size={14} className="stroke-[2.5px]" />
@@ -328,7 +328,7 @@ export default function NotesOverview({
             {/* New Journal Button */}
             <button
               onClick={onCreateJournal}
-              className="h-8 px-3 rounded-lg bg-black text-white border border-faint-foreground hover:bg-secondary flex items-center justify-center transition-all gap-2 active:scale-95"
+              className="h-8 px-3 rounded-lg bg-background text-foreground border border-faint-foreground hover:bg-secondary flex items-center justify-center transition-all gap-2 active:scale-95"
               title="Create New Journal"
             >
               <StickyNote03 size={14} className="stroke-[2.5px]" />
@@ -347,13 +347,13 @@ export default function NotesOverview({
             <div className="relative" ref={settingsRef}>
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors border ${showSettings ? 'bg-overlay border-border-strong text-white' : 'bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-white hover:bg-overlay'}`}
+                className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors border ${showSettings ? 'bg-overlay border-border-strong text-foreground' : 'bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground hover:bg-overlay'}`}
               >
                 <ProjectIcon name="settings" size={16} />
               </button>
 
               {showSettings && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-[#121214] border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-background-subtle border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
                   <div className="px-4 py-2 text-xs uppercase tracking-widest text-subtle-foreground font-bold border-b border-border-subtle mb-1">
                     Actions
                   </div>
@@ -368,7 +368,7 @@ export default function NotesOverview({
                       });
                       setShowSettings(false);
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-emerald-400 group transition-colors"
+                    className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-success group transition-colors"
                   >
                     <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
                     <span className="text-xs">Seed Data</span>
@@ -378,7 +378,7 @@ export default function NotesOverview({
                   {notes.length > 0 && (
                     <button
                       onClick={() => { handleDeleteAll(); setShowSettings(false); }}
-                      className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-red-400 group transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-destructive group transition-colors"
                     >
                       <Delete01 size={14} className="group-hover:scale-110 transition-transform" />
                       <span className="text-xs">Delete All</span>
@@ -450,7 +450,7 @@ export default function NotesOverview({
               >
                 {/* Pinned indicator — white dot top-right */}
                 {isPinned(n.id) && (
-                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-white z-20" />
+                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-pure z-20" />
                 )}
 
                 {/* Header: Title (Consistent top spacing, no divider) */}
@@ -465,7 +465,7 @@ export default function NotesOverview({
                   className="flex-1 relative overflow-hidden z-10 mb-2"
                   style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
                 >
-                  <p className="text-xs text-[#71717a] leading-normal line-clamp-6">
+                  <p className="text-xs text-subtle-foreground leading-normal line-clamp-6">
                     {previewText}
                   </p>
                 </div>
@@ -487,7 +487,7 @@ export default function NotesOverview({
                     {(n.projectIds || []).length > 0 && (() => {
                       const linkedProject = projects.find(p => p.id === n.projectIds[0]);
                       return linkedProject ? (
-                        <span className="text-xs text-[#71717a] bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
+                        <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
                           {linkedProject.name}
                         </span>
                       ) : null;
@@ -502,7 +502,7 @@ export default function NotesOverview({
                         // Open menu at button position
                         setMenu({ open: true, x: rect.left, y: rect.bottom + 5, id: n.id, sub: false });
                       }}
-                      className="p-1 rounded hover:bg-overlay text-subtle-foreground hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1 rounded hover:bg-overlay text-subtle-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <div className="flex gap-0.5">
                         <div className="w-0.5 h-0.5 rounded-full bg-current" />
@@ -532,7 +532,7 @@ export default function NotesOverview({
         menu.open && (
           <div
             ref={menuRef}
-            className="fixed z-100 min-w-[180px] bg-black/80 backdrop-blur-xl border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-100 min-w-[180px] bg-background/80 backdrop-blur-xl border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
             style={{ left: menu.x, top: menu.y }}
             onContextMenu={(e) => e.preventDefault()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -545,7 +545,7 @@ export default function NotesOverview({
                 </div>
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     bulkPin();
@@ -557,7 +557,7 @@ export default function NotesOverview({
                 </button>
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     bulkUnpin();
@@ -571,7 +571,7 @@ export default function NotesOverview({
                 <div className="h-px bg-overlay my-1" />
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     bulkDelete();
@@ -586,7 +586,7 @@ export default function NotesOverview({
               /* Normal context menu */
               <>
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     togglePin(menu.id);
@@ -598,7 +598,7 @@ export default function NotesOverview({
                 </button>
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     const curr = notes.find(x => x.id === menu.id);
@@ -611,7 +611,7 @@ export default function NotesOverview({
                 </button>
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-white transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     setSelectMode(true);
@@ -626,7 +626,7 @@ export default function NotesOverview({
                 <div className="h-px bg-overlay my-1" />
 
                 <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                  className="w-full text-left px-4 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     onDelete(menu.id);

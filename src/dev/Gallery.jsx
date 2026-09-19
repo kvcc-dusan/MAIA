@@ -11,6 +11,9 @@ import { PageHeader } from "@/components/composed/PageHeader";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { ErrorState } from "@/components/composed/ErrorState";
 import { StatusDot, PriorityChip } from "@/components/composed/StatusDot";
+import { SectionCard } from "@/components/composed/SectionCard";
+import { SectionLabel, CountPill } from "@/components/composed/SectionBits";
+import { Widget } from "@/components/composed/Widget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Trash2, Pencil, Plus, Settings } from "lucide-react";
+import { Trash2, Pencil, Plus, Settings, Folder } from "lucide-react";
 
 /**
  * Dev-only component gallery — open with ?ui=gallery.
@@ -157,6 +160,56 @@ export default function Gallery() {
                   </>
                 }
               />
+            </div>
+          </Section>
+
+          <Section title="Opus section card" note="Extracted class-for-class from KnowledgePanel — the design-reference card. All four depth layers (translucency, blur, hairline border, deep shadow) or it reads cheap.">
+            <div className="w-full grid gap-4 md:grid-cols-2">
+              <SectionCard
+                icon={Folder}
+                title="Nodes"
+                count={7}
+                action={<IconButton label="Toggle view" icon={Pencil} size="icon-xs" />}
+                className="min-h-40"
+              >
+                <p className="text-xs text-subtle-foreground">
+                  Body is unopinionated — size it with bodyClassName / bodyStyle.
+                </p>
+              </SectionCard>
+              <SectionCard
+                title="Uplinks"
+                count={2}
+                className="min-h-40"
+              >
+                <p className="text-xs text-subtle-foreground">Icon and count are optional.</p>
+              </SectionCard>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <SectionLabel>Codex</SectionLabel>
+              <SectionLabel as="h3">Execution</SectionLabel>
+              <CountPill>128</CountPill>
+              <span className="text-xs text-muted-foreground">
+                The eyebrow and the count pill — the two smallest atoms of the vocabulary.
+              </span>
+            </div>
+          </Section>
+
+          <Section title="Widget shell" note="The one dashboard widget chrome — title, trailing actions, footer; edit-mode controls live inside the shell.">
+            <div className="w-full grid gap-4 md:grid-cols-2">
+              <Widget
+                title="Momentum"
+                className="min-h-36"
+                footer={<span className="text-xs uppercase tracking-widest text-subtle-foreground">Entries 12</span>}
+              >
+                <p className="text-sm text-muted-foreground">Body content, inside the error boundary.</p>
+              </Widget>
+              <Widget
+                title="Capture"
+                className="min-h-36"
+                trailing={<IconButton label="Add entry" icon={Plus} size="icon-xs" />}
+              >
+                <p className="text-sm text-muted-foreground">Trailing actions render when not editing.</p>
+              </Widget>
             </div>
           </Section>
 

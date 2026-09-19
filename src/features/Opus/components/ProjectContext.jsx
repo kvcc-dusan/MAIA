@@ -96,7 +96,7 @@ export default function ProjectContext({ project, updateProject }) {
                                 <div key={c.id} className="flex items-start gap-3 group/item">
                                     <button
                                         onClick={() => toggleCriteria(c.id)}
-                                        className={`mt-0.5 ${c.done ? "text-emerald-500" : "text-subtle-foreground hover:text-muted-foreground"} transition-colors`}
+                                        className={`mt-0.5 ${c.done ? "text-success" : "text-subtle-foreground hover:text-muted-foreground"} transition-colors`}
                                     >
                                         {c.done ? <CheckSquare size={16} /> : <Square size={16} />}
                                     </button>
@@ -105,7 +105,7 @@ export default function ProjectContext({ project, updateProject }) {
                                     </span>
                                     <button
                                         onClick={() => removeCriteria(c.id)}
-                                        className="opacity-0 group-hover/item:opacity-100 text-subtle-foreground hover:text-red-400 transition-opacity"
+                                        className="opacity-0 group-hover/item:opacity-100 text-subtle-foreground hover:text-destructive transition-opacity"
                                     >
                                         <X size={14} />
                                     </button>

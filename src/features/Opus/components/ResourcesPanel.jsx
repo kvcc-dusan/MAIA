@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { uid } from "../../../lib/ids";
 import { PlusSignSquare as Plus, CancelSquare as X, Link04 as ExternalLink, Link01 as Link2 } from "../../../components/ui/CustomIcon.jsx";
+import { SectionCard } from "../../../components/composed/SectionCard";
 
 export default function ResourcesPanel({ project, updateProject }) {
     const [isAdding, setIsAdding] = useState(false);
@@ -37,18 +38,12 @@ export default function ResourcesPanel({ project, updateProject }) {
     };
 
     return (
-        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
-                <div className="flex items-center gap-2">
-                    <Link2 size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
-                        Uplinks
-                    </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
-                        {(project.links || []).length}
-                    </span>
-                </div>
+        <SectionCard
+            icon={Link2}
+            title="Uplinks"
+            count={(project.links || []).length}
+            bodyClassName="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar"
+            action={
                 <button
                     onClick={() => setIsAdding(true)}
                     className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
@@ -56,10 +51,9 @@ export default function ResourcesPanel({ project, updateProject }) {
                 >
                     <Plus size={12} />
                 </button>
-            </div>
-
-            <div className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
-                {(project.links || []).map(link => (
+            }
+        >
+            {(project.links || []).map(link => (
                     <div key={link.id} className="group flex items-center gap-2 p-2 rounded-lg hover:bg-overlay-subtle transition-colors border border-transparent hover:border-border-subtle">
                         <a
                             href={link.url}
@@ -67,7 +61,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                             rel="noreferrer"
                             className="flex-1 flex items-center gap-3 min-w-0"
                         >
-                            <div className="w-8 h-8 rounded bg-black/40 flex items-center justify-center shrink-0 text-muted-foreground">
+                            <div className="w-8 h-8 rounded bg-background/40 flex items-center justify-center shrink-0 text-muted-foreground">
                                 {/* Simple favicon fallback logic could go here, sticking to icon for now */}
                                 <ExternalLink size={12} />
                             </div>
@@ -78,7 +72,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                         </a>
                         <button
                             onClick={() => removeLink(link.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 text-subtle-foreground hover:text-red-400 hover:bg-overlay-subtle rounded transition-all"
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-subtle-foreground hover:text-destructive hover:bg-overlay-subtle rounded transition-all"
                         >
                             <X size={12} />
                         </button>
@@ -93,7 +87,7 @@ export default function ResourcesPanel({ project, updateProject }) {
                         onKeyDown={e => { if (e.key === 'Enter') addLink(); if (e.key === 'Escape') setIsAdding(false); }}
                         onBlur={addLink}
                         placeholder="https://..."
-                        className="w-full bg-overlay-subtle border border-border rounded-xl text-white text-xs outline-hidden focus:outline-hidden focus:border-border-strong transition-all placeholder:text-subtle-foreground px-3 py-2.5"
+                        className="w-full bg-overlay-subtle border border-border rounded-xl text-foreground text-xs outline-hidden focus:outline-hidden focus:border-border-strong transition-all placeholder:text-subtle-foreground px-3 py-2.5"
                     />
                 )}
 
@@ -102,7 +96,6 @@ export default function ResourcesPanel({ project, updateProject }) {
                         No uplinks established.
                     </div>
                 )}
-            </div>
-        </div>
+        </SectionCard>
     );
 }

@@ -51,7 +51,7 @@ export default function ActivitySummary({ project }) {
     const trendConfig = {
         increasing: { label: '↑', color: 'text-success' },
         stable: { label: '→', color: 'text-subtle-foreground' },
-        declining: { label: '↓', color: 'text-red-400' },
+        declining: { label: '↓', color: 'text-destructive' },
     };
 
     const { color: trendColor } = trendConfig[stats.trend];

@@ -19,6 +19,7 @@ import { Select } from "@/components/composed/Select";
 import { Input } from "@/components/ui/input";
 import { PriorityCheckbox } from "@/components/ui/PriorityCheckbox";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
+import { SectionLabel } from "@/components/composed/SectionBits";
 
 const SCHED_ORDER = { today: 0, soon: 1, future: 2 };
 const PRIORITY_ORDER = { p1: 0, p2: 1, p3: 2 };
@@ -98,9 +99,9 @@ export default function ExecutionPanel({ project }) {
       {/* ── Header ── */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-border-subtle">
         <Target size={12} className="text-subtle-foreground" />
-        <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
+        <SectionLabel as="h3">
           Execution
-        </h3>
+        </SectionLabel>
       </div>
 
       {/* ── Next Move zone ── */}
@@ -113,15 +114,15 @@ export default function ExecutionPanel({ project }) {
                   Next Move
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="flex-1 min-w-0 text-base text-white font-medium leading-snug truncate">
+                  <span className="flex-1 min-w-0 text-base text-foreground font-medium leading-snug truncate">
                     {nowTask.title}
                   </span>
                   <button
                     onClick={() => toggleTask(nowTask.id)}
-                    className="w-5 h-5 rounded-full border border-subtle-foreground hover:border-white hover:bg-overlay transition-all shrink-0 flex items-center justify-center group/cb opacity-60 group-hover/now:opacity-100"
+                    className="w-5 h-5 rounded-full border border-subtle-foreground hover:border-foreground hover:bg-overlay transition-all shrink-0 flex items-center justify-center group/cb opacity-60 group-hover/now:opacity-100"
                     title="Mark complete"
                   >
-                    <div className="w-2 h-2 rounded-full bg-transparent group-hover/cb:bg-white/60 transition-all" />
+                    <div className="w-2 h-2 rounded-full bg-transparent group-hover/cb:bg-foreground/60 transition-all" />
                   </button>
                 </div>
               </div>
@@ -228,7 +229,7 @@ export default function ExecutionPanel({ project }) {
             label="Blocked" count={blocked.length}
             isOpen={expandedGroups.blocked}
             onToggle={() => toggleGroup('blocked')}
-            labelClass="text-red-400/60"
+            labelClass="text-destructive/60"
           >
             {blocked.map(t => (
               <ExecutionRow key={t.id} task={t} project={project} variant="blocked"
@@ -351,7 +352,7 @@ function ExecutionRow({ task, project, variant, onToggle, onUpdate, onDelete, on
             )}>
               {task.title}
             </span>
-            {isBlocked && <Ban size={11} className="text-red-400/50 shrink-0" />}
+            {isBlocked && <Ban size={11} className="text-destructive/50 shrink-0" />}
             {task.due && !isDone && (
               <span className="text-xs text-subtle-foreground shrink-0">
                 {new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}

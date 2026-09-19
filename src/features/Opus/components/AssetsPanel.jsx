@@ -6,6 +6,7 @@ import { UploadSquare01 as Upload, CancelSquare as X, File01 as FileIcon, Folder
 import { uid } from "../../../lib/ids";
 import { isTauri, getVaultPath } from "../../../lib/vault.js";
 import { saveAssetFile, deleteAssetFile } from "../../../lib/assetStore.js";
+import { SectionCard } from "../../../components/composed/SectionCard";
 
 // Total base64 budget per project in the web/localStorage fallback path —
 // the per-file 5MB cap alone doesn't stop many-small-files quota exhaustion,
@@ -121,36 +122,31 @@ export default function AssetsPanel({ project }) {
     const isImage = (type) => type && type.startsWith('image/');
 
     return (
-        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
-                <div className="flex items-center gap-2">
-                    <Folder size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
-                        Assets
-                    </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
-                        {assets.length}
-                    </span>
-                </div>
-                <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
-                    title="Upload files"
-                >
-                    <Upload size={12} />
-                </button>
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => handleFiles(e.target.files)}
-                />
-            </div>
-
+        <SectionCard
+            icon={Folder}
+            title="Assets"
+            count={assets.length}
+            bodyClassName="flex-1 p-4 flex flex-col"
+            action={
+                <>
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
+                        title="Upload files"
+                    >
+                        <Upload size={12} />
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handleFiles(e.target.files)}
+                    />
+                </>
+            }
+        >
             {/* Drop Zone / Grid */}
-            <div className="flex-1 p-4 flex flex-col">
             <div
                 className={`flex-1 rounded-xl border-2 border-dashed transition-all ${isDragOver
                     ? "border-success/40 bg-success/5"
@@ -212,7 +208,7 @@ export default function AssetsPanel({ project }) {
                                 {/* Remove button */}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); removeAsset(asset); }}
-                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-muted-foreground hover:text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-background/80 text-muted-foreground hover:text-destructive flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                                 >
                                     <X size={10} />
                                 </button>
@@ -220,7 +216,6 @@ export default function AssetsPanel({ project }) {
                         ))}
                     </div>
                 )}
-            </div>
             </div>
 
             <AppDialog
@@ -243,6 +238,6 @@ export default function AssetsPanel({ project }) {
                     </div>
                 ))}
             </AppDialog>
-        </div>
+        </SectionCard>
     );
 }

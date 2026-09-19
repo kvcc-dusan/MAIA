@@ -2,12 +2,27 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { select, drag, zoom, forceSimulation, forceLink, forceManyBody, forceCollide, forceX, forceY } from "d3";
 import { useData } from "../../../context/DataContext";
 import { Share01 as Share2, NanoTechnology as Network, LeftToRightListBullet as List } from "../../../components/ui/CustomIcon.jsx";
+import { SectionCard } from "../../../components/composed/SectionCard";
+// D3 takes colour as JS strings, so canvas-surface colours resolve through
+// lib/tokens.js (oklch passes through untouched — see its header).
+import { cssVar, resolveColor, tokenColor } from "../../../lib/tokens.js";
 
 const GRAPH_HEIGHT = 280;
-const PROJECT_COLOR = '#3f3f46';
-const NOTE_COLOR    = '#e4e4e7';
-const LINK_DIM      = 'rgba(255,255,255,0.09)';
-const LINK_HOV      = 'rgba(255,255,255,0.40)';
+/* The old hexes were zinc-600/zinc-200; the token ramp interpolates the zinc
+   scale at zero chroma, so these match the originals' lightness exactly. */
+const PROJECT_COLOR = resolveColor(cssVar('--chart-3'));
+const NOTE_COLOR    = resolveColor(cssVar('--primary'));
+/* Links/dots fade from --foreground (the opaque white of the ramp) because no
+   translucent token sits at these exact opacities — --overlay (10%) is the
+   semantic near-match for LINK_DIM, matching graphTheme()'s link treatment. */
+const LINK_DIM      = resolveColor(cssVar('--overlay'));
+const LINK_HOV      = tokenColor('--foreground', 0.4);
+const DOT_PATTERN   = tokenColor('--foreground', 0.07);
+const LINK_MUTED    = tokenColor('--foreground', 0.03);
+const GLOW_COLOR    = tokenColor('--chart-3', 0.4); // the old `${PROJECT_COLOR}66` glow, 0x66 = 40%
+/* Hovered node fill / label text: --foreground (0.985) is the ramp's white;
+   the literals it replaces were #ffffff. */
+const HOVER_COLOR   = resolveColor(cssVar('--foreground'));
 
 /* ─── Panel shell ─── */
 export default function KnowledgePanel({ project, selectNote }) {
@@ -23,20 +38,12 @@ export default function KnowledgePanel({ project, selectNote }) {
     );
 
     return (
-        <div className="flex flex-col rounded-2xl bg-card/40 backdrop-blur-xl border border-border shadow-2xl overflow-hidden">
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
-                <div className="flex items-center gap-2">
-                    <Share2 size={12} className="text-subtle-foreground" />
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold">
-                        Nodes
-                    </h3>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full">
-                        {linkedNotes.length}
-                    </span>
-                </div>
-                {/* Graph / List toggle */}
+        <SectionCard
+            icon={Share2}
+            title="Nodes"
+            count={linkedNotes.length}
+            bodyStyle={{ height: GRAPH_HEIGHT }}
+            action={
                 <button
                     onClick={() => setView(v => v === 'graph' ? 'list' : 'graph')}
                     className="w-6 h-6 flex items-center justify-center text-subtle-foreground hover:text-foreground-secondary hover:bg-overlay-subtle rounded-md transition-colors"
@@ -44,22 +51,19 @@ export default function KnowledgePanel({ project, selectNote }) {
                 >
                     {view === 'graph' ? <List size={12} /> : <Network size={12} />}
                 </button>
-            </div>
-
-            {/* Body */}
-            <div style={{ height: GRAPH_HEIGHT }}>
-                {linkedNotes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ background: PROJECT_COLOR, boxShadow: `0 0 12px ${PROJECT_COLOR}66` }} />
-                        <span className="text-faint-foreground text-xs italic">No linked notes</span>
-                    </div>
-                ) : view === 'graph' ? (
-                    <MiniGraph key={project.id} project={project} notes={linkedNotes} onOpenNote={selectNote} />
-                ) : (
-                    <ListView notes={linkedNotes} onOpenNote={selectNote} />
-                )}
-            </div>
-        </div>
+            }
+        >
+            {linkedNotes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ background: PROJECT_COLOR, boxShadow: `0 0 12px ${GLOW_COLOR}` }} />
+                    <span className="text-faint-foreground text-xs italic">No linked notes</span>
+                </div>
+            ) : view === 'graph' ? (
+                <MiniGraph key={project.id} project={project} notes={linkedNotes} onOpenNote={selectNote} />
+            ) : (
+                <ListView notes={linkedNotes} onOpenNote={selectNote} />
+            )}
+        </SectionCard>
     );
 }
 
@@ -73,7 +77,7 @@ function ListView({ notes, onOpenNote }) {
                     onClick={() => onOpenNote?.(n.id)}
                     className="w-full text-left px-5 py-2.5 flex flex-col gap-0.5 hover:bg-overlay-subtle transition-colors group"
                 >
-                    <span className="text-xs text-foreground-secondary group-hover:text-white transition-colors truncate">
+                    <span className="text-xs text-foreground-secondary group-hover:text-foreground transition-colors truncate">
                         {n.title || 'Untitled'}
                     </span>
                     {n.content && (
@@ -141,7 +145,7 @@ function MiniGraph({ project, notes, onOpenNote }) {
             .attr('id', patId).attr('width', 20).attr('height', 20)
             .attr('patternUnits', 'userSpaceOnUse');
         pat.append('circle').attr('cx', 10).attr('cy', 10).attr('r', 0.9)
-            .attr('fill', 'rgba(255,255,255,0.07)');
+            .attr('fill', DOT_PATTERN);
         svg.append('rect').attr('width', '100%').attr('height', '100%')
             .attr('fill', `url(#${patId})`).style('pointer-events', 'none');
 
@@ -197,7 +201,7 @@ function MiniGraph({ project, notes, onOpenNote }) {
             .on('mouseover', (e, d) => {
                 link
                     .attr('stroke', l =>
-                        l.source.id === d.id || l.target.id === d.id ? LINK_HOV : 'rgba(255,255,255,0.03)'
+                        l.source.id === d.id || l.target.id === d.id ? LINK_HOV : LINK_MUTED
                     )
                     .attr('stroke-width', l =>
                         l.source.id === d.id || l.target.id === d.id ? 1.5 : 1
@@ -210,7 +214,7 @@ function MiniGraph({ project, notes, onOpenNote }) {
                         );
                         return n.id === d.id || linked ? 1 : 0.2;
                     })
-                    .attr('fill', n => n.id === d.id && n.type === 'note' ? '#ffffff' : n.type === 'project' ? PROJECT_COLOR : NOTE_COLOR);
+                    .attr('fill', n => n.id === d.id && n.type === 'note' ? HOVER_COLOR : n.type === 'project' ? PROJECT_COLOR : NOTE_COLOR);
                 label.attr('opacity', n => n.id === d.id ? 1 : 0);
             })
             .on('mouseout', () => {
@@ -225,10 +229,10 @@ function MiniGraph({ project, notes, onOpenNote }) {
             .data(graphNodes)
             .join('text')
             .text(d => d.type === 'project' ? '' : truncate(d.title, 22))
-            .attr('font-size', 9).attr('fill', '#ffffff').attr('opacity', 0)
+            .attr('font-size', 9).attr('fill', HOVER_COLOR).attr('opacity', 0)
             .attr('text-anchor', 'middle').attr('dy', -11)
             .style('pointer-events', 'none')
-            .style('font-family', 'var(--, monospace)')
+            .style('font-family', 'var(--font-mono)')
             .style('user-select', 'none');
 
         /* Tick — NO boundary clamping, zoom + drag work freely */
