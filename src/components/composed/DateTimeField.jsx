@@ -15,7 +15,7 @@ import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
  * was the third component (after CustomSelect and PillSelect) duplicating
  * that same positioning code.
  */
-function DateTimeField({ label, value, onChange, dateOnly = false }) {
+function DateTimeField({ label, labelClassName, value, onChange, dateOnly = false }) {
   const [open, setOpen] = React.useState(false);
   const [tab, setTab] = React.useState("date");
 
@@ -76,14 +76,14 @@ function DateTimeField({ label, value, onChange, dateOnly = false }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <Label>{label}</Label>}
+      {label && <Label className={labelClassName}>{label}</Label>}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
             <button
               type="button"
               aria-label={label ? `${label}: select date and time` : "Select date and time"}
-              className="flex h-9 w-full items-center gap-3 rounded-xl border border-border bg-transparent px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring"
+              className="flex h-9 w-full items-center gap-3 rounded-3xl border border-border bg-transparent px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring"
             >
               <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate">{formatDisplay(value)}</span>
@@ -158,8 +158,8 @@ function DateTimeField({ label, value, onChange, dateOnly = false }) {
                       type="button"
                       onClick={() => setTimePart("hour", h)}
                       className={cn(
-                        "shrink-0 rounded-lg py-2 text-xs transition-colors hover:bg-accent",
-                        h === hours12 ? "bg-elevated font-bold text-foreground" : "text-muted-foreground"
+                        "shrink-0 rounded-xl py-2 text-xs transition-colors hover:bg-accent",
+                        h === hours12 ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground"
                       )}
                     >
                       {h}
@@ -174,8 +174,8 @@ function DateTimeField({ label, value, onChange, dateOnly = false }) {
                       type="button"
                       onClick={() => setTimePart("min", m)}
                       className={cn(
-                        "shrink-0 rounded-lg py-2 text-xs transition-colors hover:bg-accent",
-                        m === minutes ? "bg-elevated font-bold text-foreground" : "text-muted-foreground"
+                        "shrink-0 rounded-xl py-2 text-xs transition-colors hover:bg-accent",
+                        m === minutes ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground"
                       )}
                     >
                       {m.toString().padStart(2, "0")}
@@ -185,18 +185,18 @@ function DateTimeField({ label, value, onChange, dateOnly = false }) {
               </div>
 
               <div className="flex justify-center pt-1">
-                <div className="grid w-fit grid-cols-2 gap-[3px] rounded-xl border border-border bg-overlay-subtle p-[3px]">
+                <div className="grid w-fit grid-cols-2 gap-1 rounded-3xl border border-border bg-transparent p-1">
                   <button
                     type="button"
                     onClick={() => setTimePart("ampm", "AM")}
-                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", !isPm ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", !isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
                   >
                     AM
                   </button>
                   <button
                     type="button"
                     onClick={() => setTimePart("ampm", "PM")}
-                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", isPm ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
                   >
                     PM
                   </button>

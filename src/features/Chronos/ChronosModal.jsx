@@ -464,7 +464,7 @@ export default function ChronosModal({
             onSubmit={saveTask}
             submitLabel={taskDraft.id ? "Save Changes" : "Create Task"}
           >
-            <Field label="Title" required error={formError}>
+            <Field label="Title" labelClassName="sr-only" required error={formError}>
               <Input
                 autoFocus
                 placeholder="What needs to be done?"
@@ -488,7 +488,7 @@ export default function ChronosModal({
               onChange={(val) => setTaskDraft((d) => ({ ...d, due: val }))}
             />
 
-            <Field label="Description">
+            <Field label="Description" labelClassName="sr-only">
               <Textarea
                 placeholder="Add details…"
                 className="h-36 resize-none"
@@ -506,7 +506,7 @@ export default function ChronosModal({
             onSubmit={saveSignal}
             submitLabel={signalDraft.id ? "Save Changes" : "Create Signal"}
           >
-            <Field label="Title" required error={formError}>
+            <Field label="Title" labelClassName="sr-only" required error={formError}>
               <Input
                 autoFocus
                 placeholder="Signal name…"
@@ -546,7 +546,7 @@ export default function ChronosModal({
               onChange={(val) => setSignalDraft((d) => ({ ...d, priority: val }))}
             />
 
-            <Field label="Description">
+            <Field label="Description" labelClassName="sr-only">
               <Textarea
                 placeholder="Signal details…"
                 className="h-36 resize-none"
@@ -564,7 +564,7 @@ export default function ChronosModal({
             onSubmit={saveSession}
             submitLabel={sessionDraft.id ? "Save Changes" : "Create Session"}
           >
-            <Field label="Title" required error={formError}>
+            <Field label="Title" labelClassName="sr-only" required error={formError}>
               <Input
                 autoFocus
                 placeholder="Deep work session…"
@@ -596,6 +596,7 @@ export default function ChronosModal({
 
             <Select
               label="Project"
+              labelClassName="sr-only"
               icon={FolderIcon}
               value={sessionDraft.linkedProjectId === "none" ? null : sessionDraft.linkedProjectId}
               options={projectOptions}
@@ -604,7 +605,7 @@ export default function ChronosModal({
               onChange={(val) => setSessionDraft((d) => ({ ...d, linkedProjectId: val || "none" }))}
             />
 
-            <Field label="Description">
+            <Field label="Description" labelClassName="sr-only">
               <Textarea
                 placeholder="What will you work on…"
                 className="h-32 resize-none"

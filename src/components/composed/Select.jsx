@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
  * Select values are always strings, so this coerces back to the option's
  * original type on change.
  */
-function Select({ label, value, options, onChange, placeholder = "Select…", clearLabel, icon: Icon }) {
+function Select({ label, labelClassName, value, options, onChange, placeholder = "Select…", clearLabel, icon: Icon }) {
   const stringValue = value != null ? String(value) : undefined;
 
   const handleChange = (next) => {
@@ -84,7 +84,7 @@ function Select({ label, value, options, onChange, placeholder = "Select…", cl
 
   return (
     <div className="flex flex-col gap-2">
-      <Label>{label}</Label>
+      <Label className={labelClassName}>{label}</Label>
       {control}
     </div>
   );

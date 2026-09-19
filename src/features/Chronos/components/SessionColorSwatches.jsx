@@ -14,10 +14,15 @@ export function SessionColorSwatches({ value, onChange }) {
           aria-label={c.label}
           title={c.label}
           onClick={() => onChange(c.value)}
+          // Selection is an inset stroke: the swatch keeps its exact size and
+          // position, so the rhythm of the row never shifts (the old outer
+          // ring + scale made the selected swatch collide with its neighbour).
           className={cn(
-            "size-6 rounded-full ring-offset-2 ring-offset-popover transition-all",
-            getSessionSwatchClass(c.value),
-            value === c.value ? "scale-110 ring-2 ring-foreground" : "opacity-60 hover:opacity-100"
+            "size-6 rounded-full ring-2 ring-inset transition-opacity",
+            value === c.value
+              ? "opacity-100 ring-foreground"
+              : "opacity-60 ring-transparent hover:opacity-100",
+            getSessionSwatchClass(c.value)
           )}
         />
       ))}
