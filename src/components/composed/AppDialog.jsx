@@ -26,9 +26,10 @@ const panelSizes = cva("", {
       md: "sm:max-w-md",
       lg: "sm:max-w-2xl",
       xl: "sm:max-w-4xl",
-      // "full" means full-bleed: the whole viewport minus a 1rem breathing
-      // margin. It used to cap at 72rem — a large centered card, not full.
-      full: "sm:max-w-[calc(100%-2rem)] h-[calc(100dvh-2rem)]",
+      // "full" is the big working surface — a large centered card with the
+      // modal margins preserved (72rem / 85vh). It briefly meant full-bleed;
+      // the owner prefers the framed proportions of the original Chronos.
+      full: "sm:max-w-[min(72rem,calc(100vw-4rem))] h-[min(85vh,calc(100dvh-4rem))]",
     },
   },
   defaultVariants: { size: "md" },

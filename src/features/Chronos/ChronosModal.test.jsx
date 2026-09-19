@@ -66,9 +66,12 @@ describe('ChronosModal', () => {
 
   it('renders as a labelled dialog', () => {
     render(<ChronosModal {...baseProps} />);
-    const dialog = screen.getByRole('dialog');
+    // The dialog is named by its (visually hidden) title; the visible
+    // "Chronos" wordmark lives in the left column of the layout — so the
+    // name appears twice by design (hidden label + visible wordmark).
+    const dialog = screen.getByRole('dialog', { name: 'Chronos' });
     expect(dialog).toBeInTheDocument();
-    expect(screen.getByText('Chronos')).toBeInTheDocument();
+    expect(screen.getAllByText('Chronos').length).toBeGreaterThanOrEqual(1);
   });
 
   it('closes via the standard dialog close button', () => {

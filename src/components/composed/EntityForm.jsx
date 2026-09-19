@@ -20,7 +20,9 @@ function EntityForm({ title, onCancel, onSubmit, submitLabel, children }) {
         }}
         className="flex flex-1 flex-col gap-5 p-8"
       >
-        <div className="flex items-center justify-between">
+        {/* pr clears the dialog's absolute close button, which shares this
+            corner when Chronos renders the form full-column. */}
+        <div className="flex items-center justify-between pr-12">
           <h2 className="text-base font-medium text-foreground">{title}</h2>
           <button
             type="button"

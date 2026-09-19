@@ -2,10 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDayLabel, formatMonthYear, sameDay } from "../../../lib/time";
-import { SectionCard } from "@/components/composed/SectionCard";
-import { CalendarDays, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 const dayKey = (d) => d.toDateString();
 
@@ -19,9 +18,10 @@ const addDays = (d, n) => {
 const weekdayIndex = (d) => (d.getDay() + 6) % 7;
 
 /**
- * Chronos's month calendar, dressed as an Opus SectionCard — the month name
- * is the card's eyebrow header and the prev/next chevrons live in the action
- * slot, exactly like a KnowledgePanel card.
+ * Chronos's month calendar — flat, flush with the right column's top, per the
+ * reference layout: selected-date header with the month chevrons beside it,
+ * grid beneath, no card box (the column divider and the sessions border do
+ * the separating).
  *
  * Keyboard model: the grid is a SINGLE tab stop via roving tabindex — exactly
  * one day button (the "focus day") has tabIndex 0, the rest are -1. Arrow
@@ -110,38 +110,33 @@ export default function MonthCalendar({ view, setView, selectedDate, onSelectDat
   };
 
   return (
-    <SectionCard
-      icon={CalendarDays}
-      title={formatMonthYear(new Date(view.y, view.m, 1))}
-      className="flex-none"
-      bodyClassName="flex min-h-0 flex-1 flex-col"
-      action={
+    <div className="flex flex-none flex-col">
+      <div className="flex flex-none items-center justify-between px-6 pb-2 pt-6">
+        <span className="text-sm font-medium text-foreground">
+          {selectedDate ? formatDayLabel(selectedDate) : formatMonthYear(new Date(view.y, view.m, 1))}
+        </span>
         <div className="flex gap-1">
           <button
             aria-label="Previous month"
             onClick={() => shiftMonth(-1)}
-            className="grid size-6 place-items-center rounded-md text-subtle-foreground transition-colors hover:bg-overlay-subtle hover:text-foreground-secondary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronLeftIcon size={14} />
+            <ChevronLeftIcon size={16} />
           </button>
           <button
             aria-label="Next month"
             onClick={() => shiftMonth(1)}
-            className="grid size-6 place-items-center rounded-md text-subtle-foreground transition-colors hover:bg-overlay-subtle hover:text-foreground-secondary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ChevronRightIcon size={14} />
+            <ChevronRightIcon size={16} />
           </button>
         </div>
-      }
-    >
-      <div className="flex-1 px-4 pb-4 pt-1" role="group" aria-label="Month calendar" onKeyDown={handleGridKeyDown}>
+      </div>
+
+      <div className="flex-1 px-5 pb-5 pt-1" role="group" aria-label="Month calendar" onKeyDown={handleGridKeyDown}>
         <div className="mb-2 grid grid-cols-7">
           {WEEKDAYS.map((d, i) => (
-            <div
-              key={i}
-              aria-hidden="true"
-              className="py-1 text-center text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground"
-            >
+            <div key={i} aria-hidden="true" className="py-1 text-center text-xs font-bold text-subtle-foreground">
               {d}
             </div>
           ))}
@@ -198,6 +193,6 @@ export default function MonthCalendar({ view, setView, selectedDate, onSelectDat
           })}
         </div>
       </div>
-    </SectionCard>
+    </div>
   );
 }
