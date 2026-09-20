@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
 import { CollapseIcon, ExpandIcon, ReadIcon, WriteIcon } from "../components/ui/CustomIcon.jsx";
+import { IconButton } from "../components/composed/IconButton.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
@@ -91,13 +92,13 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
     <div className="h-full w-full relative flex flex-col items-center bg-background">
 
       {/* Main Content Area */}
-      <div className={`w-full h-full flex flex-col min-h-0 z-10 transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
+      <div className={`w-full h-full flex flex-col min-h-0 z-sticky transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
 
         {/* Clean Dark Panel */}
         <div className="flex flex-col w-full h-full relative overflow-hidden bg-background/90 border border-border rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
 
           {/* Header */}
-          <div className="flex-none px-6 py-5 border-b border-border-subtle flex items-start gap-4 z-20">
+          <div className="flex-none px-6 py-5 border-b border-border-subtle flex items-start gap-4 z-dock">
             <div className="flex-1 flex flex-col gap-1.5">
               <input
                 value={local.title}
@@ -120,22 +121,22 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
             {/* Header Actions */}
             <div className="flex items-center gap-2">
               {/* Width Toggle */}
-              <button
+              <IconButton
+                label={wide ? "Narrow view" : "Wide view"}
+                icon={wide ? CollapseIcon : ExpandIcon}
+                size="icon-sm"
+                variant="outline"
                 onClick={toggleWide}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-foreground hover:bg-overlay hover:border-border-strong transition-all"
-                title={wide ? "Narrow View" : "Wide View"}
-              >
-                {wide ? <CollapseIcon size={16} /> : <ExpandIcon size={16} />}
-              </button>
+              />
 
               {/* Mode Toggle */}
-              <button
+              <IconButton
+                label={editable ? "Switch to reading mode" : "Switch to editing mode"}
+                icon={editable ? ReadIcon : WriteIcon}
+                size="icon-sm"
+                variant="outline"
                 onClick={toggleMode}
-                className="w-9 h-9 flex items-center justify-center rounded-lg border border-border bg-overlay-subtle text-muted-foreground hover:text-foreground hover:bg-overlay hover:border-border-strong transition-all"
-                title={editable ? "Switch to Reading Mode" : "Switch to Editing Mode"}
-              >
-                {editable ? <ReadIcon size={16} /> : <WriteIcon size={16} />}
-              </button>
+              />
             </div>
           </div>
 
@@ -158,7 +159,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
 
         {/* Status Pill (Floating above dock) */}
         <div
-          className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          className="fixed left-1/2 -translate-x-1/2 z-drawer pointer-events-none"
           style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
         >
           <div className="flex items-center gap-4 px-4 py-2 bg-background/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground shadow-2xl pointer-events-auto">

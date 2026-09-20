@@ -1,13 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { PromptDialog } from "@/components/composed/PromptDialog";
 import { PageTitle } from "@/components/composed/PageHeader";
+import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/Menu";
+import { Button } from "@/components/ui/button";
+import { IconButton } from "@/components/composed/IconButton";
 import ProjectIcon from "../components/ProjectIcon";
 import { StickyNote03, Pin, CheckmarkSquare02, Delete01, Pen01 } from "../components/ui/CustomIcon.jsx";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { useData } from "../context/DataContext";
 import { AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
+import { useLongPress } from "../hooks/useLongPress";
 
 /**
  * NotesOverview (Codex)
@@ -16,6 +21,229 @@ import { AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
  */
 
 const PIN_LIMIT = 16;
+
+// NoteCard calls this for both real right-clicks and its synthetic
+// long-press event. The actual menu is owned by Menu.ContextTrigger, which
+// opens natively for both gestures — this stub only keeps that contract
+// satisfied (mirrors LedgerPage's DecisionCardMenu).
+function handleCardContextMenu(e) {
+  e.preventDefault();
+}
+
+/**
+ * Shared body for the note actions menu — rendered once for the right-click
+ * / long-press ContextMenu and once for the "..." dropdown, so the two
+ * triggers can't drift out of sync. `ItemC`/`SepC`/`LabelC`/`DangerC` let the
+ * caller supply either the Context* or plain Menu.* flavour.
+ */
+function NoteMenuBody({ note, selectMode, selectedCount, isPinned, actions, ItemC, SepC, LabelC, DangerC }) {
+  // Re-bound to capitalized locals: eslint's plain no-unused-vars (no
+  // react plugin here) doesn't see JSX tag usage of a destructured param as
+  // a reference, but does exempt capitalized top-level vars — same trick
+  // SectionBits.jsx uses for its `Tag` element.
+  const ItemComp = ItemC;
+  const SepComp = SepC;
+  const LabelComp = LabelC;
+  const DangerComp = DangerC;
+
+  if (selectMode) {
+    return (
+      <>
+        <LabelComp>{selectedCount} selected</LabelComp>
+        <ItemComp onClick={actions.bulkPin}>
+          <Pin size={14} />
+          Pin All
+        </ItemComp>
+        <ItemComp onClick={actions.bulkUnpin}>
+          <Pin size={14} className="opacity-50" />
+          Unpin All
+        </ItemComp>
+        <SepComp />
+        <DangerComp onClick={actions.bulkDelete}>
+          <Delete01 size={14} />
+          Delete All
+        </DangerComp>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <ItemComp onClick={() => actions.togglePin(note.id)}>
+        <Pin size={14} />
+        {isPinned ? "Unpin Note" : "Pin Note"}
+      </ItemComp>
+      <ItemComp onClick={() => actions.rename(note.id)}>
+        <Pen01 size={14} />
+        Rename
+      </ItemComp>
+      <ItemComp onClick={() => actions.select(note.id)}>
+        <CheckmarkSquare02 size={14} />
+        Select
+      </ItemComp>
+      <SepComp />
+      <DangerComp onClick={() => actions.delete(note.id)}>
+        <Delete01 size={14} />
+        Delete
+      </DangerComp>
+    </>
+  );
+}
+
+/** One note in the grid. A `<div>` rather than a real `<button>` because
+ * Menu.ContextTrigger wraps and clones props onto its child, and a
+ * `<button>` nested inside interactive descendants (the "..." IconButton)
+ * would be invalid HTML — same constraint DecisionCard documents. */
+function NoteCard({ note, dateDisplay, previewText, projectName, isSelected, selectMode, isPinned, onActivate, actions }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      onActivate();
+    }
+  };
+
+  const activationLabel = selectMode
+    ? `${isSelected ? "Deselect" : "Select"} ${note.title || "Untitled Note"}`
+    : `Open ${note.title || "Untitled Note"}`;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={activationLabel}
+      aria-pressed={selectMode ? isSelected : undefined}
+      onClick={onActivate}
+      onKeyDown={handleKeyDown}
+      className={cn(
+        "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden",
+        "min-h-[200px] backdrop-blur-xs",
+        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
+        isSelected
+          ? "bg-overlay border-border-strong ring-1 ring-overlay-strong"
+          : "bg-overlay-subtle border-border-subtle hover:bg-overlay hover:border-border"
+      )}
+    >
+      {/* Pinned indicator — white dot top-right */}
+      {isPinned && (
+        <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-pure z-dock" />
+      )}
+
+      {/* Header: Title (Consistent top spacing, no divider) */}
+      <div className="z-sticky mb-5">
+        <h3 className="text-sm font-medium font-sans leading-tight line-clamp-2 text-foreground transition-colors">
+          {note.title || "Untitled Note"}
+        </h3>
+      </div>
+
+      {/* Body: Preview (Taller) — line-clamp only, no gradient mask: a mask
+          over clamped text clips mid-word, which read as a rendering bug. */}
+      <div className="flex-1 relative overflow-hidden z-sticky mb-2">
+        <p className="text-xs text-subtle-foreground leading-normal line-clamp-6">
+          {previewText}
+        </p>
+      </div>
+
+      {/* Footer: Date & Project Pill & Menu */}
+      <div className="flex items-center justify-between mt-auto pt-3 z-sticky">
+        <div className="flex items-center gap-3 overflow-hidden">
+          {/* Date */}
+          <span className="text-xs font-medium text-subtle-foreground uppercase tracking-wider shrink-0">
+            {dateDisplay}
+          </span>
+
+          {/* Journal Pill */}
+          {(note.tags || []).includes("journal") && (
+            <span className="maia-tag whitespace-nowrap">journal</span>
+          )}
+
+          {/* Project Pill (Moved to Footer) */}
+          {projectName && (
+            <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
+              {projectName}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Menu.Root>
+            <Menu.Trigger
+              render={
+                <IconButton
+                  label="Note actions"
+                  tooltip={false}
+                  variant="ghost"
+                  size="icon-xs"
+                  className="opacity-0 group-hover:opacity-100 data-[popup-open]:opacity-100"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex gap-0.5">
+                    <div className="w-0.5 h-0.5 rounded-full bg-current" />
+                    <div className="w-0.5 h-0.5 rounded-full bg-current" />
+                    <div className="w-0.5 h-0.5 rounded-full bg-current" />
+                  </div>
+                </IconButton>
+              }
+            />
+            <Menu.Content align="end">
+              <Menu.Group>
+                <NoteMenuBody
+                  note={note}
+                  selectMode={selectMode}
+                  selectedCount={actions.selectedCount}
+                  isPinned={isPinned}
+                  actions={actions}
+                  ItemC={Menu.Item}
+                  SepC={Menu.Separator}
+                  LabelC={Menu.Label}
+                  DangerC={MenuDangerItem}
+                />
+              </Menu.Group>
+            </Menu.Content>
+          </Menu.Root>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Note card wrapped in the right-click / long-press context menu. */
+function NoteCardMenu({ note, selectMode, selected, actions, ...cardProps }) {
+  const longPress = useLongPress((touch) => {
+    handleCardContextMenu({ preventDefault: () => {} });
+    // Menu.ContextTrigger opens on its own gestures; long-press is surfaced
+    // via native touch context menu support in the underlying primitive, so
+    // nothing else is needed here besides keeping the touch handlers wired.
+    void touch;
+  });
+
+  return (
+    <Menu.Context>
+      <Menu.ContextTrigger
+        className="contents"
+        onTouchStart={longPress.onTouchStart}
+        onTouchMove={longPress.onTouchMove}
+        onTouchEnd={longPress.onTouchEnd}
+      >
+        <NoteCard note={note} selectMode={selectMode} actions={actions} {...cardProps} />
+      </Menu.ContextTrigger>
+
+      <Menu.ContextContent>
+        <NoteMenuBody
+          note={note}
+          selectMode={selectMode}
+          selectedCount={selected}
+          isPinned={cardProps.isPinned}
+          actions={actions}
+          ItemC={Menu.ContextItem}
+          SepC={Menu.ContextSeparator}
+          LabelC={Menu.ContextLabel}
+          DangerC={ContextDangerItem}
+        />
+      </Menu.ContextContent>
+    </Menu.Context>
+  );
+}
 
 export default function NotesOverview({
   notes,
@@ -29,20 +257,10 @@ export default function NotesOverview({
 }) {
   const { generateSamples } = useData();
 
-  const menuRef = useRef(null);
-  const filterRef = useRef(null);
-
-  // context menu state
-  const [menu, setMenu] = useState({ open: false, x: 0, y: 0, id: null, sub: false });
-
   // sort + filter UI state
   const [sort, setSort] = useState("recent"); // 'recent' | 'az'
   const [showFilter, setShowFilter] = useState(false);
   const [filter, setFilter] = useState("");
-
-  // settings menu
-  const [showSettings, setShowSettings] = useState(false);
-  const settingsRef = useRef(null);
 
   // multi-select mode
   const [selectMode, setSelectMode] = useState(false);
@@ -63,15 +281,6 @@ export default function NotesOverview({
   const exitSelectMode = useCallback(() => {
     setSelectMode(false);
     setSelected(new Set());
-  }, []);
-
-  // close settings on click outside
-  useEffect(() => {
-    const onClick = (e) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
   // pinned IDs (persist locally)
@@ -95,63 +304,10 @@ export default function NotesOverview({
   // helpers
   const isPinned = useCallback((id) => pinned.has(id), [pinned]);
 
-  // open context menu at cursor (with viewport boundary checking)
-  const openMenu = (e, id) => {
-    e.preventDefault();
-
-    const menuWidth = 192;
-    const menuHeight = 240;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let x = e.clientX;
-    let y = e.clientY;
-
-    if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
-    if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
-    if (x < 8) x = 8;
-    if (y < 8) y = 8;
-
-    setMenu({ open: true, x, y, id, sub: false });
-  };
-
-  // Long-press for touch context menu on note cards
-  const longPressTimer = useRef(null);
-  const handleCardTouchStart = useCallback((e, id) => {
-    const touch = e.touches[0];
-    const startPos = { x: touch.clientX, y: touch.clientY };
-    longPressTimer.current = {
-      id, startPos, timer: setTimeout(() => {
-        longPressTimer.current = null;
-        if (navigator.vibrate) navigator.vibrate(50);
-        openMenu({ clientX: startPos.x, clientY: startPos.y, preventDefault: () => { } }, id);
-      }, 500)
-    };
-  }, []);
-  const handleCardTouchMove = useCallback((e) => {
-    if (!longPressTimer.current) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - longPressTimer.current.startPos.x;
-    const dy = touch.clientY - longPressTimer.current.startPos.y;
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-      clearTimeout(longPressTimer.current.timer);
-      longPressTimer.current = null;
-    }
-  }, []);
-  const handleCardTouchEnd = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current.timer);
-      longPressTimer.current = null;
-    }
-  }, []);
-
-  // close menu on outside/esc/scroll/resize
+  // close on esc/select-mode/filter — the context and dropdown menus now
+  // manage their own open/close/outside-click/focus via Base UI, so this
+  // only needs to keep the filter + select-mode shortcuts alive.
   useEffect(() => {
-    const onDown = (e) => {
-      const el = menuRef.current;
-      if (el && (el === e.target || el.contains(e.target))) return;
-      setMenu((m) => ({ ...m, open: false, sub: false }));
-    };
     const onEsc = (e) => {
       if (e.key === "Escape") {
         if (selectMode) {
@@ -163,22 +319,15 @@ export default function NotesOverview({
           setShowFilter(false);
           setFilter("");
         }
-        setMenu((m) => ({ ...m, open: false, sub: false }));
       }
       if (e.key === "/") {
         e.preventDefault();
         setShowFilter(true);
-        setTimeout(() => filterRef.current?.focus(), 0);
       }
     };
 
-    document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onEsc);
-
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onEsc);
-    };
+    return () => document.removeEventListener("keydown", onEsc);
   }, [showFilter, selectMode, exitSelectMode]);
 
   // filter parsing
@@ -293,6 +442,26 @@ export default function NotesOverview({
     exitSelectMode();
   };
 
+  // Shared action set the note menu (both flavours) and card keyboard/click
+  // handlers dispatch into.
+  const menuActions = useMemo(() => ({
+    togglePin,
+    rename: (id) => {
+      const curr = notes.find(x => x.id === id);
+      setRenaming({ id, title: curr?.title || "" });
+    },
+    select: (id) => {
+      setSelectMode(true);
+      setSelected(new Set([id]));
+    },
+    delete: onDelete,
+    bulkPin,
+    bulkUnpin,
+    bulkDelete,
+    selectedCount: selected.size,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [notes, selected, onDelete]);
+
   return (
     <div
       className="h-full w-full relative bg-background text-foreground overflow-y-auto custom-scrollbar"
@@ -306,7 +475,7 @@ export default function NotesOverview({
       <div className="w-full px-page py-8 flex flex-col gap-8">
 
         {/* Header: Full Width, Opus Style */}
-        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-2 flex-wrap">
+        <div className="sticky top-0 z-dock bg-background/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-2 flex-wrap">
           <div className="flex items-center gap-4">
             <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold ml-1">Codex</span>
             <span className="text-xs bg-overlay-subtle px-2 py-0.5 rounded-full text-muted-foreground">
@@ -316,50 +485,45 @@ export default function NotesOverview({
 
           <div className="flex items-center gap-3">
             {/* New Note Button (Header) */}
-            {/* New Note Button (Header) */}
-            <button
-              onClick={onCreateNote}
-              className="h-8 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-foreground flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_var(--overlay)] active:scale-95"
-              title="Create New Note"
-            >
+            <Button size="sm" onClick={onCreateNote} title="Create New Note">
               <StickyNote03 size={14} className="stroke-[2.5px]" />
               <span className="text-xs font-bold uppercase tracking-wide">Note</span>
-            </button>
+            </Button>
 
             {/* New Journal Button */}
-            <button
-              onClick={onCreateJournal}
-              className="h-8 px-3 rounded-lg bg-background text-foreground border border-faint-foreground hover:bg-secondary flex items-center justify-center transition-all gap-2 active:scale-95"
-              title="Create New Journal"
-            >
+            <Button variant="outline" size="sm" onClick={onCreateJournal} title="Create New Journal">
               <StickyNote03 size={14} className="stroke-[2.5px]" />
               <span className="text-xs font-bold uppercase tracking-wide">Journal</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSort(s => s === 'recent' ? 'az' : 'recent')}
-              className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground transition-colors flex items-center gap-2"
+              className="text-muted-foreground"
             >
               {sort === 'recent' ? 'RECENT' : 'A-Z'}
               <ProjectIcon name="filter" size={14} />
-            </button>
+            </Button>
 
             {/* Settings Dropdown (Delete All, Seed) */}
-            <div className="relative" ref={settingsRef}>
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`h-8 w-8 flex items-center justify-center rounded-lg transition-colors border ${showSettings ? 'bg-overlay border-border-strong text-foreground' : 'bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground hover:bg-overlay'}`}
-              >
-                <ProjectIcon name="settings" size={16} />
-              </button>
-
-              {showSettings && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-background-subtle border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
-                  <div className="px-4 py-2 text-xs uppercase tracking-widest text-subtle-foreground font-bold border-b border-border-subtle mb-1">
-                    Actions
-                  </div>
-                  {/* Seed Data */}
-                  <button
+            <Menu.Root>
+              <Menu.Trigger
+                render={
+                  <IconButton
+                    label="Codex settings"
+                    tooltip={false}
+                    variant="outline"
+                    size="icon-sm"
+                  >
+                    <ProjectIcon name="settings" size={16} />
+                  </IconButton>
+                }
+              />
+              <Menu.Content align="end">
+                <Menu.Group>
+                  <Menu.Label className="text-xs font-bold uppercase tracking-widest">Actions</Menu.Label>
+                  <Menu.Item
                     onClick={() => {
                       setConfirm({
                         title: "Replace all data?",
@@ -367,27 +531,25 @@ export default function NotesOverview({
                         confirmLabel: "Replace",
                         onConfirm: generateSamples,
                       });
-                      setShowSettings(false);
                     }}
-                    className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-success group transition-colors"
+                    className="text-success"
                   >
-                    <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-xs">Seed Data</span>
-                  </button>
+                    <Sparkles size={14} />
+                    Seed Data
+                  </Menu.Item>
 
-                  {/* Delete All */}
                   {notes.length > 0 && (
-                    <button
-                      onClick={() => { handleDeleteAll(); setShowSettings(false); }}
-                      className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-destructive group transition-colors"
-                    >
-                      <Delete01 size={14} className="group-hover:scale-110 transition-transform" />
-                      <span className="text-xs">Delete All</span>
-                    </button>
+                    <>
+                      <Menu.Separator />
+                      <MenuDangerItem onClick={handleDeleteAll}>
+                        <Delete01 size={14} />
+                        Delete All
+                      </MenuDangerItem>
+                    </>
                   )}
-                </div>
-              )}
-            </div>
+                </Menu.Group>
+              </Menu.Content>
+            </Menu.Root>
           </div>
 
         </div>
@@ -426,94 +588,32 @@ export default function NotesOverview({
 
             const isSelected = selectMode && selected.has(n.id);
 
+            const linkedProject = (n.projectIds || []).length > 0
+              ? projects.find(p => p.id === n.projectIds[0])
+              : null;
+
+            const onActivate = () => {
+              if (selectMode) {
+                toggleSelected(n.id);
+              } else {
+                selectNote?.(n.id);
+              }
+            };
+
             return (
-              <div
+              <NoteCardMenu
                 key={n.id}
-                onClick={() => {
-                  if (selectMode) {
-                    toggleSelected(n.id);
-                  } else {
-                    selectNote?.(n.id);
-                  }
-                }}
-                onContextMenu={e => openMenu(e, n.id)}
-                onTouchStart={e => handleCardTouchStart(e, n.id)}
-                onTouchMove={handleCardTouchMove}
-                onTouchEnd={handleCardTouchEnd}
-                className={`
-                    group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden
-                    min-h-[200px] backdrop-blur-xs
-                    ${isSelected
-                    ? "bg-overlay border-border-strong ring-1 ring-overlay-strong"
-                    : "bg-overlay-subtle border-border-subtle hover:bg-overlay hover:border-border"
-                  }
-                  `}
-              >
-                {/* Pinned indicator — white dot top-right */}
-                {isPinned(n.id) && (
-                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-pure z-20" />
-                )}
-
-                {/* Header: Title (Consistent top spacing, no divider) */}
-                <div className="z-10 mb-5">
-                  <h3 className="text-sm font-medium font-sans leading-tight line-clamp-2 text-foreground transition-colors">
-                    {n.title || "Untitled Note"}
-                  </h3>
-                </div>
-
-                {/* Body: Preview (Taller) */}
-                <div
-                  className="flex-1 relative overflow-hidden z-10 mb-2"
-                  style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
-                >
-                  <p className="text-xs text-subtle-foreground leading-normal line-clamp-6">
-                    {previewText}
-                  </p>
-                </div>
-
-                {/* Footer: Date & Project Pill & Menu */}
-                <div className="flex items-center justify-between mt-auto pt-3 z-10">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    {/* Date */}
-                    <span className="text-xs font-medium text-subtle-foreground uppercase tracking-wider shrink-0">
-                      {dateDisplay}
-                    </span>
-
-                    {/* Journal Pill */}
-                    {(n.tags || []).includes("journal") && (
-                      <span className="maia-tag whitespace-nowrap">journal</span>
-                    )}
-
-                    {/* Project Pill (Moved to Footer) */}
-                    {(n.projectIds || []).length > 0 && (() => {
-                      const linkedProject = projects.find(p => p.id === n.projectIds[0]);
-                      return linkedProject ? (
-                        <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-0.5 rounded-full border border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider">
-                          {linkedProject.name}
-                        </span>
-                      ) : null;
-                    })()}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        // Open menu at button position
-                        setMenu({ open: true, x: rect.left, y: rect.bottom + 5, id: n.id, sub: false });
-                      }}
-                      className="p-1 rounded hover:bg-overlay text-subtle-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <div className="flex gap-0.5">
-                        <div className="w-0.5 h-0.5 rounded-full bg-current" />
-                        <div className="w-0.5 h-0.5 rounded-full bg-current" />
-                        <div className="w-0.5 h-0.5 rounded-full bg-current" />
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
+                note={n}
+                dateDisplay={dateDisplay}
+                previewText={previewText}
+                projectName={linkedProject?.name}
+                isSelected={isSelected}
+                selectMode={selectMode}
+                selected={selected.size}
+                isPinned={isPinned(n.id)}
+                onActivate={onActivate}
+                actions={menuActions}
+              />
             );
           })}
 
@@ -529,121 +629,6 @@ export default function NotesOverview({
 
         </div>
       </div>
-
-      {/* Context Menu */}
-      {
-        menu.open && (
-          <div
-            ref={menuRef}
-            className="fixed z-100 min-w-[180px] bg-background/80 backdrop-blur-xl border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
-            style={{ left: menu.x, top: menu.y }}
-            onContextMenu={(e) => e.preventDefault()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {selectMode ? (
-              /* Selection mode context menu */
-              <>
-                <div className="px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground font-bold">
-                  {selected.size} selected
-                </div>
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    bulkPin();
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Pin size={14} />
-                  Pin All
-                </button>
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    bulkUnpin();
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Pin size={14} className="opacity-50" />
-                  Unpin All
-                </button>
-
-                <div className="h-px bg-overlay my-1" />
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    bulkDelete();
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Delete01 size={14} />
-                  Delete All
-                </button>
-              </>
-            ) : (
-              /* Normal context menu */
-              <>
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    togglePin(menu.id);
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Pin size={14} />
-                  <span>{isPinned(menu.id) ? "Unpin Note" : "Pin Note"}</span>
-                </button>
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    const curr = notes.find(x => x.id === menu.id);
-                    setRenaming({ id: menu.id, title: curr?.title || "" });
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Pen01 size={14} />
-                  Rename
-                </button>
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-foreground transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    setSelectMode(true);
-                    setSelected(new Set([menu.id]));
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <CheckmarkSquare02 size={14} />
-                  Select
-                </button>
-
-                <div className="h-px bg-overlay my-1" />
-
-                <button
-                  className="w-full text-left px-4 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    onDelete(menu.id);
-                    setMenu(m => ({ ...m, open: false }));
-                  }}
-                >
-                  <Delete01 size={14} />
-                  Delete
-                </button>
-              </>
-            )}
-          </div>
-        )
-      }
 
       {/* All confirmations and the rename prompt now share one component
           each, instead of a bespoke modal plus three native browser dialogs. */}
@@ -675,6 +660,6 @@ export default function NotesOverview({
         submitLabel="Rename"
       />
 
-    </div >
+    </div>
   );
 }
