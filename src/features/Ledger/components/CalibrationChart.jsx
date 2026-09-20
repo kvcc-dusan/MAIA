@@ -58,7 +58,7 @@ export function CalibrationChart({ data }) {
     return (
         <div className="h-full w-full text-foreground">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 12, bottom: 4, left: 12 }}>
                     <defs>
                         <linearGradient id="calibrationGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="currentColor" stopOpacity={0.12} />
@@ -71,9 +71,12 @@ export function CalibrationChart({ data }) {
                         domain={[10, 100]}
                         ticks={[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
                         tickFormatter={(v) => `${v}%`}
-                        tick={{ fill: axisTick, fontSize: 9, fontFamily: 'monospace' }}
+                        tick={{ fill: axisTick, fontSize: 10, fontFamily: 'monospace' }}
                         tickLine={false}
                         axisLine={false}
+                        interval="preserveStartEnd"
+                        minTickGap={20}
+                        padding={{ left: 8, right: 8 }}
                     />
                     <Tooltip
                         cursor={{ stroke: cursorStroke, strokeWidth: 1 }}

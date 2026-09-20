@@ -341,7 +341,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
             className="h-full w-full relative bg-background text-foreground overflow-y-auto custom-scrollbar"
             onClick={() => { if (selectMode) exitSelectMode(); }}
         >
-            <div className="w-full px-page py-8 flex flex-col gap-8">
+            <div className="w-full px-page py-8 flex flex-col gap-8 md:pb-[calc(var(--dock-h-desktop)+2rem)]">
 
                 {/* Header */}
                 <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl flex-none flex items-center justify-between pb-6 border-b border-border-subtle pt-2 gap-3 flex-wrap">

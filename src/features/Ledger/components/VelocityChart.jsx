@@ -51,7 +51,7 @@ export function VelocityChart({ data }) {
     return (
         <div className="h-full w-full text-foreground">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 12, bottom: 4, left: 12 }}>
                     <defs>
                         <linearGradient id="velocityGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="currentColor" stopOpacity={0.12} />
@@ -61,10 +61,11 @@ export function VelocityChart({ data }) {
                     <XAxis
                         dataKey="label"
                         interval="preserveStartEnd"
-                        minTickGap={24}
-                        tick={{ fill: axisTick, fontSize: 9, fontFamily: 'monospace' }}
+                        minTickGap={20}
+                        tick={{ fill: axisTick, fontSize: 10, fontFamily: 'monospace' }}
                         tickLine={false}
                         axisLine={false}
+                        padding={{ left: 8, right: 8 }}
                     />
                     <Tooltip
                         cursor={{ stroke: cursorStroke, strokeWidth: 1 }}

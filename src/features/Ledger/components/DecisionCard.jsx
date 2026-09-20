@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useLongPress } from "@/hooks/useLongPress";
 import { STAKES_DOT, OUTCOME_DOT } from "./decisionStyles";
+import { SectionLabel, CountPill } from "@/components/composed/SectionBits";
 
 /**
  * One decision in the card grid, plus the section divider that heads the
@@ -20,26 +21,48 @@ export function DecisionCard({ d, onReview, onView, isSelected, selectMode, onTo
     const isReviewed = d.status === "reviewed";
     const assumptions = d.assumptions || [];
 
+    // Shared by click and keyboard activation so Enter/Space match the mouse
+    // contract exactly (select-mode toggle, otherwise review vs. view).
+    const activate = () => {
+        if (selectMode) {
+            onToggle(d.id);
+        } else if (isReviewed) {
+            onView?.(d.id);
+        } else {
+            onReview?.(d.id);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            activate();
+        }
+    };
+
+    const activationLabel = selectMode
+        ? `${isSelected ? "Deselect" : "Select"} ${d.title}`
+        : `${d.title} — ${isReviewed ? "view decision" : "review decision"}`;
+
     return (
         <div
+            role="button"
+            tabIndex={0}
+            aria-label={activationLabel}
+            aria-pressed={selectMode ? isSelected : undefined}
             onClick={(e) => {
-                if (selectMode) {
-                    onToggle(d.id);
-                    e.stopPropagation();
-                } else if (isReviewed) {
-                    e.stopPropagation();
-                    onView?.(d.id);
-                } else {
-                    e.stopPropagation();
-                    onReview?.(d.id);
-                }
+                e.stopPropagation();
+                activate();
             }}
+            onKeyDown={handleKeyDown}
             onContextMenu={(e) => onContextMenu(e, d.id)}
             onTouchStart={longPress.onTouchStart}
             onTouchMove={longPress.onTouchMove}
             onTouchEnd={longPress.onTouchEnd}
             className={cn(
                 "group relative p-4 flex flex-col justify-between rounded-xl border transition-all duration-200 cursor-pointer overflow-hidden backdrop-blur-xs",
+                "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30",
                 isSelected
                     ? "bg-overlay border-border-strong ring-1 ring-overlay-strong"
                     : isReviewed
@@ -71,29 +94,28 @@ export function DecisionCard({ d, onReview, onView, isSelected, selectMode, onTo
                     </h3>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 h-6 overflow-hidden">
+                    <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-lg border border-border-subtle uppercase tracking-wider font-bold flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: STAKES_DOT[d.stakes] || STAKES_DOT.low }} />
                         {d.stakes}
                     </span>
-                    <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
+                    <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-lg border border-border-subtle uppercase tracking-wider font-bold shrink-0 whitespace-nowrap">
                         {d.reversibility}
                     </span>
-                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
+                    <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-1 rounded-lg border border-border-subtle uppercase tracking-wider font-bold shrink-0 whitespace-nowrap">
                         {d.confidence}% Conf
                     </span>
                 </div>
             </div>
 
-            {/* Assumptions */}
-            <div
-                className="flex-1 relative overflow-hidden z-10 mb-4"
-                style={{ maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)" }}
-            >
+            {/* Assumptions — each line clamps to one row (no mid-word fade),
+                capped at 3 with an explicit "+N more" affordance so every
+                card in a row reserves the same fixed block height. */}
+            <div className="flex-1 relative overflow-hidden z-10 mb-4">
                 {assumptions.length > 0 ? (
                     <div className="space-y-1.5 pl-3 border-l-2 border-border-subtle group-hover:border-border transition-colors">
                         {assumptions.slice(0, 3).map((a, i) => (
-                            <div key={i} className="text-xs text-muted-foreground leading-relaxed truncate">• {a}</div>
+                            <div key={i} className="text-xs text-muted-foreground leading-relaxed line-clamp-1">• {a}</div>
                         ))}
                         {assumptions.length > 3 && <div className="text-xs text-subtle-foreground italic">+{assumptions.length - 3} more</div>}
                     </div>
@@ -118,7 +140,7 @@ export function DecisionCard({ d, onReview, onView, isSelected, selectMode, onTo
 
                 <div className="flex items-center gap-2">
                     {isReviewed ? (
-                        <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full border border-border-subtle bg-overlay-subtle text-muted-foreground flex items-center gap-1.5">
+                        <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-lg border border-border-subtle bg-overlay-subtle text-muted-foreground flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: OUTCOME_DOT[d.outcomeStatus] }} />
                             {d.outcomeStatus}
                         </span>
@@ -140,8 +162,8 @@ export function DecisionCard({ d, onReview, onView, isSelected, selectMode, onTo
 export function SectionDivider({ label, count }) {
     return (
         <div className="col-span-full flex items-center gap-3 pt-2 pb-1">
-            <span className="text-xs font-bold uppercase tracking-widest text-subtle-foreground">{label}</span>
-            <span className="text-xs text-faint-foreground tabular-nums">{count}</span>
+            <SectionLabel className="tracking-widest">{label}</SectionLabel>
+            <CountPill className="tabular-nums">{count}</CountPill>
             <div className="flex-1 h-px bg-overlay-subtle" />
         </div>
     );

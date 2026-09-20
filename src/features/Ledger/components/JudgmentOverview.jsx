@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { SectionCard } from "@/components/composed/SectionCard";
+import { CountPill } from "@/components/composed/SectionBits";
 import { CalibrationChart } from './CalibrationChart';
 import { VelocityChart } from './VelocityChart';
 import { OutcomeDistribution } from './OutcomeDistribution';
@@ -14,7 +15,6 @@ import { cn } from "@/lib/utils";
 const CARD_BODY = "flex-1 min-h-0 px-5 pb-5 pt-4";
 
 // Right-aligned caption in each card header ("EXP VS ACT" etc.)
-const CARD_ACTION = "text-xs text-subtle-foreground uppercase tracking-wider";
 
 export function JudgmentOverview({ ledger }) {
     const [timeRange, setTimeRange] = useState('all'); // '30d', '90d', 'all'
@@ -90,12 +90,11 @@ export function JudgmentOverview({ ledger }) {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 auto-rows-[200px] sm:auto-rows-[220px] lg:auto-rows-[240px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 auto-rows-[200px] sm:auto-rows-[220px] lg:auto-rows-[240px]">
                 {/* 1. Calibration */}
                 <SectionCard
                     className="lg:col-span-2"
                     title="Confidence Calibration"
-                    action={<span className={CARD_ACTION}>Exp vs Act</span>}
                     bodyClassName={CARD_BODY}
                 >
                     <div className="h-full w-full relative">
@@ -107,7 +106,6 @@ export function JudgmentOverview({ ledger }) {
                 <SectionCard
                     className="lg:col-span-2"
                     title="Decision Velocity"
-                    action={<span className={CARD_ACTION}>Weekly Volume</span>}
                     bodyClassName={CARD_BODY}
                 >
                     <div className="h-full w-full relative">
@@ -117,9 +115,9 @@ export function JudgmentOverview({ ledger }) {
 
                 {/* 3. Outcomes */}
                 <SectionCard
-                    className="md:col-span-2 lg:col-span-1"
+                    className="md:col-span-2 lg:col-span-2"
                     title="Outcome Scorecard"
-                    action={<span className={CARD_ACTION}>Reviewed Only</span>}
+                    count={<CountPill>Reviewed</CountPill>}
                     bodyClassName={CARD_BODY}
                 >
                     <div className="h-full w-full relative">

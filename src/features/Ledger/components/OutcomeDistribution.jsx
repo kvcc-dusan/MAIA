@@ -6,7 +6,8 @@ export function OutcomeDistribution({ data }) {
     // Recharts takes colour as plain strings, not classes — resolve the
     // design tokens at render time instead of hardcoding hex/rgba literals.
     // Resolved (not raw `var(--x)`) because Recharts applies these as SVG
-    // presentation attributes, where var() is not supported.
+    // presentation attributes, where var() is not supported. (--border
+    // matches the legacy dark-gray hairline this replaced, at 60% opacity.)
     const gridStroke = resolveColor(cssVar('--border'));
     const axisTick = resolveColor(cssVar('--subtle-foreground'));
     const dotGlow = tokenColor('--pure', 0.5);
@@ -51,8 +52,14 @@ export function OutcomeDistribution({ data }) {
         <div className="h-full w-full relative text-foreground">
             {/* Radar Chart - fills full height */}
             <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="55%" outerRadius="85%" data={chartData}>
-                    {/* --border is white@10%, matching the original #27272a at 60% opacity */}
+                <RadarChart
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="62%"
+                    data={chartData}
+                    margin={{ top: 16, right: 28, bottom: 28, left: 28 }}
+                >
+                    {/* --border is white@10% */}
                     <PolarGrid stroke={gridStroke} />
                     <PolarAngleAxis
                         dataKey="subject"
@@ -83,7 +90,7 @@ export function OutcomeDistribution({ data }) {
             </ResponsiveContainer>
 
             {/* Legend - absolute overlay at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-5">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-2">
                 {chartData.map(d => (
                     <div key={d.subject} className="flex items-center gap-1.5 text-xs tracking-wider uppercase">
                         <span className="text-subtle-foreground font-bold">{d.subject}</span>

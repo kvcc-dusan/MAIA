@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils";
  */
 
 const LABEL_CLASS =
-  "text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold";
+  "text-xs uppercase tracking-[0.15em] text-muted-foreground font-bold whitespace-nowrap";
 const PILL_CLASS =
-  "text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full";
+  "text-xs text-subtle-foreground bg-overlay-subtle px-1.5 py-0.5 rounded-full whitespace-nowrap";
 
 /**
  * @param {object} props
