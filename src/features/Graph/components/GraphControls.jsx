@@ -1,8 +1,11 @@
 // @maia:graph-controls
 import React, { useMemo } from "react";
-import { GlassCard, GlassInput } from "../../../components/GlassCard";
-import ProjectIcon from "../../../components/ProjectIcon";
+import { cn } from "@/lib/utils";
 import { SettingsIcon, SearchIcon } from "../../../components/ui/CustomIcon.jsx";
+import { SectionLabel, CountPill } from "@/components/composed/SectionBits";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { clusterColors } from "@/lib/tokens";
 
 export default function GraphControls({
@@ -42,10 +45,12 @@ export default function GraphControls({
             {/* Panel Toggle Button - Positioned top right, distinct */}
             <button
                 onClick={() => setIsPanelOpen(!isPanelOpen)}
-                className={`absolute top-6 right-6 z-50 w-10 h-10 flex items-center justify-center rounded-lg border transition-all duration-300 ${isPanelOpen
-                    ? "bg-white text-black border-white"
-                    : "bg-black/50 text-muted-foreground border-border hover:text-white hover:border-border-strong backdrop-blur-md"
-                    }`}
+                className={cn(
+                    "absolute top-6 right-6 z-overlay grid size-10 place-items-center rounded-full border transition-colors",
+                    isPanelOpen
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-popover/80 text-muted-foreground backdrop-blur-md hover:border-border-strong hover:text-foreground"
+                )}
                 aria-label="Toggle Graph Controls"
             >
                 {isPanelOpen ? (
@@ -73,8 +78,8 @@ export default function GraphControls({
                 {/* Header */}
                 <div className="flex-none p-5 border-b border-border-subtle flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Connexa</span>
-                        <span className="text-xs bg-overlay-subtle px-1.5 py-0.5 rounded text-subtle-foreground">Controls</span>
+                        <SectionLabel as="h2">Connexa</SectionLabel>
+                        <CountPill>Controls</CountPill>
                     </div>
                 </div>
 
@@ -82,14 +87,15 @@ export default function GraphControls({
 
                     {/* SEARCH */}
                     <div className="space-y-3">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Search</div>
+                        <SectionLabel>Search</SectionLabel>
                         <div className="relative">
-                            <SearchIcon size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
-                            <GlassInput
-                                placeholder="Find node..."
+                            <SearchIcon size={14} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Find node…"
+                                aria-label="Find node"
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="pl-9 py-2 text-xs w-full bg-overlay-subtle border-border focus:bg-overlay focus:border-border-strong rounded-lg text-foreground-secondary placeholder:text-subtle-foreground"
+                                className="pl-10 text-xs"
                             />
                         </div>
                         {/* Quick Results */}
@@ -98,7 +104,7 @@ export default function GraphControls({
                                 {searchResults.map(res => (
                                     <button key={res.id} onClick={() => handleZoomToNode(res.id)}
                                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-overlay-subtle text-left group transition-colors">
-                                        <div className="w-2 h-2 rounded-full ring-1 ring-overlay-strong group-hover:ring-white/50 transition-all" style={{ background: res.color }} />
+                                        <div className="w-2 h-2 rounded-full ring-1 ring-overlay-strong group-hover:ring-border-strong transition-all" style={{ background: res.color }} />
                                         <span className="text-xs text-muted-foreground group-hover:text-foreground truncate">{res.title}</span>
                                     </button>
                                 ))}
@@ -108,27 +114,27 @@ export default function GraphControls({
 
                     {/* FILTERS */}
                     <div className="space-y-3">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Filters</div>
+                        <SectionLabel>Filters</SectionLabel>
 
                         <div className="space-y-1">
                             <label className="flex items-center justify-between py-2 text-xs text-muted-foreground cursor-pointer group hover:bg-overlay-subtle px-2 -mx-2 rounded-lg transition-colors">
                                 <span className="group-hover:text-foreground transition-colors">Show Only Projects</span>
-                                <input type="checkbox" checked={showOnlyProjects} onChange={e => setShowOnlyProjects(e.target.checked)} className="accent-white" />
+                                <Checkbox checked={showOnlyProjects} onCheckedChange={setShowOnlyProjects} aria-label="Show Only Projects" />
                             </label>
                             <label className="flex items-center justify-between py-2 text-xs text-muted-foreground cursor-pointer group hover:bg-overlay-subtle px-2 -mx-2 rounded-lg transition-colors">
                                 <span className="group-hover:text-foreground transition-colors">Show Orphans</span>
-                                <input type="checkbox" checked={showOrphans} onChange={e => setShowOrphans(e.target.checked)} className="accent-white" />
+                                <Checkbox checked={showOrphans} onCheckedChange={setShowOrphans} aria-label="Show Orphans" />
                             </label>
                             <label className="flex items-center justify-between py-2 text-xs text-muted-foreground cursor-pointer group hover:bg-overlay-subtle px-2 -mx-2 rounded-lg transition-colors">
                                 <span className="group-hover:text-foreground transition-colors">Ghost Nodes</span>
-                                <input type="checkbox" checked={showGhostNodes} onChange={e => setShowGhostNodes(e.target.checked)} className="accent-white" />
+                                <Checkbox checked={showGhostNodes} onCheckedChange={setShowGhostNodes} aria-label="Ghost Nodes" />
                             </label>
                         </div>
                     </div>
 
                     {/* DISPLAY */}
                     <div className="space-y-4">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Display</div>
+                        <SectionLabel>Display</SectionLabel>
 
                         <div className="space-y-4">
                             <div className="space-y-2">
@@ -136,12 +142,11 @@ export default function GraphControls({
                                     <span>Node Size</span>
                                     <span>{nodeSize}x</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0.5" max="2" step="0.1"
+                                <Slider
+                                    min={0.5} max={2} step={0.1}
                                     value={nodeSize}
-                                    onChange={e => setNodeSize(parseFloat(e.target.value))}
-                                    className="w-full h-1 bg-overlay rounded-lg appearance-none cursor-pointer accent-white hover:accent-foreground-secondary"
+                                    onChange={setNodeSize}
+                                    label="Node Size"
                                 />
                             </div>
 
@@ -150,12 +155,11 @@ export default function GraphControls({
                                     <span>Link Thickness</span>
                                     <span>{linkThickness}px</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0.5" max="5" step="0.5"
+                                <Slider
+                                    min={0.5} max={5} step={0.5}
                                     value={linkThickness}
-                                    onChange={e => setLinkThickness(parseFloat(e.target.value))}
-                                    className="w-full h-1 bg-overlay rounded-lg appearance-none cursor-pointer accent-white hover:accent-foreground-secondary"
+                                    onChange={setLinkThickness}
+                                    label="Link Thickness"
                                 />
                             </div>
 
@@ -164,12 +168,11 @@ export default function GraphControls({
                                     <span>Text Size</span>
                                     <span>{fontSize}x</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="0.5" max="2" step="0.1"
+                                <Slider
+                                    min={0.5} max={2} step={0.1}
                                     value={fontSize}
-                                    onChange={e => setFontSize(parseFloat(e.target.value))}
-                                    className="w-full h-1 bg-overlay rounded-lg appearance-none cursor-pointer accent-white hover:accent-foreground-secondary"
+                                    onChange={setFontSize}
+                                    label="Text Size"
                                 />
                             </div>
                         </div>
@@ -177,7 +180,7 @@ export default function GraphControls({
 
                     {/* PHYSICS */}
                     <div className="space-y-4">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Physics</div>
+                        <SectionLabel>Physics</SectionLabel>
 
                         <div className="space-y-4">
                             {/* Entropy (Repel) */}
@@ -186,12 +189,11 @@ export default function GraphControls({
                                     <span>Entropy</span>
                                     <span>{repelForce}</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="10" max="800" step="10"
+                                <Slider
+                                    min={10} max={800} step={10}
                                     value={repelForce}
-                                    onChange={e => setRepelForce(parseInt(e.target.value))}
-                                    className="w-full h-1 bg-overlay rounded-lg appearance-none cursor-pointer accent-white hover:accent-foreground-secondary"
+                                    onChange={setRepelForce}
+                                    label="Entropy"
                                 />
                             </div>
 
@@ -201,12 +203,11 @@ export default function GraphControls({
                                     <span>Entanglement</span>
                                     <span>{linkDistance}</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="10" max="500" step="10"
+                                <Slider
+                                    min={10} max={500} step={10}
                                     value={linkDistance}
-                                    onChange={e => setLinkDistance(parseInt(e.target.value))}
-                                    className="w-full h-1 bg-overlay rounded-lg appearance-none cursor-pointer accent-white hover:accent-foreground-secondary"
+                                    onChange={setLinkDistance}
+                                    label="Entanglement"
                                 />
                             </div>
                         </div>
@@ -214,10 +215,10 @@ export default function GraphControls({
 
                     {/* MOMENTUM */}
                     <div className="space-y-3">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Momentum</div>
+                        <SectionLabel>Momentum</SectionLabel>
                         <div className="flex flex-wrap gap-2">
                             {Array.from(hotTags).slice(0, 10).map(tag => (
-                                <span key={tag} className="text-xs bg-overlay-subtle border border-border text-muted-foreground px-2.5 py-1 rounded-full hover:bg-overlay hover:text-white transition-colors cursor-default">
+                                <span key={tag} className="text-xs bg-overlay-subtle border border-border text-muted-foreground px-2.5 py-1 rounded-full hover:bg-overlay hover:text-foreground transition-colors cursor-default">
                                     #{tag}
                                 </span>
                             ))}
@@ -229,14 +230,14 @@ export default function GraphControls({
 
                     {/* GROUPS (Analysis) */}
                     <div className="space-y-3 pb-8">
-                        <div className="text-xs text-subtle-foreground uppercase tracking-widest font-bold">Clusters</div>
+                        <SectionLabel>Clusters</SectionLabel>
                         <div className="space-y-1">
                             {clusters.slice(0, 5).map((c, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveCluster(activeCluster === i ? null : i)}
                                     className={`w-full text-left text-xs px-2 py-2 rounded-lg flex items-center justify-between transition-all ${activeCluster === i
-                                        ? "bg-overlay text-white"
+                                        ? "bg-overlay text-foreground"
                                         : "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground-secondary"
                                         }`}
                                 >
