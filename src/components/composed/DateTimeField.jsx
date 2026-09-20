@@ -90,12 +90,15 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
             </button>
           }
         />
-        {/* Match the field's width instead of a fixed 288px, with a floor so
-            the 7-column calendar grid can't be squashed by a narrow field. */}
-        <PopoverContent align="start" className="w-(--anchor-width) min-w-72 p-4">
+        {/* Matches the field's width rather than a fixed 288px. The calendar
+            grid is capped and centred instead of stretching, so a wide field
+            doesn't produce enormous day cells and a narrow one still fits. */}
+        <PopoverContent align="start" className="w-(--anchor-width) min-w-[184px] p-2">
           {!dateOnly && (
-            <Tabs value={tab} onValueChange={setTab} className="mb-4">
-              <TabsList className="w-full">
+            <Tabs value={tab} onValueChange={setTab} className="mb-2">
+              {/* The shared TabsList is h-11 to match form fields; inside the
+                  popup that's oversized chrome, so it's compact here. */}
+              <TabsList className="w-full group-data-horizontal/tabs:h-8">
                 <TabsTrigger value="date" className="flex-1">Date</TabsTrigger>
                 <TabsTrigger value="time" className="flex-1">Time</TabsTrigger>
               </TabsList>
@@ -103,29 +106,29 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
           )}
 
           {tab === "date" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1 text-sm font-medium text-foreground">
+            <div className="mx-auto w-full max-w-[248px] space-y-1">
+              <div className="flex items-center justify-between text-xs font-medium text-foreground">
                 <button
                   type="button"
                   aria-label="Previous month"
                   onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
-                  className="flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className="size-3.5" />
                 </button>
                 <span>{viewDate.toLocaleString("default", { month: "long", year: "numeric" })}</span>
                 <button
                   type="button"
                   aria-label="Next month"
                   onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
-                  className="flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="flex size-5 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
-                  <ChevronRight className="size-4" />
+                  <ChevronRight className="size-3.5" />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-1 text-center">
+              <div className="grid grid-cols-7 gap-0.5 text-center">
                 {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                  <div key={i} className="py-1 text-xs font-bold uppercase text-subtle-foreground">{d}</div>
+                  <div key={i} className="text-xs font-bold uppercase text-subtle-foreground">{d}</div>
                 ))}
                 {gridCells.map((d, i) => (
                   <div key={i} className="aspect-square">
@@ -134,9 +137,9 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                         type="button"
                         onClick={() => setDatePart(d)}
                         className={cn(
-                          "flex h-full w-full items-center justify-center rounded-lg text-xs transition-all hover:bg-accent",
+                          "flex h-full w-full items-center justify-center rounded-md text-xs transition-all hover:bg-accent",
                           d.toDateString() === dateObj.toDateString()
-                            ? "bg-primary font-bold text-primary-foreground shadow-lg"
+                            ? "bg-primary font-bold text-primary-foreground"
                             : "text-muted-foreground"
                         )}
                       >
@@ -150,8 +153,8 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
           )}
 
           {tab === "time" && !dateOnly && (
-            <div className="flex flex-col gap-2">
-              <div className="grid h-52 grid-cols-2 gap-2 overflow-hidden pb-1">
+            <div className="mx-auto flex w-full max-w-[196px] flex-col gap-2">
+              <div className="grid h-40 grid-cols-2 gap-2 overflow-hidden pb-1">
                 <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar border-r border-border-subtle pr-1">
                   <div className="sticky top-0 z-10 bg-popover py-1 text-center text-xs font-bold uppercase text-subtle-foreground">Hour</div>
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
@@ -160,7 +163,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                       type="button"
                       onClick={() => setTimePart("hour", h)}
                       className={cn(
-                        "shrink-0 rounded-xl py-2 text-xs transition-colors hover:bg-accent",
+                        "shrink-0 rounded-md py-1 text-xs transition-colors hover:bg-accent",
                         h === hours12 ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground"
                       )}
                     >
@@ -176,7 +179,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                       type="button"
                       onClick={() => setTimePart("min", m)}
                       className={cn(
-                        "shrink-0 rounded-xl py-2 text-xs transition-colors hover:bg-accent",
+                        "shrink-0 rounded-md py-1 text-xs transition-colors hover:bg-accent",
                         m === minutes ? "bg-primary font-bold text-primary-foreground" : "text-muted-foreground"
                       )}
                     >
@@ -186,19 +189,19 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                 </div>
               </div>
 
-              <div className="flex justify-center pt-1">
-                <div className="grid w-fit grid-cols-2 gap-1 rounded-3xl border border-border bg-transparent p-1">
+              <div className="flex justify-center">
+                <div className="grid w-fit grid-cols-2 gap-1 rounded-full border border-border bg-transparent p-0.5">
                   <button
                     type="button"
                     onClick={() => setTimePart("ampm", "AM")}
-                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", !isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                    className={cn("rounded-full px-4 py-1 text-xs font-bold transition-all", !isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
                   >
                     AM
                   </button>
                   <button
                     type="button"
                     onClick={() => setTimePart("ampm", "PM")}
-                    className={cn("rounded-full px-5 py-1.5 text-xs font-bold transition-all", isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+                    className={cn("rounded-full px-4 py-1 text-xs font-bold transition-all", isPm ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
                   >
                     PM
                   </button>
