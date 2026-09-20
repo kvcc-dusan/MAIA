@@ -106,7 +106,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
           )}
 
           {tab === "date" && (
-            <div className="mx-auto w-full max-w-[248px] space-y-1">
+            <div className="w-full space-y-1">
               <div className="flex items-center justify-between text-xs font-medium text-foreground">
                 <button
                   type="button"
@@ -126,12 +126,12 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                   <ChevronRight className="size-3.5" />
                 </button>
               </div>
-              <div className="grid grid-cols-7 gap-0.5 text-center">
+              <div className="grid grid-cols-7 gap-1 text-center">
                 {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
                   <div key={i} className="text-xs font-bold uppercase text-subtle-foreground">{d}</div>
                 ))}
                 {gridCells.map((d, i) => (
-                  <div key={i} className="aspect-square">
+                  <div key={i} className="h-7">
                     {d && (
                       <button
                         type="button"
@@ -153,9 +153,9 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
           )}
 
           {tab === "time" && !dateOnly && (
-            <div className="mx-auto flex w-full max-w-[196px] flex-col gap-2">
-              <div className="grid h-40 grid-cols-2 gap-2 overflow-hidden pb-1">
-                <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar border-r border-border-subtle pr-1">
+            <div className="flex w-full flex-col gap-2">
+              <div className="grid h-40 grid-cols-2 overflow-hidden pb-1">
+                <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar border-r border-border-subtle px-3">
                   <div className="sticky top-0 z-10 bg-popover py-1 text-center text-xs font-bold uppercase text-subtle-foreground">Hour</div>
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
                     <button
@@ -171,7 +171,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar px-3">
                   <div className="sticky top-0 z-10 bg-popover py-1 text-center text-xs font-bold uppercase text-subtle-foreground">Min</div>
                   {Array.from({ length: 12 }, (_, i) => i * 5).map((m) => (
                     <button
