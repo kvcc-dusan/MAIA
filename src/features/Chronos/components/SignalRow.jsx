@@ -23,7 +23,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
           <PopoverTrigger
             nativeButton={false}
             render={
-              <div className="group flex items-center gap-3 p-3 rounded-xl bg-overlay-subtle border border-border-subtle hover:bg-overlay hover:border-border transition-all cursor-pointer" />
+              <div className="group flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-overlay p-3 transition-all hover:border-border-strong hover:bg-overlay-strong cursor-pointer" />
             }
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">

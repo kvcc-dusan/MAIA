@@ -518,25 +518,28 @@ export default function ChronosModal({
 
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Time</span>
-              <div className="grid grid-cols-[112px_1fr] items-start gap-3">
-                <Tabs value={signalDraft.mode} onValueChange={(mode) => setSignalDraft((d) => ({ ...d, mode }))}>
-                  <TabsList className="h-9 w-full">
-                    <TabsTrigger value="in" className="flex-1">In</TabsTrigger>
-                    <TabsTrigger value="at" className="flex-1">At</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+              {/* Mode toggle above, control below at full width. Sharing one
+                  row left the control at 196px — too narrow for the date
+                  popover's 7-column grid, which then had to shift off the
+                  field's edge to avoid overflowing the form. Full width lets
+                  every popup here anchor flush to its trigger. */}
+              <Tabs value={signalDraft.mode} onValueChange={(mode) => setSignalDraft((d) => ({ ...d, mode }))}>
+                <TabsList className="w-[184px]">
+                  <TabsTrigger value="in" className="flex-1">In</TabsTrigger>
+                  <TabsTrigger value="at" className="flex-1">At</TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-                {signalDraft.mode === "in" ? (
-                  <Select
-                    value={signalDraft.minutes}
-                    options={IN_PRESETS}
-                    onChange={handleInPresetChange}
-                    placeholder="Duration"
-                  />
-                ) : (
-                  <DateTimeField value={signalDraft.at} onChange={(val) => setSignalDraft((d) => ({ ...d, at: val }))} />
-                )}
-              </div>
+              {signalDraft.mode === "in" ? (
+                <Select
+                  value={signalDraft.minutes}
+                  options={IN_PRESETS}
+                  onChange={handleInPresetChange}
+                  placeholder="Duration"
+                />
+              ) : (
+                <DateTimeField value={signalDraft.at} onChange={(val) => setSignalDraft((d) => ({ ...d, at: val }))} />
+              )}
             </div>
 
             <Select

@@ -29,7 +29,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
             nativeButton={false}
             render={
               <div
-                className="group flex items-center gap-3 p-3 rounded-xl bg-overlay-subtle border border-border-subtle hover:border-border transition-all hover:bg-overlay cursor-pointer"
+                className="group flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-overlay p-3 transition-all hover:border-border-strong hover:bg-overlay-strong cursor-pointer"
                 onClick={(e) => {
                   if (e.target.closest('button')) {
                     e.preventDefault();

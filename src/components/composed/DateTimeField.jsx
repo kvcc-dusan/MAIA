@@ -83,14 +83,16 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
             <button
               type="button"
               aria-label={label ? `${label}: select date and time` : "Select date and time"}
-              className="flex h-9 w-full items-center gap-3 rounded-3xl border border-border bg-transparent px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring"
+              className="flex h-11 w-full items-center gap-3 rounded-3xl border border-border bg-transparent px-3 text-left text-sm text-foreground outline-none transition-colors focus-visible:border-ring"
             >
               <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate">{formatDisplay(value)}</span>
             </button>
           }
         />
-        <PopoverContent align="start" className="w-72 p-4">
+        {/* Match the field's width instead of a fixed 288px, with a floor so
+            the 7-column calendar grid can't be squashed by a narrow field. */}
+        <PopoverContent align="start" className="w-(--anchor-width) min-w-72 p-4">
           {!dateOnly && (
             <Tabs value={tab} onValueChange={setTab} className="mb-4">
               <TabsList className="w-full">

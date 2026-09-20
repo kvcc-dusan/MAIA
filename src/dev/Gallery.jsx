@@ -251,7 +251,7 @@ export default function Gallery() {
             <Button onClick={() => setDialog("panel")} variant="outline">SidePanel</Button>
             <Popover>
               <PopoverTrigger render={<Button variant="outline">Popover</Button>} />
-              <PopoverContent>
+              <PopoverContent className="w-64">
                 <p className="text-sm">Popover content, positioned by Base UI.</p>
               </PopoverContent>
             </Popover>
