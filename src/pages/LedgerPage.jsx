@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { uid, isoNow } from "../lib/ids.js";
 import { cn } from "@/lib/utils";
 import { PlusSignSquare as Plus, AiMagic as Sparkles, Settings01 as Settings, Delete01 as Trash2, BalanceScale as Scale, Pin, Pen01 as PenLine, Circle, Filter } from "../components/ui/CustomIcon.jsx";
@@ -7,6 +7,8 @@ import { DecisionCard, SectionDivider } from "@/features/Ledger/components/Decis
 import { NewDecisionModal, ReviewModal, DecisionDetailModal } from "@/features/Ledger/components/LedgerModals";
 import { STAKES_DOT } from "@/features/Ledger/components/decisionStyles";
 import { EmptyState } from "@/components/composed/EmptyState";
+import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/Menu";
+import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { PromptDialog } from "@/components/composed/PromptDialog";
@@ -16,17 +18,82 @@ import { PageTitle } from "@/components/composed/PageHeader";
    LedgerPage  –  Decision Journal & Cognitive Feedback Loop
    ────────────────────────────────────────────────────────── */
 
-const POPOVER_CLASS = "bg-popover border border-border shadow-2xl rounded-2xl";
-
 // ─── Main Page ───
 
 const SORT_CYCLE = { recent: 'az', az: 'stakes', stakes: 'recent' };
 const SORT_LABEL = { recent: 'RECENT', az: 'A–Z', stakes: 'STAKES' };
 const STAKES_ORDER = { high: 0, medium: 1, low: 2 };
 
-// Shared action-row styling for the two dropdown menus (settings + context)
-const MENU_ITEM = "w-full text-left px-4 py-2.5 text-xs text-foreground-secondary hover:bg-overlay hover:text-pure transition-colors flex items-center gap-2";
-const MENU_ITEM_DANGER = "w-full text-left px-4 py-2.5 text-xs text-destructive hover:bg-destructive/10 transition-colors flex items-center gap-2";
+// DecisionCard calls an `onContextMenu` prop for both real right-clicks and
+// its synthetic long-press event. The actual menu is owned by the
+// Menu.ContextTrigger below, which opens natively for both gestures — this
+// stub only keeps that contract satisfied.
+function handleCardContextMenu(e) {
+    e.preventDefault();
+}
+
+/**
+ * One decision card wrapped in the app's context-menu primitive.
+ *
+ * Menu.ContextTrigger owns opening: right-click and touch long-press both
+ * anchor the portalled popup at the pointer, with menu roles, keyboard nav
+ * and the z-popover layer the old hand-positioned fixed menu lacked. In
+ * select mode the same menu switches to the bulk actions.
+ */
+function DecisionCardMenu({ d, selectMode, selectedCount, cardProps, actions }) {
+    return (
+        <Menu.Context>
+            <Menu.ContextTrigger className="contents">
+                <DecisionCard {...cardProps} onContextMenu={handleCardContextMenu} />
+            </Menu.ContextTrigger>
+
+            <Menu.ContextContent>
+                {selectMode ? (
+                    <>
+                        <Menu.ContextLabel>{selectedCount} Selected</Menu.ContextLabel>
+                        <Menu.ContextItem onClick={actions.bulkPin}>
+                            <Pin />
+                            Pin All
+                        </Menu.ContextItem>
+                        <Menu.ContextItem onClick={actions.bulkUnpin}>
+                            <Pin className="opacity-50" />
+                            Unpin All
+                        </Menu.ContextItem>
+                        <Menu.ContextSeparator />
+                        <ContextDangerItem onClick={actions.bulkDelete}>
+                            <Trash2 />
+                            Delete Selected
+                        </ContextDangerItem>
+                    </>
+                ) : (
+                    <>
+                        <Menu.ContextItem onClick={() => actions.togglePin(d.id)}>
+                            <Pin />
+                            {cardProps.isPinned ? "Unpin Decision" : "Pin Decision"}
+                        </Menu.ContextItem>
+                        <Menu.ContextItem onClick={() => actions.edit(d.id)}>
+                            <PenLine />
+                            Edit
+                        </Menu.ContextItem>
+                        <Menu.ContextItem onClick={() => actions.rename(d.id)}>
+                            <PenLine className="opacity-50" />
+                            Rename
+                        </Menu.ContextItem>
+                        <Menu.ContextItem onClick={() => actions.select(d.id)}>
+                            <Circle />
+                            Select
+                        </Menu.ContextItem>
+                        <Menu.ContextSeparator />
+                        <ContextDangerItem onClick={() => actions.delete(d.id)}>
+                            <Trash2 />
+                            Delete
+                        </ContextDangerItem>
+                    </>
+                )}
+            </Menu.ContextContent>
+        </Menu.Context>
+    );
+}
 
 export default function LedgerPage({ ledger = [], setLedger }) {
     const [isCreating, setIsCreating] = useState(false);
@@ -34,18 +101,14 @@ export default function LedgerPage({ ledger = [], setLedger }) {
     const [reviewingId, setReviewingId] = useState(null);
     const [viewingId, setViewingId] = useState(null);
     const [sort, setSort] = useState("recent");
-    const [showSettings, setShowSettings] = useState(false);
 
     // Filters for card grid
     const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'open', 'reviewed'
     const [filterStakes, setFilterStakes] = useState('all'); // 'all', 'high', 'medium', 'low'
 
-    // Multi-select & Context Menu
+    // Multi-select (context menus are owned by Menu.Context on each card)
     const [selectMode, setSelectMode] = useState(false);
     const [selected, setSelected] = useState(new Set());
-    const [menu, setMenu] = useState({ open: false, x: 0, y: 0, id: null });
-    const menuRef = useRef(null);
-    const settingsRef = useRef(null);
 
     // Pinned — persisted to localStorage
     const [pinnedArr, setPinnedArr] = useLocalStorage('maia.ledger.pinned', []);
@@ -107,24 +170,6 @@ export default function LedgerPage({ ledger = [], setLedger }) {
     const exitSelectMode = useCallback(() => {
         setSelectMode(false);
         setSelected(new Set());
-    }, []);
-
-    const handleContextMenu = useCallback((e, id) => {
-        e.preventDefault();
-        const menuWidth = 192;
-        const menuHeight = 200;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-
-        let x = e.clientX;
-        let y = e.clientY;
-
-        if (x + menuWidth > vw - 8) x = vw - menuWidth - 8;
-        if (y + menuHeight > vh - 8) y = vh - menuHeight - 8;
-        if (x < 8) x = 8;
-        if (y < 8) y = 8;
-
-        setMenu({ open: true, x, y, id });
     }, []);
 
     // ─── Seed Data ───
@@ -221,25 +266,32 @@ export default function LedgerPage({ ledger = [], setLedger }) {
         );
     }, [ledger.length, setLedger, setPinnedArr, askConfirm]);
 
-    // ─── Close on outside click / Escape ───
-
-    useEffect(() => {
-        const handleClick = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
-                setMenu(m => ({ ...m, open: false }));
-            }
-            if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-                setShowSettings(false);
-            }
-        };
-        window.addEventListener("click", handleClick);
-        return () => window.removeEventListener("click", handleClick);
-    }, []);
+    // Actions the per-card context menu dispatches — one object shared by
+    // every card so both grid sections stay in step.
+    const menuActions = {
+        togglePin: (id) => {
+            setPinned(prev => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id); else next.add(id);
+                return next;
+            });
+        },
+        edit: setEditingId,
+        rename: (id) => setRenaming({ id, title: ledger.find(d => d.id === id)?.title || '' }),
+        select: (id) => {
+            setSelectMode(true);
+            setSelected(new Set([id]));
+        },
+        delete: (id) => askConfirm("Delete this decision?", () => onDelete(id)),
+        bulkPin,
+        bulkUnpin,
+        bulkDelete,
+    };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Dialog dismissal is handled by Base UI; this only covers
-            // select mode, which is page state rather than an overlay.
+            // Dialog and menu dismissal are handled by Base UI; this only
+            // covers select mode, which is page state rather than an overlay.
             if (e.key === "Escape" && selectMode) exitSelectMode();
         };
         window.addEventListener("keydown", handleKeyDown);
@@ -301,60 +353,47 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setIsCreating(true)}
-                            className="h-8 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-foreground flex items-center justify-center transition-all gap-2 shadow-[0_0_15px_var(--overlay)] active:scale-95"
-                        >
-                            <Plus size={14} strokeWidth={3} />
-                            <span className="text-xs font-bold uppercase tracking-wide">New</span>
-                        </button>
+                        <Button size="sm" onClick={() => setIsCreating(true)}>
+                            <Plus strokeWidth={3} />
+                            New
+                        </Button>
 
                         {/* Sort toggle — cycles recent → a-z → stakes */}
-                        <button
-                            onClick={() => setSort(s => SORT_CYCLE[s])}
-                            className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground transition-colors flex items-center gap-2"
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setSort(s => SORT_CYCLE[s])}>
                             {SORT_LABEL[sort]}
-                            <Filter size={14} />
-                        </button>
+                            <Filter />
+                        </Button>
 
-                        <div ref={settingsRef} className="relative">
-                            <button
-                                onClick={() => setShowSettings(!showSettings)}
-                                className={cn(
-                                    "h-8 w-8 flex items-center justify-center rounded-lg transition-colors border",
-                                    showSettings ? 'bg-overlay border-border-strong text-foreground' : 'bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground hover:bg-overlay'
-                                )}
-                            >
-                                <Settings size={16} />
-                            </button>
-                            {showSettings && (
-                                <div className={cn(POPOVER_CLASS, "absolute right-0 top-full mt-2 w-48 z-50 overflow-hidden py-1")}>
-                                    <div className="px-4 py-2 text-xs uppercase tracking-widest text-subtle-foreground font-bold border-b border-border-subtle mb-1">
-                                        Actions
-                                    </div>
+                        <Menu.Root>
+                            <Menu.Trigger
+                                render={
+                                    <Button variant="outline" size="icon-sm" aria-label="Settings">
+                                        <Settings />
+                                    </Button>
+                                }
+                            />
+                            <Menu.Content align="end">
+                                <Menu.Group>
+                                    <Menu.Label className="text-xs font-bold uppercase tracking-widest">Actions</Menu.Label>
                                     {/* Destructive full-replace fixture — dev builds only (see seedData) */}
                                     {import.meta.env.DEV && (
-                                        <button
-                                            onClick={() => { seedData(); setShowSettings(false); }}
-                                            className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-success group transition-colors"
-                                        >
-                                            <Sparkles size={14} className="group-hover:scale-110 transition-transform" />
-                                            <span className="text-xs">Seed Data</span>
-                                        </button>
+                                        <Menu.Item onClick={seedData} className="text-success">
+                                            <Sparkles />
+                                            Seed Data
+                                        </Menu.Item>
                                     )}
                                     {ledger.length > 0 && (
-                                        <button
-                                            onClick={() => { deleteAll(); setShowSettings(false); }}
-                                            className="w-full px-4 py-2 text-left hover:bg-overlay-subtle flex items-center gap-3 text-destructive group transition-colors border-t border-border-subtle"
-                                        >
-                                            <Trash2 size={14} className="group-hover:scale-110 transition-transform" />
-                                            <span className="text-xs">Delete All</span>
-                                        </button>
+                                        <>
+                                            <Menu.Separator />
+                                            <MenuDangerItem onClick={deleteAll}>
+                                                <Trash2 />
+                                                Delete All
+                                            </MenuDangerItem>
+                                        </>
                                     )}
-                                </div>
-                            )}
-                        </div>
+                                </Menu.Group>
+                            </Menu.Content>
+                        </Menu.Root>
                     </div>
                 </div>
 
@@ -438,12 +477,13 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             title="No decisions recorded"
                             description="Log a decision with your confidence prediction — review it later to calibrate your judgment."
                             action={
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={(e) => { e.stopPropagation(); setIsCreating(true); }}
-                                    className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground font-bold uppercase tracking-wide transition-colors active:scale-95"
                                 >
                                     Log Decision
-                                </button>
+                                </Button>
                             }
                         />
                     )}
@@ -457,12 +497,13 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                             title="No decisions match this filter"
                             description="Nothing matches the current status and stakes filters."
                             action={
-                                <button
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => { setFilterStatus('all'); setFilterStakes('all'); }}
-                                    className="h-8 px-3 rounded-lg bg-overlay-subtle hover:bg-overlay border border-border-subtle text-xs text-muted-foreground font-bold uppercase tracking-wide transition-colors active:scale-95"
                                 >
                                     Clear Filters
-                                </button>
+                                </Button>
                             }
                         />
                     )}
@@ -472,16 +513,21 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                         <>
                             <SectionDivider label="Open" count={visibleOpen.length} />
                             {visibleOpen.map(d => (
-                                <DecisionCard
+                                <DecisionCardMenu
                                     key={d.id}
                                     d={d}
-                                    onReview={setReviewingId}
-                                    onView={setViewingId}
-                                    isSelected={selected.has(d.id)}
                                     selectMode={selectMode}
-                                    onToggle={toggleSelected}
-                                    onContextMenu={handleContextMenu}
-                                    isPinned={pinned.has(d.id)}
+                                    selectedCount={selected.size}
+                                    cardProps={{
+                                        d,
+                                        onReview: setReviewingId,
+                                        onView: setViewingId,
+                                        isSelected: selected.has(d.id),
+                                        selectMode,
+                                        onToggle: toggleSelected,
+                                        isPinned: pinned.has(d.id),
+                                    }}
+                                    actions={menuActions}
                                 />
                             ))}
                         </>
@@ -492,15 +538,20 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                         <>
                             <SectionDivider label="Reviewed" count={visibleReviewed.length} />
                             {visibleReviewed.map(d => (
-                                <DecisionCard
+                                <DecisionCardMenu
                                     key={d.id}
                                     d={d}
-                                    onView={setViewingId}
-                                    isSelected={selected.has(d.id)}
                                     selectMode={selectMode}
-                                    onToggle={toggleSelected}
-                                    onContextMenu={handleContextMenu}
-                                    isPinned={pinned.has(d.id)}
+                                    selectedCount={selected.size}
+                                    cardProps={{
+                                        d,
+                                        onView: setViewingId,
+                                        isSelected: selected.has(d.id),
+                                        selectMode,
+                                        onToggle: toggleSelected,
+                                        isPinned: pinned.has(d.id),
+                                    }}
+                                    actions={menuActions}
                                 />
                             ))}
                         </>
@@ -551,106 +602,6 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 initialValue={renaming?.title || ""}
                 submitLabel="Rename"
             />
-
-            {/* Context Menu */}
-            {menu.open && (
-                <div
-                    ref={menuRef}
-                    className={cn(POPOVER_CLASS, "fixed z-100 w-48 rounded-xl py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100")}
-                    style={{ top: menu.y, left: menu.x }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {selectMode ? (
-                        <>
-                            <div className="px-4 py-2 text-xs uppercase tracking-widest text-muted-foreground font-bold border-b border-border-subtle mb-1">
-                                {selected.size} Selected
-                            </div>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => { bulkPin(); setMenu({ ...menu, open: false }); }}
-                            >
-                                <Pin size={14} />
-                                Pin All
-                            </button>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => { bulkUnpin(); setMenu({ ...menu, open: false }); }}
-                            >
-                                <Pin size={14} className="opacity-50" />
-                                Unpin All
-                            </button>
-                            <div className="h-px bg-overlay my-1" />
-                            <button
-                                className={MENU_ITEM_DANGER}
-                                onClick={() => { bulkDelete(); setMenu({ ...menu, open: false }); }}
-                            >
-                                <Trash2 size={14} />
-                                Delete Selected
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => {
-                                    setPinned(prev => {
-                                        const next = new Set(prev);
-                                        if (next.has(menu.id)) next.delete(menu.id); else next.add(menu.id);
-                                        return next;
-                                    });
-                                    setMenu({ ...menu, open: false });
-                                }}
-                            >
-                                <Pin size={14} />
-                                {pinned.has(menu.id) ? "Unpin Decision" : "Pin Decision"}
-                            </button>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => {
-                                    setEditingId(menu.id);
-                                    setMenu({ ...menu, open: false });
-                                }}
-                            >
-                                <PenLine size={14} />
-                                Edit
-                            </button>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => {
-                                    const d = ledger.find(d => d.id === menu.id);
-                                    setRenaming({ id: menu.id, title: d?.title || '' });
-                                    setMenu({ ...menu, open: false });
-                                }}
-                            >
-                                <PenLine size={14} className="opacity-50" />
-                                Rename
-                            </button>
-                            <button
-                                className={MENU_ITEM}
-                                onClick={() => {
-                                    setSelectMode(true);
-                                    setSelected(new Set([menu.id]));
-                                    setMenu({ ...menu, open: false });
-                                }}
-                            >
-                                <Circle size={14} />
-                                Select
-                            </button>
-                            <div className="h-px bg-overlay my-1" />
-                            <button
-                                className={MENU_ITEM_DANGER}
-                                onClick={() => {
-                                    askConfirm("Delete this decision?", () => onDelete(menu.id));
-                                    setMenu({ ...menu, open: false });
-                                }}
-                            >
-                                <Trash2 size={14} />
-                                Delete
-                            </button>
-                        </>
-                    )}
-                </div>
-            )}
         </div>
     );
 }
