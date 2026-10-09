@@ -1,10 +1,10 @@
 # MAIA — Claude Code Instructions
 
-Verified against source 2026-09-19. When this file and the code disagree, **the code wins** — and fix this file.
+Verified against source 2026-10-09. When this file and the code disagree, **the code wins** — and fix this file.
 
 ## What is MAIA
 
-Personal operating system / knowledge-management app. Solo project (Dušan), no team, no backend. Think Notion + Obsidian + calendar — glass aesthetic, offline-first. Two build targets:
+Personal operating system / knowledge-management app. Solo project (Dušan), no team, no backend. Think Notion + Obsidian + calendar — offline-first, mid-migration to the kvcc-arc design system (see below). Two build targets:
 
 - **Tauri 2 desktop** — the primary target. Notes are real markdown files in a user-picked vault folder.
 - **Web/PWA** (GitHub Pages, base path `/MAIA/`) — secondary. localStorage only.
@@ -14,8 +14,8 @@ The seam is `isTauri()` from `src/lib/vault.js`. Anything filesystem-adjacent fo
 ## Stack
 
 - **React 19** + **Vite 7** — no Next.js, no SSR, no React Router (conditional rendering in `App.jsx`)
-- **Tailwind CSS 4.3.3** — CSS-first config (`@tailwindcss/vite`, `@import 'tailwindcss'`, `@theme` blocks). There is **no tailwind.config.js**.
-- **Framer Motion** — dock animations and motion.* components (wrapped in `<MotionConfig reducedMotion="user">`)
+- **Tailwind CSS 4.3.3** — CSS-first config (`@tailwindcss/vite`, `@import 'tailwindcss'`, `@theme` blocks). There is **no tailwind.config.js**. In MAIA's own files Tailwind is for **layout** (flex, grid, gap, sizing); colour, radius and type utilities must resolve to kvcc-arc tokens via `@theme inline`. Arc components style themselves with **CSS modules** — never Tailwind-restyle them.
+- **Framer Motion** — dock animations and motion.* components (wrapped in `<MotionConfig reducedMotion="user">`). Arc components need **`motion`** (the renamed package, `motion/react`) plus `@/lib/motion-tokens`; until both are installed and approved, they can't be added.
 - **TipTap** — editor
 - **D3** (SVG) — knowledge graph + knowledge panel. NOT Three.js for the graph.
 - **Recharts** — Ledger charts
@@ -23,22 +23,47 @@ The seam is `isTauri()` from `src/lib/vault.js`. Anything filesystem-adjacent fo
 - **Vitest + Testing Library** (`npx vitest run`)
 - **localStorage** (`DataContext`) + markdown vault (`useNotesStore`) — no backend, no DB
 
-## The design system — `src/styles/tokens.css`
+## The design system — kvcc-arc
 
-**Read `src/styles/tokens.css` end to end before writing any style.** It is a deliberate, documented system; apply it, don't redesign it, never introduce a second palette.
+MAIA's design system is **kvcc-arc** (Dušan's fork of Arc, uiarc.dev, MIT). `src/styles/tokens.css` is no longer the system; it is a shrinking **bridge** (see below). Before writing any UI, **load the `kvcc-arc` skill and follow it.** It has three parts; use all three:
 
-- `src/index.css` is a **16-line import manifest** — tokens do NOT live there.
-- There are **zero `--maia-*` variables**, no `--space-*` / `--fluid-*` scales, and the fonts are **Manrope Variable (font-sans) + Roboto Variable (font-heading)** — not Onest/IBM Plex/Instrument Serif.
-- Raw custom properties live in the `.dark` block (`--background`, `--priority-1`, …); `@theme inline` mirrors them as Tailwind utilities (`bg-card`, `text-muted-foreground`, `border-border-subtle`, `bg-overlay-strong`, `text-priority-1`, `z-dock`…). The `--color-*` aliases are compile-time only — at runtime read the raw `.dark` names.
-- **`src/lib/tokens.js`** is the runtime bridge for canvas surfaces (D3/Recharts) that take color as JS strings: `cssVar()`, `resolveColor()`, `tokenColor()`, `clusterColors()`, `graphTheme()`. Note its header caveat: `resolveColor` does NOT convert oklch→rgb, so it is not THREE.Color-safe.
-- Type: 7 steps, `text-xs` (12px) floor. `font-mono` is discouraged as a UI voice.
-- Z-index: named utilities only — `z-sticky` 10 · `z-dock` 20 · `z-drawer` 30 · `z-overlay` 40 · `z-dialog` 50 · `z-popover` 60 · `z-tooltip` 70 · `z-toast` 80.
-- **Ratchet: `npm run lint:tokens`** counts hardcoded hexes/rgba/white-black-alpha/etc. across `src/`. The number must only go down. `src/components/ui/*` (vendored shadcn) is exempt; MAIA's own files are not.
+1. **Component registry** — self-hosted shadcn registry at `https://kvcc-arc-registry.netlify.app`, registered in `components.json` as `"@kvcc": "https://kvcc-arc-registry.netlify.app/r/{name}.json"`. Base: `npx shadcn@latest add @kvcc/arc-foundation` (lands `src/components/arc/foundation.css` + `src/lib/motion-tokens`). Components: `npx shadcn@latest add @kvcc/<id>`. MAIA has `tsx: false`, so installs must come out as `.jsx`/`.js` — check every install.
+2. **The skill** — `~/.claude/skills/kvcc-arc`. Rules and selection live in `references/`: `rules.md` (colour, type, shape, motion, touch, menus, charts, tables, destructive actions), `components.md` (which item for which job), `component-index.md` (107 components, 22 blocks), `extensions.md` (`app-shell`, `settings-page`, `ai-chat`), `checklist.md` (pre-finish grep sweeps).
+3. **Source repo (read-only, never edit)** — `/Users/dusankvcc/Desktop/Atrium/Claude Code/kvcc-arc`. Component source + docs in `registry/components/<id>/`, extensions in `kvcc/extensions/<id>/`, tokens in `registry/foundation.css`. Read an item's source and docs before using it.
+
+**Rules of thumb (binding):**
+- Look for an existing `@kvcc` item first. Hand-build only when nothing fits, then follow `rules.md` with semantic tokens only (`--surface`, `--foreground`, `--text-secondary`, `--border`, `--accent`, `--danger`, …). No raw hex, no `--neutral-*`, no Tailwind colour classes.
+- Compose Arc components through their documented props. **Never restyle their internals**; `className` only for layout.
+- Arc hard rules that bite MAIA's legacy code: weights 400/500 only, sentence case, no uppercase/eyebrows/em dashes in UI copy, no glass/blur/glow/gradients, cards on a 1px border (shadows only on floating layers), radii 18/26/34, 44px touch targets, motion via `motion-tokens` with a reduced-motion branch.
+- Free-set gaps (no dock, week calendar, data grid): MAIA's Chronos calendar/timeline, Today dnd grid, D3 graph and TipTap editor stay hand-built — to `rules.md`, not the old look.
+
+**Theming:** `data-theme="light|dark"` and `data-accent` (MAIA uses `neutral`) on `<html>`, set before first paint. Follows `prefers-color-scheme` with a saved user toggle. Overrides go in a theme layer after `foundation.css`, never in `foundation.css` itself.
+
+**`src/styles/tokens.css` — the bridge.** It maps MAIA's legacy names (shadcn-style `--card`, `--muted-foreground`, `--priority-1`, the `@theme inline` utilities like `bg-card`, `text-muted-foreground`, `z-dock`) onto Arc semantic tokens, so unmigrated code picks up the new look. Watch the collision: shadcn's `accent` means *hover surface*, Arc's `--accent` means *brand colour*. The bridge only shrinks; new code uses Arc tokens directly. Until step 2 lands it still holds the old dark-only `.dark` palette (Manrope/Roboto).
+- `src/index.css` is the import manifest — tokens do NOT live there.
+- **`src/lib/tokens.js`** is the runtime bridge for canvas surfaces (D3/Recharts) that take colour as JS strings: `cssVar()`, `resolveColor()`, `tokenColor()`, `clusterColors()`, `graphTheme()`. It must read Arc names (`--series-1..4` for chart series). Header caveat: `resolveColor` does NOT convert oklch→rgb, so it is not THREE.Color-safe.
+- Z-index: named utilities (`z-sticky` 10 · `z-dock` 20 · `z-drawer` 30 · `z-overlay` 40 · `z-dialog` 50 · `z-popover` 60 · `z-tooltip` 70 · `z-toast` 80) stay unless Arc's foundation defines its own layering.
+- **Ratchet: `npm run lint:tokens`** counts hardcoded hexes/rgba/white-black-alpha/etc. across `src/`. The number must only go down (baseline 17 on 2026-10-09). Vendored code is exempt: `src/components/ui/*` shadcn files and `src/components/arc/**` (`@kvcc` installs). MAIA's own files are not.
+
+## Migration status (kvcc-arc) — one step per pass, stop for review in `npm run tauri dev`
+
+Plan: `~/.claude/plans/pasted-content-id-cf4c-migrate-goofy-pebble.md`. Branch: `ds/kvcc-arc`.
+
+- [x] **Step 1 — this file.** kvcc-arc declared as the system.
+- [ ] **0. Safety** — commit WIP on `ds/foundation`, branch `ds/kvcc-arc`.
+- [ ] **1. Foundation** — register `@kvcc`, install `arc-foundation` (+ `motion`, ask first), TSX→JSX canary with `button`, Geist + Inter fonts (ask first), theme boot script, exempt `components/arc/` in the linter.
+- [ ] **2. Token bridge** — repoint `tokens.css` at Arc semantics, kill glass/blur, `.dark` → `data-theme`, light mode, `lib/tokens.js` on Arc names. `lint:tokens` must not go up.
+- [ ] **3. Primitives** — rebuild `composed/*` on Arc items, APIs frozen.
+- [ ] **4. Shell + pages** — `app-shell` replaces the dock (decided), `command-palette`, `theme-switch`; then Today → Notes/Editor → Chronos → Ledger → Graph, replacing `ui/*` as we go.
+- [ ] **5. Opus redesign** — port projecthub (`/Users/dusankvcc/Desktop/Atrium/Claude Code/projecthub/`: README, PORTING, CONTRACT). Logic and IA from the hub, UI from kvcc-arc (PORTING.md's "keep MAIA's own design system" line is superseded). **Data-model plan needs approval before any code.**
+
+Every pass: `npm run lint:tokens`, `npx vitest run`, `npm run build`, plus the `checklist.md` sweeps over changed files. Then report what to check: light + dark, narrow window, keyboard.
 
 ## Components — reuse, don't reinvent
 
-- **`src/components/composed/`** — MAIA's app-level primitives: `AppDialog` `ConfirmDialog` `PromptDialog` `SidePanel` `Menu` `Select` `Field` `EntityForm` `DateTimeField` `PageHeader` `SectionCard` `SectionBits` (SectionLabel/CountPill) `Widget` `Surface` `EmptyState` `ErrorState` `IconButton` `StatusDot`. Every page should consume these — hand-rolled empty states, overlays without focus-trap, and bespoke eyebrows are recurring regressions.
-- **`src/components/ui/`** — mostly **vendored shadcn** (`button`, `dialog`, `command`, `popover`, `select`, `tabs`, …). Running `shadcn add <name>` regenerates them, so **hand edits get reverted** and the token linter exempts them. MAIA's own files there (`dock.jsx`, `CustomIcon.jsx`, `PriorityCheckbox.jsx`, `CloseButton.jsx`, `portal.js`) are NOT exempt.
+- **`src/components/arc/`** — vendored `@kvcc` installs (CSS-module components). Regenerated by `shadcn add`; never hand-edit. First choice for any UI.
+- **`src/components/composed/`** — MAIA's app-level primitives: `AppDialog` `ConfirmDialog` `PromptDialog` `SidePanel` `Menu` `Select` `Field` `EntityForm` `DateTimeField` `PageHeader` `SectionCard` `SectionBits` (SectionLabel/CountPill) `Widget` `Surface` `EmptyState` `ErrorState` `IconButton` `StatusDot`. Being rebuilt on Arc items (step 3) **with their public APIs frozen**, so consumers don't change. Every page should consume these — hand-rolled empty states, overlays without focus-trap, and bespoke eyebrows are recurring regressions.
+- **`src/components/ui/`** — legacy: mostly **vendored shadcn** (`button`, `dialog`, `command`, `popover`, `select`, `tabs`, …), shrinking to zero as pages migrate. Don't add new usages. Running `shadcn add <name>` regenerates them, so **hand edits get reverted** and the token linter exempts them. MAIA's own files there (`dock.jsx`, `CustomIcon.jsx`, `PriorityCheckbox.jsx`, `CloseButton.jsx`, `portal.js`) are NOT exempt. Deleting any of them needs Dušan's yes.
 - `src/dev/Gallery.jsx` (`?ui=gallery` in dev) is the living component gallery.
 
 ## State
@@ -85,6 +110,7 @@ src/
 ## Dev commands
 
 ```bash
+npm run tauri dev  # desktop app in dev mode (hot reload) — the review surface; starts Vite itself, so don't run `npm run dev` alongside
 npm run dev        # http://localhost:5183/MAIA/  (note the /MAIA/ base path; port is strict)
 npm run build      # web build
 npm run deploy     # build + push to GitHub Pages
