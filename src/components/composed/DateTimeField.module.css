@@ -1,0 +1,35 @@
+/* Date and time sit side by side only when there is room; in a narrow
+   column they stack, so neither value gets truncated. */
+.root {
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.group {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+@container (min-width: 18rem) {
+  .withTime {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+
+/* Arc's pickers always render a visible label. When the caller gives none (or
+   asks for sr-only), the labels are visually hidden but still name the
+   controls. */
+.hiddenLabels label,
+.hiddenLabels > div > span:first-child {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

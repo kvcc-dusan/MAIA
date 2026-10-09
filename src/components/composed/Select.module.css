@@ -1,0 +1,38 @@
+/* Arc's Select always renders a visible label. When the caller wants it
+   screen-reader-only (or gives none), the label is visually hidden but still
+   names the trigger. */
+.hiddenLabel label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.option {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.optionText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  flex: none;
+  border-radius: var(--radius-pill);
+}
+
+.icon {
+  flex: none;
+  color: var(--text-secondary);
+}
