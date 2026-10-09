@@ -19,6 +19,12 @@ const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFra
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 const colorOf = (series, index) => series.color ?? PALETTE[Math.min(index, PALETTE.length - 1)];
 const clean = (value) => Number(value.toPrecision(12));
+const NO_VALUE = "No value";
+const EDGE = 1e-6;
+const valueOf = (item, key) => {
+  const value = item.values[key];
+  return value === void 0 ? 0 : value;
+};
 function niceScale(low, high) {
   const lo = Math.min(0, low), hi = Math.max(high, lo + 1);
   const span = hi - lo, magnitude = 10 ** Math.floor(Math.log10(span / 4));
@@ -32,11 +38,13 @@ function niceScale(low, high) {
   }
   return { min: lo, max: hi, ticks: [lo, hi] };
 }
-function curveFor(values, smooth) {
+function curveFor(values, smooth, start = 0, total = values.length) {
   if (values.length === 0) return [];
-  if (values.length === 1) return [[0, values[0]], [1, values[0]]];
-  const last = values.length - 1, step = 1 / last;
-  if (!smooth) return values.map((value, index) => [index * step, value]);
+  if (total === 1) return [[0, values[0]], [1, values[0]]];
+  const last = values.length - 1, step = 1 / (total - 1);
+  const at = (position) => start + position === total - 1 ? 1 : (start + position) * step;
+  if (values.length === 1) return [[at(0), values[0]]];
+  if (!smooth) return values.map((value, index) => [at(index), value]);
   const slopes = values.slice(1).map((value, index) => (value - values[index]) / step);
   const tangents = values.map((_, index) => index === 0 || index === last ? 0 : (Math.sign(slopes[index - 1]) + Math.sign(slopes[index])) * Math.min(Math.abs(slopes[index - 1]), Math.abs(slopes[index]), Math.abs(slopes[index - 1] + slopes[index]) / 4) || 0);
   if (last > 1) {
@@ -46,18 +54,34 @@ function curveFor(values, smooth) {
     tangents[0] = slopes[0];
     tangents[1] = slopes[0];
   }
-  const samples = Math.max(1, Math.min(16, Math.round(192 / last)));
+  const samples = Math.max(1, Math.min(16, Math.round(192 / (total - 1))));
   const points = [];
   for (let index = 0; index < last; index++) {
     const low = Math.min(values[index], values[index + 1]), high = Math.max(values[index], values[index + 1]);
     for (let sample = 0; sample < samples; sample++) {
       const t = sample / samples, t2 = t * t, t3 = t2 * t;
       const value = (2 * t3 - 3 * t2 + 1) * values[index] + (t3 - 2 * t2 + t) * step * tangents[index] + (3 * t2 - 2 * t3) * values[index + 1] + (t3 - t2) * step * tangents[index + 1];
-      points.push([(index + t) * step, clamp(value, low, high)]);
+      points.push([(start + index + t) * step, clamp(value, low, high)]);
     }
   }
-  points.push([1, values[last]]);
+  points.push([at(last), values[last]]);
   return points;
+}
+function lineFor(values, smooth) {
+  const shape = [], runs = [];
+  for (let start = 0; start < values.length; start++) {
+    if (values[start] === null) continue;
+    let end = start;
+    while (end + 1 < values.length && values[end + 1] !== null) end++;
+    const part = curveFor(values.slice(start, end + 1), smooth, start, values.length);
+    for (const point of part) shape.push(point);
+    runs.push([part[0][0], part[part.length - 1][0]]);
+    start = end;
+  }
+  return { shape, runs };
+}
+function runPoints(shape, [from, to]) {
+  return [[from, valueAt(shape, from)], ...shape.filter(([x]) => x > from + EDGE && x < to - EDGE), [to, valueAt(shape, to)]];
 }
 function valueAt(shape, x) {
   if (!shape.length) return 0;
@@ -112,6 +136,7 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
   const crosshair = useRef(null);
   const lines = useRef(/* @__PURE__ */ new Map());
   const areas = useRef(/* @__PURE__ */ new Map());
+  const singles = useRef(/* @__PURE__ */ new Map());
   const dots = useRef(/* @__PURE__ */ new Map());
   const groups = useRef(/* @__PURE__ */ new Map());
   useImperativeHandle(ref, () => figure.current);
@@ -128,11 +153,12 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
   };
   const visible = series.filter((item) => !hidden.includes(item.key));
   const showLegend = legend ?? series.length > 1;
-  const signature = `${curve}|${series.map((item) => item.key).join(",")}|${data.map((item) => `${item.key}:${series.map((line) => item.values[line.key] ?? 0).join(",")}`).join(";")}`;
-  const targets = useMemo(() => new Map(series.map((line) => [line.key, curveFor(data.map((item) => item.values[line.key] ?? 0), curve === "smooth")])), [signature]);
+  const signature = `${curve}|${series.map((item) => item.key).join(",")}|${data.map((item) => `${item.key}:${series.map((line) => valueOf(item, line.key) ?? "n").join(",")}`).join(";")}`;
+  const targets = useMemo(() => new Map(series.map((line) => [line.key, lineFor(data.map((item) => valueOf(item, line.key)), curve === "smooth")])), [signature]);
   let low = Infinity, high = -Infinity;
   for (const line of visible) for (const item of data) {
-    const value = item.values[line.key] ?? 0;
+    const value = valueOf(item, line.key);
+    if (value === null) continue;
     low = Math.min(low, value);
     high = Math.max(high, value);
   }
@@ -172,17 +198,23 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
       if (!track) continue;
       const p = track.presence;
       const y = (value) => toY(lo + (value - lo) * p);
-      const path = track.shape.length ? `M${track.shape.map(([x2, value]) => `${(x2 * w).toFixed(1)},${y(value).toFixed(1)}`).join("L")}` : "";
-      lines.current.get(line.key)?.setAttribute("d", path);
-      areas.current.get(line.key)?.setAttribute("d", path ? `${path}L${w},${height}L0,${height}Z` : "");
+      const parts = track.runs.map((run) => ({ run, points: runPoints(track.shape, run) }));
+      const trace = (points) => `M${points.map(([x2, value]) => `${(x2 * w).toFixed(1)},${y(value).toFixed(1)}`).join("L")}`;
+      const edge = (x2) => +(x2 * w).toFixed(1);
+      const joined = parts.filter(({ run: [from, to] }) => from < to);
+      lines.current.get(line.key)?.setAttribute("d", joined.map(({ points }) => trace(points)).join(""));
+      areas.current.get(line.key)?.setAttribute("d", joined.map(({ run: [from, to], points }) => `${trace(points)}L${edge(to)},${height}L${edge(from)},${height}Z`).join(""));
+      singles.current.get(line.key)?.setAttribute("d", parts.filter(({ run: [from, to] }) => from === to).map(({ points }) => trace(points.slice(0, 1)) + "h0").join(""));
       const group = groups.current.get(line.key);
       if (group) group.style.opacity = String(p);
       const dot = dots.current.get(line.key);
       if (dot && track.shape.length) {
+        const onLine = track.runs.some(([from, to]) => at >= from - EDGE && at <= to + EDGE);
+        dot.style.opacity = onLine ? "" : "0";
         const cy = y(valueAt(track.shape, at));
         dot.setAttribute("cx", (at * w).toFixed(1));
         dot.setAttribute("cy", cy.toFixed(1));
-        if (p > 0.5) dotYs.push(cy);
+        if (p > 0.5 && onLine) dotYs.push(cy);
       }
     }
     clip.current?.setAttribute("width", String(drawn.get() * (w + 16)));
@@ -223,15 +255,16 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
     for (const [key, target] of targets) {
       const track = tracks.current.get(key);
       if (!track) {
-        tracks.current.set(key, { shape: target, presence: live.current.hidden.includes(key) ? 0 : 1, fade: null });
+        tracks.current.set(key, { ...target, presence: live.current.hidden.includes(key) ? 0 : 1, fade: null });
         continue;
       }
-      if (!track.shape.length || !target.length || reduced) {
-        update(track, { shape: target });
+      if (!track.shape.length || !target.shape.length || reduced) {
+        update(track, target);
         continue;
       }
-      const xs = [.../* @__PURE__ */ new Set([...grid, ...target.map(([x]) => x)])].sort((a, b) => a - b);
-      moves.push({ track, xs, from: xs.map((x) => valueAt(track.shape, x)), to: xs.map((x) => valueAt(target, x)), target });
+      const xs = [.../* @__PURE__ */ new Set([...grid, ...target.shape.map(([x]) => x)])].sort((a, b) => a - b);
+      moves.push({ track, xs, from: xs.map((x) => valueAt(track.shape, x)), to: xs.map((x) => valueAt(target.shape, x)), target: target.shape });
+      update(track, { runs: target.runs });
     }
     morph.current?.stop();
     if (!moves.length) {
@@ -332,12 +365,13 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
   const onPointerMove = (event) => {
     if (!empty && (event.pointerType === "mouse" || event.buttons)) setActive(pointAt(event.clientX));
   };
-  const format = (value, line) => `${formatValue ? formatValue(value, line) : grouped.format(value)}${unit ? ` ${unit}` : ""}`;
+  const format = (value, line) => value === null ? NO_VALUE : `${formatValue ? formatValue(value, line) : grouped.format(value)}${unit ? ` ${unit}` : ""}`;
   const reading = index === null ? null : data[index];
-  const valueText = reading ? `${reading.label}: ${visible.map((line) => `${line.label} ${format(reading.values[line.key] ?? 0, line)}`).join(", ")}` : empty ? emptyLabel : `${visible.length} of ${series.length} series shown`;
-  const summary = empty ? `${label}. ${emptyLabel}.` : `${label}, ${data[0].label} to ${data[last].label}. ${visible.map((line) => `${line.label}, latest ${format(data[last].values[line.key] ?? 0, line)}`).join(". ")}.`;
+  const valueText = reading ? `${reading.label}: ${visible.map((line) => `${line.label} ${format(valueOf(reading, line.key), line)}`).join(", ")}` : empty ? emptyLabel : `${visible.length} of ${series.length} series shown`;
+  const summary = empty ? `${label}. ${emptyLabel}.` : `${label}, ${data[0].label} to ${data[last].label}. ${visible.map((line) => `${line.label}, latest ${format(valueOf(data[last], line.key), line)}`).join(". ")}.`;
   const picks = axisPicks(data, plotWidth);
   const allHidden = !empty && visible.length === 0;
+  const shown = reading ?? data[last];
   const tipX = reduced ? tipTargetX : tipSpringX, tipY = reduced ? tipTargetY : tipSpringY;
   return <figure ref={figure} className={[styles.figure, className].filter(Boolean).join(" ")} aria-label={label} aria-busy={loading || void 0}>
     {showLegend && <div className={styles.legend} role="group" aria-label={`${label} series`}>
@@ -392,6 +426,10 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
     if (node) lines.current.set(line.key, node);
     else lines.current.delete(line.key);
   }} className={styles.line} data-dashed={line.dashed || void 0} />
+              <path ref={(node) => {
+    if (node) singles.current.set(line.key, node);
+    else singles.current.delete(line.key);
+  }} className={styles.single} />
             </g>)}
           </g>
           {series.map((line, at) => <circle key={line.key} ref={(node) => {
@@ -400,12 +438,15 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
   }} className={styles.dot} r={4} data-hidden={hidden.includes(line.key) || void 0} style={{ "--series": colorOf(line, at) }} />)}
         </svg>
         <motion.div ref={tip} className={styles.tooltip} style={{ x: tipX, y: tipY }} aria-hidden="true">
-          <p className={styles.tipTitle}>{(reading ?? data[last])?.label ?? ""}</p>
-          {visible.map((line) => <p key={line.key} className={styles.tipRow} style={{ "--series": colorOf(line, series.indexOf(line)) }}>
-            <span className={styles.tipSwatch} data-dashed={line.dashed || void 0} />
-            <span className={styles.tipName}>{line.label}</span>
-            <span className={styles.tipValue}>{format((reading ?? data[last])?.values[line.key] ?? 0, line)}</span>
-          </p>)}
+          <p className={styles.tipTitle}>{shown?.label ?? ""}</p>
+          {visible.map((line) => {
+    const value = shown ? valueOf(shown, line.key) : 0;
+    return <p key={line.key} className={styles.tipRow} style={{ "--series": colorOf(line, series.indexOf(line)) }}>
+              <span className={styles.tipSwatch} data-dashed={line.dashed || void 0} />
+              <span className={styles.tipName}>{line.label}</span>
+              <span className={styles.tipValue} data-empty={value === null || void 0}>{format(value, line)}</span>
+            </p>;
+  })}
         </motion.div>
         <AnimatePresence initial={false}>
           {(empty || allHidden) && !loading && <motion.p key={empty ? "empty" : "hidden"} className={styles.message} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: fadeFast }}>{empty ? emptyLabel : "Choose a series to show"}</motion.p>}
@@ -428,7 +469,7 @@ export function LineChart({ data, series, label, unit = "", height = 220, format
     {!empty && <table className={styles.srOnly}>
       <caption>{label}</caption>
       <thead><tr><th scope="col">{categoryLabel}</th>{series.map((line) => <th key={line.key} scope="col">{line.label}</th>)}</tr></thead>
-      <tbody>{data.map((item) => <tr key={item.key}><th scope="row">{item.label}</th>{series.map((line) => <td key={line.key}>{format(item.values[line.key] ?? 0, line)}</td>)}</tr>)}</tbody>
+      <tbody>{data.map((item) => <tr key={item.key}><th scope="row">{item.label}</th>{series.map((line) => <td key={line.key}>{format(valueOf(item, line.key), line)}</td>)}</tr>)}</tbody>
     </table>}
     <p className={styles.srOnly} aria-live="polite" aria-atomic="true">{loading ? "Loading" : ""}</p>
   </figure>;
