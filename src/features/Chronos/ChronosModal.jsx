@@ -7,24 +7,19 @@ import { uid, isoNow } from "../../lib/ids.js";
 // timers on every Chronos open.
 import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../../utils/notify.js";
 import { AppDialog } from "@/components/composed/AppDialog";
-import { EntityForm } from "@/components/composed/EntityForm";
-import { Field } from "@/components/composed/Field";
-import { Select } from "@/components/composed/Select";
-import { DateTimeField } from "@/components/composed/DateTimeField";
 import { EmptyState } from "@/components/composed/EmptyState";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Folder01 as FolderIcon } from "@/components/ui/CustomIcon.jsx";
+import { IconButton } from "@/components/composed/IconButton";
+import { Button } from "@/components/arc/button/button";
 import { PlusIcon, BellOff, ListTodo } from "lucide-react";
 
-import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../../lib/constants";
-import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap } from "../../lib/time";
+import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap, sameDay } from "../../lib/time";
 import TaskRow from "./components/TaskRow";
 import SignalRow from "./components/SignalRow";
 import DailyTimeline from "./components/DailyTimeline";
 import MonthCalendar from "./components/MonthCalendar";
-import { SessionColorSwatches } from "./components/SessionColorSwatches";
+import { TaskForm, SignalForm, SessionForm } from "./components/ChronosForms";
+import { useRevealPicker } from "./useRevealPicker";
+import styles from "./ChronosModal.module.css";
 
 export default function ChronosModal({
   onClose,
@@ -42,6 +37,8 @@ export default function ChronosModal({
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [rightView, setRightView] = useState("calendar");
   const [formError, setFormError] = useState(null);
+  const [rightRegion, setRightRegion] = useState(null);
+  useRevealPicker(rightRegion);
 
   const [signalDraft, setSignalDraft] = useState({
     id: null,
@@ -130,6 +127,20 @@ export default function ChronosModal({
     });
     setFormError(null);
     setRightView("session-form");
+  };
+
+  // Keyboard and touch path to the same form the timeline's drag opens: the
+  // next free half hour today, or 9:00 on any other day, for one hour.
+  const openNewSession = () => {
+    const base = selectedDate ? new Date(selectedDate) : new Date();
+    const start = new Date(base);
+    if (sameDay(base, new Date())) {
+      const now = new Date();
+      start.setHours(now.getHours(), now.getMinutes() < 30 ? 30 : 60, 0, 0);
+    } else {
+      start.setHours(9, 0, 0, 0);
+    }
+    openSessionForm({ start, end: new Date(start.getTime() + 60 * 60000) });
   };
 
   const saveTask = () => {
@@ -317,6 +328,8 @@ export default function ChronosModal({
     [selectedDate, tasksOn, tasks]
   );
 
+  const isFormOpen = rightView !== "calendar";
+
   return (
     <AppDialog
       open
@@ -324,297 +337,149 @@ export default function ChronosModal({
       size="full"
       // No visible close button: the X sat on top of the calendar's month
       // chevrons and read as noise in every other right-rail state. Escape
-      // and clicking outside close the dialog — Base UI handles both.
+      // and clicking outside close the dialog.
       showCloseButton={false}
-      // The accessible name lives in a visually hidden dialog header; the
-      // visible "Chronos" heading is the left column's own, matching the old
-      // layout where the divider runs the full height of the modal.
-      title={<span className="sr-only">Chronos</span>}
-      className="gap-0 overflow-hidden rounded-3xl bg-background p-0 [&_[data-slot=dialog-header]]:sr-only"
-      // The old Chronos geometry: one vertical divider, wide left rail for
-      // Tasks + Signals, narrower right rail for the calendar with sessions
-      // beneath it. ~60/40 split measured off the reference.
-      contentClassName="overflow-hidden grid grid-cols-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+      // The accessible name lives in a visually hidden dialog title; the
+      // visible "Chronos" wordmark is the left column's own, so the divider
+      // runs the full height of the modal.
+      title="Chronos"
     >
-      {/* Left column — title, Tasks, Signals stacked in one scrolling rail. */}
-      <div className="flex h-full min-h-0 flex-col overflow-hidden border-b border-border-subtle lg:border-b-0 lg:border-r">
-        {/* The dialog's accessible heading is the sr-only DialogTitle; this
-            visible twin deliberately isn't a second heading role. */}
-        <div className="flex-none px-8 pt-7 font-heading text-3xl font-semibold tracking-tight text-foreground">
-          Chronos
-        </div>
+      <div className={styles.layout} data-form-open={isFormOpen ? "" : undefined}>
+        {/* Left column: wordmark, then Tasks and Signals in one scrolling rail. */}
+        <div className={styles.left}>
+          <div className={styles.wordmark} aria-hidden="true">Chronos</div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto custom-scrollbar px-8 pb-8 pt-8">
-          {/* Tasks */}
-          <section className="space-y-4" aria-label="Tasks">
-            <div className="flex items-center justify-between">
-              <div className="flex items-baseline gap-2.5">
-                <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Tasks</h3>
-                {/* Deselecting a day silently switched this list from "tasks
-                    on that day" to "all open tasks" — say which mode it's in. */}
-                <span className="text-xs text-subtle-foreground">
-                  {selectedDate ? formatDayLabel(selectedDate) : "All open"}
-                </span>
+          <div className={`${styles.leftScroll} custom-scrollbar`}>
+            <section className={styles.section} aria-labelledby="chronos-tasks">
+              <div className={styles.sectionHead}>
+                <div className={styles.sectionTitle}>
+                  <h3 id="chronos-tasks">Tasks</h3>
+                  {/* Deselecting a day silently switched this list from "tasks
+                      on that day" to "all open tasks". Say which mode it's in. */}
+                  <span className={styles.sectionHint}>{selectedDate ? formatDayLabel(selectedDate) : "All open"}</span>
+                </div>
+                <IconButton icon={PlusIcon} label="Add task" onClick={() => openTaskForm()} />
               </div>
-              <button
-                onClick={() => openTaskForm()}
-                aria-label="Add Task"
-                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <PlusIcon size={16} />
-              </button>
-            </div>
 
-            <div className="space-y-2">
               {visibleTasks.length === 0 ? (
                 <EmptyState
                   icon={ListTodo}
                   title={selectedDate ? "No tasks for this day" : "No open tasks"}
                   description={
                     selectedDate
-                      ? "Add one, or pick a different day on the calendar."
-                      : "Tasks you create — here or in Opus — land here."
+                      ? "Pick a different day on the calendar, or add one for this day."
+                      : "Tasks you create here or in Opus show up in this list."
                   }
+                  action={<Button variant="secondary" size="sm" onClick={() => openTaskForm()}>Add task</Button>}
                 />
               ) : (
-                visibleTasks.map((t) => (
-                  <TaskRow
-                    key={t.id}
-                    task={t}
-                    onToggle={() => toggleTask(t.id)}
-                    onDelete={() => deleteTask(t.id)}
-                    onEdit={() => openTaskForm(null, t)}
-                    onAssign={(projectId) => assignTask(t.id, projectId)}
-                    projects={projects}
-                  />
-                ))
+                <ul className={styles.list}>
+                  {visibleTasks.map((t) => (
+                    <li key={t.id}>
+                      <TaskRow
+                        task={t}
+                        onToggle={() => toggleTask(t.id)}
+                        onDelete={() => deleteTask(t.id)}
+                        onEdit={() => openTaskForm(null, t)}
+                        onAssign={(projectId) => assignTask(t.id, projectId)}
+                        projects={projects}
+                      />
+                    </li>
+                  ))}
+                </ul>
               )}
-            </div>
-          </section>
+            </section>
 
-          {/* Signals */}
-          <section className="space-y-4" aria-label="Signals">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Signals</h3>
-              <button
-                onClick={() => openSignalForm()}
-                aria-label="Add Signal"
-                className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <PlusIcon size={16} />
-              </button>
-            </div>
+            <section className={styles.section} aria-labelledby="chronos-signals">
+              <div className={styles.sectionHead}>
+                <div className={styles.sectionTitle}>
+                  <h3 id="chronos-signals">Signals</h3>
+                </div>
+                <IconButton icon={PlusIcon} label="Add signal" onClick={() => openSignalForm()} />
+              </div>
 
-            <div className="space-y-2">
-              {upcomingSignals.length === 0 && (
+              {upcomingSignals.length === 0 ? (
                 <EmptyState
                   icon={BellOff}
                   title="No active signals"
-                  description="Timed nudges you set here arrive as notifications."
+                  description="A signal is a timed nudge. It arrives as a notification at the time you pick."
+                  action={<Button variant="secondary" size="sm" onClick={() => openSignalForm()}>Add signal</Button>}
                 />
+              ) : (
+                <ul className={styles.list}>
+                  {upcomingSignals.map((s) => (
+                    <li key={s.id}>
+                      <SignalRow
+                        signal={s}
+                        onDelete={() => {
+                          clearScheduled(s.id);
+                          setReminders((p) => p.filter((x) => x.id !== s.id));
+                        }}
+                        onEdit={() => openSignalForm(s)}
+                      />
+                    </li>
+                  ))}
+                </ul>
               )}
-              {upcomingSignals.map((s) => (
-                <SignalRow
-                  key={s.id}
-                  signal={s}
-                  onDelete={() => {
-                    clearScheduled(s.id);
-                    setReminders((p) => p.filter((x) => x.id !== s.id));
-                  }}
-                  onEdit={() => openSignalForm(s)}
-                />
-              ))}
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
-      </div>
 
-      {/* Right column — calendar on top, sessions beneath; or whichever form
-          is open. The divider stays put in every state. */}
-      <div className="flex h-full min-h-0 flex-col overflow-hidden">
-        {rightView === "calendar" && (
-          <>
-            <MonthCalendar
-              view={view}
-              setView={setView}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-              today={today}
-              tasksOn={tasksOn}
-            />
-
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border-subtle">
-              <div className="flex-none border-b border-border-subtle px-6 py-3.5">
-                <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Sessions</h3>
-              </div>
-              <DailyTimeline
-                sessions={sessions}
-                setSessions={setSessions}
+        {/* Right column: calendar on top, sessions beneath; or whichever form
+            is open. The divider stays put in every state. */}
+        <div className={styles.right} ref={setRightRegion}>
+          {rightView === "calendar" && (
+            <>
+              <MonthCalendar
+                view={view}
+                setView={setView}
                 selectedDate={selectedDate}
-                onOpenSessionForm={openSessionForm}
+                onSelectDate={setSelectedDate}
+                today={today}
+                tasksOn={tasksOn}
               />
-            </div>
-          </>
-        )}
 
-        {rightView === "task-form" && (
-          <EntityForm
-            title={taskDraft.id ? "Edit Task" : "New Task"}
-            onCancel={closeForm}
-            onSubmit={saveTask}
-            submitLabel={taskDraft.id ? "Save Changes" : "Create Task"}
-          >
-            <Field label="Title" labelClassName="sr-only" required error={formError}>
-              <Input
-                autoFocus
-                placeholder="What needs to be done?"
-                value={taskDraft.title}
-                onChange={(e) => setTaskDraft((d) => ({ ...d, title: e.target.value }))}
-                onKeyDown={(e) => e.key === "Enter" && saveTask()}
-              />
-            </Field>
+              <section className={styles.sessions} aria-labelledby="chronos-sessions">
+                <div className={styles.sessionsHead}>
+                  <h3 id="chronos-sessions">Sessions</h3>
+                  <IconButton icon={PlusIcon} label="Add session" onClick={openNewSession} />
+                </div>
+                <DailyTimeline
+                  sessions={sessions}
+                  setSessions={setSessions}
+                  selectedDate={selectedDate}
+                  onOpenSessionForm={openSessionForm}
+                />
+              </section>
+            </>
+          )}
 
-            <Select
-              label="Priority"
-              value={taskDraft.priority}
-              options={TASK_PRIORITIES}
-              onChange={(val) => setTaskDraft((d) => ({ ...d, priority: val }))}
+          {rightView === "task-form" && (
+            <TaskForm draft={taskDraft} setDraft={setTaskDraft} error={formError} onCancel={closeForm} onSubmit={saveTask} />
+          )}
+
+          {rightView === "signal-form" && (
+            <SignalForm
+              draft={signalDraft}
+              setDraft={setSignalDraft}
+              error={formError}
+              onCancel={closeForm}
+              onSubmit={saveSignal}
+              onPresetChange={handleInPresetChange}
             />
+          )}
 
-            <DateTimeField
-              label="Deadline"
-              value={taskDraft.due}
-              dateOnly
-              onChange={(val) => setTaskDraft((d) => ({ ...d, due: val }))}
+          {rightView === "session-form" && (
+            <SessionForm
+              draft={sessionDraft}
+              setDraft={setSessionDraft}
+              error={formError}
+              projectOptions={projectOptions}
+              onCancel={closeForm}
+              onSubmit={saveSession}
             />
-
-            <Field label="Description" labelClassName="sr-only">
-              <Textarea
-                placeholder="Add details…"
-                className="h-36 resize-none"
-                value={taskDraft.description}
-                onChange={(e) => setTaskDraft((d) => ({ ...d, description: e.target.value }))}
-              />
-            </Field>
-          </EntityForm>
-        )}
-
-        {rightView === "signal-form" && (
-          <EntityForm
-            title={signalDraft.id ? "Edit Signal" : "New Signal"}
-            onCancel={closeForm}
-            onSubmit={saveSignal}
-            submitLabel={signalDraft.id ? "Save Changes" : "Create Signal"}
-          >
-            <Field label="Title" labelClassName="sr-only" required error={formError}>
-              <Input
-                autoFocus
-                placeholder="Signal name…"
-                value={signalDraft.title}
-                onChange={(e) => setSignalDraft((d) => ({ ...d, title: e.target.value }))}
-                onKeyDown={(e) => e.key === "Enter" && saveSignal()}
-              />
-            </Field>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Time</span>
-              <div className="grid grid-cols-[112px_1fr] items-start gap-3">
-                <Tabs value={signalDraft.mode} onValueChange={(mode) => setSignalDraft((d) => ({ ...d, mode }))}>
-                  <TabsList className="w-full">
-                    <TabsTrigger value="in" className="flex-1">In</TabsTrigger>
-                    <TabsTrigger value="at" className="flex-1">At</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {signalDraft.mode === "in" ? (
-                  <Select
-                    value={signalDraft.minutes}
-                    options={IN_PRESETS}
-                    onChange={handleInPresetChange}
-                    placeholder="Duration"
-                  />
-                ) : (
-                  <DateTimeField value={signalDraft.at} onChange={(val) => setSignalDraft((d) => ({ ...d, at: val }))} />
-                )}
-              </div>
-            </div>
-
-            <Select
-              label="Priority"
-              value={signalDraft.priority}
-              options={SIGNAL_PRIORITIES}
-              onChange={(val) => setSignalDraft((d) => ({ ...d, priority: val }))}
-            />
-
-            <Field label="Description" labelClassName="sr-only">
-              <Textarea
-                placeholder="Signal details…"
-                className="h-36 resize-none"
-                value={signalDraft.description}
-                onChange={(e) => setSignalDraft((d) => ({ ...d, description: e.target.value }))}
-              />
-            </Field>
-          </EntityForm>
-        )}
-
-        {rightView === "session-form" && (
-          <EntityForm
-            title={sessionDraft.id ? "Edit Session" : "New Session"}
-            onCancel={closeForm}
-            onSubmit={saveSession}
-            submitLabel={sessionDraft.id ? "Save Changes" : "Create Session"}
-          >
-            <Field label="Title" labelClassName="sr-only" required error={formError}>
-              <Input
-                autoFocus
-                placeholder="Deep work session…"
-                value={sessionDraft.title}
-                onChange={(e) => setSessionDraft((d) => ({ ...d, title: e.target.value }))}
-                onKeyDown={(e) => e.key === "Enter" && saveSession()}
-              />
-            </Field>
-
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Colour</span>
-              <SessionColorSwatches
-                value={sessionDraft.color}
-                onChange={(color) => setSessionDraft((d) => ({ ...d, color }))}
-              />
-            </div>
-
-            <DateTimeField
-              label="Start"
-              value={sessionDraft.start ? toLocalInputValue(sessionDraft.start) : ""}
-              onChange={(val) => setSessionDraft((d) => ({ ...d, start: new Date(val) }))}
-            />
-
-            <DateTimeField
-              label="End"
-              value={sessionDraft.end ? toLocalInputValue(sessionDraft.end) : ""}
-              onChange={(val) => setSessionDraft((d) => ({ ...d, end: new Date(val) }))}
-            />
-
-            <Select
-              label="Project"
-              labelClassName="sr-only"
-              icon={FolderIcon}
-              value={sessionDraft.linkedProjectId === "none" ? null : sessionDraft.linkedProjectId}
-              options={projectOptions}
-              placeholder="Link project"
-              clearLabel="No project"
-              onChange={(val) => setSessionDraft((d) => ({ ...d, linkedProjectId: val || "none" }))}
-            />
-
-            <Field label="Description" labelClassName="sr-only">
-              <Textarea
-                placeholder="What will you work on…"
-                className="h-32 resize-none"
-                value={sessionDraft.description}
-                onChange={(e) => setSessionDraft((d) => ({ ...d, description: e.target.value }))}
-              />
-            </Field>
-          </EntityForm>
-        )}
+          )}
+        </div>
       </div>
     </AppDialog>
   );

@@ -1,0 +1,54 @@
+/* Chronos layout: tasks and signals on the left, calendar and sessions (or the open form) on the right. */
+.layout { display: flex; height: 100%; flex-direction: column; overflow-y: auto; }
+
+.left { display: flex; flex: none; min-height: 0; flex-direction: column; border-bottom: 1px solid var(--border-subtle); }
+.leftScroll { display: flex; min-height: 0; flex: none; flex-direction: column; gap: var(--space-10); padding: var(--space-6) var(--space-4) var(--space-8); }
+.wordmark {
+  flex: none;
+  padding: var(--space-6) var(--space-4) 0;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+}
+.right { display: flex; flex: none; min-height: 0; flex-direction: column; }
+
+/* On a phone the open form takes the whole dialog. */
+.layout[data-form-open] .left { display: none; }
+
+.section { display: flex; flex-direction: column; gap: var(--space-4); }
+.sectionHead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.sectionTitle { display: flex; min-width: 0; align-items: baseline; gap: var(--space-3); }
+.sectionTitle h3 { margin: 0; color: var(--foreground); font-size: var(--text-sm); font-weight: 500; }
+.sectionHint { overflow: hidden; color: var(--text-muted); font-size: var(--text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.list { display: grid; margin: 0; padding: 0; gap: var(--space-2); list-style: none; }
+
+.sessions { display: flex; height: 28rem; flex-direction: column; border-top: 1px solid var(--border-subtle); }
+.sessionsHead { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-2) var(--space-6); border-bottom: 1px solid var(--border-subtle); }
+.sessionsHead h3 { margin: 0; color: var(--foreground); font-size: var(--text-sm); font-weight: 500; }
+
+@media (min-width: 800px) {
+  .layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+  .layout[data-form-open] .left { display: flex; }
+  .left { border-right: 1px solid var(--border-subtle); border-bottom: 0; }
+  .leftScroll { flex: 1; overflow-y: auto; padding: var(--space-6) var(--space-8) var(--space-8); }
+  .wordmark { padding: var(--space-6) var(--space-8) 0; }
+  .right { flex: 1; overflow: hidden; }
+  .sessions { height: auto; min-height: 0; flex: 1; overflow: hidden; }
+}
+
+/*
+ * Forms. EntityForm's scroller clips anything that hangs below the fold, and
+ * Arc's date and time pickers open an absolutely positioned panel inside their
+ * field. While one is open the form gets a spacer after the actions so the
+ * panel (calendar and Clear footer included) sits inside the scrollable area;
+ * useRevealPicker scrolls it into view.
+ */
+.right:has(button[aria-haspopup="dialog"][aria-expanded="true"], button[aria-haspopup="listbox"][aria-expanded="true"]) form::after { content: ""; display: block; flex: none; height: 24rem; }
+
+/* Form field helpers */
+.fieldGroup { display: flex; min-width: 0; flex-direction: column; gap: var(--space-2); }
+.fieldLabel { color: var(--foreground); font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); }
+.timeRow { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: start; gap: var(--space-3); }

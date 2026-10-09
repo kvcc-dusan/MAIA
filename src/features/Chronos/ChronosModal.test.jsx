@@ -33,6 +33,13 @@ vi.mock('react-dom', async () => {
   };
 });
 
+// Arc's tooltip (inside IconButton) measures with ResizeObserver, which jsdom lacks.
+globalThis.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
@@ -87,8 +94,8 @@ describe('ChronosModal', () => {
     render(<ChronosModal {...baseProps} />);
     expect(screen.getByText('Tasks')).toBeInTheDocument();
     expect(screen.getByText('Signals')).toBeInTheDocument();
-    expect(screen.getByLabelText('Add Task')).toBeInTheDocument();
-    expect(screen.getByLabelText('Add Signal')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add task')).toBeInTheDocument();
+    expect(screen.getByLabelText('Add signal')).toBeInTheDocument();
   });
 
   it('renders task delete button with aria-label', () => {
@@ -96,7 +103,7 @@ describe('ChronosModal', () => {
       { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
     ];
     render(<ChronosModal {...baseProps} tasks={tasks} />);
-    const deleteButton = screen.getByLabelText('Delete Task');
+    const deleteButton = screen.getByLabelText('Delete task');
     expect(deleteButton).toBeInTheDocument();
   });
 
@@ -131,15 +138,15 @@ describe('ChronosModal', () => {
     const user = userEvent.setup();
     render(<ChronosModal {...baseProps} />);
 
-    await user.click(screen.getByLabelText('Add Task'));
-    expect(screen.getByText('New Task')).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Add task'));
+    expect(screen.getByText('New task')).toBeInTheDocument();
     // Field renders a visible-but-aria-hidden '*' after required labels;
     // testing-library's label matching includes it in textContent, so the
     // computed label text is "Title*", not "Title".
     expect(screen.getByLabelText('Title', { exact: false })).toBeInTheDocument();
 
     // Submitting with an empty title used to silently no-op; it now says why.
-    await user.click(screen.getByRole('button', { name: 'Create Task' }));
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
     expect(screen.getByText('Give the task a title.')).toBeInTheDocument();
     expect(mockSetTasks).not.toHaveBeenCalled();
   });
@@ -148,22 +155,22 @@ describe('ChronosModal', () => {
     const user = userEvent.setup();
     render(<ChronosModal {...baseProps} />);
 
-    await user.click(screen.getByLabelText('Add Task'));
+    await user.click(screen.getByLabelText('Add task'));
     await user.type(screen.getByLabelText('Title', { exact: false }), 'Write the report');
-    await user.click(screen.getByRole('button', { name: 'Create Task' }));
+    await user.click(screen.getByRole('button', { name: 'Create task' }));
 
     expect(mockSetTasks).toHaveBeenCalled();
-    expect(screen.queryByText('New Task')).not.toBeInTheDocument();
+    expect(screen.queryByText('New task')).not.toBeInTheDocument();
   });
 
   it('cancels the signal form back to the calendar', async () => {
     const user = userEvent.setup();
     render(<ChronosModal {...baseProps} />);
 
-    await user.click(screen.getByLabelText('Add Signal'));
-    expect(screen.getByText('New Signal')).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Add signal'));
+    expect(screen.getByText('New signal')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.queryByText('New Signal')).not.toBeInTheDocument();
+    expect(screen.queryByText('New signal')).not.toBeInTheDocument();
   });
 });

@@ -1,67 +1,64 @@
 import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/arc/popover/popover";
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
+import { IconButton } from "@/components/composed/IconButton";
 import { getPriorityColor } from "@/lib/utils";
 import { SIGNAL_PRIORITIES } from "@/lib/constants";
 import { formatTime } from "@/lib/time";
-import { CloseButton } from "@/components/ui/CloseButton";
+import styles from "./Row.module.css";
 
 export default React.memo(SignalRow);
 
-// SIGNAL_PRIORITIES only ever contained p1/p2/p3 — the 'low' fallback here
+// SIGNAL_PRIORITIES only ever contained p1/p2/p3. The 'low' fallback here
 // (and the matching default in ChronosModal's signalDraft) never matched an
 // entry, so a freshly-created signal's priority silently failed to resolve.
 function SignalRow({ signal, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);
-  const dotColor = getPriorityColor(signal.priority || 'p3');
-  const priorityLabel = SIGNAL_PRIORITIES.find(p => p.value === (signal.priority || 'p3'))?.label || 'Normal Priority';
+  const priority = signal.priority || "p3";
+  const dotColor = getPriorityColor(priority);
+  const priorityLabel = SIGNAL_PRIORITIES.find((p) => p.value === priority)?.label || "Normal Priority";
 
   return (
     <Menu.Context>
       <Menu.ContextTrigger className="contents">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger
-            nativeButton={false}
-            render={
-              <div className="group flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-overlay p-3 transition-all hover:border-border-strong hover:bg-overlay-strong cursor-pointer" />
-            }
-          >
-            <div className="w-5 h-5 flex items-center justify-center shrink-0">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: dotColor }}></span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm text-foreground truncate">{signal.title}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{formatTime(signal.scheduledAt)}</div>
-            </div>
-            <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Signal" />
-          </PopoverTrigger>
+        <div className={styles.row}>
+          <span className={styles.dot} aria-hidden="true">
+            <span className={styles.dotMark} style={{ backgroundColor: dotColor }} />
+          </span>
 
-          <PopoverContent align="start" className="w-64 p-4">
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground text-sm leading-tight">{signal.title}</h4>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button type="button" className={styles.main}>
+                <span className={styles.title}>{signal.title}</span>
+                <span className={styles.meta}>{formatTime(signal.scheduledAt)}</span>
+                <span className={styles.srOnly}>{priorityLabel}</span>
+              </button>
+            </PopoverTrigger>
 
-              {signal.description && (
-                <p className="text-xs text-muted-foreground leading-relaxed">{signal.description}</p>
-              )}
-
-              <div className="pt-2 border-t border-border-subtle flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-overlay-subtle border border-border">
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
-                  <span className="text-xs text-foreground-secondary">{priorityLabel}</span>
+            <PopoverContent align="start" className={styles.detail}>
+              <div className={styles.detailBody}>
+                <h4 className={styles.detailTitle}>{signal.title}</h4>
+                {signal.description && <p className={styles.detailText}>{signal.description}</p>}
+                <div className={styles.detailFoot}>
+                  <span className={styles.priority}>
+                    <span className={styles.priorityDot} style={{ backgroundColor: dotColor }} aria-hidden="true" />
+                    {priorityLabel}
+                  </span>
+                  <span>{formatTime(signal.scheduledAt)}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {formatTime(signal.scheduledAt)}
-                </span>
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
+
+          <IconButton icon={X} label="Cancel signal" className={styles.remove} onClick={onDelete} />
+        </div>
       </Menu.ContextTrigger>
 
       <Menu.ContextContent>
-        <Menu.ContextItem onClick={onEdit}>Edit Signal</Menu.ContextItem>
+        <Menu.ContextItem onClick={onEdit}>Edit signal</Menu.ContextItem>
         <Menu.ContextSeparator />
-        <ContextDangerItem onClick={onDelete}>Cancel Signal</ContextDangerItem>
+        <ContextDangerItem onClick={onDelete}>Cancel signal</ContextDangerItem>
       </Menu.ContextContent>
     </Menu.Context>
   );

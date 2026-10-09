@@ -1,84 +1,81 @@
 import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/arc/popover/popover";
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
+import { IconButton } from "@/components/composed/IconButton";
 import { cn, getPriorityColor } from "@/lib/utils";
 import { TASK_PRIORITIES } from "@/lib/constants";
 import { formatTime, formatMonthDay } from "@/lib/time";
 import ProjectIcon from "@/components/ProjectIcon";
-import { CloseButton } from "@/components/ui/CloseButton";
 import { PriorityCheckbox } from "@/components/ui/PriorityCheckbox";
+import styles from "./Row.module.css";
 
 export default React.memo(TaskRow);
 
 /**
- * Right-click menu and detail popover both move onto the app's one set of
- * primitives (Base UI via composed/Menu and ui/popover) — this was the last
- * file still importing Radix's context-menu/popover directly.
+ * Right-click menu (Base UI via composed/Menu) and a detail popover (Arc).
+ * The row's main area is a real button, so the detail view is reachable by
+ * keyboard; the checkbox and remove button are siblings, not nested inside it.
  */
 function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) {
   const [open, setOpen] = useState(false);
 
-  const priorityLabel = TASK_PRIORITIES.find(p => p.value === (task.priority || 'p3'))?.label || 'Normal';
-  const priorityColor = getPriorityColor(task.priority || 'p3');
+  const priority = task.priority || "p3";
+  const priorityLabel = TASK_PRIORITIES.find((p) => p.value === priority)?.label || "Normal Priority";
+  const priorityColor = getPriorityColor(priority);
 
   return (
     <Menu.Context>
       <Menu.ContextTrigger className="contents">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger
-            nativeButton={false}
-            render={
-              <div
-                className="group flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-overlay p-3 transition-all hover:border-border-strong hover:bg-overlay-strong cursor-pointer"
-                onClick={(e) => {
-                  if (e.target.closest('button')) {
-                    e.preventDefault();
-                    return;
-                  }
-                }}
-              />
-            }
-          >
-            <PriorityCheckbox checked={task.done} priority={task.priority || 'p3'} onChange={onToggle} aria-label={task.done ? "Mark as not done" : "Mark as done"} />
-            <div className="flex-1 min-w-0">
-              <div className={cn("text-sm font-medium transition-colors truncate", task.done ? "text-muted-foreground line-through" : "text-foreground")}>{task.title}</div>
-              {task.due && <div className="text-xs text-muted-foreground mt-0.5">{formatTime(task.due)}</div>}
-            </div>
-            <CloseButton onClick={onDelete} className="opacity-0 group-hover:opacity-100" aria-label="Delete Task" />
-          </PopoverTrigger>
+        <div className={styles.row}>
+          {/* The wrapper widens the hit area; the checkbox stops propagation itself. */}
+          <span className={styles.check} onClick={onToggle}>
+            <PriorityCheckbox
+              checked={task.done}
+              priority={priority}
+              onChange={onToggle}
+              aria-label={task.done ? "Mark as not done" : "Mark as done"}
+            />
+          </span>
 
-          <PopoverContent align="start" className="w-64 p-4">
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground text-sm leading-tight">{task.title}</h4>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button type="button" className={styles.main}>
+                <span className={cn(styles.title, task.done && styles.done)}>{task.title}</span>
+                {task.due && <span className={styles.meta}>{formatTime(task.due)}</span>}
+                <span className={styles.srOnly}>{priorityLabel}{task.done ? ", done" : ""}</span>
+              </button>
+            </PopoverTrigger>
 
-              {task.desc && <p className="text-xs text-muted-foreground leading-relaxed">{task.desc}</p>}
-
-              <div className="pt-2 border-t border-border-subtle flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-overlay-subtle border border-border">
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: priorityColor }} />
-                  <span className="text-xs text-foreground-secondary">{priorityLabel} Priority</span>
-                </div>
-                {task.due && (
-                  <span className="text-xs text-muted-foreground">
-                    {formatMonthDay(task.due)}
+            <PopoverContent align="start" className={styles.detail}>
+              <div className={styles.detailBody}>
+                <h4 className={styles.detailTitle}>{task.title}</h4>
+                {task.desc && <p className={styles.detailText}>{task.desc}</p>}
+                <div className={styles.detailFoot}>
+                  <span className={styles.priority}>
+                    <span className={styles.priorityDot} style={{ backgroundColor: priorityColor }} aria-hidden="true" />
+                    {priorityLabel}
                   </span>
-                )}
+                  {task.due && <span>{formatMonthDay(task.due)}</span>}
+                </div>
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
+
+          <IconButton icon={X} label="Delete task" className={styles.remove} onClick={onDelete} />
+        </div>
       </Menu.ContextTrigger>
 
       <Menu.ContextContent>
-        <Menu.ContextItem onClick={onEdit}>Edit Task</Menu.ContextItem>
+        <Menu.ContextItem onClick={onEdit}>Edit task</Menu.ContextItem>
 
         <Menu.ContextSub>
-          <Menu.ContextSubTrigger>Assign to Project</Menu.ContextSubTrigger>
+          <Menu.ContextSubTrigger>Assign to project</Menu.ContextSubTrigger>
           <Menu.ContextSubContent>
-            {projects.length === 0 && <div className="px-2 py-1.5 text-xs text-subtle-foreground italic">No projects</div>}
-            {projects.map(p => (
+            {projects.length === 0 && <div className={styles.noProjects}>No projects yet</div>}
+            {projects.map((p) => (
               <Menu.ContextItem key={p.id} onClick={() => onAssign(p.id)}>
-                <ProjectIcon name={p.icon} size={14} className="text-muted-foreground" />
+                <ProjectIcon name={p.icon} size={14} />
                 <span className="truncate">{p.name}</span>
               </Menu.ContextItem>
             ))}
@@ -87,7 +84,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
 
         <Menu.ContextSeparator />
 
-        <ContextDangerItem onClick={onDelete}>Delete Task</ContextDangerItem>
+        <ContextDangerItem onClick={onDelete}>Delete task</ContextDangerItem>
       </Menu.ContextContent>
     </Menu.Context>
   );

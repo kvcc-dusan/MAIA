@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDayLabel, formatMonthYear, sameDay } from "../../../lib/time";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { IconButton } from "@/components/composed/IconButton";
+import styles from "./MonthCalendar.module.css";
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
@@ -110,40 +112,28 @@ export default function MonthCalendar({ view, setView, selectedDate, onSelectDat
   };
 
   return (
-    <div className="flex flex-none flex-col">
-      <div className="flex flex-none items-center justify-between px-6 pb-2 pt-6">
-        <span className="text-sm font-medium text-foreground">
+    <div className={styles.root}>
+      <div className={styles.head}>
+        <span className={styles.heading} aria-live="polite">
           {selectedDate ? formatDayLabel(selectedDate) : formatMonthYear(new Date(view.y, view.m, 1))}
         </span>
-        <div className="flex gap-1">
-          <button
-            aria-label="Previous month"
-            onClick={() => shiftMonth(-1)}
-            className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ChevronLeftIcon size={16} />
-          </button>
-          <button
-            aria-label="Next month"
-            onClick={() => shiftMonth(1)}
-            className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <ChevronRightIcon size={16} />
-          </button>
+        <div className={styles.nav}>
+          <IconButton icon={ChevronLeftIcon} label="Previous month" onClick={() => shiftMonth(-1)} />
+          <IconButton icon={ChevronRightIcon} label="Next month" onClick={() => shiftMonth(1)} />
         </div>
       </div>
 
-      <div className="flex-1 px-5 pb-5 pt-1" role="group" aria-label="Month calendar" onKeyDown={handleGridKeyDown}>
-        <div className="mb-2 grid grid-cols-7">
+      <div className={styles.body} role="group" aria-label="Month calendar" onKeyDown={handleGridKeyDown}>
+        <div className={styles.weekdays}>
           {WEEKDAYS.map((d, i) => (
-            <div key={i} aria-hidden="true" className="py-1 text-center text-xs font-bold text-subtle-foreground">
+            <div key={i} aria-hidden="true" className={styles.weekday}>
               {d}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-y-0.5">
+        <div className={styles.grid}>
           {gridCells.map((d, i) => {
-            if (!d) return <div key={i} className="h-9" />;
+            if (!d) return <div key={i} className={styles.cell} />;
 
             const isSel = sameDay(d, selectedDate);
             const isToday = sameDay(d, today);
@@ -151,8 +141,9 @@ export default function MonthCalendar({ view, setView, selectedDate, onSelectDat
             const taskCount = tasksOn(d).length;
 
             return (
-              <div key={i} className="h-9">
+              <div key={i} className={styles.cell}>
                 <button
+                  type="button"
                   ref={(el) => {
                     if (el) cellRefs.current.set(dayKey(d), el);
                     else cellRefs.current.delete(dayKey(d));
@@ -165,28 +156,10 @@ export default function MonthCalendar({ view, setView, selectedDate, onSelectDat
                   aria-label={`${formatDayLabel(d)}${taskCount > 0 ? `, ${taskCount} task${taskCount === 1 ? "" : "s"}` : ""}${isToday ? ", today" : ""}${isSel ? ", selected" : ""}`}
                   aria-pressed={isSel}
                   aria-current={isToday ? "date" : undefined}
-                  className={cn(
-                    "relative flex h-full w-full flex-col items-center justify-center rounded-lg transition-all duration-200 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
-                    isSel
-                      ? "bg-primary font-semibold text-primary-foreground shadow-lg"
-                      : isPast
-                        ? // Past days read as deliberately quieter (muted, not
-                          // faint) while staying legible on the card surface.
-                          "text-muted-foreground hover:bg-overlay-subtle hover:text-foreground-secondary"
-                        : "text-foreground-secondary hover:bg-overlay-subtle hover:text-foreground",
-                    isToday && !isSel && "border border-border-strong bg-overlay font-semibold text-foreground"
-                  )}
+                  className={cn(styles.day, isPast && styles.past, isToday && styles.today, isSel && styles.selected)}
                 >
-                  <span className="text-xs">{d.getDate()}</span>
-                  {taskCount > 0 && !isSel && (
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "absolute bottom-0.5 size-1 rounded-full",
-                        isPast ? "bg-subtle-foreground" : "bg-info"
-                      )}
-                    />
-                  )}
+                  <span>{d.getDate()}</span>
+                  {taskCount > 0 && <span aria-hidden="true" className={styles.dot} />}
                 </button>
               </div>
             );

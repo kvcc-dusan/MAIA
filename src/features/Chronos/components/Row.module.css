@@ -1,0 +1,97 @@
+/* Shared by TaskRow and SignalRow: one hairline row, a main button that opens
+   the detail popover, and a remove button that appears on hover or focus. */
+.row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+.row:hover { border-color: var(--border-strong); background: var(--surface-muted); }
+
+/* The checkbox keeps its own 20px glyph; this wrapper only widens the hit area. */
+.check {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  .check { width: var(--control-height-md); height: var(--control-height-md); }
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: var(--control-height-md);
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dot { display: grid; flex: none; place-items: center; width: var(--control-height-sm); height: var(--control-height-sm); }
+.dotMark { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-pill); }
+
+.title {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.done { color: var(--text-muted); text-decoration: line-through; }
+.meta {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.remove { opacity: 0; transition: opacity var(--duration-fast) var(--ease-standard); }
+.row:hover .remove, .row:focus-within .remove, .remove:focus-visible { opacity: 1; }
+/* Hover is an enhancement: touch devices always see the button. */
+@media (hover: none) {
+  .remove { opacity: 1; }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Detail popover content. */
+.detail { width: 16rem; }
+.detailBody { display: flex; flex-direction: column; gap: var(--space-3); }
+.detailTitle { margin: 0; color: var(--foreground); font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); overflow-wrap: anywhere; }
+.detailText { margin: 0; color: var(--text-secondary); font-size: var(--text-xs); line-height: var(--leading-body); overflow-wrap: anywhere; white-space: pre-wrap; }
+.detailFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+.priority { display: inline-flex; align-items: center; gap: var(--space-2); }
+.priorityDot { width: var(--space-2); height: var(--space-2); flex: none; border-radius: var(--radius-pill); }
+.noProjects { padding: var(--space-2) var(--space-3); color: var(--text-muted); font-size: var(--text-xs); }

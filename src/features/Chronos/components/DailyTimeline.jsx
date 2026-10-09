@@ -2,10 +2,11 @@ import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { isPastTime, hasOverlap, sameDay, formatTime, formatHourLabel } from "../../../lib/time";
-import { getSessionBlockClass } from "@/lib/sessionColors";
 import { SessionColorSwatches } from "./SessionColorSwatches";
+import { SESSION_COLOR_VARS } from "./sessionColorVars";
 import { Menu } from "@/components/composed/Menu";
 import { Pen01, Delete01 } from "@/components/ui/CustomIcon.jsx";
+import styles from "./DailyTimeline.module.css";
 
 const SLOT_HEIGHT = 40;
 
@@ -22,22 +23,17 @@ const GridSlot = memo(({
   return (
     <div
       id={isHourStart ? `timeline-hour-${Math.floor(i / 2)}` : undefined}
-      className="flex min-h-[40px] group select-none"
+      className={styles.slot}
     >
-      <div className={cn(
-        "w-16 sm:w-20 lg:w-24 border-r border-border-subtle text-xs text-subtle-foreground flex items-start justify-center shrink-0 pt-2 transition-colors",
-        isHourStart ? "" : "border-b border-border-subtle"
-      )}>
+      <div className={cn(styles.hour, !isHourStart && styles.hourHalf)}>
         {isHourStart && label}
       </div>
 
       <div
         className={cn(
-          "flex-1 relative transition-colors",
-          isHourStart ? "border-b border-dashed border-border-subtle" : "border-b border-border-subtle",
-          isPast ? "opacity-30 cursor-not-allowed bg-card/20" :
-            isOccupied ? "opacity-50 cursor-not-allowed" :
-              "cursor-pointer hover:bg-overlay-subtle"
+          styles.cellSlot,
+          isHourStart && styles.cellHour,
+          isPast ? styles.cellPast : isOccupied && styles.cellOccupied
         )}
         onMouseDown={() => onMouseDown(i)}
         onMouseEnter={() => onMouseEnter(i)}
@@ -60,41 +56,41 @@ const SessionItem = memo(({
   const start = new Date(session.start);
   const end = new Date(session.end);
 
+  const timeRange = `${formatTime(start)} to ${formatTime(end)}`;
+
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${session.title}, ${timeRange}. Press Enter to edit.`}
       className={cn(
-        "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-xl backdrop-blur-xs border px-3 overflow-hidden transition-all z-10 select-none group",
-        getSessionBlockClass(session.color),
-        isDragging ? "opacity-30 pointer-events-none" : "cursor-move",
-        isShort ? "flex items-center justify-between py-0" : "flex flex-col py-2 gap-0.5"
+        styles.block,
+        isShort ? styles.blockShort : styles.blockTall,
+        isDragging && styles.blockDragging
       )}
-      style={{ top: `${top}px`, height: `${height - 1}px` }}
+      style={{
+        top: `${top}px`,
+        height: `${height - 1}px`,
+        "--session-color": SESSION_COLOR_VARS[session.color] ?? SESSION_COLOR_VARS.neutral,
+      }}
       onDoubleClick={(e) => {
         e.stopPropagation();
         onDoubleClick(session);
       }}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && e.key === "Enter") {
+          e.preventDefault();
+          onDoubleClick(session);
+        }
+      }}
       onMouseDown={(e) => onMouseDownMove(e, session)}
     >
-      <div className={cn("font-medium truncate pointer-events-none", isShort ? "text-xs" : "text-xs")}>
-        {session.title}
-      </div>
-      {!isShort && session.description && (
-        <div className="text-xs opacity-80 line-clamp-2 leading-tight pointer-events-none whitespace-pre-wrap">
-          {session.description}
-        </div>
-      )}
-      <div className={cn(
-        "text-xs opacity-70 tracking-tight pointer-events-none",
-        isShort ? "shrink-0 ml-2" : "mt-auto opacity-0 group-hover:opacity-100 transition-opacity"
-      )}>
-        {formatTime(start)} - {formatTime(end)}
-      </div>
-      <div
-        className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"
-        onMouseDown={(e) => onMouseDownResize(e, session)}
-      />
+      <div className={styles.blockTitle}>{session.title}</div>
+      {!isShort && session.description && <div className={styles.blockDesc}>{session.description}</div>}
+      <div className={cn(styles.blockTime, isShort ? styles.blockTimeShort : styles.blockTimeTall)}>{timeRange}</div>
+      <div className={styles.resize} aria-hidden="true" onMouseDown={(e) => onMouseDownResize(e, session)} />
     </div>
-  )
+  );
 });
 
 /**
@@ -115,17 +111,17 @@ const SessionWithMenu = memo(({ session, onEdit, onDelete, onColorChange, ...ite
       </Menu.ContextTrigger>
       <Menu.ContextContent>
         <Menu.ContextLabel>Session</Menu.ContextLabel>
-        <div className="px-2 py-1.5">
+        <div className={styles.menuSwatches}>
           <SessionColorSwatches value={session.color} onChange={(color) => onColorChange(session.id, color)} />
         </div>
         <Menu.ContextSeparator />
         <Menu.ContextItem onClick={() => onEdit(session)}>
-          <Pen01 size={14} className="shrink-0" />
-          Edit Session
+          <Pen01 size={14} className={styles.menuIcon} />
+          Edit session
         </Menu.ContextItem>
         <Menu.ContextItem variant="destructive" onClick={() => onDelete(session.id)}>
-          <Delete01 size={14} className="shrink-0" />
-          Delete Session
+          <Delete01 size={14} className={styles.menuIcon} />
+          Delete session
         </Menu.ContextItem>
       </Menu.ContextContent>
     </Menu.Context>
@@ -352,16 +348,14 @@ function DailyTimeline({
 
   if (!selectedDate) {
     return (
-      <div className="h-full flex items-center justify-center text-faint-foreground text-sm italic">
-        Select a date to view timeline
-      </div>
+      <div className={styles.placeholder}>Pick a day on the calendar to see its sessions.</div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar p-0 relative" ref={scrollContainerRef}>
+    <div className={cn(styles.scroller, "custom-scrollbar")} ref={scrollContainerRef}>
       <div
-        className="relative h-full"
+        className={styles.surface}
         style={isDragging ? { touchAction: 'none' } : undefined}
         onMouseUp={handleMouseUp}
         onMouseLeave={() => isDragging && handleMouseUp()}
@@ -400,16 +394,10 @@ function DailyTimeline({
           const mins = nowTick.getHours() * 60 + nowTick.getMinutes();
           const top = (mins / 30) * SLOT_HEIGHT;
           return (
-            <div
-              className="pointer-events-none absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 z-10 flex items-center gap-1.5"
-              style={{ top: `${top}px` }}
-              aria-hidden="true"
-            >
-              <span className="size-1.5 shrink-0 rounded-full bg-destructive" />
-              <div className="h-px flex-1 bg-destructive/50" />
-              <span className="rounded-full bg-destructive/90 px-1.5 py-px text-xs font-medium leading-4 text-destructive-foreground">
-                {formatTime(nowTick)}
-              </span>
+            <div className={styles.now} style={{ top: `${top}px` }} aria-hidden="true">
+              <span className={styles.nowDot} />
+              <div className={styles.nowLine} />
+              <span className={styles.nowTime}>{formatTime(nowTick)}</span>
             </div>
           );
         })()}
@@ -457,10 +445,7 @@ function DailyTimeline({
 
           return (
             <div
-              className={cn(
-                "absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-secondary/80 border border-border-strong px-3 py-2 text-xs text-foreground overflow-hidden shadow-sm z-20 select-none",
-                isBeingDragged ? "opacity-50" : "cursor-move"
-              )}
+              className={cn(styles.block, styles.draft, styles.blockTall, isBeingDragged && styles.blockDragging)}
               style={{ top: `${top}px`, height: `${height - 1}px` }}
               onMouseDown={(e) => handleSessionMouseDown(e, draftObj, 'move')}
               onDoubleClick={(e) => {
@@ -468,14 +453,11 @@ function DailyTimeline({
                 openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none", color: "neutral" });
               }}
             >
-              <div className="font-medium truncate italic text-foreground/70">New Session</div>
-              <div className="text-xs text-muted-foreground truncate">
-                {formatTime(start)} - {formatTime(end)}
+              <div className={cn(styles.blockTitle, styles.draftTitle)}>New session</div>
+              <div className={styles.blockTime}>
+                {formatTime(start)} to {formatTime(end)}
               </div>
-              <div
-                className="absolute bottom-0 left-0 right-0 h-2 bg-transparent hover:bg-overlay cursor-s-resize flex justify-center items-end"
-                onMouseDown={(e) => handleSessionMouseDown(e, draftObj, 'resize')}
-              />
+              <div className={styles.resize} aria-hidden="true" onMouseDown={(e) => handleSessionMouseDown(e, draftObj, 'resize')} />
             </div>
           )
         })()}
@@ -494,7 +476,7 @@ function DailyTimeline({
 
           return (
             <div
-              className="absolute left-16 sm:left-20 lg:left-28 right-2 sm:right-4 rounded-md bg-overlay border border-border-strong z-20 pointer-events-none"
+              className={cn(styles.block, styles.dragPreview)}
               style={{ top: `${top}px`, height: `${height - 1}px` }}
             />
           )

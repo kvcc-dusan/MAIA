@@ -1,0 +1,34 @@
+/* Session colour tokens, shared by the swatches and the timeline blocks. */
+.swatches { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+
+.swatch {
+  display: grid;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+}
+@media (pointer: coarse) {
+  .swatch { width: var(--control-height-md); height: var(--control-height-md); }
+}
+
+.dot {
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--swatch);
+  color: var(--background);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.swatch:hover .dot { border-color: var(--border-strong); }
+/* Selection is a ring plus a check mark, so it never relies on colour alone. */
+.swatch[aria-checked="true"] .dot { border-color: var(--foreground); }
+.check { opacity: 0; }
+.swatch[aria-checked="true"] .check { opacity: 1; }
