@@ -1,19 +1,28 @@
 // @maia:graph-renderer
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { select, drag, zoom, zoomIdentity } from "d3";
-import { dottedBg } from "../../../lib/theme.js";
 import { useGraphSimulation } from "../hooks/useGraphSimulation.js";
-import { cssVar, graphTheme, resolveColor } from "@/lib/tokens";
+import styles from "./GraphRenderer.module.css";
 
-// Theme colors resolve from the design tokens at render time (see lib/tokens.js).
-// Resolved once per mount rather than at module scope: reading computed styles
-// at import time can run before the stylesheet is applied, which silently
-// yields empty values and paints the whole graph in fallback grey.
+// Colors arrive as the `theme` prop (graphTheme() from lib/tokens.js) and are
+// read through a ref inside D3 handlers. A theme change repaints stroke/fill in
+// place (see the recolor effect); it never touches the simulation or nodes.
+
+// Fill is derived from node type, not stored on node data: node objects must
+// stay stable across theme changes or the simulation resets positions.
+const fillFor = (d, T) => (d.type === "project" ? T.text : T.nodeFill);
+
+// graphTheme().link (--border-strong) is 1.7:1 on the light background and
+// 2.3:1 on dark, under the 3:1 non-text minimum. Links use the muted text
+// token instead (4.1:1 light, 6.3:1 dark); labels use the secondary text token.
+const linkColor = (T) => T.text;
+const labelColor = (T) => T.nodeFill;
 
 function GraphRenderer({
     nodes,
     links,
     dims,
+    theme,
     activeCluster,
     onOpenNote,
     nodeSize,
@@ -32,9 +41,7 @@ function GraphRenderer({
     const gRef = useRef(null);
     const initialZoomDone = useRef(false);
 
-    // Shared by every effect below — the search/cluster effect reads THEME too,
-    // so it can't live inside the draw effect.
-    const THEME = useMemo(() => graphTheme(), []);
+    const themeRef = useRef(theme);
 
     // Stable Refs for Callbacks
     const onOpenNoteRef = useRef(onOpenNote);
@@ -67,28 +74,16 @@ function GraphRenderer({
             g.append("g").attr("class", "nodes");
             g.append("g").attr("class", "labels");
 
-            // Initial "No nodes" text
-             svg.append("text")
-                .attr("class", "empty-state")
-                .attr("x", width / 2)
-                .attr("y", height / 2)
-                .attr("text-anchor", "middle")
-                .attr("fill", resolveColor(cssVar("--faint-foreground")))
-                .attr("font-family", "monospace")
-                .style("pointer-events", "none");
         }
 
         const g = gRef.current;
 
-        // Empty state handling
+        // The page renders the empty state; the canvas just hides its layers.
         if (!nodes || nodes.length === 0) {
-            svg.select(".empty-state").text("No nodes (0)").style("opacity", 1);
             g.style("opacity", 0);
             return;
-        } else {
-            svg.select(".empty-state").style("opacity", 0);
-            g.style("opacity", 1);
         }
+        g.style("opacity", 1);
 
         const linkLayer = g.select(".links");
         const nodeLayer = g.select(".nodes");
@@ -101,7 +96,7 @@ function GraphRenderer({
             .data(links, d => d.id) // Use key function for stability
             .join("path")
             .attr("fill", "none")
-            .attr("stroke", THEME.link)
+            .attr("stroke", linkColor(themeRef.current))
             .attr("stroke-opacity", 1)
             .attr("stroke-width", linkThickness)
             .attr("class", "link-element");
@@ -113,26 +108,48 @@ function GraphRenderer({
                 const base = d.type === "project" ? 10 : (6 + Math.sqrt(d.val * 3));
                 return base * nodeSize;
             })
-            .attr("fill", d => d.type === "project" ? d.color : THEME.nodeFill)
+            .attr("fill", d => fillFor(d, themeRef.current))
             .attr("stroke", "none")
             .attr("stroke-width", 0)
             .style("cursor", "pointer")
             .attr("class", "node-element")
+            .attr("tabindex", 0)
+            .attr("role", "button")
+            .attr("aria-label", d => `Open ${d.title}`)
             .call(createDrag(simulation));
 
         const label = labelLayer.selectAll("text")
             .data(nodes, d => d.id)
             .join("text")
             .text(d => d.title)
-            .attr("font-size", d => (10 + d.val) * fontSize)
-            .attr("fill", THEME.text)
+            .attr("font-size", d => (12 + d.val) * fontSize)
+            .attr("fill", labelColor(themeRef.current))
             .attr("text-anchor", "middle")
             .attr("dy", d => 28 + d.val)
-            .attr("opacity", 0.7)
+            .attr("opacity", 1)
             .style("pointer-events", "none")
             .style("transition", "opacity 0.2s")
             .attr("class", "label-element")
-            .style("font-family", "var(--font-mono)");
+            .style("font-family", "var(--font-body)");
+
+        // Hover and keyboard focus share one highlight.
+        const highlight = (d) => {
+            setHoveredNodeRef.current?.(d);
+            link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? themeRef.current.nodeActive : linkColor(themeRef.current))
+                .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
+
+            node.attr("opacity", n => {
+                const isConnected = links.some(l =>
+                    (l.source.id === d.id && l.target.id === n.id) ||
+                    (l.target.id === d.id && l.source.id === n.id)
+                );
+                return (n.id === d.id || isConnected) ? 1 : 0.1;
+            }).attr("fill", n => {
+                if (n.id === d.id) return themeRef.current.nodeActive;
+                return fillFor(n, themeRef.current);
+            });
+            label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
+        };
 
         // Interactions
         node
@@ -144,24 +161,19 @@ function GraphRenderer({
                     cb && cb(d.id);
                 }
             })
-            .on("mouseover", (e, d) => {
-                setHoveredNodeRef.current?.(d);
-                link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? THEME.nodeActive : THEME.link)
-                    .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
-
-                node.attr("opacity", n => {
-                    const isConnected = links.some(l =>
-                        (l.source.id === d.id && l.target.id === n.id) ||
-                        (l.target.id === d.id && l.source.id === n.id)
-                    );
-                    return (n.id === d.id || isConnected) ? 1 : 0.1;
-                }).attr("fill", n => {
-                    if (n.id === d.id) return THEME.nodeActive;
-                    if (n.type === "project") return n.color;
-                    return THEME.nodeFill;
-                });
-                label.attr("opacity", n => (n.id === d.id) ? 1 : 0);
+            .on("keydown", (e, d) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                e.preventDefault();
+                const cb = onOpenNoteRef.current;
+                if (d.type === "project") cb?.(d.realId, "project");
+                else cb?.(d.id);
             })
+            .on("focus", (e, d) => highlight(d))
+            .on("blur", () => {
+                setHoveredNodeRef.current?.(null);
+                updateSearchStyle();
+            })
+            .on("mouseover", (e, d) => highlight(d))
             .on("mouseout", () => {
                 setHoveredNodeRef.current?.(null);
                 updateSearchStyle(); // Restore search or default style
@@ -177,16 +189,16 @@ function GraphRenderer({
                     const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
                     return match ? 1 : 0.1;
                 });
-                node.attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                link.attr("stroke", THEME.link).attr("stroke-opacity", 0.1);
+                node.attr("fill", n => fillFor(n, themeRef.current));
+                link.attr("stroke", linkColor(themeRef.current)).attr("stroke-opacity", 0.1);
                 label.attr("opacity", n => {
                     const match = (n.title || "").toLowerCase().includes(q) || (n.tags || []).some(t => t.toLowerCase().includes(q));
                     return match ? 1 : 0;
                 });
             } else {
-                link.attr("stroke", THEME.link).attr("stroke-opacity", 1).attr("opacity", 1);
-                node.attr("opacity", 1).attr("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-                label.attr("opacity", 0.7); // Reset to default opacity
+                link.attr("stroke", linkColor(themeRef.current)).attr("stroke-opacity", 1).attr("opacity", 1);
+                node.attr("opacity", 1).attr("fill", n => fillFor(n, themeRef.current));
+                label.attr("opacity", 1); // Reset to default opacity
             }
         };
 
@@ -215,7 +227,7 @@ function GraphRenderer({
                     if (k > 0.8) return 1;
                     if (k < 0.25) return 0;
                     if (d.val > 2) return 1;
-                    return 0.7;
+                    return 1;
                 });
             });
 
@@ -236,7 +248,18 @@ function GraphRenderer({
         return () => {
             simulation.on("tick", null);
         };
-    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef, THEME]);
+    }, [simulation, nodes, links, dims, nodesRef, searchRef, svgRef, zoomRef]);
+
+    // --- THEME CHANGE: repaint in place ---
+    // Only attributes change, so node positions and zoom survive a theme switch.
+    useEffect(() => {
+        themeRef.current = theme;
+        if (!svgRef.current) return;
+        const svg = select(svgRef.current);
+        svg.selectAll(".link-element").attr("stroke", linkColor(theme));
+        svg.selectAll(".node-element").attr("fill", d => fillFor(d, theme));
+        svg.selectAll(".label-element").attr("fill", labelColor(theme));
+    }, [theme, svgRef]);
 
     // --- VISUAL UPDATES (No Re-render) ---
     useEffect(() => {
@@ -256,7 +279,7 @@ function GraphRenderer({
 
         svg.selectAll(".label-element")
             .transition().duration(300)
-            .attr("font-size", d => (10 + d.val) * fontSize);
+            .attr("font-size", d => (12 + d.val) * fontSize);
 
     }, [nodeSize, linkThickness, fontSize, svgRef]);
 
@@ -270,21 +293,22 @@ function GraphRenderer({
         const qStr = (query || "").toLowerCase().trim();
 
         if (qStr) {
-            node.style("opacity", d => {
+            node.attr("opacity", d => {
                 const match = (d.title || "").toLowerCase().includes(qStr) || (d.tags || []).some(t => t.toLowerCase().includes(qStr));
                 return match ? 1 : 0.1;
             });
-            link.style("opacity", 0.1);
-            label.style("opacity", d => {
+            link.attr("opacity", 0.1);
+            label.attr("opacity", d => {
                 const match = (d.title || "").toLowerCase().includes(qStr) || (d.tags || []).some(t => t.toLowerCase().includes(qStr));
                 return match ? 1 : 0;
             });
         } else {
-            node.style("opacity", 1).style("fill", n => n.type === "project" ? n.color : THEME.nodeFill);
-            link.style("opacity", 1).attr("stroke-opacity", 1);
-            label.style("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : (d.val > 2 ? 1 : 0.5));
+            // attr, not style: an inline opacity would beat the hover highlight's attr.
+            node.attr("opacity", 1).attr("fill", n => fillFor(n, themeRef.current));
+            link.attr("opacity", 1).attr("stroke-opacity", 1);
+            label.attr("opacity", d => (activeCluster !== null && activeCluster !== undefined) ? (d.group === activeCluster ? 1 : 0) : 1);
         }
-    }, [query, activeCluster, nodes, svgRef, THEME]);
+    }, [query, activeCluster, nodes, svgRef]);
 
 
     function createDrag(simulation) {
@@ -306,9 +330,8 @@ function GraphRenderer({
     }
 
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden touch-none" ref={wrapperRef}>
-            <div className="absolute inset-0 opacity-20 pointer-events-none" style={dottedBg} />
-            <svg ref={svgRef} className="w-full h-full block" />
+        <div className={styles.canvas} ref={wrapperRef}>
+            <svg ref={svgRef} className={styles.svg} aria-label="Knowledge graph of notes and projects" />
         </div>
     );
 }

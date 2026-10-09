@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-// Reusable Glass Card component matching Chronos aesthetic
+// Plain bordered surface. The name is legacy; no glass or blur anymore.
 export function GlassCard({
     children,
     variant = "default",
@@ -11,7 +11,7 @@ export function GlassCard({
     const variants = {
         default: "bg-overlay-subtle border-border-subtle",
         elevated: "bg-overlay border-border",
-        dark: "bg-black/40 border-border-subtle"
+        dark: "bg-muted border-border-subtle"
     };
 
     const hoverClass = hover ? "hover:bg-overlay transition-colors" : "";
@@ -20,7 +20,7 @@ export function GlassCard({
         <div
             className={cn(
                 variants[variant],
-                "border rounded-xl p-4 backdrop-blur-xs",
+                "border rounded-xl p-4",
                 hoverClass,
                 className
             )}
@@ -41,10 +41,10 @@ export function GlassListItem({
     return (
         <div
             className={cn(
-                "border rounded-xl p-3 backdrop-blur-xs transition-colors",
+                "border rounded-xl p-3 transition-colors",
                 active
-                    ? "bg-overlay border-border-strong text-white"
-                    : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:bg-overlay hover:text-white",
+                    ? "bg-overlay border-border-strong text-foreground"
+                    : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:bg-overlay hover:text-foreground",
                 className
             )}
             {...props}
@@ -59,7 +59,7 @@ export function GlassInput({ className = "", ...props }) {
     return (
         <input
             className={cn(
-                "w-full bg-overlay-subtle border border-border rounded-lg p-3 text-white outline-hidden focus:bg-overlay focus:border-border-strong transition-colors placeholder:text-muted-foreground",
+                "w-full bg-overlay-subtle border border-border rounded-lg p-3 text-foreground outline-hidden focus:bg-overlay focus:border-border-strong transition-colors placeholder:text-muted-foreground",
                 className
             )}
             {...props}
@@ -72,7 +72,7 @@ export function GlassTextarea({ className = "", ...props }) {
     return (
         <textarea
             className={cn(
-                "w-full bg-overlay-subtle border border-border rounded-xl p-4 text-white outline-hidden focus:bg-overlay focus:border-border-strong transition-colors resize-none placeholder:text-muted-foreground",
+                "w-full bg-overlay-subtle border border-border rounded-xl p-4 text-foreground outline-hidden focus:bg-overlay focus:border-border-strong transition-colors resize-none placeholder:text-muted-foreground",
                 className
             )}
             {...props}

@@ -2,20 +2,21 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js";
-import { GlassCard } from "../../../components/GlassCard";
+import { Network } from "lucide-react";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
-import { clusterColors, graphTheme } from "@/lib/tokens";
+import GraphHoverCard from "../components/GraphHoverCard.jsx";
+import { useThemeTokens } from "../hooks/useThemeTokens.js";
+import { EmptyState } from "@/components/composed/EmptyState";
+import { Button } from "@/components/arc/button/button";
+import styles from "./GraphPage.module.css";
 
-// Cluster + canvas colors resolve from the design tokens (lib/tokens.js);
-// they used to be literal hexes duplicated three ways across the Graph files.
+// Canvas colors come from the design tokens (lib/tokens.js) and follow the
+// theme. They are NOT stored on node data: changing node objects would restart
+// the simulation and reset every position.
 
 export default function GraphPage({ notes, projects = [], onOpenNote }) {
-  // Resolved per mount, not at module scope: these read computed styles, and
-  // at import time the stylesheet may not be applied yet — which would resolve
-  // every token to the fallback grey and silently flatten the whole palette.
-  const COLORS = useMemo(() => clusterColors(), []);
-  const THEME = useMemo(() => graphTheme(), []);
+  const { theme, colors } = useThemeTokens();
 
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -81,14 +82,12 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     // 1. Note Nodes
     let noteNodes = notes.map((n) => {
       const clusterIdx = analysis.clusterMap.get(n.id);
-      const clusterColor = clusterIdx !== undefined ? COLORS[clusterIdx % COLORS.length] : THEME.nodeStroke;
 
       return {
         id: n.id,
         title: n.title || "Untitled",
         type: "note",
         group: clusterIdx,
-        color: clusterColor,
         isHot: analysis.isHot(n),
         tags: n.tags || [],
         val: 1, // Fixed base size (content length sizing disabled)
@@ -102,7 +101,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       realId: p.id,
       title: p.name,
       type: "project",
-      color: THEME.text, // dim gray — matches Opus Nodes widget
       val: 3, // Smaller fixed size (~5% larger)
       tags: ["Project"],
     }));
@@ -141,7 +139,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
               id: `ghost-${normT}`,
               title: t,
               type: 'ghost',
-              color: THEME.text,
               val: 1,
               tags: ['Missing'],
             };
@@ -177,7 +174,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     }
 
     return { nodes: allNodes, links: d3Links };
-  }, [notes, projects, analysis, showOnlyProjects, showGhostNodes, showOrphans, COLORS, THEME]);
+  }, [notes, projects, analysis, showOnlyProjects, showGhostNodes, showOrphans]);
 
 
   // --- ZOOM HELPER (Passed to Controls) ---
@@ -198,6 +195,15 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     );
 
     setHoveredNode(targetNode);
+  };
+
+  // Search-result dot: cluster hue for notes, neutral for projects and ghosts.
+  const nodeDotColor = (n) =>
+    n.type === "note" && n.group !== undefined ? colors[n.group % colors.length] : theme.text;
+
+  const resetFilters = () => {
+    setShowOnlyProjects(false);
+    setShowOrphans(true);
   };
 
   // Filtered Results for Dropdown (Passed to Controls)
@@ -221,13 +227,17 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     return () => obs.disconnect();
   }, []);
 
+  const hasContent = notes.length > 0 || projects.length > 0;
+  const filtersActive = showOnlyProjects || !showOrphans;
+
   return (
-    <div className="relative w-full h-full bg-background overflow-hidden">
+    <div className={styles.page}>
 
       <GraphRenderer
         nodes={nodes}
         links={links}
         dims={dims}
+        theme={theme}
         activeCluster={activeCluster}
         onOpenNote={onOpenNote}
         nodeSize={nodeSize}
@@ -244,6 +254,22 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         searchRef={searchRef}
       />
 
+      {nodes.length === 0 && (
+        <div className={styles.empty}>
+          <EmptyState
+            size="page"
+            icon={Network}
+            title={hasContent ? "No nodes match these filters" : "Nothing to graph yet"}
+            description={hasContent
+              ? "Your filters hide every note and project."
+              : "Notes and projects appear here. Link notes with [[double brackets]] to connect them."}
+            action={hasContent && filtersActive
+              ? <Button variant="secondary" onClick={resetFilters}>Reset filters</Button>
+              : undefined}
+          />
+        </div>
+      )}
+
       <GraphControls
         isPanelOpen={isPanelOpen}
         setIsPanelOpen={setIsPanelOpen}
@@ -251,45 +277,17 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         setSearchQuery={setSearchQuery}
         searchResults={searchResults}
         handleZoomToNode={handleZoomToNode}
-        showOnlyProjects={showOnlyProjects}
-        setShowOnlyProjects={setShowOnlyProjects}
-        showOrphans={showOrphans}
-        setShowOrphans={setShowOrphans}
-        showGhostNodes={showGhostNodes}
-        setShowGhostNodes={setShowGhostNodes}
-        nodeSize={nodeSize}
-        setNodeSize={setNodeSize}
-        linkThickness={linkThickness}
-        setLinkThickness={setLinkThickness}
-        fontSize={fontSize}
-        setFontSize={setFontSize}
-        repelForce={repelForce}
-        setRepelForce={setRepelForce}
-        linkDistance={linkDistance}
-        setLinkDistance={setLinkDistance}
+        values={{ showOnlyProjects, showOrphans, showGhostNodes, nodeSize, linkThickness, fontSize, repelForce, linkDistance }}
+        setters={{ showOnlyProjects: setShowOnlyProjects, showOrphans: setShowOrphans, showGhostNodes: setShowGhostNodes, nodeSize: setNodeSize, linkThickness: setLinkThickness, fontSize: setFontSize, repelForce: setRepelForce, linkDistance: setLinkDistance }}
         hotTags={analysis.hotTags}
         activeCluster={activeCluster}
         setActiveCluster={setActiveCluster}
         clusters={analysis.rawClusters}
+        colors={colors}
+        nodeDotColor={nodeDotColor}
       />
 
-      {/* Hover Info Card */}
-      {hoveredNode && (
-        <div
-          className="absolute pointer-events-none z-20 min-w-[200px] max-w-[260px] bg-elevated backdrop-blur-xl border border-border rounded-2xl p-5 shadow-2xl"
-          style={{ top: 80, right: 24 }}
-        >
-          <div className="text-foreground font-medium text-xs leading-tight">{hoveredNode.title}</div>
-          <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-1">
-            {hoveredNode.tags.length > 0
-              ? hoveredNode.tags.map(t => <span key={t} className="bg-overlay-subtle border border-border px-1.5 py-0.5 rounded-full">#{t}</span>)
-              : <span className="italic opacity-50">No tags</span>}
-          </div>
-          <div className="mt-3 pt-2 border-t border-border-subtle text-xs text-subtle-foreground uppercase tracking-widest font-bold">
-            Click to open
-          </div>
-        </div>
-      )}
+      <GraphHoverCard node={hoveredNode} />
     </div>
   );
 }
