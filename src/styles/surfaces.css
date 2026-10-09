@@ -23,13 +23,6 @@
   }
 }
 
-@utility maia-tag {
-  @apply inline-flex items-center h-6 px-2 rounded-full text-xs;
-  background: color-mix(in oklch, var(--success) 18%, transparent);
-  border: 1px solid color-mix(in oklch, var(--success) 32%, transparent);
-  color: color-mix(in oklch, var(--success) 55%, var(--foreground));
-}
-
 /* Reduced motion: the app leans on entrance/transform animations
    (tw-animate-css utilities, dock motion, drag transitions). This is the
    global floor — kill transforms and transitions, keep opacity so state

@@ -109,6 +109,7 @@ export default function TodayAgenda({
     <SectionCard
       icon={Calendar}
       title="Agenda"
+      titleAs="h2"
       count={overdue.length + today.length || null}
       bodyClassName="p-3"
     >

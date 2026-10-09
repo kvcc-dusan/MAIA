@@ -389,7 +389,7 @@ export default function LedgerPage({ ledger = [], setLedger }) {
                 open={!!confirm}
                 onClose={() => setConfirm(null)}
                 onConfirm={() => confirm?.onConfirm()}
-                description={confirm?.message}
+                title={confirm?.message}
                 confirmLabel={confirm?.confirmLabel || "Delete"}
                 tone={confirm?.danger === false ? "default" : "danger"}
             />

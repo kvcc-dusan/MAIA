@@ -26,8 +26,8 @@ const SCHED_ORDER = { today: 0, soon: 1, future: 2 };
 const PRIORITY_ORDER = { p1: 0, p2: 1, p3: 2 };
 
 // Composer/edit selects are narrow inline controls — "High"/"Medium"/"Normal"
-// fits, "High Priority" doesn't.
-const PRIORITY_OPTIONS_SHORT = TASK_PRIORITIES.map(p => ({ ...p, label: p.label.replace(' Priority', '') }));
+// fits, "High priority" doesn't.
+const PRIORITY_OPTIONS_SHORT = TASK_PRIORITIES.map(p => ({ ...p, label: p.label.replace(' priority', '') }));
 
 // One comparator for every group — schedule bucket, then priority, then
 // creation order. Previously FIFO-by-schedule only applied to today/soon/

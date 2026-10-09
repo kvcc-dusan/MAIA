@@ -1,7 +1,7 @@
 export const TASK_PRIORITIES = [
-  { value: 'p1', label: 'High Priority',   color: 'var(--priority-1)' },
-  { value: 'p2', label: 'Medium Priority', color: 'var(--priority-2)' },
-  { value: 'p3', label: 'Normal Priority', color: 'var(--priority-3)' },
+  { value: 'p1', label: 'High priority',   color: 'var(--priority-1)' },
+  { value: 'p2', label: 'Medium priority', color: 'var(--priority-2)' },
+  { value: 'p3', label: 'Normal priority', color: 'var(--priority-3)' },
 ];
 
 // Identical to TASK_PRIORITIES today; kept as a separate export because tasks

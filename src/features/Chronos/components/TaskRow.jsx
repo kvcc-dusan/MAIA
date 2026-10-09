@@ -21,7 +21,7 @@ function TaskRow({ task, onToggle, onDelete, onEdit, onAssign, projects = [] }) 
   const [open, setOpen] = useState(false);
 
   const priority = task.priority || "p3";
-  const priorityLabel = TASK_PRIORITIES.find((p) => p.value === priority)?.label || "Normal Priority";
+  const priorityLabel = TASK_PRIORITIES.find((p) => p.value === priority)?.label || "Normal priority";
   const priorityColor = getPriorityColor(priority);
 
   return (

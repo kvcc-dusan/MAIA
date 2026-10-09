@@ -115,7 +115,7 @@ export function graphTheme() {
     nodeFill: resolveColor(cssVar("--text-secondary")),
     nodeActive: resolveColor(cssVar("--foreground")),
     nodeStroke: "none",
-    link: resolveColor(cssVar("--border-strong")),
+    link: resolveColor(cssVar("--text-muted")),
     text: resolveColor(cssVar("--text-muted")),
     textActive: resolveColor(cssVar("--foreground")),
   };

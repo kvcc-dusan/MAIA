@@ -6,7 +6,7 @@ import styles from "./SectionCard.module.css";
 /**
  * The Opus section card: a bordered panel with a header row and a free body.
  *
- *   header: icon slot (16px), title (SectionLabel as h3), count, action slot
+ *   header: icon slot (16px), title (SectionLabel, h3 unless `titleAs` says otherwise), count, action slot
  *   body:   unopinionated, size it with bodyClassName / bodyStyle
  *
  * `count` takes a number or string (wrapped in a CountPill) or an element,
@@ -15,6 +15,7 @@ import styles from "./SectionCard.module.css";
 function SectionCard({
   icon: Icon,
   title,
+  titleAs = "h3",
   count,
   action,
   className,
@@ -28,7 +29,7 @@ function SectionCard({
       <div className={styles.header}>
         <div className={styles.heading}>
           {Icon ? <Icon size={16} strokeWidth={1.75} aria-hidden="true" className={styles.icon} /> : null}
-          {title != null && <SectionLabel as="h3">{title}</SectionLabel>}
+          {title != null && <SectionLabel as={titleAs}>{title}</SectionLabel>}
           {count != null && (React.isValidElement(count) ? count : <CountPill>{count}</CountPill>)}
         </div>
         {action}

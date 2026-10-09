@@ -17,7 +17,7 @@ function SignalRow({ signal, onDelete, onEdit }) {
   const [open, setOpen] = useState(false);
   const priority = signal.priority || "p3";
   const dotColor = getPriorityColor(priority);
-  const priorityLabel = SIGNAL_PRIORITIES.find((p) => p.value === priority)?.label || "Normal Priority";
+  const priorityLabel = SIGNAL_PRIORITIES.find((p) => p.value === priority)?.label || "Normal priority";
 
   return (
     <Menu.Context>
