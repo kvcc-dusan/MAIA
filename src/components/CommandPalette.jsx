@@ -1,50 +1,46 @@
 // @maia:command-palette
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
-  FolderAdd,
-  StickyNote03,
-  ChronosIcon,
-  OpusIcon,
-  CodexIcon,
-  ConnexaIcon,
-  LedgerIcon,
-  Home08,
-} from "./ui/CustomIcon.jsx";
-import { Download, Upload } from "lucide-react";
+  Download,
+  FolderPlus,
+  Upload,
+  StickyNote,
+  Clock,
+  FolderKanban,
+  BookOpen,
+  Network,
+  Wallet,
+  House,
+} from "lucide-react";
+import { CommandPalette as ArcPalette } from "@/components/arc/command-palette/command-palette";
+import styles from "./CommandPalette.module.css";
 
 /**
- * Command palette on cmdk.
+ * MAIA's palette: Arc's `command-palette` inside a Radix dialog.
  *
- * Notes are the first group, not the last: the dock button says "Search", and
- * the most likely reason to open it is finding a note — the old order put
- * notes below Actions and Navigate, then clipped them off behind a 288px
- * list with a hidden scrollbar, so search looked broken.
- *
- * Empty query shows the five most recent notes instead of a static action
- * list. The vendored CommandList's `max-h-72` is overridden here (its cn()
- * merges caller classes). Rows are flat: grayish text at rest, text+icon
- * turn white on hover/selection, and no row ever gets a background — the
- * base-luma wrapper's presence-based data-selected: variant was lighting up
- * every row (cmdk keeps data-selected="false" in the DOM), which is a
- * tracked divergence now fixed in ui/command.jsx.
+ * Notes are the first group, not the last: the most likely reason to open it
+ * is finding a note. An empty query shows the five most recent notes; typing
+ * searches the 50 most recent. Arc owns the query state and exposes no hook,
+ * so the query is mirrored from the input via bubbled events.
  */
 
 const MAX_NOTE_ITEMS = 50;
+const RECENT_NOTE_ITEMS = 5;
 
-export default function CommandPalette({
-  open,
+const icon = (Icon) => React.createElement(Icon, { size: 16, strokeWidth: 1.75, "aria-hidden": "true" });
+
+const PAGES = [
+  { label: "Go to Today", icon: House, to: "home" },
+  { label: "Go to Opus", icon: FolderKanban, to: "projects" },
+  { label: "Go to Codex", icon: BookOpen, to: "overview" },
+  { label: "Go to Conexa", icon: Network, to: "graph" },
+  { label: "Go to Ledger", icon: Wallet, to: "ledgerPage" },
+];
+
+function PaletteBody({
   onClose,
-  notes = [],
+  notes,
   onOpenNote,
   onCreateNote,
   onCreateProject,
@@ -54,136 +50,87 @@ export default function CommandPalette({
   onImportBackup,
 }) {
   const [query, setQuery] = useState("");
+  const wrapRef = useRef(null);
 
-  const run = (fn) => () => {
-    onClose();
-    fn?.();
-  };
+  // Read after the palette has handled the event, so clear/Escape resets are caught too.
+  const syncQuery = () =>
+    requestAnimationFrame(() =>
+      setQuery(wrapRef.current?.querySelector("input")?.value ?? "")
+    );
 
-  const pages = [
-    { label: "Go to Today", icon: Home08, to: "home" },
-    { label: "Go to Opus", icon: OpusIcon, to: "projects" },
-    { label: "Go to Codex", icon: CodexIcon, to: "overview" },
-    { label: "Go to Conexa", icon: ConnexaIcon, to: "graph" },
-    { label: "Go to Ledger", icon: LedgerIcon, to: "ledgerPage" },
-  ];
-
-  // cmdk filters only what we render. Query empty → recents; typing → the
-  // 50 most recent, with a truncation hint when the vault is larger.
-  const noteItems = useMemo(() => {
+  const items = useMemo(() => {
     const sorted = [...notes].sort(
       (a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
     );
-    return query.trim() ? sorted.slice(0, MAX_NOTE_ITEMS) : sorted.slice(0, 5);
-  }, [notes, query]);
+    const noteSlice = query.trim()
+      ? sorted.slice(0, MAX_NOTE_ITEMS)
+      : sorted.slice(0, RECENT_NOTE_ITEMS);
 
-  const notesTruncated = query.trim() && notes.length > MAX_NOTE_ITEMS;
+    const noteItems = noteSlice.map((n) => ({
+      id: `note-${n.id}`,
+      label: n.title || "Untitled",
+      group: query.trim() ? "Notes" : "Recent notes",
+      icon: icon(StickyNote),
+      run: () => onOpenNote?.(n.id),
+    }));
 
-  const resetOnClose = (next) => {
-    if (!next) {
-      setQuery("");
-      onClose();
-    }
+    const pageItems = PAGES.map((p) => ({
+      id: `go-${p.to}`,
+      label: p.label,
+      group: "Navigate",
+      icon: icon(p.icon),
+      run: () => go?.(p.to),
+    }));
+
+    const actionItems = [
+      { id: "new-note", label: "New note", icon: StickyNote, run: onCreateNote },
+      { id: "new-project", label: "New project", icon: FolderPlus, run: onCreateProject },
+      { id: "open-chronos", label: "Open Chronos", icon: Clock, run: onOpenCronos },
+      { id: "export", label: "Export all data (backup)", icon: Download, run: onExportBackup },
+      { id: "import", label: "Import backup", icon: Upload, run: onImportBackup },
+    ].map(({ icon: Icon, ...rest }) => ({ ...rest, group: "Actions", icon: icon(Icon) }));
+
+    return [...noteItems, ...pageItems, ...actionItems];
+  }, [notes, query, onOpenNote, go, onCreateNote, onCreateProject, onOpenCronos, onExportBackup, onImportBackup]);
+
+  const handleSelect = (item) => {
+    onClose();
+    item.run?.();
   };
 
   return (
-    <CommandDialog
-      open={open}
-      onOpenChange={resetOnClose}
-      title="Command palette"
-      description="Search commands and notes"
-      // Centered instead of top-1/3: the list can now be tall, and a 1/3
-      // anchor made that height feel arbitrary.
-      className="top-1/2 -translate-y-1/2 sm:max-w-xl"
-    >
-      {/* The base-luma CommandDialog doesn't provide the cmdk root itself —
-          without this wrapper the Input/List primitives have no context and
-          the palette renders nothing. */}
-      <Command>
-        <CommandInput
-          placeholder="Type a command or search notes…"
-          value={query}
-          onValueChange={setQuery}
-        />
-        <CommandList className="max-h-[min(56vh,30rem)] custom-scrollbar">
-          <CommandEmpty>No matching commands or notes.</CommandEmpty>
-
-          {notes.length > 0 && (
-            <CommandGroup heading={query.trim() ? "Notes" : "Recent notes"}>
-              {noteItems.map((n) => (
-                <NoteItem key={n.id} note={n} onOpenNote={onOpenNote} run={run} />
-              ))}
-              {notesTruncated && (
-                <div
-                  role="presentation"
-                  className="px-3 py-2 text-xs text-faint-foreground"
-                >
-                  Showing {MAX_NOTE_ITEMS} most recent of {notes.length} notes — keep typing to narrow.
-                </div>
-              )}
-            </CommandGroup>
-          )}
-
-          {notes.length > 0 && <CommandSeparator />}
-
-          <CommandGroup heading="Navigate">
-            {pages.map((p) => (
-              <CommandItem
-                key={p.to}
-                className="text-muted-foreground hover:text-foreground"
-                onSelect={run(() => go?.(p.to))}              >
-                <p.icon size={16} />
-                {p.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-
-          <CommandSeparator />
-
-          <CommandGroup heading="Actions">
-            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onCreateNote)}>
-              <StickyNote03 size={16} />
-              New note
-            </CommandItem>
-            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onCreateProject)}>
-              <FolderAdd size={16} />
-              New project
-            </CommandItem>
-            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onOpenCronos)}>
-              <ChronosIcon size={16} />
-              Open Chronos
-            </CommandItem>
-            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onExportBackup)}>
-              <Download size={16} />
-              Export all data (backup)
-            </CommandItem>
-            <CommandItem className="text-muted-foreground hover:text-foreground" onSelect={run(onImportBackup)}>
-              <Upload size={16} />
-              Import backup…
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-
-        {/* Keyboard affordances — none of this was discoverable before. */}
-        <div className="flex flex-none items-center justify-end gap-4 border-t border-border-subtle px-4 py-2 text-xs text-faint-foreground">
-          <span>↑↓ navigate</span>
-          <span>↵ open</span>
-          <span>esc close</span>
-        </div>
-      </Command>
-    </CommandDialog>
+    <div ref={wrapRef} onInput={syncQuery} onClick={syncQuery} onKeyDown={syncQuery}>
+      <ArcPalette
+        items={items}
+        placeholder="Search commands and notes"
+        onSelect={handleSelect}
+        onClose={onClose}
+        autoFocus
+      />
+    </div>
   );
 }
 
-function NoteItem({ note, onOpenNote, run }) {
+export default function CommandPalette({ open, onClose, notes = [], ...handlers }) {
+  // Escape belongs to the palette while the search box has focus: it clears
+  // the query first and closes only when the box is already empty.
+  const handleEscape = (event) => {
+    if (event.target instanceof HTMLInputElement) event.preventDefault();
+  };
+
   return (
-    <CommandItem
-      className="text-muted-foreground hover:text-foreground"
-      value={`note ${note.title || "Untitled"} ${note.id}`}
-      onSelect={run(() => onOpenNote?.(note.id))}
-    >
-      <StickyNote03 size={16} />
-      {note.title || "Untitled"}
-    </CommandItem>
+    <DialogPrimitive.Root open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className={styles.overlay} />
+        <DialogPrimitive.Content
+          className={styles.content}
+          onEscapeKeyDown={handleEscape}
+          aria-describedby={undefined}
+        >
+          <DialogPrimitive.Title className={styles.srOnly}>Command palette</DialogPrimitive.Title>
+          <PaletteBody onClose={onClose} notes={notes} {...handlers} />
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

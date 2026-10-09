@@ -1,9 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/arc/button/button";
-// Not arc/tooltip: the installed copy renders <Trigger> without asChild (the
-// registry source has it), which nests a button inside a button.
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/arc/tooltip/tooltip";
 import styles from "./IconButton.module.css";
 
 /** Existing size names mapped onto Arc's three button sizes. */
@@ -69,9 +67,8 @@ function IconButton({
   if (!tooltip || !name) return button;
 
   return (
-    <Tooltip>
-      <TooltipTrigger render={button} />
-      <TooltipContent side={side}>{name}</TooltipContent>
+    <Tooltip content={name} side={side}>
+      {button}
     </Tooltip>
   );
 }

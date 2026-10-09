@@ -7,7 +7,7 @@ import styles from "./PageHeader.module.css";
  * Sticky page header: section name, count, right-aligned actions.
  *
  * `eyebrow` keeps its name for compatibility but renders as a plain
- * sentence-case label (Arc has no eyebrows). The page's one h1 is PageTitle,
+ * sentence-case label (Arc has no eyebrows). The page title is PageTitle,
  * passed as children.
  */
 function PageHeader({ eyebrow, count, actions, className, children, ...props }) {
@@ -23,12 +23,12 @@ function PageHeader({ eyebrow, count, actions, className, children, ...props }) 
   );
 }
 
-/** The one page-title style: the page's h1, Geist at 36px. */
+/** The one page-title style, Geist at 36px. An h2: the app shell's top bar owns the page's h1. */
 function PageTitle({ className, children, ...props }) {
   return (
-    <h1 className={cn(styles.title, className)} {...props}>
+    <h2 className={cn(styles.title, className)} {...props}>
       {children}
-    </h1>
+    </h2>
   );
 }
 

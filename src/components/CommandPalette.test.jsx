@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
@@ -59,29 +59,29 @@ describe('CommandPalette', () => {
     const notes = [makeNote(0), makeNote(1), { ...makeNote(2), title: 'Quarterly retrospective' }];
     render(<CommandPalette open onClose={onClose} notes={notes} onOpenNote={onOpenNote} go={go} />);
 
-    await user.type(screen.getByPlaceholderText('Type a command or search notes…'), 'retro');
+    await user.type(screen.getByPlaceholderText('Search commands and notes'), 'retro');
+    // The group heading changes with the query, so the old row fades out while the new one enters.
+    await waitFor(() => expect(screen.getAllByText('Quarterly retrospective')).toHaveLength(1));
     const hit = screen.getByText('Quarterly retrospective');
-    await user.click(hit.closest('[cmdk-item]'));
+    await user.click(hit.closest('[role="option"]'));
     expect(onOpenNote).toHaveBeenCalledWith('n2');
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('says when the note list is truncated', () => {
+  it('caps the typed search at the 50 most recent notes', async () => {
     const user = userEvent.setup();
     const notes = Array.from({ length: 60 }, (_, i) => makeNote(i, i));
     render(<CommandPalette open onClose={onClose} notes={notes} onOpenNote={onOpenNote} go={go} />);
 
-    expect(screen.queryByText(/most recent of 60/)).not.toBeInTheDocument();
-    return user.type(screen.getByPlaceholderText('Type a command or search notes…'), 'Note')
-      .then(() => {
-        expect(screen.getByText(/Showing 50 most recent of 60 notes/)).toBeInTheDocument();
-      });
+    await user.type(screen.getByPlaceholderText('Search commands and notes'), 'Note');
+    await screen.findByText('Note 49');
+    expect(screen.queryByText('Note 50')).not.toBeInTheDocument();
   });
 
-  it('renders the keyboard hints', () => {
+  it('closes from the Esc button', async () => {
+    const user = userEvent.setup();
     render(<CommandPalette open onClose={onClose} notes={[]} onOpenNote={onOpenNote} go={go} />);
-    expect(screen.getByText('↑↓ navigate')).toBeInTheDocument();
-    expect(screen.getByText('↵ open')).toBeInTheDocument();
-    expect(screen.getByText('esc close')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close command palette' }));
+    expect(onClose).toHaveBeenCalled();
   });
 });

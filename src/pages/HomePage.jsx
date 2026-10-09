@@ -232,10 +232,10 @@ export default function TodayPage({
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
                 Today · {dateLabel}
               </p>
-              <h1 className="home-greeting font-sans font-medium tracking-tight">
+              <h2 className="home-greeting font-sans font-medium tracking-tight">
                 <span className="text-muted-foreground">{greeting}</span>{" "}
                 <span className="text-foreground">{USER_NAME}.</span>
-              </h1>
+              </h2>
               <p className="home-quote font-sans italic text-foreground/45">
                 &ldquo;{quote}&rdquo;
               </p>

@@ -1,0 +1,14 @@
+/*
+ * MAIA's pages are viewport-filling panes that scroll themselves (h-full +
+ * their own overflow), not a document that scrolls. Arc's shell assumes the
+ * latter, so this frame pins it to the viewport and strips the main padding.
+ * Layout only; selectors are structural because AppShell takes no className.
+ */
+.frame { height: calc(var(--vh, 1vh) * 100); }
+.frame > div { height: 100%; min-height: 0; }
+.frame > div > div:last-child { height: 100%; min-height: 0; overflow: hidden; }
+.frame > div > div:last-child > main { position: relative; min-height: 0; padding: 0; overflow: hidden; }
+
+.footer { display: grid; gap: var(--space-2); justify-items: start; }
+.footer[data-rail] { justify-items: center; }
+.footerRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; }

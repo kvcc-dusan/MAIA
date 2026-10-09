@@ -8,16 +8,7 @@ import { downloadBackup, readBackupFile } from "./lib/backup.js";
 import { isTauri as isTauriRuntime } from "./lib/vault.js";
 
 // Components
-import { Dock } from "./components/ui/dock.jsx";
-import {
-  Home08,
-  Search01,
-  OpusIcon,
-  CodexIcon,
-  ConnexaIcon,
-  LedgerIcon,
-  ChronosIcon
-} from "./components/ui/CustomIcon.jsx";
+import { MaiaShell } from "./components/shell/MaiaShell.jsx";
 
 import ChronosModal from "./features/Chronos/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
@@ -206,12 +197,9 @@ function AppContent() {
     setCurrentPage("editor");
   }, [createNote]);
 
-  // Handlers for Dock/Modals
+  // Handlers for shell/modals
   const handleNavigate = useCallback((page) => setCurrentPage(page), []);
-  const handleOpenTool = useCallback((tool) => {
-    if (tool === "chronos") setChronosOpen(true);
-    if (tool === "search") setCmdOpen((prev) => !prev);
-  }, []);
+  const handleToggleSearch = useCallback(() => setCmdOpen((prev) => !prev), []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
   const handleCloseChronos = useCallback(() => setChronosOpen(false), []);
@@ -233,8 +221,7 @@ function AppContent() {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        // Toggle, not open-only — ⌘K to dismiss is muscle memory, and the
-        // dock button was the sole closer before.
+        // Toggle, not open-only — ⌘K to dismiss is muscle memory.
         setCmdOpen((prev) => !prev);
       }
     };
@@ -269,99 +256,87 @@ function AppContent() {
       {/* Vault picker / loading gate (Tauri only) */}
       <VaultSetup />
 
-      {/* Dock (Floating Navigation) */}
-      <Dock
-        items={[
-          { icon: Home08, label: "Today", onClick: () => handleNavigate("home"), isActive: currentPage === "home" },
-          { icon: OpusIcon, label: "Opus", onClick: () => handleNavigate("projects"), isActive: currentPage === "projects" },
-          { icon: CodexIcon, label: "Codex", onClick: () => handleNavigate("overview"), isActive: currentPage === "overview" },
-          { icon: ConnexaIcon, label: "Conexa", onClick: () => handleNavigate("graph"), isActive: currentPage === "graph" },
-          { icon: LedgerIcon, label: "Ledger", onClick: () => handleNavigate("ledgerPage"), isActive: currentPage === "ledgerPage" },
-          { type: 'separator' },
-          { icon: ChronosIcon, label: "Chronos", onClick: () => handleOpenTool("chronos"), isActive: chronosOpen },
-          { icon: Search01, label: "Search ⌘K", onClick: () => handleOpenTool("search"), isActive: cmdOpen }
-        ]}
-      />
-
-      {/* Main Content */}
-      <div className="grid min-h-0" style={{ gridTemplateColumns: "1fr" }}>
-        <main className="h-full overflow-hidden min-h-0 relative pb-(--dock-h) md:pb-0">
-          <GlassErrorBoundary>
-            <React.Suspense fallback={<GlassSkeleton />}>
+      <MaiaShell
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        onOpenChronos={handleOpenPulse}
+        onToggleSearch={handleToggleSearch}
+      >
+        <GlassErrorBoundary>
+          <React.Suspense fallback={<GlassSkeleton />}>
 
 
-              {currentPage === "home" && (
-                <HomePage
-                  tasks={tasks}
-                  notes={notes}
-                  projects={projects}
-                  sessions={sessions}
-                  reminders={reminders}
-                  createNote={createNote}
-                  toggleTask={toggleTask}
-                  onOpenPulse={handleOpenPulse}
-                  onOpenNote={selectItem}
-                />
-              )}
+            {currentPage === "home" && (
+              <HomePage
+                tasks={tasks}
+                notes={notes}
+                projects={projects}
+                sessions={sessions}
+                reminders={reminders}
+                createNote={createNote}
+                toggleTask={toggleTask}
+                onOpenPulse={handleOpenPulse}
+                onOpenNote={selectItem}
+              />
+            )}
 
-              {currentPage === "overview" && (
-                <NotesPage
-                  notes={filteredNotes}
-                  selectNote={selectItem}
-                  onDelete={deleteNote}
-                  onDeleteAll={deleteAllNotes}
-                  onRename={renameNote}
-                  onMove={moveNoteToProject}
-                  projects={projects}
-                  onCreateNote={handleCreateNote}
-                  onCreateJournal={handleCreateJournal}
-                  onBack={handleGoHome}
-                />
-              )}
+            {currentPage === "overview" && (
+              <NotesPage
+                notes={filteredNotes}
+                selectNote={selectItem}
+                onDelete={deleteNote}
+                onDeleteAll={deleteAllNotes}
+                onRename={renameNote}
+                onMove={moveNoteToProject}
+                projects={projects}
+                onCreateNote={handleCreateNote}
+                onCreateJournal={handleCreateJournal}
+                onBack={handleGoHome}
+              />
+            )}
 
-              {currentPage === "projects" && (
-                <ProjectsPage
-                  notes={notes}
-                  projects={projects}
-                  setProjects={setProjects}
-                  setNotes={setNotes}
-                  selectNote={selectItem}
-                  targetProjectId={targetProjectId}
-                  isCreateModalOpen={projectModalOpen}
-                  setCreateModalOpen={setProjectModalOpen}
-                />
-              )}
+            {currentPage === "projects" && (
+              <ProjectsPage
+                notes={notes}
+                projects={projects}
+                setProjects={setProjects}
+                setNotes={setNotes}
+                selectNote={selectItem}
+                targetProjectId={targetProjectId}
+                isCreateModalOpen={projectModalOpen}
+                setCreateModalOpen={setProjectModalOpen}
+              />
+            )}
 
-              {currentPage === "editor" && (
-                <EditorPage
-                  key={currentNote?.id}
-                  note={currentNote}
-                  updateNote={updateNote}
-                  onOpenInternalLink={openInternalByTitle}
-                  projects={projects}
-                />
-              )}
+            {currentPage === "editor" && (
+              <EditorPage
+                key={currentNote?.id}
+                note={currentNote}
+                updateNote={updateNote}
+                onOpenInternalLink={openInternalByTitle}
+                projects={projects}
+              />
+            )}
 
-              {currentPage === "graph" && (
-                <GraphPage
-                  notes={notes}
-                  projects={projects}
-                  setNotes={setNotes}
-                  setProjects={setProjects}
-                  onOpenNote={selectItem}
-                />
-              )}
+            {currentPage === "graph" && (
+              <GraphPage
+                notes={notes}
+                projects={projects}
+                setNotes={setNotes}
+                setProjects={setProjects}
+                onOpenNote={selectItem}
+              />
+            )}
 
-              {currentPage === "ledgerPage" && (
-                <LedgerPage
-                  ledger={ledger}
-                  setLedger={setLedger}
-                />
-              )}
-            </React.Suspense>
-          </GlassErrorBoundary>
-        </main>
-      </div>
+            {currentPage === "ledgerPage" && (
+              <LedgerPage
+                ledger={ledger}
+                setLedger={setLedger}
+              />
+            )}
+          </React.Suspense>
+        </GlassErrorBoundary>
+      </MaiaShell>
 
       {/* Global Modals */}
       {chronosOpen && (
@@ -381,10 +356,7 @@ function AppContent() {
           hand-rolled version was single-slot, had no dismiss control, and sat
           at z-60 — below every modal, so validation toasts fired from inside
           Chronos rendered behind it. */}
-      <Toaster
-        position="bottom-center"
-        offset={`calc(var(--dock-h) + 0.75rem)`}
-      />
+      <Toaster position="bottom-center" />
 
       {/* Command Palette */}
       <CommandPalette
