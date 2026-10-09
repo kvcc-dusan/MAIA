@@ -22,7 +22,7 @@ export default function ActivitySummary({ project }) {
             if (t.createdAt) timestamps.push(new Date(t.createdAt).getTime());
         });
 
-        sessions.filter(s => s.projectId === project.id).forEach(s => {
+        sessions.filter(s => s.linkedProjectId === project.id).forEach(s => {
             if (s.start) timestamps.push(new Date(s.start).getTime());
         });
 

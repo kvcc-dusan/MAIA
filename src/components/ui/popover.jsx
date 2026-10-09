@@ -18,6 +18,15 @@ function PopoverTrigger({
 }
 
 /**
+ * Popovers must clear the dock, which floats over the bottom of every page.
+ * Without this a popover anchored near the foot of a scrolled page renders
+ * under the dock or off the viewport entirely — Base UI flips it to `top` but
+ * does not clamp it back into view. `sticky` keeps it pinned once flipping is
+ * no longer enough.
+ */
+const COLLISION_PADDING = { top: 8, right: 8, bottom: 96, left: 8 };
+
+/**
  * `align` defaults to "start", not Base UI's "center": a popover centred on
  * its trigger reads as floating loose over the field. Anchored popovers should
  * drop straight down from the trigger's leading edge.
@@ -32,6 +41,8 @@ function PopoverContent({
   alignOffset = 0,
   side = "bottom",
   sideOffset = 4,
+  collisionPadding = COLLISION_PADDING,
+  sticky = true,
   ...props
 }) {
   return (
@@ -41,6 +52,8 @@ function PopoverContent({
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
+        sticky={sticky}
         className="isolate z-popover">
         <PopoverPrimitive.Popup
           data-slot="popover-content"

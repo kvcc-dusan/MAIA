@@ -9,6 +9,7 @@ import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Briefcase08, Pen01, Setting06, Delete01, PlusSignSquare, LayoutAlignLeft, LayoutAlignRight } from "../components/ui/CustomIcon.jsx";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
+import { useData } from "../context/DataContext";
 
 /* -----------------------------------------
    Helpers
@@ -38,6 +39,7 @@ export default function Projects({
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
+  const { deleteProject: deleteProjectCascade } = useData();
   const [activeId, setActiveId] = useState(null);
 
   // Sync targetProjectId from parent if provided
@@ -88,7 +90,11 @@ export default function Projects({
 
   const confirmDeleteProject = () => {
     const id = pendingDelete;
-    setProjects(prev => prev.filter(p => p.id !== id));
+    // Must go through DataContext: removing the project here with a bare
+    // setProjects skipped the whole cascade, so deleting a project left its
+    // notes still carrying the dead id and its tasks and sessions pointing at
+    // a project that no longer existed.
+    deleteProjectCascade(id);
     if (activeId === id) setActiveId(null);
   }
 
@@ -172,55 +178,77 @@ export default function Projects({
               <EmptyState size="inline" title="No active projects" className="py-4" />
             )}
 
-            {activeList.map(p => (
-              <Menu.Context key={p.id}>
-                <Menu.ContextTrigger
-                  render={
-              <div
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
-                  ? isCollapsed
-                    ? "bg-transparent border-transparent shadow-none"
-                    : "bg-overlay-subtle border-border text-foreground shadow-lg"
-                  : "border-transparent text-muted-foreground hover:text-foreground-secondary " + (isCollapsed ? "" : "hover:bg-overlay-subtle")
-                  } ${effectiveWidth < 120 ? 'justify-center' : ''}`}
-                onClick={() => { setActiveId(p.id); closeMobile(); }}
-                title={effectiveWidth < 120 ? p.name : ''}
-              >
-                <span className={`shrink-0 ${p.id === activeId ? "text-foreground" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
-                  <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
-                </span>
-                {effectiveWidth >= 120 && (
-                  renamingId === p.id ? (
-                    <input
-                      ref={renameInputRef}
-                      value={renameValue}
-                      onChange={e => setRenameValue(e.target.value)}
-                      onBlur={commitRename}
-                      onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
-                      onClick={e => e.stopPropagation()}
-                      className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-foreground outline-hidden min-w-0"
-                    />
-                  ) : (
-                    <span className="font-medium truncate text-sm flex-1">{p.name}</span>
-                  )
-                )}
-              </div>
-                  }
-                />
-                <Menu.ContextContent>
-                  <Menu.ContextItem onClick={() => startRename(p)}>
-                    <Pen01 size={14} /> Rename
-                  </Menu.ContextItem>
-                  <Menu.ContextItem onClick={() => setIconPickerId(p.id)}>
-                    <Setting06 size={14} /> Edit icon
-                  </Menu.ContextItem>
-                  <Menu.ContextSeparator />
-                  <ContextDangerItem onClick={() => deleteProject(p.id)}>
-                    <Delete01 size={14} /> Delete
-                  </ContextDangerItem>
-                </Menu.ContextContent>
-              </Menu.Context>
-            ))}
+            {activeList.map(p => {
+              const isRenaming = renamingId === p.id;
+              const rowClass = `w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
+                ? isCollapsed
+                  ? "bg-transparent border-transparent shadow-none"
+                  : "bg-overlay-subtle border-border text-foreground shadow-lg"
+                : "border-transparent text-muted-foreground hover:text-foreground-secondary " + (isCollapsed ? "" : "hover:bg-overlay-subtle")
+                } ${effectiveWidth < 120 ? 'justify-center' : ''}`;
+
+              const rowBody = (
+                <>
+                  <span className={`shrink-0 ${p.id === activeId ? "text-foreground" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
+                    <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
+                  </span>
+                  {effectiveWidth >= 120 && (
+                    isRenaming ? (
+                      <input
+                        ref={renameInputRef}
+                        value={renameValue}
+                        onChange={e => setRenameValue(e.target.value)}
+                        onBlur={commitRename}
+                        onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
+                        onClick={e => e.stopPropagation()}
+                        className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-foreground outline-hidden min-w-0"
+                      />
+                    ) : (
+                      <span className="font-medium truncate text-sm flex-1">{p.name}</span>
+                    )
+                  )}
+                </>
+              );
+
+              return (
+                <Menu.Context key={p.id}>
+                  <Menu.ContextTrigger
+                    render={
+                      /* A real <button> so the project switcher — this page's
+                         primary navigation — is reachable by keyboard. It drops
+                         to a <div> only while renaming, because an <input>
+                         inside a <button> is invalid HTML. */
+                      isRenaming ? (
+                        <div className={rowClass}>{rowBody}</div>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label={p.name}
+                          aria-current={p.id === activeId ? "true" : undefined}
+                          className={rowClass}
+                          onClick={() => { setActiveId(p.id); closeMobile(); }}
+                          title={effectiveWidth < 120 ? p.name : ''}
+                        >
+                          {rowBody}
+                        </button>
+                      )
+                    }
+                  />
+                  <Menu.ContextContent>
+                    <Menu.ContextItem onClick={() => startRename(p)}>
+                      <Pen01 size={14} /> Rename
+                    </Menu.ContextItem>
+                    <Menu.ContextItem onClick={() => setIconPickerId(p.id)}>
+                      <Setting06 size={14} /> Edit icon
+                    </Menu.ContextItem>
+                    <Menu.ContextSeparator />
+                    <ContextDangerItem onClick={() => deleteProject(p.id)}>
+                      <Delete01 size={14} /> Delete
+                    </ContextDangerItem>
+                  </Menu.ContextContent>
+                </Menu.Context>
+              );
+            })}
 
             {otherList.length > 0 && effectiveWidth > 120 && (
               <div className="pt-4 mt-4 border-t border-border-subtle">

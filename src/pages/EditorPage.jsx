@@ -46,21 +46,23 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
     const newTags = meta.tags || [];
 
     // 2. WikiLinks -> Projects
-    // Map [[Project Name]] to project IDs
-    let newProjectIds = [];
+    // A [[Project Name]] in the body ADDS that project. It must never be the
+    // whole story: this handler used to return the wikilink-derived list
+    // outright, so opening any note whose body had no wikilink silently
+    // cleared the links made from Opus — reading a note removed it from its
+    // project. Links are unlinked explicitly from the Nodes panel instead.
+    const existingIds = v.projectIds || [];
     let newProjectName = null;
 
-    if (meta.links && meta.links.length > 0) {
-      // Find all projects mentioned in links
-      const linkedProjects = projects.filter(p =>
-        meta.links.some(link => link.toLowerCase() === p.name.toLowerCase())
-      );
+    const linkedProjects = meta.links?.length
+      ? projects.filter(p => meta.links.some(link => link.toLowerCase() === p.name.toLowerCase()))
+      : [];
 
-      if (linkedProjects.length > 0) {
-        newProjectIds = linkedProjects.map(p => p.id);
-        newProjectName = linkedProjects[0].name; // Use first found for legacy display
-      }
+    if (linkedProjects.length > 0) {
+      newProjectName = linkedProjects[0].name; // first match, for the legacy display field
     }
+
+    const newProjectIds = [...new Set([...existingIds, ...linkedProjects.map(p => p.id)])];
 
     return {
       ...v, ...meta,

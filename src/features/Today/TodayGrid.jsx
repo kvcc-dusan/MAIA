@@ -72,7 +72,7 @@ function SortableWidget({ entry, isEditing, widgetProps, onToggleSpan, onRemove 
   );
 }
 
-export default function TodayGrid({ layout, setLayout, greeting, widgetProps }) {
+export default function TodayGrid({ layout, setLayout, greeting, agenda, widgetProps }) {
   const [isEditing, setIsEditing] = useState(false);
 
   const sensors = useSensors(
@@ -117,7 +117,7 @@ export default function TodayGrid({ layout, setLayout, greeting, widgetProps }) 
   return (
     // Mobile reserves the tab-bar height one level up (App wraps <main> with
     // pb-(--dock-h)); only the desktop floating dock needs explicit clearance.
-    <div className="flex w-full flex-1 flex-col gap-6 px-page py-8 md:pb-[calc(var(--spacing-page)+var(--dock-h-desktop))]">
+    <div className="flex w-full flex-col gap-6 px-page py-8 md:pb-[calc(var(--spacing-page)+var(--dock-h-desktop))]">
       {/* Hero header — greeting top-left, layout controls top-right. */}
       <header className="flex flex-none items-start justify-between gap-4">
         {greeting}
@@ -152,11 +152,18 @@ export default function TodayGrid({ layout, setLayout, greeting, widgetProps }) 
         </div>
       </header>
 
+      {/* Fixed section: not part of the layout array, so it can't be dragged,
+          resized or removed. The customisable widgets live below it. */}
+      {agenda}
+
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={ids} strategy={rectSortingStrategy}>
-          {/* Rows share the leftover height (auto-rows-fr); min-h floors keep
-              the small-window case scrolling instead of crushing. */}
-          <div className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Rows are sized by their content. This was `flex-1 auto-rows-fr`,
+              which made the single row absorb all leftover viewport height —
+              so every widget rendered ~full-window tall no matter how little
+              was in it. The min-h floors in the registry are floors, not
+              targets. Cards still stretch to equal height within a row. */}
+          <div className="grid min-h-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {layout.map((entry) => (
               <SortableWidget
                 key={entry.id}

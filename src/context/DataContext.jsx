@@ -143,8 +143,13 @@ export function DataProvider({ children }) {
             }
             return n;
         }));
+        // Tasks and sessions carry a single projectId. Clear the reference
+        // rather than deleting them: losing a user's work because they removed
+        // a project would be worse than the task turning up unassigned.
+        setTasks((prev) => prev.map(t => (t.projectId === id ? { ...t, projectId: null } : t)));
+        setSessions((prev) => prev.map(s => (s.linkedProjectId === id ? { ...s, linkedProjectId: null } : s)));
         setProjects((prev) => prev.filter((p) => p.id !== id));
-    }, [setProjects, setNotes]);
+    }, [setProjects, setNotes, setTasks, setSessions]);
 
     const createProject = useCallback((name) => {
         const p = {

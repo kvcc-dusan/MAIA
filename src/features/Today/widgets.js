@@ -12,7 +12,8 @@ import QuickCaptureWidget from "@/components/QuickCaptureWidget.jsx";
  *   id          stable key, persisted in the layout — never rename in place
  *   defaultSpan how many of the 5 columns it occupies when first added
  *   canGrow     whether the 1<->2 span toggle applies
- *   minHeight   row height class; a map needs more vertical room than a list
+ *   minHeight   a FLOOR, not a target — the grid rows are content-sized, so
+ *               this only binds when a widget would otherwise be shorter
  *   select      picks this widget's props out of the page's shared bag
  *
  * `select` is not optional bookkeeping: each widget spreads its unrecognised
@@ -27,7 +28,7 @@ export const WIDGETS = [
     Component: WorldMapWidget,
     defaultSpan: 2,
     canGrow: true,
-    minHeight: "min-h-64",
+    minHeight: "min-h-72",
     select: ({ weather, weatherLoading, weatherError, retryWeather, now }) =>
       ({ weather, weatherLoading, weatherError, retryWeather, now }),
   },
@@ -37,7 +38,7 @@ export const WIDGETS = [
     Component: FocusWidget,
     defaultSpan: 2,
     canGrow: true,
-    minHeight: "min-h-64",
+    minHeight: "min-h-52",
     select: ({ todayTasks, sessions, signals, onOpenPulse, onTaskClick }) =>
       ({ todayTasks, sessions, signals, onOpenPulse, onTaskClick }),
   },
@@ -47,7 +48,7 @@ export const WIDGETS = [
     Component: QuickCaptureWidget,
     defaultSpan: 1,
     canGrow: true,
-    minHeight: "min-h-64",
+    minHeight: "min-h-44",
     select: ({ captureContent, setCaptureContent, onCapture, todayEntries, onOpenNote }) =>
       ({ captureContent, setCaptureContent, onCapture, todayEntries, onOpenNote }),
   },

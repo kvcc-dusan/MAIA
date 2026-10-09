@@ -28,7 +28,7 @@ function useProjectVitality(project) {
         });
 
         // Sessions
-        sessions.filter(s => s.projectId === project.id).forEach(s => {
+        sessions.filter(s => s.linkedProjectId === project.id).forEach(s => {
             if (s.start) {
                 const ts = new Date(s.start).getTime();
                 timestamps.push(ts);

@@ -63,7 +63,7 @@ function AppContent() {
     sessions, setSessions,
     // Actions
     createNote, updateNote, deleteNote, deleteAllNotes, renameNote,
-    moveNoteToProject
+    moveNoteToProject, toggleTask
   } = useData();
 
   // Local state for navigation/selection
@@ -296,7 +296,9 @@ function AppContent() {
                   notes={notes}
                   projects={projects}
                   sessions={sessions}
+                  reminders={reminders}
                   createNote={createNote}
+                  toggleTask={toggleTask}
                   onOpenPulse={handleOpenPulse}
                   onOpenNote={selectItem}
                 />

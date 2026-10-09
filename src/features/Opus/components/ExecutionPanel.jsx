@@ -16,6 +16,7 @@ import { TASK_PRIORITIES, SCHEDULES } from "@/lib/constants";
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select } from "@/components/composed/Select";
+import { DateTimeField } from "@/components/composed/DateTimeField";
 import { Input } from "@/components/ui/input";
 import { PriorityCheckbox } from "@/components/ui/PriorityCheckbox";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
@@ -380,6 +381,14 @@ function ExecutionRow({ task, project, variant, onToggle, onUpdate, onDelete, on
                   <Select value={priority} onChange={(v) => onUpdate(task.id, { priority: v })} options={PRIORITY_OPTIONS_SHORT} />
                 </div>
               </div>
+              {/* The row has always rendered task.due; until now nothing in
+                  Opus could set it. */}
+              <DateTimeField
+                dateOnly
+                label="Due"
+                value={task.due || ""}
+                onChange={(v) => onUpdate(task.id, { due: v })}
+              />
             </div>
           </PopoverContent>
         </Popover>
