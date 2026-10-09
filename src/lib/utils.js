@@ -2,7 +2,7 @@ import { clsx } from "clsx"
 import { extendTailwindMerge } from "tailwind-merge"
 // Priority colour, as a token reference rather than a hex literal, so it
 // follows the theme. `--priority-*` are emitted as real custom properties
-// (they live in .dark, not in `@theme inline`), so this is valid inside an
+// (they live on :root, not in `@theme inline`), so this is valid inside an
 // inline style. Both the p1/p2/p3 and high/medium/low spellings are accepted —
 // the app uses each in different places.
 const PRIORITY_TOKENS = {

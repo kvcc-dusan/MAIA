@@ -5,9 +5,11 @@
  * classes — `lib/tokens.js` was the planned home for that bridge (the token
  * linter's header comments anticipated it). Two things it must handle:
  *
- *  1. The raw custom properties live in the `.dark` block of tokens.css
- *     (`--background`, `--priority-1`, …). The `--color-*` aliases seen in
- *     `@theme inline` are compile-time only and do NOT exist at runtime.
+ *  1. The raw custom properties are Arc's (components/arc/foundation.css:
+ *     `--background`, `--foreground`, `--border`, `--series-1..4`, …) plus the
+ *     legacy aliases in tokens.css. They flip with <html data-theme>. The
+ *     `--color-*` aliases seen in `@theme inline` are compile-time only and do
+ *     NOT exist at runtime. Read Arc names here, not legacy ones.
  *  2. The raw values are oklch(). `resolveColor()` runs them through a canvas
  *     2D context, which validates the string and normalises what it can.
  *
@@ -20,9 +22,11 @@
  *     these helpers; if that changes, convert explicitly at that call site
  *     rather than assuming rgb comes out of here.
  *
- * Values are cached per property name; the theme never changes while running,
- * but `clearTokenCache()` exists for tests and future theming.
+ * Values are cached per property name. The cache is dropped whenever the theme
+ * changes (lib/theme.js), but a canvas surface still has to re-read and redraw
+ * itself: that is each page pass's job (subscribe from theme.js).
  */
+import { subscribe } from "./theme.js";
 
 const cache = new Map();
 const resolved = new Map();
@@ -38,6 +42,8 @@ export function clearTokenCache() {
   cache.clear();
   resolved.clear();
 }
+
+subscribe(clearTokenCache);
 
 // A canvas 2D context is used to validate and normalise colour strings. It
 // rejects anything unparseable (see the sentinel below), which a plain regex
@@ -80,7 +86,7 @@ export function resolveColor(cssColor, fallback = "rgb(136, 136, 136)") {
  *
  * NOTE this MULTIPLIES with any alpha the token already carries — the overlay
  * and border tokens are themselves translucent, so `tokenColor("--overlay", 0.5)`
- * is white at 5%, not 50%. Prefer picking the token that already encodes the
+ * is foreground at 5%, not 50%. Prefer picking the token that already encodes the
  * opacity you want; reach for this only for a genuine fade.
  */
 export function tokenColor(name, alpha = 1) {
@@ -95,7 +101,9 @@ export function tokenColor(name, alpha = 1) {
    GraphPage / GraphRenderer / GraphControls.
 ------------------------------------------- */
 
-const CLUSTER_VARS = ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5", "--intel"];
+// Arc ships four chart hues; slots 5 and 6 are neutral so overflow clusters
+// never borrow a status colour.
+const CLUSTER_VARS = ["--series-1", "--series-2", "--series-3", "--series-4", "--text-secondary", "--text-muted"];
 
 export function clusterColors() {
   return CLUSTER_VARS.map((n) => resolveColor(cssVar(n)));
@@ -104,14 +112,11 @@ export function clusterColors() {
 export function graphTheme() {
   return {
     bg: resolveColor(cssVar("--background")),
-    nodeFill: resolveColor(cssVar("--foreground-secondary")),
+    nodeFill: resolveColor(cssVar("--text-secondary")),
     nodeActive: resolveColor(cssVar("--foreground")),
     nodeStroke: "none",
-    // --overlay is white@10%, the token that matches the graph's original
-    // hardcoded rgba(255,255,255,0.12) link colour. Deliberately not
-    // tokenColor(--border-strong, 0.35): that multiplies down to ~7%.
-    link: resolveColor(cssVar("--overlay")),
-    text: resolveColor(cssVar("--muted-foreground")),
+    link: resolveColor(cssVar("--border-strong")),
+    text: resolveColor(cssVar("--text-muted")),
     textActive: resolveColor(cssVar("--foreground")),
   };
 }

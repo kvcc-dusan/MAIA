@@ -28,25 +28,11 @@
     font-family: var(--font-heading);
   }
 
-  /* Focus.
-
-     The old rule here was `:focus, :focus-visible { outline: none }`, which
-     removed the keyboard focus indicator app-wide and silently defeated every
-     shadcn `focus-visible:ring-*` utility. Mouse clicks still get no ring;
-     keyboard navigation now does. */
-  :focus:not(:focus-visible) {
-    outline: none;
-  }
-
-  :focus-visible {
-    outline-width: 2px;
-    outline-style: solid;
-    outline-color: var(--ring);
-    outline-offset: 2px;
-  }
+  /* Focus rings are Arc's: foundation.css draws one shared :focus-visible
+     outline (tune with --focus-outline*). No MAIA override here. */
 
   ::selection {
-    background: var(--success);
-    color: var(--background);
+    background: var(--accent-subtle);
+    color: var(--foreground);
   }
 }

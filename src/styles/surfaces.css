@@ -1,9 +1,9 @@
 /* Shared surface + chrome utilities.
-   Sprint 2 replaces `glass-panel` with a real <Surface> component; until then
-   it is at least tokenised and single-sourced. */
+   `glass-panel` keeps its name for existing call sites but is a plain raised
+   surface now: 1px border, no blur, floating shadow (it only wraps dialogs). */
 
 @utility glass-panel {
-  @apply bg-glass/70 backdrop-blur-xl border border-border-subtle shadow-overlay;
+  @apply bg-surface-raised border border-border shadow-overlay;
 }
 
 @utility safe-bottom {

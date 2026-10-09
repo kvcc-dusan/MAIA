@@ -1,102 +1,101 @@
 /* ==========================================================================
-   MAIA — TOKENS. Single source of truth.
+   MAIA, TOKEN BRIDGE onto kvcc-arc.
 
-   Colour values come from the shadcn preset b1bvuw1RPk
-   (style base-luma, baseColor neutral, font manrope/roboto, radius 0.625rem).
-   Do not add a second palette.
+   The palette, radii, shadows, type and motion live in
+   components/arc/foundation.css (loaded first, themed by
+   <html data-theme data-accent>). This file owns no colours. It only:
 
-   Layout:
-     .dark   — every colour. The app is dark-only today; this block exists so
-               adding light mode later is a config change, not a rewrite.
-     :root   — mode-invariant app values (layout, z-index, motion).
-     @theme  — the Tailwind v4 namespace mappings + the migration compat layer.
+     :root  , re-expresses MAIA's legacy shadcn-era names as aliases of Arc
+               semantic tokens, so existing utilities (bg-card, text-muted-
+               foreground, ...) follow the theme in light and dark.
+     :root  , mode-invariant app values (layout, z-index).
+     @theme , Tailwind v4 namespace mappings.
+
+   Arc names that MAIA used to define itself (--background, --foreground,
+   --border, --border-subtle, --border-strong, --success, --warning) are
+   deleted here on purpose: redefining them would shadow Arc.
+
+   This file only shrinks. New code uses Arc names directly.
    ========================================================================== */
 
-.dark {
-  /* --- preset surfaces: the elevation ramp ------------------------------
-     This is the layered dark that replaces flat #000. Each step is a
-     distinct surface, so depth reads without relying on borders alone. */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+:root {
+  /* --- surfaces ---------------------------------------------------------- */
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--surface-muted);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-muted);
+  --muted-foreground: var(--text-muted);
+  --background-subtle: var(--surface);
+  --elevated: var(--surface-raised);
+  /* Glass is gone: a "glass" surface is now a plain surface. */
+  --glass: var(--surface);
 
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* --- action colours ---------------------------------------------------- */
+  /* Neutral accent: the primary button is foreground-on-background. If the
+     accent ever changes, repoint these at --accent / --accent-foreground. */
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--background);
+  --input: var(--border-strong);
+  /* Arc leaves --focus-outline unset and falls back to this expression in its
+     :focus-visible rule; repeated so Tailwind ring-ring stays in step. */
+  --ring: color-mix(in oklab, var(--accent-strong) 72%, transparent);
 
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* NOTE: shadcn's `--accent` ("hover surface") is NOT defined here. Arc owns
+     --accent as the brand colour. The Tailwind utilities bg-accent /
+     text-accent-foreground are remapped to the hover surface in @theme below;
+     use bg-brand for the Arc accent. */
 
-  /* --- MAIA extensions to the ramp --------------------------------------
-     The preset gives 2 surfaces and 2 text steps; MAIA's density needs one
-     more of each. These interpolate the preset scale, they don't fork it. */
-  --background-subtle: oklch(0.178 0 0);
-  --elevated: oklch(0.32 0 0);
-  --glass: oklch(0.205 0 0);
+  /* --- charts ------------------------------------------------------------ */
+  --chart-1: var(--series-1);
+  --chart-2: var(--series-2);
+  --chart-3: var(--series-3);
+  --chart-4: var(--series-4);
+  --chart-5: var(--text-muted);
 
-  /* Text ramp. The preset ships two steps (foreground, muted-foreground);
-     MAIA's density genuinely uses five, and the counts bear that out —
-     zinc-300 appeared 54 times and zinc-700 37 times. Values are the exact
-     ones those utilities already resolved to, so adopting them is a no-op. */
-  --foreground-secondary: oklch(0.87 0 0);
-  --subtle-foreground: oklch(0.556 0 0);
-  --faint-foreground: oklch(0.45 0 0);
+  /* --- sidebar ----------------------------------------------------------- */
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--foreground);
+  --sidebar-primary-foreground: var(--background);
+  --sidebar-accent: var(--surface-muted);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 
-  /* Lines and translucent overlays. White is oklch(1 0 0), so these are
-     bit-identical to the bg-white/N and border-white/N they replace —
-     they just collapse 42 ad-hoc opacities down to three named steps. */
-  --border-subtle: oklch(1 0 0 / 5%);
-  --border-strong: oklch(1 0 0 / 20%);
-  --overlay-subtle: oklch(1 0 0 / 5%);
-  --overlay: oklch(1 0 0 / 10%);
-  --overlay-strong: oklch(1 0 0 / 20%);
+  /* --- text ramp --------------------------------------------------------- */
+  --foreground-secondary: var(--text-secondary);
+  --subtle-foreground: var(--text-muted);
+  /* Arc has no step below --text-muted (it is already at the contrast floor). */
+  --faint-foreground: var(--text-muted);
 
-  /* --- status ------------------------------------------------------------
-     MAIA's five semantic accents. These are deliberately NOT `--accent`: in
-     shadcn `--accent` means "hover surface" and every registry component
-     hardcodes `hover:bg-accent`. Rose merges into `--destructive` rather than
-     adding a sixth token, so stock destructive buttons come out right free. */
-  --success: oklch(0.696 0.17 162.48);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.769 0.188 70.08);
-  --warning-foreground: oklch(0.205 0 0);
-  --info: oklch(0.685 0.169 237.32);
-  --info-foreground: oklch(0.985 0 0);
-  --intel: oklch(0.606 0.25 292.717);
-  --intel-foreground: oklch(0.985 0 0);
+  /* --- translucent overlays ---------------------------------------------- */
+  --overlay-subtle: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --overlay: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --overlay-strong: color-mix(in oklab, var(--foreground) 20%, transparent);
 
-  /* Priority colours keep their existing hues; only the format changes. */
-  --priority-1: oklch(0.585 0.233 277.117);
-  --priority-2: oklch(0.705 0.213 47.604);
-  --priority-3: oklch(0.696 0.17 162.48);
+  /* --- status ------------------------------------------------------------ */
+  /* --success / --warning / --danger come from Arc. Arc has no info/intel
+     status; they borrow the chart hues so they stay distinct in both themes. */
+  --success-foreground: var(--background);
+  --warning-foreground: var(--background);
+  --info: var(--series-1);
+  --info-foreground: var(--background);
+  --intel: var(--series-2);
+  --intel-foreground: var(--background);
+
+  --priority-1: var(--danger);
+  --priority-2: var(--warning);
+  --priority-3: var(--accent);
 }
 
 :root {
-  --radius: 0.625rem;
+  /* shadcn's base radius; vendored sonner reads it. Arc's control radius. */
+  --radius: var(--radius-control);
 
   --vh: 1dvh;
   --dock-h: 56px;
@@ -104,10 +103,8 @@
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  /* Named z-index scale, replacing the ad-hoc
-     20/30/40/50/60/100/110/150/200/9998/9999 ladder. Toast sits above dialog
-     on purpose: validation toasts fired from inside a modal used to render
-     behind it. */
+  /* Named z-index scale. Toast sits above dialog on purpose: validation toasts
+     fired from inside a modal used to render behind it. */
   --z-sticky: 10;
   --z-dock: 20;
   --z-drawer: 30;
@@ -144,13 +141,27 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+  /* shadcn "accent" = hover surface. Do NOT point this at Arc's --accent:
+     every hover:bg-accent in vendored ui/* would light up in the brand colour. */
+  --color-accent: var(--surface-muted);
+  --color-accent-foreground: var(--foreground);
+  /* Arc's brand accent, under a name that can't collide. */
+  --color-brand: var(--accent);
+  --color-brand-strong: var(--accent-strong);
+  --color-brand-subtle: var(--accent-subtle);
+  --color-brand-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-danger: var(--danger);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-muted: var(--surface-muted);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -199,28 +210,66 @@
      fills) so `white` can be retargeted later without breaking them. */
   --color-pure: #ffffff;
 
-  /* The migration compat layer that used to live here is gone — its job is
-     done. It remapped the legacy zinc palette onto the new ramp so ~900
-     existing utilities adopted the theme with no file edits, which is what
-     made the Sprint 4 rename a provable no-op.
-
-     `initial` unsets the whole namespace rather than merely removing the
-     override. A stray `text-zinc-500` now generates no rule at all and shows
-     up as unstyled text, instead of silently falling back to stock Tailwind
-     zinc and drifting off-theme again. */
+  /* `initial` unsets the whole namespace so a stray `text-zinc-500` generates
+     nothing instead of silently falling back to stock Tailwind zinc. */
   --color-zinc-*: initial;
+
+  /* --- radius -------------------------------------------------------------
+     Arc has three shapes (control / panel / surface). The legacy Tailwind
+     steps hang off them; page passes should move to the three names. */
+  --radius-sm: calc(var(--radius-control) * 0.4);
+  --radius-md: calc(var(--radius-control) * 0.6);
+  --radius-lg: var(--radius-control);
+  --radius-xl: var(--radius-panel);
+  --radius-2xl: var(--radius-panel);
+  --radius-3xl: var(--radius-surface);
+  --radius-4xl: var(--radius-surface);
+
+  /* --- elevation ----------------------------------------------------------
+     Cards rest on a 1px border. Only floating layers cast a shadow. `inline`
+     so we change what the utilities emit without redefining --shadow-raised /
+     --shadow-resting / --shadow-floating, which Arc components read. */
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: var(--shadow-floating);
+  --shadow-lg: var(--shadow-floating);
+  --shadow-xl: var(--shadow-floating);
+  --shadow-2xl: var(--shadow-floating);
+  --shadow-ambient: none;
+  --shadow-raised: none;
+  --shadow-glass: none;
+  --shadow-overlay: var(--shadow-floating);
+
+  /* --- glass off ----------------------------------------------------------
+     backdrop-blur-* reads --blur-*. Zeroed so the ~31 call sites render flat
+     until each page pass deletes them. */
+  --blur-xs: 0px;
+  --blur-sm: 0px;
+  --blur-md: 0px;
+  --blur-lg: 0px;
+  --blur-xl: 0px;
+  --blur-2xl: 0px;
+  --blur-3xl: 0px;
+
+  /* --- weight cap -----------------------------------------------------------
+     Arc allows 400 and 500 only. Stopgap: 600+ utilities resolve to 500 until
+     each page pass removes them. */
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
+  --font-weight-extrabold: 500;
+  --font-weight-black: 500;
 }
 
 /* Non-colour tokens use a plain `@theme` (not `inline`) so Tailwind emits them
-   as real custom properties. They are read at runtime by inline styles and by
-   the D3/Three surfaces, which cannot consume utility classes. */
+   as real custom properties for inline styles and the D3 surfaces. */
 @theme {
-  /* --- type --------------------------------------------------------------
-     7 steps. 0.75rem is the floor — nothing in the UI goes below 12px.
-     The old 8-10px fluid scale is gone; the Sprint 4 codemod moved its 156
-     call sites onto these steps. */
-  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-heading: 'Roboto Variable', ui-sans-serif, system-ui, sans-serif;
+  /* --- type ---------------------------------------------------------------
+     Families point at Arc's. The size values mirror Arc's --text-* (Tailwind
+     needs the literal to build text-* utilities; a var() to itself would be
+     circular), plus the line-heights Tailwind pairs with them. */
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 
   --text-xs: 0.75rem;
@@ -237,30 +286,15 @@
   --text-2xl--line-height: 1.25;
   --text-3xl: 2.25rem;
   --text-3xl--line-height: 1.15;
-
-  /* --- radius (preset scale, monotonic) ---------------------------------- */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --text-4xl: 3.25rem;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 4.5rem;
+  --text-5xl--line-height: 1.05;
 
   /* --- spacing ----------------------------------------------------------- */
   --spacing-page: clamp(1rem, 4vw, 4rem);
   --spacing-dock: var(--dock-h);
   --spacing-dock-desktop: var(--dock-h-desktop);
-
-  /* --- elevation --------------------------------------------------------- */
-  --shadow-ambient: 0 1px 2px 0 oklch(0 0 0 / 0.3);
-  --shadow-raised: 0 10px 25px -5px oklch(0 0 0 / 0.5), 0 8px 10px -6px oklch(0 0 0 / 0.3);
-  --shadow-overlay: 0 25px 50px -12px oklch(0 0 0 / 0.7);
-  --shadow-glass:
-    0 1px 0 0 oklch(1 0 0 / 0.1) inset,
-    0 0 0 1px oklch(1 0 0 / 0.05) inset,
-    0 0 20px 0 oklch(0 0 0 / 0.5),
-    0 10px 20px -5px oklch(0 0 0 / 0.8);
 
   /* --- motion ------------------------------------------------------------ */
   --ease-maia: var(--ease-out);
