@@ -50,9 +50,11 @@ MAIA's design system is **kvcc-arc** (Dušan's fork of Arc, uiarc.dev, MIT). `sr
 Plan: `~/.claude/plans/pasted-content-id-cf4c-migrate-goofy-pebble.md`. Branch: `ds/kvcc-arc`.
 
 - [x] **Step 1 — this file.** kvcc-arc declared as the system.
-- [ ] **0. Safety** — commit WIP on `ds/foundation`, branch `ds/kvcc-arc`.
-- [ ] **1. Foundation** — register `@kvcc`, install `arc-foundation` (+ `motion`, ask first), TSX→JSX canary with `button`, Geist + Inter fonts (ask first), theme boot script, exempt `components/arc/` in the linter.
-- [ ] **2. Token bridge** — repoint `tokens.css` at Arc semantics, kill glass/blur, `.dark` → `data-theme`, light mode, `lib/tokens.js` on Arc names. `lint:tokens` must not go up.
+- [x] **0. Safety** — WIP committed on `ds/foundation` (`8d3b921`), branch `ds/kvcc-arc`.
+- [x] **1. Foundation** (`8b3d116`) — `@kvcc` registered, `arc-foundation` + `button` canary, `motion`, Geist + Inter, theme boot in `public/theme-boot.js` (external because CSP is `script-src 'self'`), theme API in `src/lib/theme.js`, `components/arc/` exempt from lint:tokens and eslint.
+- [x] **2. Token bridge** (`a23a376`) — `tokens.css` aliases legacy names onto Arc; `bg-accent` = hover surface, Arc's accent = `bg-brand`/`text-brand`; glass/blur neutralised; `lib/tokens.js` on Arc names. Leftovers for page passes: cards using `shadow-lg/xl/2xl` (now floating shadow), `backdrop-blur-*` classes (blur 0), `GlassCard`/`GlassSurface` raw colours, uppercase/bold labels, h1–h4 in Geist below 30px, D3/Recharts must `subscribe()` to redraw on theme change.
+
+**shadcn CLI gotcha:** with `tsx: false`, `shadcn add @kvcc/<id>` converts `.tsx`→`.jsx` fine but **crashes on `.css` files** ("Unexpected token"). Workaround: after the add, write each `.css` / `.module.css` by hand from the registry JSON's `content` field (`https://kvcc-arc-registry.netlify.app/r/<id>.json`). Also install the item's npm `dependencies` yourself if the crash skipped them.
 - [ ] **3. Primitives** — rebuild `composed/*` on Arc items, APIs frozen.
 - [ ] **4. Shell + pages** — `app-shell` replaces the dock (decided), `command-palette`, `theme-switch`; then Today → Notes/Editor → Chronos → Ledger → Graph, replacing `ui/*` as we go.
 - [ ] **5. Opus redesign** — port projecthub (`/Users/dusankvcc/Desktop/Atrium/Claude Code/projecthub/`: README, PORTING, CONTRACT). Logic and IA from the hub, UI from kvcc-arc (PORTING.md's "keep MAIA's own design system" line is superseded). **Data-model plan needs approval before any code.**
