@@ -1,18 +1,18 @@
 import * as React from "react";
 import { AppDialog } from "@/components/composed/AppDialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/arc/button/button";
+import { Input } from "@/components/arc/input/input";
 
 /**
- * Single-field dialog — rename, quick-create, anything that asks for one value.
+ * Single-field dialog (rename, quick-create, anything that asks for one value),
+ * built on Arc's `dialog` and `input`.
  *
- * Replaces LedgerPage's local RenameModal and the `window.prompt` in NotesPage,
- * which solved the same problem two different ways.
- *
- * This is also the first place in MAIA that shows a validation message rather
- * than silently no-opping on an empty submit.
+ * Validation shows a message through the input's own error slot rather than
+ * silently no-opping on an empty submit. `onSubmit` may return a promise: the
+ * submit button shows its loading state until it settles.
  */
+const isThenable = (value) => Boolean(value) && typeof value.then === "function";
+
 function PromptDialog({
   open,
   onClose,
@@ -30,8 +30,8 @@ function PromptDialog({
   const [value, setValue] = React.useState(initialValue);
   const [error, setError] = React.useState(null);
   const [touched, setTouched] = React.useState(false);
-  const inputId = React.useId();
-  const errorId = `${inputId}-error`;
+  const [isPending, setIsPending] = React.useState(false);
+  const inputRef = React.useRef(null);
 
   // Reset whenever the dialog is reopened, so a previous edit doesn't leak in.
   React.useEffect(() => {
@@ -39,6 +39,7 @@ function PromptDialog({
       setValue(initialValue);
       setError(null);
       setTouched(false);
+      setIsPending(false);
     }
   }, [open, initialValue]);
 
@@ -57,14 +58,32 @@ function PromptDialog({
     if (touched) setError(runValidation(next));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event?.preventDefault();
+    if (isPending) return;
     const problem = runValidation(value);
     setTouched(true);
     setError(problem);
     if (problem) return;
-    onSubmit?.(value.trim());
-    onClose?.();
+    try {
+      const result = onSubmit?.(value.trim());
+      if (isThenable(result)) {
+        setIsPending(true);
+        await result;
+      }
+      onClose?.();
+    } catch (submitError) {
+      console.error("PromptDialog: onSubmit failed", submitError);
+      setError("Couldn't save. Try again.");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  // Radix would focus the close button first; the field is the point of this dialog.
+  const focusInput = (event) => {
+    event.preventDefault();
+    inputRef.current?.focus();
   };
 
   return (
@@ -75,36 +94,32 @@ function PromptDialog({
       description={description}
       size="sm"
       contentClassName="overflow-visible"
+      onOpenAutoFocus={focusInput}
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose} disabled={isPending}>
             {cancelLabel}
           </Button>
-          <Button onClick={handleSubmit}>{submitLabel}</Button>
+          <Button loading={isPending} onClick={handleSubmit}>
+            {submitLabel}
+          </Button>
         </>
       }
       {...props}
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <Label htmlFor={inputId}>{label}</Label>
+      <form onSubmit={handleSubmit}>
         <Input
-          id={inputId}
+          ref={inputRef}
+          label={label}
           value={value}
           placeholder={placeholder}
-          autoFocus
           onChange={handleChange}
           onBlur={() => {
             setTouched(true);
             setError(runValidation(value));
           }}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={error ? errorId : undefined}
+          error={error ?? undefined}
         />
-        {error && (
-          <p id={errorId} role="alert" className="text-xs text-destructive">
-            {error}
-          </p>
-        )}
       </form>
     </AppDialog>
   );

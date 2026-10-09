@@ -1,0 +1,66 @@
+/* Layout-only additions around the Arc dialog: size steps, a pinned header, and a scrolling body with a sticky footer. */
+.dialog { display: flex; flex-direction: column; overflow: hidden; }
+.dialog > :first-child { flex: none; }
+.dialog > :last-child { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+/* Two classes so a size beats Arc's single-class width regardless of stylesheet order. */
+.dialog.sm { width: min(calc(100vw - var(--space-8)), 24rem); }
+.dialog.lg { width: min(calc(100vw - var(--space-8)), 42rem); }
+.dialog.xl { width: min(calc(100vw - var(--space-8)), 56rem); }
+.dialog.full { width: min(72rem, calc(100vw - var(--space-16))); height: min(85vh, calc(100dvh - var(--space-16))); }
+
+/* Sticks to the bottom edge and bleeds over Arc's body padding so scrolled content never shows around it. */
+.footer {
+  position: sticky;
+  bottom: calc(-1 * var(--space-6));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: var(--space-4) calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+}
+
+/* A dialog with only a footer (confirmations): sits straight under the header. */
+.footer:first-child { margin-top: calc(-1 * var(--space-6)); border-top: 0; }
+
+/*
+ * Bare variant: no header and no close button (the Chronos working surface). Arc's dialog
+ * always draws both, so this is a Radix shell on the same tokens and the same entrance.
+ */
+.overlay { position: fixed; inset: 0; z-index: 50; background: color-mix(in oklab, var(--background) 70%, transparent); }
+.bare {
+  position: fixed;
+  inset: 0;
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  width: min(72rem, calc(100vw - var(--space-16)));
+  height: min(85vh, calc(100dvh - var(--space-16)));
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-surface);
+  background: var(--surface-raised);
+  color: var(--foreground);
+  box-shadow: var(--shadow-floating);
+}
+.bare:focus { outline: none; }
+.bareBody { flex: 1 1 auto; min-height: 0; }
+.bareFooter { display: flex; flex: none; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border-subtle); }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.overlay[data-state="open"] { animation: overlay-in var(--duration-standard) var(--ease-enter) both; }
+.overlay[data-state="closed"] { animation: overlay-out var(--duration-fast) var(--ease-standard) both; pointer-events: none; }
+.bare[data-state="open"] { animation: fade-in var(--duration-fast) var(--ease-enter) both, rise-in var(--duration-spring) var(--ease-spring) both; }
+.bare[data-state="closed"] { animation: content-out var(--duration-fast) var(--ease-standard) both; pointer-events: none; }
+@keyframes overlay-in { from { opacity: 0; } }
+@keyframes overlay-out { to { opacity: 0; } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes rise-in { from { transform: translateY(8px) scale(.96); } }
+@keyframes content-out { to { opacity: 0; transform: translateY(4px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) {
+  .overlay[data-state="open"], .bare[data-state="open"] { animation: fade-in var(--duration-instant) linear both; }
+  .overlay[data-state="closed"], .bare[data-state="closed"] { animation: overlay-out var(--duration-instant) linear both; }
+}
