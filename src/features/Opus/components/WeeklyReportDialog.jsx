@@ -51,7 +51,8 @@ function ReportBody({ project, selectNote, onClose }) {
   const handleSave = () => {
     const id = createNote({
       title: reportNoteTitle(project, range),
-      content: report.markdown,
+      // Tags are re-derived from inline #tags whenever the note is edited, so the tag has to live in the text too.
+      content: `${report.markdown.trimEnd()}\n\n#report\n`,
       tags: ["report"],
       projectIds: [project.id],
     });

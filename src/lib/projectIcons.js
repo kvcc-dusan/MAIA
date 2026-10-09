@@ -15,11 +15,11 @@
 
 export const ICON_COLORS = [
     { id: "white",  label: "White",   value: "var(--foreground)" },
-    { id: "blue",   label: "Blue",    value: "var(--priority-1)" },
-    { id: "orange", label: "Orange",  value: "var(--priority-2)" },
+    { id: "blue",   label: "Blue",    value: "var(--series-1)" },
+    { id: "orange", label: "Orange",  value: "var(--series-3)" },
     { id: "green",  label: "Green",   value: "var(--success)" },
     { id: "amber",  label: "Amber",   value: "var(--warning)" },
-    { id: "rose",   label: "Rose",    value: "var(--destructive)" },
+    { id: "rose",   label: "Rose",    value: "var(--danger)" },
 ];
 
 /** Ordered icon IDs shown in the picker (6 × 10 = 60). */
