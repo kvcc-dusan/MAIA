@@ -3,19 +3,15 @@ import { cn } from "@/lib/utils";
 import { GlassErrorBoundary } from "@/components/GlassErrorBoundary";
 import { IconButton } from "@/components/composed/IconButton";
 import { GripVertical, Maximize2, Minimize2, X } from "lucide-react";
+import styles from "./Widget.module.css";
 
 /**
- * The one dashboard widget chrome.
- *
- * The three Today cards each hand-copied the same
- * `rounded-2xl border border-border bg-card/40 shadow-lg backdrop-blur-xl`
- * string, with diverging header/footer padding and — worse — inconsistent
- * error-boundary placement (WorldMap was wrapped by the page, the other two
- * wrapped themselves). The shell owns all of it, so a new widget is just
- * content.
+ * The one dashboard widget chrome: bordered panel, title row, body inside an
+ * error boundary, optional footer.
  *
  * Edit-mode controls live here rather than in each widget: drag handle, a
- * 1↔2 column span toggle, and remove.
+ * 1 to 2 column span toggle, and remove. `dragHandleProps` is spread on the
+ * handle so dnd-kit's listeners and attributes land on it.
  */
 function Widget({
   title,
@@ -36,19 +32,12 @@ function Widget({
   return (
     <section
       aria-label={title}
-      className={cn(
-        "group/widget relative flex min-h-0 flex-col overflow-hidden rounded-2xl",
-        "border border-border bg-card/40 supports-backdrop-filter:backdrop-blur-xl shadow-raised",
-        isDragging && "opacity-60 ring-2 ring-ring",
-        className
-      )}
+      className={cn("group/widget", styles.widget, isDragging && styles.dragging, className)}
       {...props}
     >
-      <header className="flex flex-none items-center justify-between gap-2 px-5 pt-5 pb-0">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-          {title}
-        </h2>
-        <div className="flex items-center gap-1">
+      <header className={styles.header}>
+        <h2 className={styles.title}>{title}</h2>
+        <div className={styles.controls}>
           {!isEditing && trailing}
           {isEditing && (
             <>
@@ -70,25 +59,21 @@ function Widget({
               <button
                 type="button"
                 aria-label={`Reorder ${title}`}
-                className="cursor-grab touch-none rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground active:cursor-grabbing"
+                className={styles.handle}
                 {...dragHandleProps}
               >
-                <GripVertical className="size-4" aria-hidden="true" />
+                <GripVertical size={16} strokeWidth={1.75} aria-hidden="true" />
               </button>
             </>
           )}
         </div>
       </header>
 
-      <div className={cn("min-h-0 flex-1 px-5 pt-3 pb-5", bodyClassName)}>
+      <div className={cn(styles.body, bodyClassName)}>
         <GlassErrorBoundary title={`${title} unavailable`}>{children}</GlassErrorBoundary>
       </div>
 
-      {footer && (
-        <footer className="flex flex-none items-center justify-between border-t border-border-subtle bg-muted/20 px-5 py-3">
-          {footer}
-        </footer>
-      )}
+      {footer && <footer className={styles.footer}>{footer}</footer>}
     </section>
   );
 }

@@ -1,0 +1,15 @@
+@layer components {
+  .root {
+    display: flex;
+    width: 100%;
+    min-height: 150px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    /* Error messages are raw and can be long. */
+    overflow-wrap: anywhere;
+  }
+  .alert { width: 100%; max-width: 28rem; }
+}

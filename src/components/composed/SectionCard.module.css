@@ -1,0 +1,29 @@
+@layer components {
+  /* Rests on a hairline border: no shadow, no blur, no translucency. */
+  .card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: var(--surface);
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .heading {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .icon {
+    flex: none;
+    color: var(--text-muted);
+  }
+}

@@ -1,0 +1,12 @@
+@layer components {
+  /* Sentence-case label. Consumers may still add utilities (color, padding) on top. */
+  .label {
+    margin: 0;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: var(--leading-body);
+    white-space: nowrap;
+  }
+}

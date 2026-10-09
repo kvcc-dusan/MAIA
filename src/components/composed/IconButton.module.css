@@ -1,0 +1,11 @@
+/* Unlayered and doubled on purpose: Arc's button styles are unlayered and set
+   its own horizontal padding, so square sizing has to out-rank them. Layout
+   only (width, padding); Arc keeps colors, radius and states. */
+.sm.sm { width: var(--control-height-sm); padding: 0; }
+.md.md { width: var(--control-height-md); padding: 0; }
+.lg.lg { width: var(--control-height-lg); padding: 0; }
+
+/* 36px controls grow to the 44px touch minimum on coarse pointers. */
+@media (pointer: coarse) {
+  .sm.sm { width: var(--control-height-md); min-height: var(--control-height-md); }
+}

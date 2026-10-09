@@ -1,15 +1,15 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Surface } from "@/components/composed/Surface";
-import { Button } from "@/components/ui/button";
-import { TriangleAlertIcon } from "lucide-react";
+import { Alert } from "@/components/arc/alert/alert";
+import { Button } from "@/components/arc/button/button";
+import styles from "./ErrorState.module.css";
 
 /**
- * Error fallback.
+ * Error fallback: what broke (`title`), what happened (`message`) and how to
+ * fix it (`onRetry` renders a retry button).
  *
- * The old boundary hardcoded the copy "Widget Unavailable" but was also mounted
- * as the app-level boundary in App.jsx, so a crashed *page* told you a widget
- * had failed. `title` is a prop now, and the caller says what actually broke.
+ * `title` is a prop because this is also the app-level boundary: the caller
+ * says what actually broke instead of a hardcoded "widget" string.
  */
 function ErrorState({
   title = "Something went wrong",
@@ -20,25 +20,16 @@ function ErrorState({
   ...props
 }) {
   return (
-    <Surface
-      variant="panel"
-      inset="lg"
-      className={cn("flex h-full min-h-[150px] w-full flex-col items-center justify-center gap-3 text-center", className)}
-      {...props}
-    >
-      <div className="flex size-10 items-center justify-center rounded-full bg-destructive/15 text-destructive" aria-hidden="true">
-        <TriangleAlertIcon className="size-5" />
-      </div>
-      <h3 className="text-sm font-medium text-foreground">{title}</h3>
-      {message && (
-        <p className="max-w-[240px] wrap-break-word text-xs text-muted-foreground">{message}</p>
-      )}
+    <div className={cn(styles.root, className)} {...props}>
+      <Alert tone="danger" title={title} className={styles.alert}>
+        {message}
+      </Alert>
       {onRetry && (
         <Button size="sm" variant="secondary" onClick={onRetry}>
           {retryLabel}
         </Button>
       )}
-    </Surface>
+    </div>
   );
 }
 

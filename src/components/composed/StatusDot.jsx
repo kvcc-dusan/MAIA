@@ -1,71 +1,45 @@
 import * as React from "react";
-import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/arc/badge/badge";
+import styles from "./StatusDot.module.css";
 
 /**
- * Status / priority dot.
+ * Status dot. Color alone never carries status: a dot with no `label` is
+ * decorative (aria-hidden) and must sit next to visible text; pass `label`
+ * to get a screen-reader name for a standalone dot.
  *
- * Priority colour was defined three times (lib/utils.js, lib/constants.js and
- * inline in FocusTaskItem.jsx), each returning raw hex, and rendered via
- * `style={{ backgroundColor }}` with string-concatenated alpha for the glow.
- * One component, token-driven, so a theme change reaches all of them.
+ * `glow` is accepted for compatibility but ignored (Arc has no glows).
  */
-const dotVariants = cva("inline-block shrink-0 rounded-full", {
-  variants: {
-    tone: {
-      p1: "bg-priority-1",
-      p2: "bg-priority-2",
-      p3: "bg-priority-3",
-      success: "bg-success",
-      warning: "bg-warning",
-      danger: "bg-destructive",
-      info: "bg-info",
-      intel: "bg-intel",
-      muted: "bg-subtle-foreground",
-    },
-    size: {
-      sm: "size-1.5",
-      md: "size-2",
-      lg: "size-2.5",
-    },
-    glow: {
-      true: "shadow-[0_0_6px_currentColor]",
-      false: "",
-    },
-    pulse: {
-      true: "animate-pulse",
-      false: "",
-    },
-  },
-  defaultVariants: { tone: "muted", size: "md", glow: false, pulse: false },
-});
-
-function StatusDot({ tone, size, glow, pulse, className, ...props }) {
+// eslint-disable-next-line no-unused-vars -- glow kept in the API, see above
+function StatusDot({ tone = "muted", size = "md", glow, pulse = false, label, className, ...props }) {
+  const classes = cn(styles.dot, styles[tone], styles[size], pulse && styles.pulse);
+  if (!label) return <span aria-hidden="true" className={cn(classes, className)} {...props} />;
   return (
-    <span
-      aria-hidden="true"
-      className={cn(dotVariants({ tone, size, glow, pulse }), className)}
-      {...props}
-    />
+    <span className={cn(styles.wrap, className)} {...props}>
+      <span aria-hidden="true" className={classes} />
+      <span className={styles.sr}>{label}</span>
+    </span>
   );
 }
 
 const PRIORITY_LABELS = { p1: "High", p2: "Medium", p3: "Normal" };
+const PRIORITY_BADGE_TONE = { p1: "danger", p2: "warning", p3: "neutral" };
 
-/** Priority chip — dot plus label, for rows and detail panes. */
+/** Priority chip: Arc badge with a priority dot and the label. */
 function PriorityChip({ priority = "p3", showLabel = true, className, ...props }) {
   const tone = PRIORITY_LABELS[priority] ? priority : "p3";
+  if (!showLabel) {
+    return <StatusDot tone={tone} size="sm" label={PRIORITY_LABELS[tone]} className={className} {...props} />;
+  }
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground",
-        className
-      )}
+    <Badge
+      tone={PRIORITY_BADGE_TONE[tone]}
+      icon={<StatusDot tone={tone} size="sm" />}
+      className={className}
       {...props}
     >
-      <StatusDot tone={tone} size="sm" />
-      {showLabel && PRIORITY_LABELS[tone]}
-    </span>
+      {PRIORITY_LABELS[tone]}
+    </Badge>
   );
 }
 

@@ -1,0 +1,30 @@
+@layer components {
+  .dot {
+    display: inline-block;
+    flex: none;
+    border-radius: var(--radius-pill);
+    background: var(--dot-color);
+  }
+  .sm { width: var(--space-2); height: var(--space-2); }
+  .md { width: 10px; height: 10px; }
+  .lg { width: var(--space-3); height: var(--space-3); }
+
+  .p1, .danger { --dot-color: var(--danger); }
+  .p2, .warning { --dot-color: var(--warning); }
+  .p3 { --dot-color: var(--accent); }
+  .success { --dot-color: var(--success); }
+  .info { --dot-color: var(--series-1); }
+  .intel { --dot-color: var(--series-2); }
+  .muted { --dot-color: var(--text-muted); }
+
+  /* Pulse is for live status only; reduced motion keeps the static dot. */
+  @media (prefers-reduced-motion: no-preference) {
+    .pulse { animation: status-dot-pulse 2s var(--ease-in-out) infinite; }
+  }
+  @keyframes status-dot-pulse {
+    50% { opacity: .45; }
+  }
+
+  .wrap { position: relative; display: inline-flex; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
