@@ -9,6 +9,7 @@ import { useWeather } from "../hooks/useWeather.js";
 import { useSignals } from "../hooks/useSignals.js";
 import { STORAGE_KEYS, USER_NAME } from "../lib/constants.js";
 import { sameDay, isPastTime, formatTime } from "../lib/time.js";
+import styles from "./HomePage.module.css";
 
 /* -------------------------------------------
    Today — widget dashboard
@@ -108,7 +109,7 @@ export default function TodayPage({
         // Sessions are written with linkedProjectId; reading s.projectId here
         // is what made every project's session count render as zero.
         contextLabel: s.linkedProjectId ? projectName[s.linkedProjectId] : null,
-        timeLabel: s.end ? `${formatTime(start)} – ${formatTime(s.end)}` : formatTime(start),
+        timeLabel: s.end ? `${formatTime(start)} to ${formatTime(s.end)}` : formatTime(start),
         isPast: s.end ? isPastTime(s.end) : isPastTime(start),
         session: s,
       });
@@ -206,13 +207,8 @@ export default function TodayPage({
   );
 
   return (
-    <div className="relative h-full w-full overflow-y-auto overflow-x-hidden custom-scrollbar bg-background font-sans text-foreground selection:bg-overlay-strong">
-      <div className="home-bg pointer-events-none absolute inset-0 z-0" />
-
-      {/* `min-h-full` used to pin this column to exactly one viewport, which is
-          why the grid below could only ever fill the screen and nothing could
-          be added under it. It sizes to content now and the page scrolls. */}
-      <div className="home-hero relative z-10 flex w-full flex-col">
+    <div className={`custom-scrollbar ${styles.page}`}>
+      <div className="flex w-full flex-col">
         <TodayGrid
           layout={layout}
           setLayout={setStoredLayout}
@@ -228,17 +224,13 @@ export default function TodayPage({
             />
           }
           greeting={
-            <div className="home-greeting-block">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                Today · {dateLabel}
-              </p>
-              <h2 className="home-greeting font-sans font-medium tracking-tight">
-                <span className="text-muted-foreground">{greeting}</span>{" "}
-                <span className="text-foreground">{USER_NAME}.</span>
+            <div className={styles.greetingBlock}>
+              <p className={styles.date}>{dateLabel}</p>
+              <h2 className={styles.greeting}>
+                <span className={styles.greetingLead}>{greeting}</span>{" "}
+                <span>{USER_NAME}.</span>
               </h2>
-              <p className="home-quote font-sans italic text-foreground/45">
-                &ldquo;{quote}&rdquo;
-              </p>
+              <p className={styles.quote}>&ldquo;{quote}&rdquo;</p>
             </div>
           }
         />

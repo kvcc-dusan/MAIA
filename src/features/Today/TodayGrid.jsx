@@ -16,10 +16,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/arc/button/button";
 import { Menu } from "@/components/composed/Menu";
 import { WIDGETS, WIDGETS_BY_ID } from "./widgets";
 import { Check, Pencil, Plus } from "lucide-react";
+import styles from "./TodayGrid.module.css";
 
 /**
  * The Today dashboard grid.
@@ -29,9 +30,7 @@ import { Check, Pencil, Plus } from "lucide-react";
  *
  * The greeting is the page's hero header: it anchors the top-left with the
  * edit controls top-right, and the grid below stretches to fill the remaining
- * height (`auto-rows-fr`) so the window never shows a dead middle. The desktop
- * dock is a floating overlay, so the root reserves its height as bottom
- * padding — content that reaches the bottom must clear it.
+ * height (`auto-rows-fr`) so the window never shows a dead middle.
  */
 
 const SPAN_CLASS = {
@@ -54,7 +53,7 @@ function SortableWidget({ entry, isEditing, widgetProps, onToggleSpan, onRemove 
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("col-span-1", SPAN_CLASS[entry.span], def.minHeight, isDragging && "z-dialog")}
+      className={cn(styles.item, "col-span-1", SPAN_CLASS[entry.span], def.minHeight, isDragging && "z-dialog")}
     >
       <Component
         {...ownProps}
@@ -115,19 +114,17 @@ export default function TodayGrid({ layout, setLayout, greeting, agenda, widgetP
   );
 
   return (
-    // Mobile reserves the tab-bar height one level up (App wraps <main> with
-    // pb-(--dock-h)); only the desktop floating dock needs explicit clearance.
-    <div className="flex w-full flex-col gap-6 px-page py-8 md:pb-[calc(var(--spacing-page)+var(--dock-h-desktop))]">
+    <div className={styles.page}>
       {/* Hero header — greeting top-left, layout controls top-right. */}
-      <header className="flex flex-none items-start justify-between gap-4">
+      <header className={styles.header}>
         {greeting}
-        <div className="flex flex-none items-center gap-2 pt-1">
+        <div className={styles.controls}>
           {isEditing && missing.length > 0 && (
             <Menu.Root>
               <Menu.Trigger
                 render={
-                  <Button variant="outline" size="sm">
-                    <Plus className="size-4" /> Add widget
+                  <Button variant="secondary" size="sm">
+                    <Plus size={16} strokeWidth={1.75} aria-hidden="true" /> Add widget
                   </Button>
                 }
               />
@@ -141,12 +138,12 @@ export default function TodayGrid({ layout, setLayout, greeting, agenda, widgetP
             </Menu.Root>
           )}
           <Button
-            variant={isEditing ? "default" : "ghost"}
+            variant={isEditing ? "primary" : "ghost"}
             size="sm"
             onClick={() => setIsEditing((v) => !v)}
             aria-pressed={isEditing}
           >
-            {isEditing ? <Check className="size-4" /> : <Pencil className="size-4" />}
+            {isEditing ? <Check size={16} strokeWidth={1.75} aria-hidden="true" /> : <Pencil size={16} strokeWidth={1.75} aria-hidden="true" />}
             {isEditing ? "Done" : "Edit"}
           </Button>
         </div>
@@ -163,7 +160,7 @@ export default function TodayGrid({ layout, setLayout, greeting, agenda, widgetP
               so every widget rendered ~full-window tall no matter how little
               was in it. The min-h floors in the registry are floors, not
               targets. Cards still stretch to equal height within a row. */}
-          <div className="grid min-h-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className={styles.grid}>
             {layout.map((entry) => (
               <SortableWidget
                 key={entry.id}

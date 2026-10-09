@@ -1,0 +1,99 @@
+@layer components {
+  .group { display: grid; gap: var(--space-1); }
+  .group + .group { margin-top: var(--space-3); }
+
+  .groupHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .overdueLabel { color: var(--danger); }
+
+  .row {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--control-height-sm);
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1) var(--space-2);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: var(--foreground);
+    font: inherit;
+    text-align: left;
+    transition: background var(--duration-fast) var(--ease-standard);
+  }
+  button.row { cursor: pointer; }
+  @media (hover: hover) and (pointer: fine) {
+    .row:hover { background: var(--surface-muted); }
+  }
+  @media (pointer: coarse) {
+    .row { min-height: var(--control-height-md); }
+  }
+
+  /* Past items read as done by colour step and a text cue, not by opacity,
+     which would drop their contrast under 4.5:1. */
+  .past .title, .past .time { color: var(--text-muted); }
+
+  .time {
+    flex: none;
+    width: 6.5rem;
+    color: var(--text-secondary);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--leading-body);
+  }
+  @media (min-width: 560px) {
+    .time { width: 9rem; white-space: nowrap; }
+  }
+  .overdueTime { color: var(--danger); }
+
+  .title {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--text-sm);
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .kindIcon { display: grid; flex: none; place-items: center; color: var(--text-muted); }
+
+  .context {
+    flex: none;
+    max-width: 10rem;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (max-width: 559px) {
+    .context { display: none; }
+  }
+
+  .marker { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-1) var(--space-2); }
+  .markerTime {
+    width: 6.5rem;
+    flex: none;
+    color: var(--accent);
+    font-size: var(--text-xs);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  @media (min-width: 560px) {
+    .markerTime { width: 9rem; }
+  }
+  .markerLine { height: 1px; flex: 1; background: var(--border-strong); }
+}

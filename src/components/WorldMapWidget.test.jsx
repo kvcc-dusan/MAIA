@@ -60,6 +60,6 @@ describe('WorldMapWidget', () => {
     const svg = container.querySelector('svg');
     expect(svg).toBeTruthy();
     // Check if dot is rendered
-    expect(container.querySelector('.animate-ping')).toBeTruthy();
+    expect(container.querySelector('[data-location-dot]')).toBeTruthy();
   });
 });

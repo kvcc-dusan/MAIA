@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { getPriorityColor } from "@/lib/utils";
+import styles from "./FocusTaskItem.module.css";
 
 /**
  * A row in the Focus widget.
@@ -12,32 +13,24 @@ import { getPriorityColor } from "@/lib/utils";
  * HomePage since the widget was written and was never displayed — without it
  * the list is a column of bare titles with no hint which project they belong to.
  */
+const PRIORITY_LABEL = { p1: "Priority 1", p2: "Priority 2", p3: "Priority 3", high: "High priority", medium: "Medium priority", low: "Low priority" };
+
 export default function FocusTaskItem({ task, onClick }) {
-  const dotColor = getPriorityColor(task.priority || 'p3');
+  const priority = task.priority || "p3";
 
   return (
     <li>
-      <button
-        type="button"
-        onClick={onClick}
-        className="group -mx-2 flex w-full items-center gap-3 rounded px-2 py-1 text-left text-sm font-medium text-card-foreground transition-colors hover:bg-overlay-subtle"
-      >
+      <button type="button" onClick={onClick} className={styles.row}>
         <span
-          className="w-1.5 h-1.5 rounded-full shrink-0 transition-opacity"
-          style={{
-            backgroundColor: task.done ? 'currentColor' : dotColor,
-            opacity: task.done ? 0.5 : 1,
-            boxShadow: task.done ? 'none' : `0 0 4px ${dotColor}`
-          }}
+          className={`${styles.dot} ${task.done ? styles.done : ""}`}
+          style={{ backgroundColor: task.done ? "currentColor" : getPriorityColor(priority) }}
+          aria-hidden="true"
         />
-        <span className={`min-w-0 flex-1 truncate ${task.done ? "line-through text-muted-foreground" : ""}`}>
+        {!task.done && <span className="sr-only">{PRIORITY_LABEL[priority] ?? priority}: </span>}
+        <span className={`${styles.title} ${task.done ? `line-through ${styles.titleDone}` : ""}`}>
           {task.title}
         </span>
-        {task.contextLabel && (
-          <span className="shrink-0 truncate text-xs text-subtle-foreground max-w-[8rem]">
-            {task.contextLabel}
-          </span>
-        )}
+        {task.contextLabel && <span className={styles.context}>{task.contextLabel}</span>}
       </button>
     </li>
   );

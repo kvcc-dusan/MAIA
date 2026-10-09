@@ -1,9 +1,11 @@
 import React, { useCallback } from "react";
 import { Widget } from "./composed/Widget.jsx";
 import { EmptyState } from "./composed/EmptyState.jsx";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.jsx";
-import { ChevronRight } from "./ui/CustomIcon.jsx";
-import { StickyNote } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "./arc/popover/popover.jsx";
+import { Button } from "./arc/button/button.jsx";
+import { Textarea } from "./arc/textarea/textarea.jsx";
+import { ChevronRight, StickyNote } from "lucide-react";
+import styles from "./QuickCaptureWidget.module.css";
 
 /**
  * QuickCaptureWidget — journal capture plus today's entries.
@@ -11,8 +13,8 @@ import { StickyNote } from "lucide-react";
  * The entries popup used to be a createPortal with hand-measured
  * getBoundingClientRect positioning and a fixed translateY(-100%) — no flip
  * logic, so it broke the moment the widget wasn't at the bottom of the page.
- * Base UI's Popover handles placement and collisions, which matters now that
- * the widget can be dragged anywhere in the grid.
+ * Arc's Popover (Radix) handles placement and collisions, which matters now
+ * that the widget can be dragged anywhere in the grid.
  */
 export default function QuickCaptureWidget({
     captureContent,
@@ -29,40 +31,36 @@ export default function QuickCaptureWidget({
             title="Quick Capture"
             trailing={
                 todayEntries.length > 0 ? (
-                    <span className="text-xs text-muted-foreground">{todayEntries.length} today</span>
+                    <span className={styles.count}>{todayEntries.length} today</span>
                 ) : null
             }
             footer={
                 <>
                     <Popover>
-                        <PopoverTrigger
-                            render={
-                                <button className="text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground">
-                                    Entries
-                                </button>
-                            }
-                        />
-                        <PopoverContent side="top" align="start" className="w-64 p-4">
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="sm">Entries</Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" align="start" className="w-64">
                             {todayEntries.length === 0 ? (
                                 <EmptyState
                                     icon={StickyNote}
                                     title="No entries yet today"
+                                    description="Capture a thought and it lands here."
                                     size="inline"
                                 />
                             ) : (
-                                <div className="max-h-48 space-y-2.5 overflow-y-auto custom-scrollbar">
+                                <div className={`${styles.entries} custom-scrollbar`}>
                                     {todayEntries.map((entry) => (
                                         <button
                                             key={entry.id}
+                                            type="button"
                                             onClick={() => onOpenNote?.(entry.id)}
-                                            className="w-full border-l border-border pl-3 text-left transition-colors hover:border-border-strong"
+                                            className={styles.entry}
                                         >
-                                            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                                            <span className={styles.entryTime}>
                                                 {new Date(entry.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                            </div>
-                                            <div className="line-clamp-1 text-xs leading-snug text-muted-foreground transition-colors hover:text-foreground">
-                                                {entry.title}
-                                            </div>
+                                            </span>
+                                            <span className={styles.entryTitle}>{entry.title}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -70,24 +68,27 @@ export default function QuickCaptureWidget({
                         </PopoverContent>
                     </Popover>
 
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={handleCapture}
                         disabled={!captureContent?.trim()}
-                        className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-20"
                     >
-                        <span>Capture</span>
-                        <ChevronRight size={14} className="shrink-0" />
-                    </button>
+                        Capture
+                        <ChevronRight size={16} strokeWidth={1.75} aria-hidden="true" />
+                    </Button>
                 </>
             }
             {...shell}
         >
-            <textarea
-                value={captureContent}
-                onChange={(e) => setCaptureContent(e.target.value)}
-                placeholder="What's on your mind…"
-                className="h-full min-h-16 w-full resize-none bg-transparent text-sm leading-relaxed text-foreground outline-hidden placeholder:text-muted-foreground/50"
-            />
+            <div className={styles.capture}>
+                <Textarea
+                    label="What's on your mind"
+                    value={captureContent}
+                    onChange={(e) => setCaptureContent(e.target.value)}
+                    className={styles.area}
+                />
+            </div>
         </Widget>
     );
 }

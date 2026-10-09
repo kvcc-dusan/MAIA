@@ -3,9 +3,10 @@ import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import { Widget } from "./composed/Widget.jsx";
 import { EmptyState } from "./composed/EmptyState.jsx";
-import { Button } from "./ui/button.jsx";
+import { Button } from "./arc/button/button.jsx";
 import { MapPinOff, RefreshCw } from "lucide-react";
 import { getOrdinalSuffix } from "@/lib/utils";
+import styles from "./WorldMapWidget.module.css";
 
 export const MapVisual = React.memo(({ coords, topology }) => {
     // D3 Map Logic
@@ -44,48 +45,25 @@ export const MapVisual = React.memo(({ coords, topology }) => {
     }, [mapData, coords]);
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className={styles.mapFill}>
             <svg
                 viewBox="0 0 300 180"
-                className="h-full w-full opacity-100"
+                className={styles.svg}
                 preserveAspectRatio="xMidYMid meet"
                 aria-hidden="true"
             >
-                {/* 
-                    Visual Fixes: 
-                    - Land: distinct dark grey to stand out against the glass ground.
-                    - Sea: Transparent (shows the glass/glow behind).
-                    - Stroke: Subtle border to define shapes.
-                */}
-                <path
-                    d={pathD}
-                    className="fill-background stroke-border stroke-[0.5]"
-                />
+                <path d={pathD} className={styles.land} />
 
-                {/* Location Dot */}
-                {/* Location Dot with Pill Pulse Animation */}
                 {dotPos && (
-                    <foreignObject
-                        x={dotPos.x - 10}
-                        y={dotPos.y - 10}
-                        width="20"
-                        height="20"
-                        className="overflow-visible" // Allow ping to spill out if needed
-                    >
-                        <div className="flex h-full w-full items-center justify-center">
-                            <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: "var(--success)" }}></span>
-                                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "var(--success)" }}></span>
-                            </span>
-                        </div>
-                    </foreignObject>
+                    <g data-location-dot>
+                        <circle cx={dotPos.x} cy={dotPos.y} r="3" className={styles.pulse} />
+                        <circle cx={dotPos.x} cy={dotPos.y} r="3" className={styles.dot} />
+                    </g>
                 )}
             </svg>
         </div>
     );
 });
-
-
 
 export default function WorldMapWidget({
   weather,
@@ -105,6 +83,7 @@ export default function WorldMapWidget({
 
     // Lazy load map data
     const [topology, setTopology] = useState(null);
+    const [mapFailed, setMapFailed] = useState(false);
     useEffect(() => {
         let mounted = true;
         // Dynamic import for bundle optimization
@@ -112,7 +91,10 @@ export default function WorldMapWidget({
             .then((mod) => {
                 if (mounted) setTopology(mod.default || mod);
             })
-            .catch((err) => console.error("Failed to load map topology:", err));
+            .catch((err) => {
+                console.error("Failed to load map topology:", err);
+                if (mounted) setMapFailed(true);
+            });
         return () => { mounted = false; };
     }, []);
 
@@ -132,53 +114,55 @@ export default function WorldMapWidget({
             bodyClassName="flex min-h-0 flex-col px-0 pt-0 pb-0"
             footer={
                 <>
-                    <span className="text-xs tracking-wide text-muted-foreground">
+                    <span className={styles.footerText}>
                         {condition ? condition + " " : ""}{temp ? `${Math.round(temp)}°` : "--"}
                     </span>
-                    <span className="text-xs tabular-nums tracking-wide text-muted-foreground">{timeStr}</span>
+                    <span className={`${styles.footerText} ${styles.footerTime}`}>{timeStr}</span>
                 </>
             }
             {...shell}
         >
-            <div className="flex flex-none items-start justify-between px-5 pb-3">
-                {/* Left: Date */}
-                <div className="flex flex-col items-start text-left">
-                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
-                        {dayName}
-                    </div>
-                    <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
+            <div className={styles.head}>
+                <div className={styles.headCol}>
+                    <div className={styles.primary}>{dayName}</div>
+                    <div className={styles.secondary}>
                         {monthName} {dayNum}{getOrdinalSuffix(dayNum)}
                     </div>
                 </div>
 
-                {/* Right: Location */}
-                <div className="flex flex-col items-end text-right">
-                    <div className="text-sm font-medium leading-none tracking-wide text-card-foreground">
+                <div className={`${styles.headCol} ${styles.headRight}`}>
+                    <div className={styles.primary}>
                         {isUnavailable
                             ? "Location unavailable"
                             : place
                               ? place.split(',')[0] + ", " + (place.split(',').pop()?.trim() || "")
                               : "Locating..."}
                     </div>
-                    <div className="mt-1.5 text-xs leading-none uppercase tracking-widest text-muted-foreground">
+                    <div className={styles.secondary}>
                         {timeZoneLabel || Intl.DateTimeFormat().resolvedOptions().timeZone}
                     </div>
                 </div>
             </div>
 
-            {/* The map no longer depends on an `@container home` breakpoint to be
-                visible — the shell owns sizing, so it renders wherever it's placed. */}
-            <div className="relative min-h-24 w-full flex-1 overflow-hidden">
+            {/* The map renders wherever the shell places it; it has no
+                container-query breakpoint to lose. */}
+            <div className={styles.mapBox} aria-busy={!topology && !mapFailed ? true : undefined}>
                 {isUnavailable ? (
                     <EmptyState
                         icon={MapPinOff}
                         title="No location fix"
                         description="Enable location, or retry to use the last known position."
                         action={
-                            <Button variant="outline" size="sm" onClick={() => retryWeather?.()}>
-                                <RefreshCw className="size-4" /> Retry
+                            <Button variant="secondary" size="sm" onClick={() => retryWeather?.()}>
+                                <RefreshCw size={16} strokeWidth={1.75} aria-hidden="true" /> Retry
                             </Button>
                         }
+                    />
+                ) : mapFailed ? (
+                    <EmptyState
+                        icon={MapPinOff}
+                        title="Map unavailable"
+                        description="The map data didn't load. Reload the app to try again."
                     />
                 ) : (
                     <MapVisual coords={coords} topology={topology} />
