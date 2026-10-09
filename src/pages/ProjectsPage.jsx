@@ -1,15 +1,46 @@
 // @maia:projects
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
-import { Menu, ContextDangerItem } from "@/components/composed/Menu";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { FolderKanban, PanelLeftOpen, Plus } from "lucide-react";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
-import { uid } from "../lib/ids.js";
-import GlassSurface from "../components/GlassSurface";
-import CreateProjectModal from "../components/CreateProjectModal";
-import ProjectIcon, { IconPicker } from "../components/ProjectIcon";
 import { EmptyState } from "@/components/composed/EmptyState";
-import { Briefcase08, Pen01, Setting06, Delete01, PlusSignSquare, LayoutAlignLeft, LayoutAlignRight } from "../components/ui/CustomIcon.jsx";
+import { SidePanel } from "@/components/composed/SidePanel";
+import { SectionLabel } from "@/components/composed/SectionBits";
+import { Button } from "@/components/arc/button/button";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+import { uid } from "../lib/ids.js";
+import CreateProjectModal from "../components/CreateProjectModal";
+import IconPicker from "../components/projectIcon/IconPicker";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
+import ProjectList from "../features/Opus/components/ProjectList";
+import ProjectSidebar from "../features/Opus/components/ProjectSidebar";
+import { normalizeProject } from "../features/Opus/lib/projectModel.js";
 import { useData } from "../context/DataContext";
+import styles from "./ProjectsPage.module.css";
+
+const SIDEBAR_COLLAPSED_KEY = "opus_sidebar_collapsed";
+
+// "Done" is stored; the UI calls it Archived.
+const STATUS_OPTIONS = [
+  { value: "Active", label: "Active" },
+  { value: "Paused", label: "Paused" },
+  { value: "Done", label: "Archived" },
+];
+
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const writeCollapsed = (isCollapsed) => {
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed));
+  } catch {
+    // storage blocked: the choice lasts for this session only
+  }
+};
 
 /* -----------------------------------------
    Helpers
@@ -39,7 +70,7 @@ export default function Projects({
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
-  const { deleteProject: deleteProjectCascade } = useData();
+  const { updateProject, deleteProject: deleteProjectCascade } = useData();
   const [activeId, setActiveId] = useState(null);
 
   // Sync targetProjectId from parent if provided
@@ -70,292 +101,148 @@ export default function Projects({
   );
 
   const handleCreateProject = ({ name, icon, iconColor }) => {
-    const newProj = withDefaults({ name, icon, iconColor });
-    // We defer to DataContext's createProject usually but here we are manipulating array directly via props?
-    // Based on App.jsx, setProjects is passed directly. 
-    // Better to use a pattern consistent with DataContext. 
-    // Ideally we'd call createProject from context, but props are passed here.
-    // For now, simple array append ok, but we need ensuring schema.
-    setProjects([...projects, newProj]);
+    const newProj = normalizeProject(withDefaults({ name, icon, iconColor }));
+    // Appends (new projects land at the bottom of the list) through a functional
+    // updater, so the write sees the stored array instead of rewriting the
+    // normalized copy this component holds. DataContext.createProject prepends
+    // and has no icon fields, so it isn't a drop-in.
+    setProjects((prev) => [...prev, newProj]);
     setActiveId(newProj.id);
   };
 
-  const updateProject = useCallback((id, patch) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...patch } : p));
-  }, [setProjects]);
+  // The target outlives the dialog so its text doesn't change while it fades out.
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const [pendingDelete, setPendingDelete] = useState(null);
-
-  const deleteProject = (id) => setPendingDelete(id);
+  const requestDelete = (id) => {
+    const name = normalizedProjects.find((p) => p.id === id)?.name;
+    setDeleteTarget({ id, name: name ?? "this project" });
+    setIsDeleteOpen(true);
+  };
 
   const confirmDeleteProject = () => {
-    const id = pendingDelete;
+    const id = deleteTarget.id;
     // Must go through DataContext: removing the project here with a bare
     // setProjects skipped the whole cascade, so deleting a project left its
     // notes still carrying the dead id and its tasks and sessions pointing at
     // a project that no longer existed.
     deleteProjectCascade(id);
     if (activeId === id) setActiveId(null);
-  }
-
-  // Sidebar context menu
-  const [renamingId, setRenamingId] = useState(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [iconPickerId, setIconPickerId] = useState(null);
-  const renameInputRef = useRef(null);
-
-  const startRename = (p) => {
-    setRenamingId(p.id);
-    setRenameValue(p.name);
-    setTimeout(() => renameInputRef.current?.focus(), 30);
   };
 
-  const commitRename = () => {
-    if (renameValue.trim()) updateProject(renamingId, { name: renameValue.trim() });
+  // Rename and icon edit
+  const [renamingId, setRenamingId] = useState(null);
+  const [iconPickerId, setIconPickerId] = useState(null);
+
+  const commitRename = (id, name) => {
+    if (name.trim()) updateProject(id, { name: name.trim() });
     setRenamingId(null);
   };
 
   // Group projects
-  const activeList = normalizedProjects.filter(p => p.status === "Active");
-  const otherList = normalizedProjects.filter(p => p.status !== "Active");
+  const activeList = normalizedProjects.filter((p) => p.status === "Active");
+  const otherList = normalizedProjects.filter((p) => p.status !== "Active");
 
-  // Sidebar Logic
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    const saved = localStorage.getItem('opus_sidebar_collapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [isCollapsed, setIsCollapsed] = useState(readCollapsed);
 
   const toggleCollapse = () => {
-    setIsCollapsed(prev => {
-      const newState = !prev;
-      localStorage.setItem('opus_sidebar_collapsed', JSON.stringify(newState));
-      return newState;
-    });
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    writeCollapsed(next);
   };
 
-  // Fixed widths: 280px (tablet) / 320px (lg+) expanded, 52px collapsed
-  const effectiveWidth = isCollapsed ? 52 : 280;
-
-  // Mobile sidebar overlay
+  // Below 768px the list opens in a drawer instead of a sidebar.
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
+  const openCreateModal = () => setIsModalOpen(true);
+  const createFromDrawer = () => {
+    closeMobile();
+    openCreateModal();
+  };
+
+  const listProps = {
+    activeList,
+    otherList,
+    activeId,
+    renamingId,
+    onSelect: (id) => { setActiveId(id); closeMobile(); },
+    onStartRename: setRenamingId,
+    onCommitRename: commitRename,
+    onCancelRename: () => setRenamingId(null),
+    onEditIcon: setIconPickerId,
+    onDelete: requestDelete,
+  };
+
+  const iconPickerProject = normalizedProjects.find((p) => p.id === iconPickerId);
+
   return (
-    <div className="h-full w-full flex relative overflow-hidden bg-background text-foreground">
+    <div className={styles.page}>
+      <ProjectSidebar
+        isCollapsed={isCollapsed}
+        onToggleCollapse={toggleCollapse}
+        onCreate={openCreateModal}
+        {...listProps}
+      />
 
-      {/* Mobile sidebar backdrop */}
-      {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-overlay bg-background/60 backdrop-blur-xs animate-in fade-in duration-200" onClick={closeMobile} />
-      )}
+      <div className={styles.main}>
+        {/* Mobile project switcher: inside the content area, not a fixed overlay */}
+        <div className={styles.mobileBar}>
+          <Button variant="secondary" aria-haspopup="dialog" onClick={() => setMobileOpen(true)}>
+            <PanelLeftOpen size={16} strokeWidth={1.75} aria-hidden="true" />
+            Projects
+          </Button>
+        </div>
 
-      {/* Main Container */}
-      <div className="relative z-10 w-full h-full flex">
-
-        {/* SIDEBAR: Project List — hidden on mobile, overlay when mobileOpen */}
-        <div
-          className={`flex-none h-full border-r border-border bg-background flex flex-col relative group/sidebar transition-all duration-300 ease-in-out
-            ${mobileOpen ? 'fixed inset-y-0 left-0 z-50 shadow-2xl' : 'hidden md:flex'}`}
-          style={{ width: mobileOpen ? 280 : effectiveWidth }}
-        >
-          {/* Header */}
-          {/* Header */}
-          <div className={`flex-none p-6 border-b border-border-subtle flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-            <div className={`flex items-center overflow-hidden transition-opacity duration-300 ${effectiveWidth < 120 ? 'opacity-0 w-0' : 'opacity-100'}`}>
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Opus</span>
-            </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              aria-label="New project"
-              className="flex items-center justify-center transition-colors shrink-0 text-muted-foreground hover:text-foreground outline-hidden"
-            >
-              <PlusSignSquare size={20} />
-            </button>
-          </div>
-
-          {/* List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1">
-            {activeList.length === 0 && effectiveWidth > 120 && (
-              <EmptyState size="inline" title="No active projects" className="py-4" />
-            )}
-
-            {activeList.map(p => {
-              const isRenaming = renamingId === p.id;
-              const rowClass = `w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left group border cursor-pointer ${p.id === activeId
-                ? isCollapsed
-                  ? "bg-transparent border-transparent shadow-none"
-                  : "bg-overlay-subtle border-border text-foreground shadow-lg"
-                : "border-transparent text-muted-foreground hover:text-foreground-secondary " + (isCollapsed ? "" : "hover:bg-overlay-subtle")
-                } ${effectiveWidth < 120 ? 'justify-center' : ''}`;
-
-              const rowBody = (
-                <>
-                  <span className={`shrink-0 ${p.id === activeId ? "text-foreground" : "text-subtle-foreground"} ${isCollapsed && p.id === activeId ? "drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" : ""}`}>
-                    <ProjectIcon name={p.icon} size={18} color={p.iconColor} />
-                  </span>
-                  {effectiveWidth >= 120 && (
-                    isRenaming ? (
-                      <input
-                        ref={renameInputRef}
-                        value={renameValue}
-                        onChange={e => setRenameValue(e.target.value)}
-                        onBlur={commitRename}
-                        onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenamingId(null); }}
-                        onClick={e => e.stopPropagation()}
-                        className="flex-1 bg-overlay border border-border rounded-lg px-2 py-0.5 text-sm text-foreground outline-hidden min-w-0"
-                      />
-                    ) : (
-                      <span className="font-medium truncate text-sm flex-1">{p.name}</span>
-                    )
-                  )}
-                </>
-              );
-
-              return (
-                <Menu.Context key={p.id}>
-                  <Menu.ContextTrigger
-                    render={
-                      /* A real <button> so the project switcher — this page's
-                         primary navigation — is reachable by keyboard. It drops
-                         to a <div> only while renaming, because an <input>
-                         inside a <button> is invalid HTML. */
-                      isRenaming ? (
-                        <div className={rowClass}>{rowBody}</div>
-                      ) : (
-                        <button
-                          type="button"
-                          aria-label={p.name}
-                          aria-current={p.id === activeId ? "true" : undefined}
-                          className={rowClass}
-                          onClick={() => { setActiveId(p.id); closeMobile(); }}
-                          title={effectiveWidth < 120 ? p.name : ''}
-                        >
-                          {rowBody}
-                        </button>
-                      )
-                    }
-                  />
-                  <Menu.ContextContent>
-                    <Menu.ContextItem onClick={() => startRename(p)}>
-                      <Pen01 size={14} /> Rename
-                    </Menu.ContextItem>
-                    <Menu.ContextItem onClick={() => setIconPickerId(p.id)}>
-                      <Setting06 size={14} /> Edit icon
-                    </Menu.ContextItem>
-                    <Menu.ContextSeparator />
-                    <ContextDangerItem onClick={() => deleteProject(p.id)}>
-                      <Delete01 size={14} /> Delete
-                    </ContextDangerItem>
-                  </Menu.ContextContent>
-                </Menu.Context>
-              );
-            })}
-
-            {otherList.length > 0 && effectiveWidth > 120 && (
-              <div className="pt-4 mt-4 border-t border-border-subtle">
-                <div className="px-3 mb-2 text-xs text-subtle-foreground uppercase tracking-widest font-bold">Archived</div>
-                {otherList.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setActiveId(p.id)}
-                    aria-label={`Open archived project ${p.name}`}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left opacity-70 hover:opacity-100 ${p.id === activeId ? "bg-overlay-subtle text-foreground" : "text-subtle-foreground hover:bg-overlay-subtle"
-                      }`}
-                  >
-                    <span className="text-sm grayscale">
-                      <ProjectIcon name={p.icon} size={16} color={p.iconColor} />
-                    </span>
-                    <span className="truncate text-sm">{p.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Collapse Toggle */}
-          {/* Mobile Sidebar Settings (Only visible on mobile when a project is active) */}
-          {mobileOpen && activeProject && (
-            <div className="flex-none border-t border-border-subtle p-4 flex flex-col gap-2 bg-background/50">
-              <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold mb-2">
-                Manage {activeProject.name}
-              </div>
-              {['Active', 'Paused', 'Done'].map(status => (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setProjects(prev => prev.map(p => p.id === activeId ? { ...p, status } : p));
-                    closeMobile();
-                  }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${activeProject.status === status ? "bg-overlay text-foreground" : "border border-transparent text-muted-foreground hover:text-foreground hover:bg-overlay-subtle"
-                    }`}
-                >
-                  Set to {status === 'Done' ? 'Archived' : status}
-                </button>
-              ))}
-              <div className="h-px bg-overlay-subtle my-1" />
-              <button
-                onClick={() => {
-                  deleteProject(activeId);
-                  closeMobile();
-                }}
-                className="w-full text-left px-3 py-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors"
-              >
-                Delete Project
-              </button>
+        <div className={styles.scroll}>
+          {activeProject ? (
+            <OpusLayout
+              key={activeProject.id} // Re-mount on switch to reset local states if any
+              projectId={activeProject.id}
+              selectNote={selectNote}
+            />
+          ) : (
+            <div className={styles.empty}>
+              <EmptyState
+                size="page"
+                icon={FolderKanban}
+                title={normalizedProjects.length ? "No project selected" : "No projects yet"}
+                description={
+                  normalizedProjects.length
+                    ? "Pick a project from the list to see its tasks, milestones and notes."
+                    : "Create a project to start tracking its tasks, milestones and notes."
+                }
+                action={<Button onClick={openCreateModal}>New project</Button>}
+              />
             </div>
           )}
-
-          {/* Collapse Toggle */}
-          <div className={`hidden md:flex flex-none border-t border-border-subtle p-2 items-center ${isCollapsed ? 'justify-center' : 'justify-end pr-6'}`}>
-            <button
-              onClick={toggleCollapse}
-              className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors outline-hidden"
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? (
-                <LayoutAlignRight size={20} strokeWidth="1.5" />
-              ) : (
-                <LayoutAlignLeft size={20} strokeWidth="1.5" />
-              )}
-            </button>
-          </div>
-
         </div>
-
-        {/* MAIN CONTENT: Opus Layout */}
-        <div className="flex-1 h-full overflow-hidden">
-          {/* Mobile sidebar toggle — inside the content area, not a fixed overlay */}
-          <div className="md:hidden flex items-center gap-3 px-4 pt-4 pb-2 border-b border-border-subtle">
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-overlay-subtle border border-border text-muted-foreground hover:text-foreground hover:bg-overlay transition-colors"
-              aria-label="Open project list"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            {activeProject && (
-              <span className="text-xs text-muted-foreground uppercase tracking-widest truncate">{activeProject.name}</span>
-            )}
-          </div>
-          <div className="h-full overflow-y-auto custom-scrollbar">
-            {activeProject ? (
-              <OpusLayout
-                key={activeProject.id} // Re-mount on switch to reset local states if any
-                projectId={activeProject.id}
-                selectNote={selectNote}
-                onDeleteProject={deleteProject}
-              />
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-subtle-foreground animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 rounded-full bg-overlay-subtle flex items-center justify-center mb-6">
-                  <Briefcase08 size={40} className="opacity-50" />
-                </div>
-                <p className="text-lg font-light text-muted-foreground">Select an Opus.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
       </div>
+
+      <SidePanel open={mobileOpen} onClose={closeMobile} side="left" title="Projects">
+        <div className={styles.drawerBody}>
+          <Button variant="secondary" onClick={createFromDrawer}>
+            <Plus size={16} strokeWidth={1.75} aria-hidden="true" />
+            New project
+          </Button>
+          <ProjectList {...listProps} onCreate={createFromDrawer} />
+
+          {activeProject && (
+            <section className={styles.manage}>
+              <SectionLabel as="h3">Manage {activeProject.name}</SectionLabel>
+              <SegmentedControl
+                label="Project status"
+                options={STATUS_OPTIONS}
+                value={activeProject.status}
+                onValueChange={(status) => { updateProject(activeId, { status }); closeMobile(); }}
+              />
+              <Button variant="danger" onClick={() => { requestDelete(activeId); closeMobile(); }}>
+                Delete project
+              </Button>
+            </section>
+          )}
+        </div>
+      </SidePanel>
 
       <CreateProjectModal
         isOpen={isModalOpen}
@@ -364,29 +251,23 @@ export default function Projects({
       />
 
       {/* Icon picker for sidebar */}
-      {iconPickerId && (() => {
-        const p = normalizedProjects.find(p => p.id === iconPickerId);
-        if (!p) return null;
-        return (
-          <IconPicker
-            currentIcon={p.icon}
-            currentColor={p.iconColor}
-            onSelect={(icon, iconColor) => updateProject(iconPickerId, { icon, iconColor })}
-            onClose={() => setIconPickerId(null)}
-          />
-        );
-      })()}
+      {iconPickerProject && (
+        <IconPicker
+          currentIcon={iconPickerProject.icon}
+          currentColor={iconPickerProject.iconColor}
+          onSelect={(icon, iconColor) => updateProject(iconPickerId, { icon, iconColor })}
+          onClose={() => setIconPickerId(null)}
+        />
+      )}
 
       <ConfirmDialog
-        open={!!pendingDelete}
-        onClose={() => setPendingDelete(null)}
+        open={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDeleteProject}
-        title="Delete this project?"
-        description="This can't be undone. Notes linked to it are kept."
-        confirmLabel="Delete"
+        title={`Delete ${deleteTarget?.name ?? "this project"}?`}
+        description="Linked notes, tasks and sessions are kept but unlinked. The project's milestones, decisions and questions are removed. This can't be undone."
+        confirmLabel="Delete project"
       />
     </div>
   );
 }
-
-

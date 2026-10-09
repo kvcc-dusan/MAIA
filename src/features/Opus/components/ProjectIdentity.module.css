@@ -1,0 +1,33 @@
+.root { display: grid; min-width: 0; gap: var(--space-2); }
+.heading { margin: 0; min-width: 0; font: inherit; }
+
+/* Geist from 30px up, Inter below it. The border only appears on hover and focus,
+   so the name reads as a heading until you reach for it. The negative margin keeps
+   the text on the page's left edge. */
+.name {
+  width: calc(100% + var(--space-3) + 1px);
+  min-height: var(--control-height-lg);
+  margin-left: calc(-1 * (var(--space-3) + 1px));
+  padding: 0 var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-display);
+  text-overflow: ellipsis;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.name::placeholder { color: var(--text-muted); }
+@media (hover: hover) and (pointer: fine) { .name:hover { border-color: var(--border); } }
+.name:focus-visible { border-color: var(--foreground); }
+@media (max-width: 560px) {
+  .name { font-family: var(--font-body); font-size: var(--text-2xl); letter-spacing: var(--tracking-body); }
+}
+
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.muted { color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .name { transition: none; } }

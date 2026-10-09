@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from "react";
-import ProjectIcon, { IconPicker } from "./ProjectIcon";
+import ProjectIcon from "./ProjectIcon";
+import IconPicker from "./projectIcon/IconPicker";
 import { AppDialog } from "@/components/composed/AppDialog";
-import { Field } from "@/components/composed/Field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SectionLabel } from "@/components/composed/SectionBits";
+import { Button } from "@/components/arc/button/button";
+import { Input } from "@/components/arc/input/input";
+import styles from "./CreateProjectModal.module.css";
+
+const FORM_ID = "create-project-form";
+const DEFAULT_ICON = "terminal";
+const DEFAULT_COLOR = "white";
 
 export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState("");
-    const [icon, setIcon] = useState("terminal");
-    const [iconColor, setIconColor] = useState("white");
+    const [icon, setIcon] = useState(DEFAULT_ICON);
+    const [iconColor, setIconColor] = useState(DEFAULT_COLOR);
     const [showPicker, setShowPicker] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
             setName("");
-            setIcon("terminal");
-            setIconColor("white");
+            setIcon(DEFAULT_ICON);
+            setIconColor(DEFAULT_COLOR);
             setShowPicker(false);
             setError(null);
         }
@@ -41,42 +47,34 @@ export default function CreateProjectModal({ isOpen, onClose, onCreate }) {
                 onClose={onClose}
                 size="sm"
                 title="New project"
-                contentClassName="overflow-visible"
                 footer={
                     <>
-                        <Button variant="outline" onClick={onClose}>Cancel</Button>
-                        <Button onClick={handleSubmit}>Create</Button>
+                        <Button variant="secondary" onClick={onClose}>Cancel</Button>
+                        <Button type="submit" form={FORM_ID}>Create project</Button>
                     </>
                 }
             >
-                {/* The icon button sits inside Field's control slot so it stays
-                    aligned with the input regardless of whether an error message
-                    is showing. */}
-                <form onSubmit={handleSubmit}>
-                    <Field label="Name" error={error} required htmlFor="new-project-name">
-                        <div className="flex items-center gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setShowPicker(true)}
-                                aria-label="Choose project icon"
-                                className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border bg-overlay-subtle text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                            >
-                                <ProjectIcon name={icon} size={18} color={iconColor} />
-                            </button>
-                            <Input
-                                id="new-project-name"
-                                autoFocus
-                                value={name}
-                                placeholder="Project name…"
-                                aria-invalid={error ? true : undefined}
-                                aria-describedby={error ? "new-project-name-error" : undefined}
-                                onChange={(e) => {
-                                    setName(e.target.value);
-                                    if (error) setError(null);
-                                }}
-                            />
-                        </div>
-                    </Field>
+                <form id={FORM_ID} className={styles.form} onSubmit={handleSubmit} noValidate>
+                    <Input
+                        label="Name"
+                        autoFocus
+                        value={name}
+                        placeholder="Project name"
+                        error={error ?? undefined}
+                        aria-required="true"
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            if (error) setError(null);
+                        }}
+                    />
+
+                    <div className={styles.iconRow}>
+                        <SectionLabel>Icon</SectionLabel>
+                        <Button type="button" variant="secondary" onClick={() => setShowPicker(true)}>
+                            <ProjectIcon name={icon} size={18} color={iconColor} />
+                            Choose icon
+                        </Button>
+                    </div>
                 </form>
             </AppDialog>
 

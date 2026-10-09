@@ -1,61 +1,106 @@
-import React from 'react';
+import React, { useState } from "react";
+import { Button } from "@/components/arc/button/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { useData } from "../../context/DataContext";
 import ProjectIdentity from "./components/ProjectIdentity";
-import ProjectBrief from "./components/ProjectBrief";
-import ExecutionPanel from "./components/ExecutionPanel";
-import KnowledgePanel from "./components/KnowledgePanel";
-import AssetsPanel from "./components/AssetsPanel";
-import ResourcesPanel from "./components/ResourcesPanel";
+import WeeklyReportDialog from "./components/WeeklyReportDialog";
+import { OpusNavProvider, useOpusNav } from "./OpusNavContext";
+import OverviewTab from "./tabs/OverviewTab";
+import BoardTab from "./tabs/BoardTab";
+import TasksTab from "./tabs/TasksTab";
+import RoadmapTab from "./tabs/RoadmapTab";
+import RecordTab from "./tabs/RecordTab";
+import LibraryTab from "./tabs/LibraryTab";
+import styles from "./OpusLayout.module.css";
+
+const TAB_STORAGE_KEY = "maia.opus.tab";
+
+// Order here is the order on screen. Each Panel receives { project, selectNote }.
+const TABS = [
+  { id: "overview", label: "Overview", Panel: OverviewTab },
+  { id: "board", label: "Board", Panel: BoardTab },
+  { id: "tasks", label: "Tasks", Panel: TasksTab },
+  { id: "roadmap", label: "Roadmap", Panel: RoadmapTab },
+  { id: "record", label: "Record", Panel: RecordTab },
+  { id: "library", label: "Library", Panel: LibraryTab },
+];
+const TAB_IDS = TABS.map((t) => t.id);
+const DEFAULT_TAB = TAB_IDS[0];
+
+// Storage can be blocked or hold a tab id from another version, so both
+// directions swallow errors and the read validates against the current ids.
+const readSavedTab = () => {
+  try {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY);
+    return TAB_IDS.includes(saved) ? saved : DEFAULT_TAB;
+  } catch {
+    return DEFAULT_TAB;
+  }
+};
+
+const saveTab = (tab) => {
+  try {
+    localStorage.setItem(TAB_STORAGE_KEY, tab);
+  } catch {
+    // storage blocked: the choice lasts for this session only
+  }
+};
+
+function OpusPage({ project, updateProject, selectNote }) {
+  const { tab, navigate } = useOpusNav();
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <ProjectIdentity project={project} updateProject={updateProject} />
+        <Button variant="secondary" onClick={() => setIsReportOpen(true)}>Weekly report</Button>
+      </header>
+
+      <Tabs value={tab} onValueChange={(next) => navigate(next)} className={styles.tabs}>
+        <TabsList aria-label="Project sections">
+          {TABS.map(({ id, label }) => (
+            <TabsTrigger key={id} value={id}>{label}</TabsTrigger>
+          ))}
+        </TabsList>
+        {TABS.map((entry) => {
+          // Not destructured in the parameter: the lint config only recognises
+          // JSX usage of capitalised variables, not of arguments.
+          const Panel = entry.Panel;
+          return (
+            <TabsContent key={entry.id} value={entry.id}>
+              <Panel project={project} selectNote={selectNote} />
+            </TabsContent>
+          );
+        })}
+      </Tabs>
+
+      <WeeklyReportDialog
+        open={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        project={project}
+        selectNote={selectNote}
+      />
+    </div>
+  );
+}
 
 /**
- * OPUS: The Project Command Center
- *
- * Bands, in the order you need them:
- *
- * HEADER    ProjectIdentity — title, with vitality/activity/counts as one meta line
- * BRIEF     ProjectBrief | ResourcesPanel — what this is for, and where things live
- * EXECUTION ExecutionPanel — Now + Backlog + Blocked + Completed
- * LIBRARY   KnowledgePanel | AssetsPanel — notes and files
- *
- * The previous order buried the brief (collapsed, last) and the uplinks under
- * the task list, so every quick-access surface sat below the fold.
+ * OPUS: the project command center. A header (name, meta line, weekly report)
+ * above Arc tabs. The selected tab lives in OpusNavContext so any panel can
+ * link to another with a filter applied; it is remembered across visits.
  */
 export default function OpusLayout({ projectId, selectNote }) {
-    const { projects, updateProject } = useData();
+  const { projects, updateProject } = useData();
+  // Read once: the provider only uses it as its starting tab.
+  const [initialTab] = useState(readSavedTab);
 
-    const project = projects.find(p => p.id === projectId);
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) return null;
 
-    if (!project) return null;
-
-    return (
-        <div className="w-full px-page py-8 flex flex-col gap-6 bg-transparent min-h-screen" style={{ paddingBottom: 'calc(var(--dock-h) + 2rem)' }}>
-
-            {/* HEADER */}
-            <ProjectIdentity
-                project={project}
-                updateProject={updateProject}
-            />
-
-            {/* BRIEF — purpose and quick access, above the fold */}
-            {/* 3:2 rather than 2:1 — at laptop widths a third of the row left
-                the uplink column too narrow to read a link's label. */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                <div className="lg:col-span-3">
-                    <ProjectBrief project={project} updateProject={updateProject} />
-                </div>
-                <div className="lg:col-span-2">
-                    <ResourcesPanel project={project} updateProject={updateProject} />
-                </div>
-            </div>
-
-            {/* EXECUTION */}
-            <ExecutionPanel project={project} />
-
-            {/* LIBRARY — notes and files */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                <KnowledgePanel project={project} selectNote={selectNote} />
-                <AssetsPanel project={project} />
-            </div>
-        </div>
-    );
+  return (
+    <OpusNavProvider tabs={TAB_IDS} initialTab={initialTab} onTabChange={saveTab}>
+      <OpusPage project={project} updateProject={updateProject} selectNote={selectNote} />
+    </OpusNavProvider>
+  );
 }

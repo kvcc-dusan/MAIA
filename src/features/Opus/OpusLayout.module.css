@@ -1,0 +1,23 @@
+/* One page container: plain page padding, no dock clearance. The scroll container is the caller's. */
+.page {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  width: 100%;
+  min-width: 0;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: var(--space-8) clamp(16px, 4vw, 32px) var(--space-12);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.header > :first-child { flex: 1 1 28rem; min-width: 0; }
+
+/* min-width keeps the tab list scrolling inside itself instead of widening the page. */
+.tabs { min-width: 0; }
