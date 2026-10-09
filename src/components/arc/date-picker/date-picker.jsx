@@ -19,7 +19,7 @@ const statusRise = {
   center: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: duration.standard, ease: ease.enter } },
   exit: { opacity: 0, y: "-0.3em", filter: `blur(${blur.subtle}px)`, transition: { duration: 0.14, ease: ease.standard } }
 };
-function DatePicker({ label, value, onChange, description, placeholder = "Select a date", minDate, maxDate, disabledDates, locale = "en-US", format = { month: "short", day: "numeric", year: "numeric" }, showToday, id, className, disabled, ...buttonProps }) {
+export function DatePicker({ label, value, onChange, description, placeholder = "Select a date", minDate, maxDate, disabledDates, locale = "en-US", format = { month: "short", day: "numeric", year: "numeric" }, showToday, weekStartsOn, id, className, disabled, ...buttonProps }) {
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const hintId = description ? `${controlId}-description` : void 0;
@@ -120,7 +120,7 @@ function DatePicker({ label, value, onChange, description, placeholder = "Select
     animate={{ opacity: 1, y: 0, scale: 1, transition: reduce ? instant : { ...spring.snappy, opacity: { duration: duration.fast, ease: ease.enter } } }}
     exit={{ opacity: 0, ...reduce ? {} : { y: -6, scale: 0.97 }, transition: { duration: 0.14, ease: ease.standard } }}
   >
-          <Calendar value={value} onChange={selectDate} month={month} onMonthChange={setMonth} minDate={minDate} maxDate={maxDate} disabledDates={disabledDates} locale={locale} showToday={showToday} />
+          <Calendar value={value} onChange={selectDate} month={month} onMonthChange={setMonth} minDate={minDate} maxDate={maxDate} disabledDates={disabledDates} locale={locale} showToday={showToday} weekStartsOn={weekStartsOn} />
           <div className={styles.footer}><button type="button" onClick={() => selectDate(void 0)} disabled={!value}>Clear</button><span className={styles.status}><AnimatePresence initial={false}><motion.span key={time ?? "none"} variants={reduce ? valueFade : statusRise} initial="enter" animate="center" exit="exit">{value ? `Selected ${formatter.format(value)}` : "Choose a day"}</motion.span></AnimatePresence></span></div>
         </motion.div>}
       </AnimatePresence>
@@ -128,6 +128,3 @@ function DatePicker({ label, value, onChange, description, placeholder = "Select
     {description && <span id={hintId} className={styles.description}>{description}</span>}
   </div>;
 }
-export {
-  DatePicker
-};

@@ -67,6 +67,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
           value={parsed ?? undefined}
           onChange={handleDate}
           format={DATE_FORMAT}
+          weekStartsOn={1}
         />
         {!dateOnly && (
           <TimePicker
