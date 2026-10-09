@@ -13,6 +13,7 @@ import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn, countWords } from "@/lib/utils";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import styles from "./EditorRich.module.css";
 
 const PLACEHOLDER_TEXT = 'Start writing…';
 
@@ -181,12 +182,8 @@ const WikiLinkExtension = Extension.create({
                   const to = from + match[0].length;
 
                   decorations.push(
-                    Decoration.inline(from, to, {
-                      // --info is the link accent token; the decoration is an
-                      // inline style, so var() resolves live with the theme
-                      style: 'color: var(--info); font-weight: bold; cursor: pointer;',
-                      class: 'maia-wikilink'
-                    })
+                    // Styled by .maia-wikilink in EditorRich.module.css
+                    Decoration.inline(from, to, { class: 'maia-wikilink' })
                   );
                 }
               }
@@ -327,7 +324,7 @@ export default function EditorRich({
     >
       <EditorContent
         editor={editor}
-        className="tiptap maia-editor outline-hidden min-h-full text-foreground leading-relaxed w-full text-sm"
+        className={cn("tiptap maia-editor", styles.editor)}
       />
     </div>
   );

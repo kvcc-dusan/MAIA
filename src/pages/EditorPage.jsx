@@ -1,28 +1,44 @@
 import React, { useState, useCallback } from "react";
 import EditorRich from "../components/EditorRich.jsx";
-import ProjectIcon from "../components/ProjectIcon.jsx";
 import { CollapseIcon, ExpandIcon, ReadIcon, WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { IconButton } from "../components/composed/IconButton.jsx";
+import { EmptyState } from "../components/composed/EmptyState.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
+import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
 const widthKey = () => `maia:editor-wide`;
 
+// Storage can throw (private windows, blocked site data); these are only
+// per-viewer conveniences, so a failure falls back to the default.
+const readStored = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeStored = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // lasts for this session only
+  }
+};
+
 export default function Editor({ note, updateNote, projects = [], onOpenInternalLink }) {
   const [local, setLocal] = useState(note);
   const [mode, setMode] = useState(() => {
-    if (note?.id) {
-      const saved = localStorage.getItem(modeKey(note.id));
-      return saved === "read" ? "read" : "edit";
-    }
+    if (note?.id) return readStored(modeKey(note.id)) === "read" ? "read" : "edit";
     return "edit";
   });
-  const [wide, setWide] = useState(() => localStorage.getItem(widthKey()) === "true");
+  const [wide, setWide] = useState(() => readStored(widthKey()) === "true");
 
   const toggleWide = () => {
     setWide(prev => {
       const next = !prev;
-      localStorage.setItem(widthKey(), String(next));
+      writeStored(widthKey(), String(next));
       return next;
     });
   };
@@ -74,11 +90,13 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
 
   if (!note) {
     return (
-      <div className="h-full grid place-items-center text-muted-foreground">
-        <div className="flex flex-col items-center gap-2">
-          <ProjectIcon name="quill" size={32} className="opacity-20" />
-          <span className="text-xs">Select a note to begin.</span>
-        </div>
+      <div className={styles.page}>
+        <EmptyState
+          size="page"
+          icon={WriteIcon}
+          title="No note selected"
+          description="Open a note from Codex to start writing."
+        />
       </div>
     );
   }
@@ -87,42 +105,33 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
   const toggleMode = () => {
     const next = mode === "edit" ? "read" : "edit";
     setMode(next);
-    if (local?.id) localStorage.setItem(modeKey(local.id), next);
+    if (local?.id) writeStored(modeKey(local.id), next);
   };
 
+  const createdLabel = new Date(local.createdAt).toLocaleDateString(undefined, {
+    weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+  });
+
   return (
-    <div className="h-full w-full relative flex flex-col items-center bg-background">
-
-      {/* Main Content Area */}
-      <div className={`w-full h-full flex flex-col min-h-0 z-sticky transition-all duration-300 ${wide ? 'max-w-full px-3 sm:px-4 md:px-8' : 'max-w-4xl px-3 sm:px-0'}`}>
-
-        {/* Clean Dark Panel */}
-        <div className="flex flex-col w-full h-full relative overflow-hidden bg-background/90 border border-border rounded-2xl my-4 mx-auto shadow-2xl backdrop-blur-xl">
-
-          {/* Header */}
-          <div className="flex-none px-6 py-5 border-b border-border-subtle flex items-start gap-4 z-dock">
-            <div className="flex-1 flex flex-col gap-1.5">
+    <div className={styles.page}>
+      <div className={styles.column} data-wide={wide}>
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <div className={styles.heading}>
               <input
                 value={local.title}
                 onChange={(e) => setLocal({ ...local, title: e.target.value })}
-                placeholder="Untitled Note"
-                className="bg-transparent outline-hidden font-sans font-semibold text-foreground placeholder:text-subtle-foreground"
-                style={{ fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
+                placeholder="Untitled note"
+                aria-label="Note title"
+                className={styles.titleInput}
               />
-              <div className="flex items-center gap-3 text-xs text-muted-foreground uppercase tracking-widest">
-                <span>{new Date(local.createdAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                {local.project && (
-                  <>
-                    <span className="text-faint-foreground">•</span>
-                    <span className="text-muted-foreground">@{local.project}</span>
-                  </>
-                )}
+              <div className={styles.meta}>
+                <span>{createdLabel}</span>
+                {local.project && <span>@{local.project}</span>}
               </div>
             </div>
 
-            {/* Header Actions */}
-            <div className="flex items-center gap-2">
-              {/* Width Toggle */}
+            <div className={styles.actions}>
               <IconButton
                 label={wide ? "Narrow view" : "Wide view"}
                 icon={wide ? CollapseIcon : ExpandIcon}
@@ -130,8 +139,6 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
                 variant="outline"
                 onClick={toggleWide}
               />
-
-              {/* Mode Toggle */}
               <IconButton
                 label={editable ? "Switch to reading mode" : "Switch to editing mode"}
                 icon={editable ? ReadIcon : WriteIcon}
@@ -142,48 +149,29 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
             </div>
           </div>
 
-          {/* Editor Container */}
-          <div
-            className="flex-1 overflow-y-auto custom-scrollbar relative cursor-text"
-          >
-            <div className="min-h-full px-6 py-6 pb-32">
+          <div className={`${styles.body} custom-scrollbar`}>
+            <div className={styles.content}>
               <EditorRich
                 value={local.content || ""}
                 editable={editable}
                 onChange={handleContentChange}
                 onMetaChange={handleMetaChange}
                 onOpenInternalLink={onOpenInternalLink}
-                className="maia-editor"
               />
             </div>
           </div>
-        </div>
 
-        {/* Status Pill (Floating above dock) */}
-        <div
-          className="fixed left-1/2 -translate-x-1/2 z-drawer pointer-events-none"
-          style={{ bottom: 'calc(var(--dock-h-desktop) + 1.25rem)' }}
-        >
-          <div className="flex items-center gap-4 px-4 py-2 bg-background/80 backdrop-blur-xl border border-border rounded-full text-xs text-muted-foreground shadow-2xl pointer-events-auto">
-            <div className="flex items-center gap-3 pr-3 border-r border-border">
-              <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
-              <span className="text-faint-foreground">•</span>
-              <span>{(local?.charCount ?? 0).toLocaleString()} chars</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {(local.tags && local.tags.length > 0) ? (
-                local.tags.map(t => (
-                  <span key={t} className="text-muted-foreground">#{t}</span>
-                ))
-              ) : (
-                <span className="text-faint-foreground italic">No tags</span>
-              )}
-            </div>
+          <div className={styles.status}>
+            <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
+            <span>{(local?.charCount ?? 0).toLocaleString()} characters</span>
+            <span className={styles.tags}>
+              {local.tags && local.tags.length > 0
+                ? local.tags.map(t => <span key={t}>#{t}</span>)
+                : <span>No tags</span>}
+            </span>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }

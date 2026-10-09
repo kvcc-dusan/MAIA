@@ -1,0 +1,28 @@
+/* Codex page: a self-scrolling pane inside the shell's main area. Layout only;
+   cards, header and empty state come from their own components. */
+.page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--spacing-page) var(--space-10);
+}
+
+.headerLead { display: flex; align-items: center; gap: var(--space-3); }
+
+.grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.filter { max-width: 28rem; }
+
+.empty { grid-column: 1 / -1; }

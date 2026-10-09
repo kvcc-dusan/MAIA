@@ -9,6 +9,9 @@ import {
   isMigrated,
 } from "../lib/vault.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
+import { Button } from "./arc/button/button";
+import { Alert } from "./arc/alert/alert";
+import styles from "./VaultSetup.module.css";
 
 /**
  * Tauri-only overlay: first-run vault folder picking + one-time migration
@@ -50,10 +53,8 @@ export default function VaultSetup() {
   if (notesMeta.status === "ready") return null;
   if (notesMeta.status === "loading") {
     return (
-      <div className="fixed inset-0 z-dialog flex items-center justify-center bg-background">
-        <span className="text-xs uppercase tracking-widest text-foreground/40 animate-pulse">
-          Opening vault…
-        </span>
+      <div className={`${styles.gate} z-dialog`} role="status" aria-busy="true">
+        <span className={styles.loading}>Opening vault…</span>
       </div>
     );
   }
@@ -61,41 +62,36 @@ export default function VaultSetup() {
   const isError = notesMeta.status === "error" || migrationError;
 
   return (
-    <div className="fixed inset-0 z-dialog flex items-center justify-center bg-background font-sans text-foreground">
-      <div className="glass-panel flex w-[min(90vw,28rem)] flex-col gap-5 rounded-2xl border border-border bg-card p-8">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-tight">
+    <div
+      className={`${styles.gate} z-dialog`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="vault-setup-title"
+    >
+      <div className={styles.panel}>
+        <div className={styles.copy}>
+          <h2 id="vault-setup-title" className={styles.title}>
             {isError ? "Vault unavailable" : "Choose your vault"}
           </h2>
-          <p className="text-sm leading-relaxed text-foreground/60">
+          <p className={styles.body}>
             {isError
               ? `MAIA couldn't open the vault${getVaultPath() ? ` at "${getVaultPath()}"` : ""}. The folder may have moved or be offline.`
-              : "Pick a folder where your notes will live as plain markdown files — readable by Obsidian, synced by iCloud, owned by you."}
+              : "Pick a folder where your notes will live as plain markdown files, readable by Obsidian, synced by iCloud, owned by you."}
           </p>
-          {migrationError && (
-            <p className="text-xs text-destructive">
-              Migration failed: {String(migrationError.message || migrationError)}
-            </p>
-          )}
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handlePick}
-            disabled={isBusy}
-            className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:bg-foreground/85 disabled:opacity-50"
-          >
-            {isBusy ? "Working…" : isError ? "Pick vault folder" : "Choose folder"}
-          </button>
+        {migrationError && (
+          <Alert tone="danger" title="Migration failed">
+            {String(migrationError.message || migrationError)}
+          </Alert>
+        )}
+        <div className={styles.actions}>
+          <Button onClick={handlePick} loading={isBusy}>
+            {isError ? "Pick vault folder" : "Choose folder"}
+          </Button>
           {isError && (
-            <button
-              type="button"
-              onClick={() => notesMeta.reload()}
-              disabled={isBusy}
-              className="rounded-full border border-border px-5 py-2 text-sm text-foreground/70 transition hover:bg-overlay disabled:opacity-50"
-            >
+            <Button variant="secondary" onClick={() => notesMeta.reload()} disabled={isBusy}>
               Retry
-            </button>
+            </Button>
           )}
         </div>
       </div>
