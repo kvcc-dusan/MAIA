@@ -3,11 +3,6 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Belt and braces: index.html carries class="dark", but dist/index.html can go
-// stale and Tauri serves from dist/. Without this class every colour token is
-// undefined and the app renders unstyled.
-document.documentElement.classList.add('dark')
-
 // Dev-only component gallery at ?ui=gallery. The import is inside the DEV
 // branch so it is tree-shaken out of the production bundle entirely.
 const isGallery =
