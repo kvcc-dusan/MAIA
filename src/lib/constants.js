@@ -33,6 +33,8 @@ export const STORAGE_KEYS = {
   TASKS: 'maia.tasks',
   REMINDERS: 'maia.reminders',
   SESSIONS: 'maia.sessions',
+  // Append-only, capped log behind the Opus heatmap and weekly report.
+  ACTIVITY: 'maia.activity',
   TODAY_LAYOUT: 'maia.today.layout',
   // Last-good geolocation fix, so a denied/absent location provider doesn't
   // strand the Today weather widget on "Locating…" forever.

@@ -15,7 +15,11 @@ const SAMPLE = {
   reminders: [],
   sessions: [],
   ledger: [{ id: "l1" }],
+  activity: [{ at: "2026-10-09T10:00:00.000Z", kind: "created", collection: "tasks", itemId: "t1", title: "T" }],
 };
+
+// What a version-1 file written before `activity` existed looks like.
+const LEGACY_SAMPLE = Object.fromEntries(Object.entries(SAMPLE).filter(([key]) => key !== "activity"));
 
 describe("buildBackup", () => {
   it("wraps every entity under data with a version and timestamp", () => {
@@ -29,8 +33,16 @@ describe("buildBackup", () => {
   it("defaults missing entities to empty arrays instead of throwing", () => {
     const backup = buildBackup({});
     expect(backup.data).toEqual({
-      notes: [], projects: [], tasks: [], reminders: [], sessions: [], ledger: [],
+      notes: [], projects: [], tasks: [], reminders: [], sessions: [], ledger: [], activity: [],
     });
+  });
+
+  it("stays on backup version 1", () => {
+    expect(BACKUP_VERSION).toBe(1);
+  });
+
+  it("exports an empty activity list for callers that never pass one", () => {
+    expect(buildBackup(LEGACY_SAMPLE).data.activity).toEqual([]);
   });
 });
 
@@ -66,6 +78,37 @@ describe("parseBackup", () => {
     const parsed = parseBackup(JSON.stringify({ data: { notes: [{ id: "n1" }] } }));
     expect(parsed.data.notes).toEqual([{ id: "n1" }]);
     expect(parsed.data.tasks).toEqual([]);
+    expect(parsed.data.activity).toEqual([]);
+  });
+
+  it("round-trips activity", () => {
+    const parsed = parseBackup(JSON.stringify(buildBackup(SAMPLE)));
+    expect(parsed.data.activity).toEqual(SAMPLE.activity);
+  });
+
+  it("restores an older file that has no activity key, with activity as an empty list", () => {
+    const olderFile = JSON.stringify({ version: 1, exportedAt: "2026-09-18T13:01:09.822Z", app: "MAIA", data: LEGACY_SAMPLE });
+    const parsed = parseBackup(olderFile);
+    expect(parsed.data).toEqual({ ...LEGACY_SAMPLE, activity: [] });
+  });
+
+  it("rejects an activity field that isn't a list", () => {
+    expect(() => parseBackup(JSON.stringify({ data: { activity: "nope" } }))).toThrow(/activity/);
+  });
+
+  it("ignores unknown keys instead of failing or passing them through", () => {
+    const parsed = parseBackup(JSON.stringify({ data: { ...SAMPLE, futureThing: [1, 2, 3] }, extra: true }));
+    expect(parsed.data).toEqual(SAMPLE);
+    expect("futureThing" in parsed.data).toBe(false);
+  });
+
+  it("keeps new-shape tasks and projects untouched (normalization happens on read)", () => {
+    const rich = {
+      ...SAMPLE,
+      tasks: [{ id: "t1", status: "doing", done: false, startedAt: "2026-10-05T08:00:00.000Z", workstreamId: "w1" }],
+      projects: [{ id: "p1", workstreams: [{ id: "w1", name: "A" }], decisions: [], questions: [] }],
+    };
+    expect(parseBackup(JSON.stringify(buildBackup(rich))).data).toEqual(rich);
   });
 });
 

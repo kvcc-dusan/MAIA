@@ -25,6 +25,9 @@ export default function ChronosModal({
   onClose,
   tasks,
   setTasks,
+  // DataContext's toggleTask owns the status rule (status, doneAt, next-action
+  // promotion); a direct done/completedAt write here would bypass it.
+  toggleTask,
   reminders,
   setReminders,
   sessions,
@@ -308,10 +311,6 @@ export default function ChronosModal({
 
   const tasksOn = React.useCallback((date) => (date ? tasksByDate[date.toDateString()] || [] : []), [tasksByDate]);
 
-  const toggleTask = (id) =>
-    setTasks((prev) =>
-      prev.map((x) => (x.id !== id ? x : { ...x, done: !x.done, completedAt: !x.done ? isoNow() : null }))
-    );
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
 
   const upcomingSignals = useMemo(

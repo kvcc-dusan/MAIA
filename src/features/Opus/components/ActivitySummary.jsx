@@ -18,7 +18,8 @@ export default function ActivitySummary({ project }) {
         const timestamps = [];
 
         tasks.filter(t => t.projectId === project.id).forEach(t => {
-            if (t.completedAt) timestamps.push(new Date(t.completedAt).getTime());
+            const doneAt = t.doneAt ?? t.completedAt;
+            if (doneAt) timestamps.push(new Date(doneAt).getTime());
             if (t.createdAt) timestamps.push(new Date(t.createdAt).getTime());
         });
 

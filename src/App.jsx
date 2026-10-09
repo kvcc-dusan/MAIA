@@ -52,6 +52,7 @@ function AppContent() {
     tasks, setTasks,
     reminders, setReminders,
     sessions, setSessions,
+    activity, setActivity,
     // Actions
     createNote, updateNote, deleteNote, deleteAllNotes, renameNote,
     moveNoteToProject, toggleTask
@@ -80,13 +81,13 @@ function AppContent() {
 
   const handleExportBackup = useCallback(async () => {
     try {
-      const wrote = await downloadBackup({ notes, projects, tasks, reminders, sessions, ledger });
+      const wrote = await downloadBackup({ notes, projects, tasks, reminders, sessions, ledger, activity });
       if (wrote) toast.success("Backup saved.");
     } catch (e) {
       console.error("[MAIA] Export failed", e);
       toast.error(`Export failed: ${e.message || e}`);
     }
-  }, [notes, projects, tasks, reminders, sessions, ledger]);
+  }, [notes, projects, tasks, reminders, sessions, ledger, activity]);
 
   const applyImport = useCallback((backup) => {
     setNotes(backup.data.notes);
@@ -95,9 +96,12 @@ function AppContent() {
     setReminders(backup.data.reminders);
     setSessions(backup.data.sessions);
     setLedger(backup.data.ledger);
+    // Older backups carry no activity; parseBackup gives [] so a restore never
+    // keeps log entries that point at items the restored data no longer has.
+    setActivity(backup.data.activity);
     setPendingImport(null);
     toast.success("Data restored from backup.");
-  }, [setNotes, setProjects, setTasks, setReminders, setSessions, setLedger]);
+  }, [setNotes, setProjects, setTasks, setReminders, setSessions, setLedger, setActivity]);
 
   const handleImportBackup = useCallback(async () => {
     try {
@@ -344,6 +348,7 @@ function AppContent() {
           onClose={handleCloseChronos}
           tasks={tasks}
           setTasks={setTasks}
+          toggleTask={toggleTask}
           reminders={reminders}
           setReminders={setReminders}
           sessions={sessions}

@@ -1,4 +1,5 @@
 import { uid, isoNow } from "../lib/ids";
+import { buildOpusSample } from "./dummyOpusData";
 
 const SAMPLE_PROJECTS = [
     { name: "Maia Core", status: "Active" },
@@ -59,9 +60,9 @@ function randomItem(arr) {
     return arr[randomInt(0, arr.length - 1)];
 }
 
-export function generateDummyData() {
+export function generateDummyData({ today = new Date() } = {}) {
     // 1. Generate Projects
-    const projects = SAMPLE_PROJECTS.map(p => ({
+    const baseProjects = SAMPLE_PROJECTS.map(p => ({
         id: uid(),
         name: p.name,
         emoji: "📁",
@@ -74,6 +75,10 @@ export function generateDummyData() {
         links: [],
         milestones: [],
     }));
+
+    // Opus layer: workstreams, decisions, questions, milestones, tasks, activity.
+    // Project ids are kept, so the notes below still link to the right project.
+    const { projects, tasks, activity } = buildOpusSample({ projects: baseProjects, today });
 
     // 2. Generate Notes (1000 notes)
     const notes = Array.from({ length: 1000 }).map((_, i) => {
@@ -113,5 +118,5 @@ export function generateDummyData() {
         };
     });
 
-    return { projects, notes };
+    return { projects, notes, tasks, activity };
 }

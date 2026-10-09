@@ -46,6 +46,7 @@ Element.prototype.scrollIntoView = vi.fn();
 describe('ChronosModal', () => {
   const mockOnClose = vi.fn();
   const mockSetTasks = vi.fn();
+  const mockToggleTask = vi.fn();
   const mockSetReminders = vi.fn();
   const mockSetSessions = vi.fn();
 
@@ -53,6 +54,7 @@ describe('ChronosModal', () => {
     onClose: mockOnClose,
     tasks: [],
     setTasks: mockSetTasks,
+    toggleTask: mockToggleTask,
     reminders: [],
     setReminders: mockSetReminders,
     sessions: [],
@@ -115,6 +117,18 @@ describe('ChronosModal', () => {
     const buttons = screen.getAllByRole('button');
     const checkbox = buttons.find(b => b.getAttribute('aria-label')?.includes('Mark as done'));
     expect(checkbox).toBeInTheDocument();
+  });
+
+  it('toggles through the shared toggleTask instead of writing done itself', async () => {
+    const user = userEvent.setup();
+    const tasks = [
+      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
+    ];
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
+    const checkbox = screen.getAllByRole('button').find(b => b.getAttribute('aria-label')?.includes('Mark as done'));
+    await user.click(checkbox);
+    expect(mockToggleTask).toHaveBeenCalledWith('1');
+    expect(mockSetTasks).not.toHaveBeenCalled();
   });
 
   it('gives every calendar day cell an accessible name with task state', () => {

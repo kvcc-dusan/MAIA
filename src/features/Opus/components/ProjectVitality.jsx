@@ -20,8 +20,8 @@ function useProjectVitality(project) {
                 timestamps.push(ts);
                 uniqueDays.add(toDateStr(ts));
             }
-            if (t.done && t.completedAt) {
-                const ts = new Date(t.completedAt).getTime();
+            if (t.done && (t.doneAt ?? t.completedAt)) {
+                const ts = new Date(t.doneAt ?? t.completedAt).getTime();
                 timestamps.push(ts);
                 uniqueDays.add(toDateStr(ts));
             }

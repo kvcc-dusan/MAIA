@@ -4,13 +4,21 @@ import { useNotesStore } from "../hooks/useNotesStore.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { generateDummyData } from "../utils/dummyData.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
+import { normalizeTasks } from "../features/Opus/lib/taskModel.js";
+import { normalizeProject, normalizeProjects } from "../features/Opus/lib/projectModel.js";
+import { useActivityLog } from "./useActivityLog.js";
+import { useTaskActions } from "./useTaskActions.js";
+import { useProjectCollections } from "./useProjectCollections.js";
 
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
     // Notes & Projects
     const [notes, setNotes, notesMeta] = useNotesStore();
-    const [projects, setProjects] = useLocalStorage(STORAGE_KEYS.PROJECTS, []);
+    const [rawProjects, setProjects] = useLocalStorage(STORAGE_KEYS.PROJECTS, []);
+    // Consumers read the normalized view; storage keeps whatever shape was
+    // written, so legacy projects are never rewritten just by being read.
+    const projects = useMemo(() => normalizeProjects(rawProjects), [rawProjects]);
 
     // --- One-time migration: clear legacy maia.journal from localStorage ---
     useEffect(() => {
@@ -41,9 +49,11 @@ export function DataProvider({ children }) {
     const [ledger, setLedger] = useLocalStorage(STORAGE_KEYS.LEDGER, []);
 
     // Tasks & Reminders
-    const [tasks, setTasks] = useLocalStorage(STORAGE_KEYS.TASKS, []);
+    const [rawTasks, setTasks] = useLocalStorage(STORAGE_KEYS.TASKS, []);
+    const tasks = useMemo(() => normalizeTasks(rawTasks), [rawTasks]);
     const [reminders, setReminders] = useLocalStorage(STORAGE_KEYS.REMINDERS, []);
     const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.SESSIONS, []);
+    const { activity, setActivity, logActivity } = useActivityLog();
 
     // --- Actions ---
 
@@ -131,7 +141,7 @@ export function DataProvider({ children }) {
     // Projects
     const updateProject = useCallback((id, patch) => {
         setProjects((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, ...patch } : p))
+            prev.map((p) => (p.id === id ? normalizeProject({ ...p, ...patch }) : p))
         );
     }, [setProjects]);
 
@@ -146,10 +156,14 @@ export function DataProvider({ children }) {
         // Tasks and sessions carry a single projectId. Clear the reference
         // rather than deleting them: losing a user's work because they removed
         // a project would be worse than the task turning up unassigned.
-        setTasks((prev) => prev.map(t => (t.projectId === id ? { ...t, projectId: null } : t)));
+        // Workstream and milestone ids belong to the deleted project, so they go too.
+        setTasks((prev) => prev.map(t => (
+            t.projectId === id ? { ...t, projectId: null, workstreamId: null, milestoneId: null } : t
+        )));
         setSessions((prev) => prev.map(s => (s.linkedProjectId === id ? { ...s, linkedProjectId: null } : s)));
+        setActivity((prev) => (Array.isArray(prev) ? prev.filter(a => a.projectId !== id) : prev));
         setProjects((prev) => prev.filter((p) => p.id !== id));
-    }, [setProjects, setNotes, setTasks, setSessions]);
+    }, [setProjects, setNotes, setTasks, setSessions, setActivity]);
 
     const createProject = useCallback((name) => {
         const p = {
@@ -164,104 +178,45 @@ export function DataProvider({ children }) {
             successCriteria: [], // { id, text, done }
             pinnedNoteIds: [],
             links: [], // { id, title, url, type }
-            milestones: [], // { id, title, date, done }
+            milestones: [], // { id, title, date, start, status, workstreamId, done }
             assets: [], // { id, name, type, dataUrl, createdAt }
+            startDate: null,
+            targetDate: null,
+            phase: null,
+            nextMeeting: null,
+            workstreams: [], // { id, name, owner, status, color, order }
+            decisions: [], // { id, title, date, by, workstreamId, detail }
+            questions: [], // { id, question, workstreamId, owner, blocking, status, answer }
         };
         setProjects((prev) => [p, ...prev]);
         return p;
     }, [setProjects]);
 
     const generateSamples = useCallback(() => {
-        const { projects: newProjects, notes: newNotes } = generateDummyData();
+        const { projects: newProjects, notes: newNotes, tasks: newTasks, activity: newActivity } = generateDummyData();
         setProjects(newProjects);
         setNotes(newNotes);
-    }, [setProjects, setNotes]);
+        setTasks(newTasks);
+        setActivity(newActivity);
+    }, [setProjects, setNotes, setTasks, setActivity]);
 
-    // Tasks
-    const addTask = useCallback((title, due = null, desc = "", projectId = null, extras = {}) => {
-        if (!title.trim()) return;
-        const task = {
-            id: uid(),
-            title: title.trim(),
-            desc,
-            done: false,
-            createdAt: isoNow(),
-            due,
-            projectId: projectId || null,
-            isNextAction: false,
-            status: null,     // null | 'blocked'
-            schedule: 'today', // 'today' | 'soon' | 'future'
-            ...extras,
-        };
-        setTasks((prev) => [task, ...prev]);
-        return task.id;
-    }, [setTasks]);
+    // Tasks: status rules live in taskModel, activity logging in the hook
+    const { addTask, updateTask, deleteTask, toggleTask, setNextAction } =
+        useTaskActions({ tasks, setTasks, logActivity });
 
-    const updateTask = useCallback((id, patch) => {
-        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-    }, [setTasks]);
-
-    const deleteTask = useCallback((id) => {
-        setTasks((prev) => prev.filter((t) => t.id !== id));
-    }, [setTasks]);
-
-    const setNextAction = useCallback((taskId, projectId) => {
-        setTasks((prev) => prev.map((t) => {
-            if (t.projectId !== projectId) return t;
-            return { ...t, isNextAction: t.id === taskId };
-        }));
-    }, [setTasks]);
+    // Workstreams, project decisions, questions, milestones (embedded on the project)
+    const {
+        addWorkstream, updateWorkstream, deleteWorkstream,
+        addDecision, updateDecision, deleteProjectDecision,
+        addQuestion, updateQuestion, deleteQuestion, answerQuestion,
+        addMilestone, updateMilestone, deleteMilestone,
+    } = useProjectCollections({ projects, setProjects, setTasks, logActivity });
 
     // Reminders
     const addReminder = useCallback((title, scheduledAt) => {
         if (!title.trim()) return;
         setReminders((prev) => [{ id: uid(), title: title.trim(), scheduledAt, createdAt: isoNow(), delivered: false }, ...prev]);
     }, [setReminders]);
-
-    const toggleTask = useCallback((id) => {
-        setTasks((prev) => {
-            const target = prev.find(t => t.id === id);
-            if (!target) return prev;
-
-            const willBeDone = !target.done;
-
-            // Update the toggled task
-            let updated = prev.map((t) => {
-                if (t.id !== id) return t;
-                return {
-                    ...t,
-                    done: willBeDone,
-                    completedAt: willBeDone ? isoNow() : null,
-                    // Clear nextAction flag when completing
-                    isNextAction: willBeDone ? false : t.isNextAction,
-                };
-            });
-
-            // Auto-promote: FIFO — oldest task, schedule-priority (today > soon > future)
-            if (willBeDone && target.isNextAction && target.projectId) {
-                const SCHED = { today: 0, soon: 1, future: 2 };
-                const nextCandidate = updated
-                    .filter(t =>
-                        t.projectId === target.projectId &&
-                        !t.done &&
-                        !t.isNextAction &&
-                        t.status !== 'blocked'
-                    )
-                    .sort((a, b) => {
-                        const sd = (SCHED[a.schedule] ?? 0) - (SCHED[b.schedule] ?? 0);
-                        return sd !== 0 ? sd : new Date(a.createdAt) - new Date(b.createdAt);
-                    })[0];
-
-                if (nextCandidate) {
-                    updated = updated.map(t =>
-                        t.id === nextCandidate.id ? { ...t, isNextAction: true } : t
-                    );
-                }
-            }
-
-            return updated;
-        });
-    }, [setTasks]);
 
     // Decisions (Ledger)
     const createDecision = useCallback((data) => {
@@ -294,6 +249,7 @@ export function DataProvider({ children }) {
         tasks, setTasks,
         reminders, setReminders,
         sessions, setSessions,
+        activity, setActivity,
         // Note Actions
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject,
         addProjectToNote, removeProjectFromNote,
@@ -301,11 +257,21 @@ export function DataProvider({ children }) {
         updateProject, deleteProject, createProject,
         // Task & Reminder Actions
         addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
-        // Decision Actions
+        // Project collections (workstreams, project decisions, questions, milestones)
+        addWorkstream, updateWorkstream, deleteWorkstream,
+        addDecision, updateDecision, deleteProjectDecision,
+        addQuestion, updateQuestion, deleteQuestion, answerQuestion,
+        addMilestone, updateMilestone, deleteMilestone,
+        // Decision Actions (Ledger)
         createDecision, reviewDecision, deleteDecision,
         generateSamples
     }), [
         notes, setNotes, notesMeta, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
+        activity, setActivity,
+        addWorkstream, updateWorkstream, deleteWorkstream,
+        addDecision, updateDecision, deleteProjectDecision,
+        addQuestion, updateQuestion, deleteQuestion, answerQuestion,
+        addMilestone, updateMilestone, deleteMilestone,
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject, addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
         createDecision, reviewDecision, deleteDecision,

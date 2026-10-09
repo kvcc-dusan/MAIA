@@ -10,7 +10,7 @@ export const BACKUP_VERSION = 1;
 /**
  * @param {{
  *   notes: any[], projects: any[], tasks: any[],
- *   reminders: any[], sessions: any[], ledger: any[],
+ *   reminders: any[], sessions: any[], ledger: any[], activity?: any[],
  * }} data
  */
 export function buildBackup(data) {
@@ -25,6 +25,7 @@ export function buildBackup(data) {
       reminders: data.reminders ?? [],
       sessions: data.sessions ?? [],
       ledger: data.ledger ?? [],
+      activity: data.activity ?? [],
     },
   };
 }
@@ -49,7 +50,9 @@ export function parseBackup(raw) {
   if (!json || typeof json !== "object" || !json.data || typeof json.data !== "object") {
     throw new Error("That doesn't look like a MAIA backup file.");
   }
-  const shape = ["notes", "projects", "tasks", "reminders", "sessions", "ledger"];
+  // `activity` arrived after version 1 shipped: older files simply lack it.
+  // Unknown keys are ignored, so a newer file still restores into an older build.
+  const shape = ["notes", "projects", "tasks", "reminders", "sessions", "ledger", "activity"];
   for (const key of shape) {
     if (json.data[key] !== undefined && !Array.isArray(json.data[key])) {
       throw new Error(`Backup field "${key}" is malformed (expected a list).`);
@@ -65,6 +68,7 @@ export function parseBackup(raw) {
       reminders: json.data.reminders ?? [],
       sessions: json.data.sessions ?? [],
       ledger: json.data.ledger ?? [],
+      activity: json.data.activity ?? [],
     },
   };
 }
