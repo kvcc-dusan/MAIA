@@ -1,130 +1,102 @@
-import { useState, useMemo } from 'react';
+import { useId, useState, useMemo } from 'react';
 import { SectionCard } from "@/components/composed/SectionCard";
 import { CountPill } from "@/components/composed/SectionBits";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+import { Switch } from "@/components/arc/switch/switch";
+import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { CalibrationChart } from './CalibrationChart';
 import { VelocityChart } from './VelocityChart';
 import { OutcomeDistribution } from './OutcomeDistribution';
-import { cn } from "@/lib/utils";
+import styles from './JudgmentOverview.module.css';
 
 /**
- * The Ledger's three chart panels, rendered as Opus section cards
- * (translucent card + blur + hairline border + shadow) instead of flat black
- * panels. The chart bodies adapt to the card height via flexbox.
+ * Summary numbers plus the Ledger's three chart panels. Cards rest on a
+ * hairline border; the chart bodies are Arc charts that size themselves.
  */
 
-const CARD_BODY = "flex-1 min-h-0 px-5 pb-5 pt-4";
+const RANGE_OPTIONS = [
+    { value: '30d', label: '30 days' },
+    { value: '90d', label: '90 days' },
+    { value: 'all', label: 'All time' },
+];
 
-// Right-aligned caption in each card header ("EXP VS ACT" etc.)
+const RANGE_DAYS = { '30d': 30, '90d': 90 };
+const RANGE_CONTEXT = { '30d': 'in the last 30 days', '90d': 'in the last 90 days', all: 'across all time' };
 
-export function JudgmentOverview({ ledger }) {
-    const [timeRange, setTimeRange] = useState('all'); // '30d', '90d', 'all'
-    const [stakesFilter, setStakesFilter] = useState('all'); // 'high', 'all'
+export function JudgmentOverview({ ledger, onLog }) {
+    const [timeRange, setTimeRange] = useState('all');
+    const [highStakesOnly, setHighStakesOnly] = useState(false);
+    const switchId = useId();
 
-    // Filter Data
     const filteredData = useMemo(() => {
         let data = [...ledger];
 
         if (timeRange !== 'all') {
-            const now = new Date();
-            const days = timeRange === '30d' ? 30 : 90;
-            const cutoff = new Date(now.setDate(now.getDate() - days));
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - RANGE_DAYS[timeRange]);
             data = data.filter(d => new Date(d.createdAt) >= cutoff);
         }
 
-        if (stakesFilter === 'high') {
-            data = data.filter(d => d.stakes === 'high');
-        }
+        if (highStakesOnly) data = data.filter(d => d.stakes === 'high');
 
         return data;
-    }, [ledger, timeRange, stakesFilter]);
+    }, [ledger, timeRange, highStakesOnly]);
 
-    // Calculate summary stats
-    const totalDecisions = filteredData.length;
-    const reviewedDecisions = filteredData.filter(d => d.status === 'reviewed').length;
-    const reviewRate = totalDecisions > 0 ? Math.round((reviewedDecisions / totalDecisions) * 100) : 0;
+    const total = filteredData.length;
+    const reviewed = filteredData.filter(d => d.status === 'reviewed').length;
+    const reviewRate = total > 0 ? Math.round((reviewed / total) * 100) : 0;
+    const scope = `${RANGE_CONTEXT[timeRange]}${highStakesOnly ? ', high stakes' : ''}`;
 
     return (
-        <div className="w-full mb-8">
-            {/* Header & Filters */}
-            <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <section className={styles.overview} aria-labelledby={`${switchId}-title`}>
+            <div className={styles.header}>
                 <div>
-                    <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-foreground flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_10px_var(--success)]"></span>
-                        Judgment Overview
-                    </h2>
-                    <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                        Cognitive Feedback Loop • {totalDecisions} Decisions • {reviewRate}% Reviewed
-                    </p>
+                    <h2 id={`${switchId}-title`} className={styles.title}>Judgment overview</h2>
+                    <p className={styles.subtitle}>How well your confidence predicts what happens</p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    {/* Time Range */}
-                    <div className="flex bg-overlay-subtle rounded-lg p-1 gap-1">
-                        {[{ id: '30d', label: '30D' }, { id: '90d', label: '90D' }, { id: 'all', label: 'ALL' }].map(t => (
-                            <button
-                                key={t.id}
-                                onClick={() => setTimeRange(t.id)}
-                                className={cn(
-                                    "px-3 py-1 text-xs font-bold uppercase rounded-md transition-all",
-                                    timeRange === t.id ? "bg-overlay text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground-secondary"
-                                )}
-                            >
-                                {t.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* High Stakes Toggle */}
-                    <button
-                        onClick={() => setStakesFilter(prev => prev === 'all' ? 'high' : 'all')}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all",
-                            stakesFilter === 'high'
-                                ? "bg-destructive/10 border-destructive/20 text-destructive"
-                                : "bg-overlay-subtle border-border-subtle text-muted-foreground hover:text-foreground-secondary"
-                        )}
-                    >
-                        High Stakes Only
-                    </button>
+                <div className={styles.filters}>
+                    <SegmentedControl
+                        label="Time range"
+                        options={RANGE_OPTIONS}
+                        value={timeRange}
+                        onValueChange={setTimeRange}
+                    />
+                    <label className={styles.toggle} htmlFor={switchId}>
+                        <Switch
+                            id={switchId}
+                            checked={highStakesOnly}
+                            onCheckedChange={setHighStakesOnly}
+                            aria-label="High stakes only"
+                        />
+                        <span>High stakes only</span>
+                    </label>
                 </div>
             </div>
 
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 auto-rows-[200px] sm:auto-rows-[220px] lg:auto-rows-[240px]">
-                {/* 1. Calibration */}
-                <SectionCard
-                    className="lg:col-span-2"
-                    title="Confidence Calibration"
-                    bodyClassName={CARD_BODY}
-                >
-                    <div className="h-full w-full relative">
-                        <CalibrationChart data={filteredData} />
-                    </div>
+            <div className={styles.metrics}>
+                <MetricCard label="Decisions" value={total} context={scope} />
+                <MetricCard label="Open" value={total - reviewed} context="waiting for a review" />
+                <MetricCard label="Review rate" value={reviewRate} suffix="%" context={`${reviewed} of ${total} reviewed`} />
+            </div>
+
+            <div className={styles.charts}>
+                <SectionCard title="Confidence calibration" bodyClassName={styles.body}>
+                    <CalibrationChart data={filteredData} />
                 </SectionCard>
 
-                {/* 2. Velocity */}
-                <SectionCard
-                    className="lg:col-span-2"
-                    title="Decision Velocity"
-                    bodyClassName={CARD_BODY}
-                >
-                    <div className="h-full w-full relative">
-                        <VelocityChart data={filteredData} />
-                    </div>
+                <SectionCard title="Decision velocity" bodyClassName={styles.body}>
+                    <VelocityChart data={filteredData} onLog={onLog} />
                 </SectionCard>
 
-                {/* 3. Outcomes */}
                 <SectionCard
-                    className="md:col-span-2 lg:col-span-2"
-                    title="Outcome Scorecard"
-                    count={<CountPill>Reviewed</CountPill>}
-                    bodyClassName={CARD_BODY}
+                    title="Outcome scorecard"
+                    count={<CountPill>Reviewed only</CountPill>}
+                    bodyClassName={styles.body}
                 >
-                    <div className="h-full w-full relative">
-                        <OutcomeDistribution data={filteredData} />
-                    </div>
+                    <OutcomeDistribution data={filteredData} />
                 </SectionCard>
             </div>
-        </div>
+        </section>
     );
 }

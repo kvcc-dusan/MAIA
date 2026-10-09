@@ -1,40 +1,44 @@
-import { useId, useState } from "react";
-import { cn } from "@/lib/utils";
-import { BalanceScale as Scale } from "@/components/ui/CustomIcon.jsx";
+import { useState } from "react";
 import { AppDialog } from "@/components/composed/AppDialog";
-import { Field } from "@/components/composed/Field";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { STAKES_DOT, OUTCOME_DOT } from "./decisionStyles";
+import { Button } from "@/components/arc/button/button";
+import { Input } from "@/components/arc/input/input";
+import { Textarea } from "@/components/arc/textarea/textarea";
+import { Slider } from "@/components/arc/slider/slider";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+import { STAKES_DOT, OUTCOME_DOT, STAKES_LABEL, REVERSIBILITY_LABEL, OUTCOME_LABEL } from "./decisionStyles";
+import { StatusDotLabel } from "./StatusDotLabel";
+import styles from "./LedgerModals.module.css";
 
 /**
- * The three Ledger decision dialogs — create/edit, outcome review, and the
- * read-only detail view.
+ * The three Ledger decision dialogs: create/edit, outcome review, and the
+ * read-only detail view. AppDialog + Arc fields; the action row sits in
+ * AppDialog's footer slot (Cancel left of the primary action).
  *
- * Rebuilt on the shared form primitives the same way as ChronosModal's task
- * form: fields whose placeholder speaks carry an sr-only label, controls that
- * display their value (chip groups, the confidence slider) keep a visible
- * one, and an empty title now surfaces as error text under the field instead
- * of silently no-op'ing the submit. These are centered dialogs rather than
- * slide-over rails, so EntityForm's chrome (full-height, slide-in, own h2)
- * doesn't apply — the AppDialog + Field + Button composition below is the
- * same one PromptDialog uses, with the action row in AppDialog's footer slot
- * (Cancel bordered, left of the primary action).
+ * Stakes, reversibility and result are single-choice pickers, so they are
+ * segmented controls. Stakes and result carry a status dot as an accessory;
+ * the label always states the value.
  */
 
-// The stakes / reversibility / result pickers are chip toggles, not action
-// buttons — the Button primitive supplies the interaction chrome (focus ring,
-// pressed state, disabled handling) while the chip look stays a className
-// override. Selected chips restate their tint as their own hover colour, so
-// ghost's hover styles can't repaint a value the user already picked.
-function chipClasses(selected, selectedClasses) {
-    return cn(
-        "rounded-lg text-xs font-bold uppercase tracking-wider",
-        selected ? selectedClasses : "text-subtle-foreground hover:text-muted-foreground hover:bg-overlay-subtle"
-    );
-}
+const dot = (color) => <span className={styles.dot} style={{ backgroundColor: color }} aria-hidden="true" />;
+
+const STAKES_OPTIONS = ['low', 'medium', 'high'].map((value) => ({
+    value,
+    label: STAKES_LABEL[value],
+    accessory: dot(STAKES_DOT[value]),
+}));
+
+const REVERSIBILITY_OPTIONS = ['reversible', 'costly', 'irreversible'].map((value) => ({
+    value,
+    label: REVERSIBILITY_LABEL[value],
+}));
+
+const RESULT_OPTIONS = ['success', 'mixed', 'failure'].map((value) => ({
+    value,
+    label: OUTCOME_LABEL[value],
+    accessory: dot(OUTCOME_DOT[value]),
+}));
+
+const formatPercent = (value) => `${value}%`;
 
 // ─── New / Edit Decision Modal ───
 
@@ -48,7 +52,6 @@ export function NewDecisionModal({ onClose, onSubmit, initialData }) {
         confidence: initialData?.confidence ?? 70,
     });
     const [error, setError] = useState(null);
-    const confidenceId = useId();
 
     const handleSubmit = (e) => {
         e?.preventDefault();
@@ -67,96 +70,67 @@ export function NewDecisionModal({ onClose, onSubmit, initialData }) {
             open
             onClose={onClose}
             size="lg"
-            title={
-                <span className="flex items-center gap-2">
-                    <Scale size={14} className="text-muted-foreground" />
-                    {isEditing ? "Edit Decision" : "Log Decision"}
-                </span>
-            }
+            title={isEditing ? "Edit decision" : "Log decision"}
             footer={
                 <>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleSubmit}>{isEditing ? "Save Changes" : "Log Decision"}</Button>
+                    <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                    <Button type="button" onClick={handleSubmit}>{isEditing ? "Save changes" : "Log decision"}</Button>
                 </>
             }
         >
-            <form onSubmit={handleSubmit} className="space-y-8">
-                <Field label="Title" labelClassName="sr-only" required error={error}>
-                    <Input
-                        autoFocus
-                        placeholder="Decision Title..."
-                        value={draft.title}
-                        onChange={e => setDraft({ ...draft, title: e.target.value })}
-                    />
-                </Field>
+            <form onSubmit={handleSubmit} className={styles.form}>
+                <Input
+                    autoFocus
+                    label="Title"
+                    placeholder="Move the site to a new host"
+                    aria-required="true"
+                    value={draft.title}
+                    error={error || undefined}
+                    onChange={e => {
+                        setDraft({ ...draft, title: e.target.value });
+                        if (error) setError(null);
+                    }}
+                />
 
-                <div className="grid grid-cols-2 gap-8">
-                    <Field label="Stakes">
-                        <div className="flex gap-1">
-                            {['low', 'medium', 'high'].map(s => (
-                                <Button
-                                    key={s}
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    aria-pressed={draft.stakes === s}
-                                    onClick={() => setDraft({ ...draft, stakes: s })}
-                                    className={chipClasses(draft.stakes === s, s === 'high'
-                                        ? 'bg-destructive/10 text-destructive hover:bg-destructive/10 hover:text-destructive'
-                                        : s === 'medium'
-                                            ? 'bg-warning/10 text-warning hover:bg-warning/10 hover:text-warning'
-                                            : 'bg-priority-1/10 text-priority-1 hover:bg-priority-1/10 hover:text-priority-1')}
-                                >
-                                    {s}
-                                </Button>
-                            ))}
-                        </div>
-                    </Field>
-                    <Field label="Reversibility">
-                        <div className="flex gap-1">
-                            {['reversible', 'costly', 'irreversible'].map(r => (
-                                <Button
-                                    key={r}
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    aria-pressed={draft.reversibility === r}
-                                    onClick={() => setDraft({ ...draft, reversibility: r })}
-                                    className={chipClasses(draft.reversibility === r, 'bg-overlay text-foreground hover:bg-overlay hover:text-foreground')}
-                                >
-                                    {r === 'irreversible' ? 'Final' : r}
-                                </Button>
-                            ))}
-                        </div>
-                    </Field>
-                </div>
-
-                <Field label="Key Assumptions" labelClassName="sr-only">
-                    <Textarea
-                        className="min-h-[80px] leading-relaxed"
-                        placeholder={"- Zero downtime required\n- Cost under $50/mo"}
-                        value={draft.assumptions}
-                        onChange={e => setDraft({ ...draft, assumptions: e.target.value })}
-                    />
-                </Field>
-
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <Label htmlFor={confidenceId}>Confidence</Label>
-                        <span className="text-xs text-muted-foreground tabular-nums">{draft.confidence}%</span>
+                <div className={styles.pair}>
+                    <div className={styles.group}>
+                        <span className={styles.groupLabel}>Stakes</span>
+                        <SegmentedControl
+                            label="Stakes"
+                            options={STAKES_OPTIONS}
+                            value={draft.stakes}
+                            onValueChange={(stakes) => setDraft({ ...draft, stakes })}
+                        />
                     </div>
-                    {/* A range slider is its own control family — the h-11 input
-                        chrome doesn't apply, so this stays a raw control wired to
-                        its label by hand. */}
-                    <input
-                        id={confidenceId}
-                        type="range"
-                        min="0" max="100" step="5"
-                        className="w-full h-1 bg-overlay-subtle rounded-lg appearance-none cursor-pointer accent-foreground hover:bg-overlay transition-colors"
-                        value={draft.confidence}
-                        onChange={e => setDraft({ ...draft, confidence: Number(e.target.value) })}
-                    />
+                    <div className={styles.group}>
+                        <span className={styles.groupLabel}>Reversibility</span>
+                        <SegmentedControl
+                            label="Reversibility"
+                            options={REVERSIBILITY_OPTIONS}
+                            value={draft.reversibility}
+                            onValueChange={(reversibility) => setDraft({ ...draft, reversibility })}
+                        />
+                    </div>
                 </div>
+
+                <Textarea
+                    label="Key assumptions"
+                    description="One per line."
+                    rows={4}
+                    placeholder={"Zero downtime required\nCost under $50 a month"}
+                    value={draft.assumptions}
+                    onChange={e => setDraft({ ...draft, assumptions: e.target.value })}
+                />
+
+                <Slider
+                    label="Confidence"
+                    min={0}
+                    max={100}
+                    step={5}
+                    format={formatPercent}
+                    value={draft.confidence}
+                    onValueChange={(confidence) => setDraft({ ...draft, confidence })}
+                />
             </form>
         </AppDialog>
     );
@@ -175,66 +149,48 @@ export function ReviewModal({ decision, onClose, onReview }) {
             open
             onClose={onClose}
             size="lg"
-            title="Review Outcome"
+            title="Review outcome"
             footer={
                 <>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
-                    <Button onClick={() => onReview({ outcome, status })}>Complete Review</Button>
+                    <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+                    <Button type="button" onClick={() => onReview({ outcome, status })}>Complete review</Button>
                 </>
             }
         >
-            <div className="space-y-6">
-                {/* Decision Summary */}
+            <div className={styles.stack}>
                 <div>
-                    <div className="text-lg font-medium text-foreground mb-3">{decision.title}</div>
-                    {/* Confidence prediction — core of calibration */}
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs text-subtle-foreground uppercase tracking-widest">You predicted</span>
-                        <span className="text-sm font-bold text-foreground">{decision.confidence}%</span>
-                        <span className="text-xs text-subtle-foreground uppercase tracking-widest">confidence</span>
-                    </div>
+                    <div className={styles.decisionTitle}>{decision.title}</div>
+                    {/* The confidence prediction is the core of calibration */}
+                    <p className={styles.predicted}>
+                        You predicted <strong>{decision.confidence}%</strong> confidence
+                    </p>
                     {decision.assumptions && decision.assumptions.length > 0 && (
-                        <div className="space-y-1 pl-3 border-l-2 border-border-subtle">
-                            {decision.assumptions.map((a, i) => (
-                                <div key={i} className="text-xs text-muted-foreground leading-relaxed">• {a}</div>
-                            ))}
-                        </div>
+                        <ul className={styles.assumptions}>
+                            {decision.assumptions.map((a, i) => <li key={i}>{a}</li>)}
+                        </ul>
                     )}
                 </div>
 
-                <div className="pt-4 border-t border-border-subtle">
-                    <Field label="Actual Outcome" labelClassName="sr-only">
-                        <Textarea
-                            autoFocus
-                            className="min-h-[80px] leading-relaxed"
-                            placeholder="What actually happened..."
-                            value={outcome}
-                            onChange={e => setOutcome(e.target.value)}
-                        />
-                    </Field>
+                <div className={styles.section}>
+                    <Textarea
+                        autoFocus
+                        label="Actual outcome"
+                        rows={4}
+                        placeholder="What actually happened"
+                        value={outcome}
+                        onChange={e => setOutcome(e.target.value)}
+                    />
                 </div>
 
-                <Field label="Result Assessment">
-                    <div className="flex gap-2">
-                        {['success', 'mixed', 'failure'].map(s => (
-                            <Button
-                                key={s}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                aria-pressed={status === s}
-                                onClick={() => setStatus(s)}
-                                className={cn(chipClasses(status === s, s === 'success'
-                                    ? 'bg-success/10 text-success hover:bg-success/10 hover:text-success'
-                                    : s === 'failure'
-                                        ? 'bg-destructive/10 text-destructive hover:bg-destructive/10 hover:text-destructive'
-                                        : 'bg-warning/10 text-warning hover:bg-warning/10 hover:text-warning'), "px-4")}
-                            >
-                                {s}
-                            </Button>
-                        ))}
-                    </div>
-                </Field>
+                <div className={styles.group}>
+                    <span className={styles.groupLabel}>Result</span>
+                    <SegmentedControl
+                        label="Result"
+                        options={RESULT_OPTIONS}
+                        value={status}
+                        onValueChange={setStatus}
+                    />
+                </div>
             </div>
         </AppDialog>
     );
@@ -246,62 +202,48 @@ export function DecisionDetailModal({ decision, onClose }) {
     if (!decision) return null;
 
     return (
-        <AppDialog open onClose={onClose} size="lg" title="Decision Review">
-            <div className="space-y-6">
-                {/* Decision Title & Tags */}
+        <AppDialog open onClose={onClose} size="lg" title="Decision review">
+            <div className={styles.stack}>
                 <div>
-                    <div className="text-lg font-medium text-foreground mb-3">{decision.title}</div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: STAKES_DOT[decision.stakes] || STAKES_DOT.low }} />
-                            {decision.stakes}
-                        </span>
-                        <span className="text-xs text-muted-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
-                            {decision.reversibility}
-                        </span>
-                        <span className="text-xs text-subtle-foreground bg-overlay-subtle px-2 py-1 rounded-full border border-border-subtle uppercase tracking-wider font-bold">
-                            {decision.confidence}% Conf
-                        </span>
+                    <div className={styles.decisionTitle}>{decision.title}</div>
+                    <div className={styles.chips}>
+                        <StatusDotLabel dot={STAKES_DOT[decision.stakes] || STAKES_DOT.low}>
+                            {STAKES_LABEL[decision.stakes] || STAKES_LABEL.low} stakes
+                        </StatusDotLabel>
+                        <StatusDotLabel>{REVERSIBILITY_LABEL[decision.reversibility] || decision.reversibility}</StatusDotLabel>
+                        <StatusDotLabel>{decision.confidence}% confident</StatusDotLabel>
                     </div>
                 </div>
 
-                {/* Assumptions */}
                 {decision.assumptions && decision.assumptions.length > 0 && (
-                    <div className="pt-4 border-t border-border-subtle">
-                        {/* Read-only section headings, not form labels — Field doesn't apply */}
-                        <div className="text-xs font-bold uppercase tracking-widest text-subtle-foreground mb-3">Assumptions</div>
-                        <div className="space-y-1.5 pl-3 border-l-2 border-border">
-                            {decision.assumptions.map((a, i) => (
-                                <div key={i} className="text-xs text-muted-foreground leading-relaxed">• {a}</div>
-                            ))}
-                        </div>
+                    <div className={styles.section}>
+                        <h3 className={styles.sectionLabel}>Assumptions</h3>
+                        <ul className={styles.assumptions}>
+                            {decision.assumptions.map((a, i) => <li key={i}>{a}</li>)}
+                        </ul>
                     </div>
                 )}
 
-                {/* Outcome */}
                 {decision.outcome && (
-                    <div className="pt-4 border-t border-border-subtle">
-                        <div className="text-xs font-bold uppercase tracking-widest text-subtle-foreground mb-3">Actual Outcome</div>
-                        <div className="text-sm text-foreground-secondary leading-relaxed whitespace-pre-wrap">{decision.outcome}</div>
+                    <div className={styles.section}>
+                        <h3 className={styles.sectionLabel}>Actual outcome</h3>
+                        <p className={styles.outcome}>{decision.outcome}</p>
                     </div>
                 )}
 
-                {/* Result Assessment */}
                 {decision.outcomeStatus && (
-                    <div className="pt-4 border-t border-border-subtle">
-                        <div className="text-xs font-bold uppercase tracking-widest text-subtle-foreground mb-3">Result Assessment</div>
-                        <span className="text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full border border-border-subtle bg-overlay-subtle text-muted-foreground inline-flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: OUTCOME_DOT[decision.outcomeStatus] }} />
-                            {decision.outcomeStatus}
-                        </span>
+                    <div className={styles.section}>
+                        <h3 className={styles.sectionLabel}>Result</h3>
+                        <StatusDotLabel dot={OUTCOME_DOT[decision.outcomeStatus]}>
+                            {OUTCOME_LABEL[decision.outcomeStatus] || decision.outcomeStatus}
+                        </StatusDotLabel>
                     </div>
                 )}
 
-                {/* Reviewed Date */}
                 {decision.reviewedAt && (
-                    <div className="text-xs text-subtle-foreground uppercase tracking-wider pt-2">
+                    <p className={styles.reviewed}>
                         Reviewed {new Date(decision.reviewedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
+                    </p>
                 )}
             </div>
         </AppDialog>

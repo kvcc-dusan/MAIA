@@ -1,23 +1,21 @@
 // Shared constants for the Ledger decision surface (page, cards, modals).
-// They moved here because DecisionCard and the modals were extracted out of
-// LedgerPage.jsx but still speak the same visual language — one definition
-// instead of three drifting copies.
 
-// The modals' old INPUT_CLEAN / LABEL_CLASS field styles are gone: the
-// dialogs consume the shared Field / Input / Textarea / Button primitives
-// now, so their styling can no longer drift from the rest of the app.
-
-// Semantic colour of the stakes / outcome dots. These are CSS var() *strings*
-// passed to `style.backgroundColor`, so they stay token-driven while keeping
-// the dot markup declarative.
+// Semantic colour of the stakes / outcome dots. CSS var() strings passed to
+// `style.backgroundColor`. The dot never carries meaning alone: every use sits
+// next to a text label.
 export const STAKES_DOT = {
-  high: 'var(--destructive)',
+  high: 'var(--danger)',
   medium: 'var(--warning)',
-  low: 'var(--priority-1)',
+  low: 'var(--text-muted)',
 };
 
 export const OUTCOME_DOT = {
   success: 'var(--success)',
   mixed: 'var(--warning)',
-  failure: 'var(--destructive)',
+  failure: 'var(--danger)',
 };
+
+// Display copy for the stored enum values (sentence case).
+export const STAKES_LABEL = { low: 'Low', medium: 'Medium', high: 'High' };
+export const REVERSIBILITY_LABEL = { reversible: 'Reversible', costly: 'Costly', irreversible: 'Irreversible' };
+export const OUTCOME_LABEL = { success: 'Success', mixed: 'Mixed', failure: 'Failure' };
