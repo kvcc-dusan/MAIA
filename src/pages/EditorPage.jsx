@@ -217,6 +217,8 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
                 onChange={handleContentChange}
                 onMetaChange={handleMetaChange}
                 onOpenInternalLink={onOpenInternalLink}
+                notes={notes}
+                folder={note?.folder || ""}
               />
             )}
           </div>

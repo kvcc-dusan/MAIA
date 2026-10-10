@@ -32,22 +32,27 @@ const SAFE = {
   'only whitespace': '\n\n',
   'code with table-like and callout-like text': '```md\n| a | b |\n| - | - |\n> [!note] x\n```',
   'inline code with callout syntax': 'use `> [!note]` for callouts',
+  // stage 2: these used to route to source mode
+  'table': '| a | b |\n| - | - |\n| 1 | 2 |',
+  'table with alignment': '| a | b | c |\n|:--|:-:|--:|\n| 1 | 2 | 3 |',
+  'table without outer pipes': 'a | b\n--- | ---\n1 | 2',
+  'table with marks, wikilink, escaped pipe and br': '| a | b |\n| - | - |\n| **x** [[N\\|al]] | `y` x<br>z \\| |',
+  'callout': '> [!note] Title\n> body',
+  'foldable callout': '> [!tip]- Folded\n> body',
+  'nested callout': '> [!info] T\n> > [!tip] inner\n> > b',
+  'callout in a list': '- a\n  > [!note] x\n  > y',
+  'callout with unknown type': '> [!my-type]+ T\n> body',
+  'custom task status': '- [/] partial\n- [-] cancelled\n- [>] deferred',
+  'task in numbered list': '1. [ ] a\n2. [x] b',
+  'reference link': '[ref]: https://example.com\n\n[text][ref]',
+  'html entity': '&copy; and &amp; and &nbsp;',
+  'bold italic': 'a ***bi*** b',
 };
 
-// Everything that the audit lists as DANGEROUS and that stage 1 does not fix yet.
+// What the guard still routes to source mode: content that would change on save.
 const UNSAFE = {
-  'table': ['| a | b |\n| - | - |\n| 1 | 2 |', 'table'],
-  'table with alignment': ['| a | b | c |\n|:--|:-:|--:|\n| 1 | 2 | 3 |', 'table'],
-  'table without outer pipes': ['a | b\n- | -\n1 | 2', 'table'],
-  'callout': ['> [!note] Title\n> body', 'callout'],
-  'foldable callout': ['> [!tip]- Folded\n> body', 'callout'],
-  'nested callout': ['> [!info] T\n> > [!tip] inner\n> > b', 'callout'],
-  'callout in a list': ['- a\n  > [!note] x\n  > y', 'callout'],
-  'custom task status': ['- [/] partial\n- [-] cancelled\n- [>] deferred', 'task-status'],
-  'task in numbered list': ['1. [ ] a\n2. [x] b', 'ordered-task'],
-  'reference link': ['[ref]: https://example.com\n\n[text][ref]', 'reference-links'],
-  'html entity': ['&copy; and &amp;', 'content-changed'],
   'wikilink in an alias': ['[[Note|![[x.png]]]]', 'content-changed'],
+  'reference definition over several lines': ['[ref]:\n  https://example.com\n\n[text][ref]', 'content-changed'],
 };
 
 describe('roundTripSafe', () => {
@@ -83,14 +88,14 @@ describe('roundTripSafe', () => {
     expect(roundTripSafe(md)).toBe(true);
   });
 
-  it('flags a note when only one construct in a long note is dangerous', () => {
-    const md = '# Plan\n\nLots of **fine** text with [[links]].\n\n> [!warning] Careful\n> body\n\nMore text.';
-    expect(roundTripSafe(md)).toBe(false);
+  it('opens a long note with tables, callouts and tasks in rich view', () => {
+    const md = '# Plan\n\nLots of **fine** text with [[links]].\n\n> [!warning] Careful\n> body\n\n| a | b |\n| - | - |\n| 1 | 2 |\n\n- [/] doing\n\nMore text.';
+    expect(roundTripSafe(md)).toBe(true);
   });
 
   it('explains what it found', () => {
-    const { reasons } = checkRoundTrip('| a | b |\n| - | - |\n\n> [!note] x');
-    expect(reasons.map((r) => r.label)).toEqual(expect.arrayContaining(['tables', 'callouts']));
+    const { reasons } = checkRoundTrip('[[Note|![[x.png]]]]');
+    expect(reasons.map((r) => r.label)).toEqual(['syntax that would change on save']);
   });
 
   it('memoizes per note id and content', () => {
@@ -107,7 +112,7 @@ describe('roundTripSafe', () => {
 });
 
 describe('dangerous pattern list', () => {
-  it('is data: every entry has an id, a label and a test', () => {
+  it('stays data: every entry (if any) has an id, a label and a test', () => {
     DANGEROUS_PATTERNS.forEach((entry) => {
       expect(entry.id).toEqual(expect.any(String));
       expect(entry.label).toEqual(expect.any(String));
@@ -127,8 +132,9 @@ describe('dangerous pattern list', () => {
     expect(findDangerousSyntax('a\n\n---\n\nb')).toEqual([]);
   });
 
-  it('keeps footnote definitions out of the reference-link rule', () => {
-    expect(findDangerousSyntax('x[^1]\n\n[^1]: note')).toEqual([]);
+  it('has no entries left: stage 2 made every listed construct lossless', () => {
+    expect(DANGEROUS_PATTERNS).toEqual([]);
+    expect(findDangerousSyntax('| a | b |\n| - | - |\n> [!note] x\n- [/] y')).toEqual([]);
   });
 });
 

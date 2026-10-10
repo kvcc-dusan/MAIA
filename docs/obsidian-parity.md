@@ -91,7 +91,7 @@ Legend:
 | Math inline `$x$` without backslashes | text | = | no | n/a | OK |
 | Math inline with LaTeX (`$\pi$`, `$\frac{a}{b}$`) | text | X every `\` is doubled: `\\pi`, `\\frac` | no | n/a | DANGEROUS |
 | Math block `$$...$$` multi-line | text | X newlines collapsed to spaces and backslashes doubled (`\\begin{aligned}`, `\\\\` stays) | no | n/a | DANGEROUS |
-| Mermaid / dataview / any language code block | P codeBlock | = | code only (no diagram) | yes | OK (renders as code) |
+| Mermaid / dataview / any language code block | P codeBlock | = | mermaid renders as a diagram (see below); the rest is code | yes | OK |
 | HTML inline `<kbd> <br> <sub> <sup> <u> <mark>` | text (`html:false`) | X `&lt;kbd&gt;Ctrl&lt;/kbd&gt;` | no (shown as text) | no | DANGEROUS |
 | HTML block (`<div>`, `<details>`, `<img>`) | text | X entity-escaped, newlines collapsed | no | no | DANGEROUS |
 | HTML comment `<!-- c -->` | text | X `&lt;!-- c --&gt;` | no | no | DANGEROUS |
@@ -120,25 +120,69 @@ Measured with the same harness, now built from `src/editor/extensions.js` (the l
 | Feature | Before | After stage 1 | Where |
 |---|---|---|---|
 | Wikilinks `[[Note]]`, `\|alias`, `#Heading`, `#^id`, `[[#H]]` | X escaped | = (inline atom, click opens the note by target) | `wikiLink.js` |
-| Embeds `![[f.png\|300]]`, `![[f.pdf#page=3]]`, `![[Note]]` | X escaped | = (placeholder chip with the file name) | `wikiLink.js` |
+| Embeds `![[f.png\|300]]`, `![[f.pdf#page=3]]`, `![[Note]]` | X escaped | = (placeholder chip on the web; on desktop resolved against the vault, see the rendering table below) | `wikiLink.js` |
 | Images `![alt](url)`, `\|300`, `\|300x200`, in lists, in links, with title | X deleted | = (img for http, data, blob; chip otherwise) | `image.js` |
 | Inline HTML (`<kbd> <br> <sub> <sup> <u> <mark> <name>`), HTML comments | X entity-escaped | = (raw atom) | `htmlRaw.js` |
 | HTML blocks (`<div>`, `<details>`, `<img>`) | X escaped, collapsed | = (raw block atom) | `htmlRaw.js` |
 | Plain `a < b`, `>` | X `&lt;` | = | `plainText.js` |
 | Comments `%%x%%` inline and block, with lists or wikilinks inside | ~ / X | = (line structure kept) | `obsidianComment.js` |
 | Footnotes `[^1]`, `[^name]`, definitions (multi-line), `^[inline]` | X escaped or eaten | = | `footnotes.js` |
-| Math `$..$`, `$$..$$` with backslashes | X `\\` doubled, collapsed | = (shown raw, not rendered) | `math.js` |
+| Math `$..$`, `$$..$$` with backslashes | X `\\` doubled, collapsed | = (rendered with KaTeX, see below) | `math.js` |
 | Soft line break | X joined with a space | = | `softBreak.js` |
 | Heading 5-6 | X hashes stripped | = | `extensions.js` (levels 1-6) |
 | Frontmatter after a BOM or blank line | X leaked into the body | read as frontmatter | `src/lib/noteFile.js` |
 | Block ids `^id`, tags, mermaid/dataview code | = | = | unchanged |
-| Tables | X flattened | still lossy: note opens in source mode | `DANGEROUS_PATTERNS` |
-| Callouts (all types, folds, nested) | X | still lossy: source mode | `DANGEROUS_PATTERNS` |
-| Task custom status `[/] [>] [-]`, task inside a numbered list | X | still lossy: source mode | `DANGEROUS_PATTERNS` |
-| Reference links `[t][ref]` + `[ref]: url` | ~ inlined | source mode (kept conservative) | `DANGEROUS_PATTERNS` |
-| HTML entities (`&amp;`, `&copy;`) | ~ decoded | source mode (decoded on save) | fingerprint |
+| Tables | X flattened | stage 2: = (see "After stage 2") | `table*.js` |
+| Callouts (all types, folds, nested) | X | stage 2: = | `callout*.js` |
+| Task custom status `[/] [>] [-]`, task inside a numbered list | X | stage 2: = | `taskStatus.js` |
+| Reference links `[t][ref]` + `[ref]: url` | ~ inlined | stage 2: = (raw atoms) | `refLinks.js` |
+| HTML entities (`&amp;`, `&copy;`) | ~ decoded | stage 2: = (atom shown as the character) | `entities.js` |
 
-Still open for the next stage: tables, callouts, task statuses (remove their entries from `DANGEROUS_PATTERNS` and add the fixture to the feature's tests), rendering math, resolving embeds and images against the vault, tight task lists, `[[` autocomplete, `***x***` and `---`/`***` live typing, `- [x] ` typing giving an unchecked item. A wikilink atom cannot be edited in place: delete it and type `[[` again.
+### After stage 2: tables, callouts, task statuses
+
+Same harness and the same 159 `CASES`, built from `src/editor/extensions.js`: **123 come back byte-identical (was 102), 36 are rewritten (was 57), 1 is routed to source mode (was 21)**. The one left is `[[Note|![[x.png]]]]` (a wikilink inside an alias), which is not part of this stage. `DANGEROUS_PATTERNS` is now empty; the content fingerprint in `roundTripSafe.js` still catches anything that would change on save. All 36 rewrites are the harmless ones from the stage 1 list, plus `a | b` / `- | -` (below). Every claim in this section is a test in `src/editor/{table,callout,taskStatus,refLinks,entities,inlineShortcuts}.test.js`.
+
+| Feature | Round trip | Normalization (the only rewrites) | Live typing | Where |
+|---|---|---|---|---|
+| Tables | Byte-identical while the table is untouched, whatever the padding, `\|a\|b\|` shorthand or pipe layout: the source lines are kept on the node and written back as long as the table still means what they say (compared through the canonical form). | After an edit, and for tables nested in quotes, lists or callouts: `\| a \| b \|`, `\| --- \| :---: \| ---: \|`, one space around cells, `\|` for every literal pipe, `<br>` for a line break in a cell. Ragged rows are padded with empty cells. Undoing back to the source text writes the source text again. | A line of `\| a \| b \|`, then `\|---\|:-:\|`, then Enter makes the table (Obsidian). `---` as the first characters still becomes a rule at once, so type the outer pipes. | `table.js`, `tableMarkdown.js`, `tableCommands.js`, `tableMenu.js` |
+| Callouts: 13 types and their aliases, unknown types, `-` / `+` fold marks, optional title, nested, lists, code and tables inside | Byte-identical for `> [!type]± title` with `> ` body lines (type text and case kept as written). | Lazy continuation lines get their `> `; extra spaces after the marker and trailing spaces in the title are dropped. | `> [!note] ` converts the quote and puts the cursor in the title. Enter in the title goes to the body; Backspace in an empty title turns it back into a quote. | `callout.js`, `calloutView.js`, `calloutTypes.js` |
+| Task statuses `[ ] [x] [X] [/] [-] [>] [?]`, any single character | Byte-identical, including `[X]` and `1. [ ] a`. Tight lists stay tight (no blank line between items), loose lists stay loose. Plain bullets inside a task list stay plain. | Ordered task lists are renumbered from their first number; `*` / `+` bullets become `-`. | `- [x] ` now gives a checked task (the unchecked bug was a stale `editor.state` read in `autoMarkdownShortcuts.js`). `- [/] ` gives a task with that status. | `taskStatus.js` |
+| Reference links `[t][id]`, `[t][]`, `[id]`, images `![a][id]`, single-line definitions with `<url>` and titles | Byte-identical (raw atoms; a link shows as a chip with the source text). | none | none | `refLinks.js` |
+| Multi-line reference definitions | Not handled: the url is inlined by markdown-it, so the content fingerprint routes the note to source mode. | n/a | n/a | `roundTripSafe.js` |
+| Entities `&amp; &copy; &nbsp; &#169; &#xA9;` | Byte-identical (inline atom shown as the character). Text that only looks like one (`&notanentity;`, `AT&T`) stays text. | none | Typing a real entity and `;` turns it into the atom. | `entities.js` |
+| `***bold italic***` | Already byte-identical; now also typed live. | none | `***x***` | `inlineShortcuts.js` |
+| `***` / `___` rule | n/a | n/a | `***` or `___` then Enter, or then a space (stock rule). `---` is immediate. | `inlineShortcuts.js` |
+
+Behaviour that is not about the file:
+
+- **Table editing.** Cells hold one paragraph (no lists, headings or code in a cell, as markdown allows). Tab / Shift-Tab move between cells, Tab in the last cell adds a row, Enter moves one row down in the same column and adds a row at the end. A tool bar floats above the table while the cursor is inside it: row above / below / delete, column left / right / delete, alignment left / center / right (clicking the active one clears it), delete table. Keyboard: Cmd+Alt+Arrow adds a row or column, Cmd+Alt+Backspace deletes the row, Cmd+Alt+Shift+Backspace the column. The header row cannot be removed and gets no row above. The tool bar buttons are 28px high, 44px on touch (`pointer: coarse`).
+- **Callout folding** is view state: clicking the chevron changes nothing in the document or in undo history, and a note opens with `-` callouts folded and `+` / plain ones open. The fold mark itself cannot be changed in rich view (edit it in source). Moving the cursor into a folded callout opens it.
+- **Callout colours** use four Arc hues, so types share them: note grey; abstract, info, todo accent; example strong accent; tip, success green; question, warning amber; failure, danger, bug red; quote muted. Icons are Lucide, one per canonical type.
+- **Task display.** Checked only for `x` / `X`. `-` strikes the text and mutes it; `/` shows a slash in the accent colour; any other character is drawn inside the box. Clicking a custom status ticks it (writes `x`); unticking writes a space.
+
+Known limits and deviations:
+
+- `a | b` followed by `- | -` is a list in markdown-it (a list item may interrupt a paragraph), not a table, so it is rewritten as a list. `--- | ---` is a table. Whether Obsidian reads the `-` form as a table was not checked.
+- A cell cannot hold two lines except through `<br>` (Shift-Enter in a cell writes it).
+- Table alignment of a column is read from the header row when writing.
+- Reference links and definitions show as raw chips rather than links.
+- Nothing here was run in a real window (no Tauri, no browser): the DOM tests run in jsdom, so the CSS (`EditorRich.module.css`, last block), the tool bar position, the fold animation and the `:has()` default-title rule are unverified visually.
+
+### Rendering stage: math, mermaid, vault embeds
+
+All of these draw the saved text without changing it: the stored markdown stays exactly what was typed (tests in `src/editor/mathRender.test.js`, `mermaid.test.js`, `embeds.test.js`, and the unchanged round-trip fixtures).
+
+| Feature | Behaviour | Where |
+|---|---|---|
+| Math `$x$`, `$$x$$`, `$$` block | KaTeX, loaded on the first formula. Click or Enter edits the raw source in a monospace field; blur or Escape renders again. A formula KaTeX rejects shows its source with a danger underline and the message in the title. An edit that would no longer parse as the same node (a stray `$`, a blank line) is refused and the old source stays. `$5 and $10` and `\$a\$` are still not math | `math.js`, `mathView.js`, `katexLoader.js` |
+| Mermaid ```` ```mermaid ```` | Diagram when the editor does not have the cursor in the block; source (plain code block) while it does. "Edit source" / "Show diagram" button. Theme follows `data-theme`, `securityLevel: strict`. Parse errors show the message and the source. Lazy chunk, loaded only when such a block exists | `mermaid.js` |
+| `![[img.png]]`, `\|300`, `\|300x200`, `![alt\|300](rel/path.png)` (desktop only) | Image through the Tauri asset protocol. Bare name: searched in the whole vault, shortest path wins; folder paths: relative to the note, then from the vault root, then as a path tail. Missing: muted dashed chip with the target | `embeds.js`, `embedProvider.js`, `src/lib/vaultFiles.js` |
+| `![[f.pdf]]`, `#page=3`, audio, video, other files | Card with kind, file name and page. Not opened or played: no opener plugin is installed | `embeds.js` |
+| `![[Note]]`, `![[Note#Heading]]`, `![[Note#^id]]` | Read-only bordered card with the note (or the heading section / block) and an "Open note" button. Depth 1: an embed inside an embedded note stays a chip, so cycles cannot happen | `embeds.js`, `src/lib/noteSection.js` |
+
+The vault file index lists names only (no contents), skips dot folders, `node_modules` and the root `Opus`, caps at 50000 files, is built on first use and dropped on every vault reload (and rebuilt at most every 10 s when a lookup misses).
+
+Still open for the next stage: `[[` autocomplete. A wikilink atom cannot be edited in place: delete it and type `[[` again.
 
 ## 2. Top 10 dangerous round-trip failures
 

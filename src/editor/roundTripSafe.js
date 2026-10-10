@@ -3,38 +3,11 @@ import { createExtensions } from './extensions.js';
 
 /**
  * Syntax the editor cannot keep intact yet. A note that contains one opens in source mode.
- * Data-driven on purpose: when a feature lands (tables, callouts, task statuses), delete its
- * entry here and add the fixture to that feature's tests.
+ * Data-driven on purpose: when a feature lands, delete its entry here and add the fixture to that
+ * feature's tests. Tables, callouts, task statuses, reference links and entities landed in stage 2, so the
+ * list is empty; anything else that would change on save is still caught by the content fingerprint below.
  */
-export const DANGEROUS_PATTERNS = [
-  {
-    id: 'table',
-    label: 'tables',
-    // a header row, then a delimiter row such as `| - | :-: |` or `- | -`
-    test: /^[^\n]*\|[^\n]*\n[ \t]*\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|?[ \t]*$/m,
-  },
-  {
-    id: 'callout',
-    label: 'callouts',
-    test: /^[ \t]*(?:>[ \t]*)+\[![A-Za-z-]+\]/m,
-  },
-  {
-    id: 'task-status',
-    label: 'custom task statuses',
-    test: /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[^\sxX\]]\]/m,
-  },
-  {
-    id: 'ordered-task',
-    label: 'tasks inside numbered lists',
-    test: /^[ \t]*\d+[.)][ \t]+\[[ xX]\]/m,
-  },
-  {
-    id: 'reference-links',
-    label: 'reference links',
-    // `[id]: url` definitions are inlined on save. Footnote definitions (`[^id]:`) are kept as is.
-    test: /^ {0,3}\[[^\]^][^\]]*\]:[ \t]*\S/m,
-  },
-];
+export const DANGEROUS_PATTERNS = [];
 
 const FENCE_LINE = /^[ \t]*(`{3,}|~{3,})/;
 const INLINE_CODE = /(`+)[^`\n]*?\1/g;

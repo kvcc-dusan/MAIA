@@ -4,6 +4,7 @@ import { writeRaw } from './rawNode.js';
 
 const DATA_ATTR = 'data-maia-image';
 const LOADABLE_SRC = /^(?:https?:|data:image\/|blob:)/i;
+const SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 const ALT_SIZE = /^(.*)\|(\d+)(?:x(\d+))?$/;
 
 /** Obsidian puts the size in the alt text: `![alt|300x200](url)`. */
@@ -14,6 +15,14 @@ export const parseImageAlt = (alt = '') => {
 };
 
 export const isLoadableSrc = (src = '') => LOADABLE_SRC.test(src);
+
+const decodeSrc = (src) => {
+  try {
+    return decodeURIComponent(src);
+  } catch {
+    return src;
+  }
+};
 
 const fileName = (src) => {
   const last = src.split(/[\\/]/).filter(Boolean).pop() ?? src;
@@ -37,17 +46,30 @@ const chip = (text) => {
   return el;
 };
 
-const renderInto = (dom, { src, alt }) => {
+// `state.token` drops the answer of a lookup that a newer render has replaced.
+const renderInto = (dom, { src, alt }, embeds, state) => {
   const { label, width, height } = parseImageAlt(alt);
+  const token = state.token + 1;
+  state.token = token;
   const fallback = () => dom.replaceChildren(chip(label || fileName(src)));
-  if (!isLoadableSrc(src)) return fallback();
-  const img = document.createElement('img');
-  img.src = src;
-  img.alt = label;
-  if (width) img.width = width;
-  if (height) img.height = height;
-  img.addEventListener('error', fallback, { once: true });
-  dom.replaceChildren(img);
+  const showImage = (url) => {
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = label;
+    if (width) img.width = width;
+    if (height) img.height = height;
+    img.addEventListener('error', fallback, { once: true });
+    dom.replaceChildren(img);
+  };
+  if (isLoadableSrc(src)) return showImage(src);
+  fallback();
+  if (!embeds?.isActive() || SCHEME.test(src)) return undefined;
+  embeds.resolveFile(decodeSrc(src), { preferRelative: true })
+    .then((file) => {
+      if (token === state.token && file?.kind === 'image') showImage(file.url);
+    })
+    .catch((e) => console.error('[MAIA] Failed to resolve image', src, e));
+  return undefined;
 };
 
 export const imagePlugin = (md) => {
@@ -85,6 +107,10 @@ export const Image = Node.create({
   atom: true,
   draggable: true,
 
+  addOptions() {
+    return { embeds: null };
+  },
+
   addAttributes() {
     return {
       src: { default: '' },
@@ -106,15 +132,17 @@ export const Image = Node.create({
   renderText: ({ node }) => node.attrs.raw || node.attrs.alt || '',
 
   addNodeView() {
+    const { embeds } = this.options;
     return ({ node: initial }) => {
       const dom = document.createElement('span');
       dom.className = 'maia-image';
-      renderInto(dom, initial.attrs);
+      const state = { token: 0 };
+      renderInto(dom, initial.attrs, embeds, state);
       return {
         dom,
         update: (node) => {
           if (node.type !== initial.type) return false;
-          renderInto(dom, node.attrs);
+          renderInto(dom, node.attrs, embeds, state);
           return true;
         },
       };

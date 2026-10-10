@@ -1,5 +1,6 @@
 import { createRawNode, rawElement } from './rawNode.js';
 import { lineText } from './markdownIt.js';
+import { createMathView } from './mathView.js';
 
 const INLINE_ATTR = 'data-maia-math-inline';
 const BLOCK_ATTR = 'data-maia-math-block';
@@ -68,14 +69,43 @@ export const mathPlugin = (md) => {
   md.renderer.rules.maia_math_block = (tokens, idx) => rawElement(md, 'div', BLOCK_ATTR, tokens[idx].content);
 };
 
-// Not rendered yet: shown as raw source so nothing is lost. KaTeX replaces these later.
+/** Delimiters and source of a stored math span, or null if it is not shaped like one. */
+export const splitMath = (raw) => {
+  const open = raw.startsWith(FENCE) ? FENCE : '$';
+  if (raw.length <= open.length * 2 || !raw.endsWith(open)) return null;
+  return { open, close: open, source: raw.slice(open.length, raw.length - open.length) };
+};
 
-/** `$x$` and `$$x$$` inside a paragraph. */
-export const MathInline = createRawNode({
-  name: 'mathInline', dataAttr: INLINE_ATTR, isInline: true, plugin: mathPlugin, kind: 'math',
+// An edit may only produce text that parses back as the same single node; anything else
+// (a stray `$`, a blank line inside inline math) would change the document on the next load.
+const isValidInline = (raw) => !raw.includes('\n') && mathLength(raw, 0) === raw.length;
+const isValidBlock = (raw) => {
+  const split = splitMath(raw);
+  return Boolean(split) && raw.startsWith(FENCE) && !split.source.includes(FENCE) && split.source.trim() !== '';
+};
+
+const withView = (node, view) => node.extend({
+  addNodeView: () => view,
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state;
+        if (selection.node?.type.name !== this.name) return false;
+        editor.view.nodeDOM(selection.from)?.dispatchEvent(new CustomEvent('maia-edit-math'));
+        return true;
+      },
+    };
+  },
 });
+
+/** `$x$` and `$$x$$` inside a paragraph. Renders with KaTeX; the stored text is the source. */
+export const MathInline = withView(
+  createRawNode({ name: 'mathInline', dataAttr: INLINE_ATTR, isInline: true, plugin: mathPlugin, kind: 'math' }),
+  createMathView({ isBlock: false, parts: splitMath, isValid: isValidInline }),
+);
 
 /** `$$` ... `$$` on their own lines. */
-export const MathBlock = createRawNode({
-  name: 'mathBlock', dataAttr: BLOCK_ATTR, isInline: false, plugin: mathPlugin, kind: 'math-block',
-});
+export const MathBlock = withView(
+  createRawNode({ name: 'mathBlock', dataAttr: BLOCK_ATTR, isInline: false, plugin: mathPlugin, kind: 'math-block' }),
+  createMathView({ isBlock: true, parts: splitMath, isValid: isValidBlock }),
+);

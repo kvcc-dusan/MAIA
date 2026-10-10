@@ -3,6 +3,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn, countWords } from "@/lib/utils";
 import { createExtensions } from "../editor/extensions.js";
+import { createEmbedProvider } from "../editor/embedProvider.js";
 import { isTypingElsewhere } from "../editor/isTypingElsewhere.js";
 import styles from "./EditorRich.module.css";
 
@@ -32,6 +33,8 @@ export default function EditorRich({
   onChange,
   onMetaChange,            // { tags, links, wordCount, charCount }
   onOpenInternalLink,      // (title: string) => void — click a [[wikilink]]
+  notes = [],              // resolves ![[Note]] embeds
+  folder = "",             // the open note's folder, for relative image paths
   editable = true,
   autoFocus = false,        // put the caret at the start of the body on mount
   className = "",
@@ -45,6 +48,12 @@ export default function EditorRich({
     onOpenInternalLinkRef.current = onOpenInternalLink;
   }, [onOpenInternalLink]);
 
+  // Same idea for the notes list and folder: embeds read them when they render.
+  const embedContextRef = useRef({ notes, folder });
+  useEffect(() => {
+    embedContextRef.current = { notes, folder };
+  }, [notes, folder]);
+
   // Helper to emit meta + counts based on rendered text
   const emitMeta = useCallback((editor, onMetaChange) => {
     const raw = editor.getText();
@@ -54,9 +63,18 @@ export default function EditorRich({
     onMetaChange?.({ ...meta, wordCount, charCount });
   }, []);
 
-  const extensions = useMemo(() => createExtensions({
-    onOpenLink: (title) => onOpenInternalLinkRef.current?.(title),
-  }), []);
+  const extensions = useMemo(() => {
+    const onOpenLink = (title) => onOpenInternalLinkRef.current?.(title);
+    return createExtensions({
+      onOpenLink,
+      embeds: createEmbedProvider({
+        getNotes: () => embedContextRef.current.notes,
+        getFolder: () => embedContextRef.current.folder,
+        onOpenNote: onOpenLink,
+        createExtensions,
+      }),
+    });
+  }, []);
 
   const editor = useEditor({
     editable,

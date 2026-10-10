@@ -1,8 +1,6 @@
 import StarterKit from '@tiptap/starter-kit';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Link from '@tiptap/extension-link';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
 import { Markdown } from 'tiptap-markdown';
 import { AutoMarkdownShortcuts } from './autoMarkdownShortcuts.js';
 import { MarkdownHighlight } from './markdownHighlight.js';
@@ -14,6 +12,14 @@ import { HtmlInline, HtmlBlock } from './htmlRaw.js';
 import { CommentInline, CommentBlock } from './obsidianComment.js';
 import { FootnoteRef, InlineFootnote, FootnoteDefinition } from './footnotes.js';
 import { MathInline, MathBlock } from './math.js';
+import { MermaidDiagrams } from './mermaid.js';
+
+import { TaskListWithStatus, TaskItemWithStatus } from './taskStatus.js';
+import { Callout, CalloutTitle } from './callout.js';
+import { RefDefinition, RefLink } from './refLinks.js';
+import { HtmlEntity } from './entities.js';
+import { InlineShortcuts } from './inlineShortcuts.js';
+import { MarkdownTable, MarkdownTableRow, MarkdownTableHeader, MarkdownTableCell } from './table.js';
 
 const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
 
@@ -22,7 +28,7 @@ const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
  * parity harness (scripts/obsidian-parity.test.js) all build from this, so what is
  * measured is what runs. New syntax gets its own file in this folder and one line here.
  */
-export const createExtensions = ({ onOpenLink } = {}) => [
+export const createExtensions = ({ onOpenLink, embeds = null } = {}) => [
   StarterKit.configure({
     heading: { levels: HEADING_LEVELS },
     horizontalRule: false,
@@ -30,13 +36,13 @@ export const createExtensions = ({ onOpenLink } = {}) => [
   }),
   PlainText,
   SoftBreak,
-  TaskList,
-  TaskItem.configure({ nested: true }),
+  TaskListWithStatus,
+  TaskItemWithStatus.configure({ nested: true }),
   MarkdownHighlight,
   Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
   HorizontalRule,
-  WikiLink.configure({ onOpenLink }),
-  Image,
+  WikiLink.configure({ onOpenLink, embeds }),
+  Image.configure({ embeds }),
   HtmlInline,
   HtmlBlock,
   CommentInline,
@@ -46,6 +52,18 @@ export const createExtensions = ({ onOpenLink } = {}) => [
   FootnoteDefinition,
   MathInline,
   MathBlock,
+  MermaidDiagrams,
+  // stage 2: callouts and tables
+  CalloutTitle,
+  Callout,
+  MarkdownTable,
+  MarkdownTableRow,
+  MarkdownTableHeader,
+  MarkdownTableCell,
+  RefDefinition,
+  RefLink,
+  HtmlEntity,
+  InlineShortcuts,
   Markdown.configure({
     // html: markdown-it must see tags to hand them to the raw HTML atoms (htmlRaw.js)
     html: true,

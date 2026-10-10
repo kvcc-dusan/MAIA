@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from "../lib/constants.js";
 import { markdownToNote } from "../lib/noteFile.js";
 import { uid } from "../lib/ids.js";
 import { normalizeFolderList } from "../lib/vaultFolders.js";
+import { invalidateVaultFileIndex } from "../lib/vaultFiles.js";
 import { hasPendingCloseFlush, runCloseFlush } from "../lib/closeFlush.js";
 import {
   isTauri,
@@ -71,6 +72,7 @@ function useVaultNotes() {
     }
     try {
       const { notes: loaded, folders: loadedFolders } = await loadVault(vaultPath);
+      invalidateVaultFileIndex(); // attachments may have changed along with the notes
       setDiskFolders(loadedFolders);
       setNotes((prev) => {
         const loadedIds = new Set(loaded.map((n) => n.id));

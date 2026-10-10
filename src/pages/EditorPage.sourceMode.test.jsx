@@ -16,7 +16,8 @@ if (!document.createRange().getClientRects) {
   });
 }
 
-const UNSAFE_NOTE = '# Plan\n\n> [!warning] Careful\n> body\n\n| a | b |\n| - | - |\n| 1 | 2 |\n';
+// A multi-line reference definition is the one construct the editor still rewrites (it inlines the url)
+const UNSAFE_NOTE = '# Plan\n\nSee [the docs][docs].\n\n[docs]:\n  https://example.com\n';
 const SAFE_NOTE = '# Plan\n\nSee [[Other]] and **bold**.\n\n- a\n- b\n';
 
 const makeNote = (content, overrides = {}) => ({
@@ -44,12 +45,12 @@ describe('EditorPage source mode and the round-trip guard', () => {
     expect(notice()).toBeNull();
   });
 
-  it('opens a note with a callout and a table in source mode with the notice', async () => {
+  it('opens a note with a construct that would change on save in source mode with the notice', async () => {
     renderEditor(makeNote(UNSAFE_NOTE));
     expect(source()).toHaveValue(UNSAFE_NOTE);
     expect(rich()).toBeNull();
     expect(notice()).toBeInTheDocument();
-    expect(screen.getByText(/Edits are saved as plain markdown/)).toHaveTextContent('Found: tables, callouts');
+    expect(screen.getByText(/Edits are saved as plain markdown/)).toHaveTextContent('Found: syntax that would change on save');
     expect(screen.getByRole('button', { name: 'Switch to rich view' })).toBeInTheDocument();
   });
 
@@ -78,7 +79,7 @@ describe('EditorPage source mode and the round-trip guard', () => {
 
   it('saves a source edit through the same path, byte for byte, on unmount', () => {
     const { updateNote, unmount } = renderEditor(makeNote(UNSAFE_NOTE));
-    const edited = `${UNSAFE_NOTE}\n> [!tip] added  \n`;
+    const edited = `${UNSAFE_NOTE}\nadded  \n`;
     fireEvent.change(source(), { target: { value: edited } });
     unmount();
     expect(updateNote).toHaveBeenCalledWith(expect.objectContaining({ content: edited }));

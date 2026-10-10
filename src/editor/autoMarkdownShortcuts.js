@@ -41,9 +41,12 @@ export const AutoMarkdownShortcuts = Extension.create({
             .run();
         }
 
-        // task list: [ ] or [x]
-        if (/^\[(?:\s|x|X)\]$/.test(head)) {
-          const checked = /\[([xX])\]/.test(head);
+        // task list: [ ], [x], or any single status char ([/], [-], [>]) once inside a list item
+        const isInListItem = $from.node(-1)?.type?.name === 'listItem';
+        const taskMatch = /^\[(.)\]$/.exec(head);
+        const isTaskMark = taskMatch && (/^[ xX]$/.test(taskMatch[1]) || isInListItem);
+        if (isTaskMark) {
+          const status = taskMatch[1];
           return editor
             .chain()
             .command(({ tr }) => {
@@ -52,13 +55,9 @@ export const AutoMarkdownShortcuts = Extension.create({
               return true;
             })
             .toggleTaskList()
-            .command(() => {
-              const node = editor.state.selection.$from.parent;
-              if (node?.type?.name === 'taskItem' && checked) {
-                editor.commands.updateAttributes('taskItem', { checked: true });
-              }
-              return true;
-            })
+            // Reads the chain's own transaction: editor.state is still the old doc here,
+            // which is why a typed "- [x] " used to come out unchecked.
+            .updateAttributes('taskItem', { checked: /[xX]/.test(status), status })
             .run();
         }
 

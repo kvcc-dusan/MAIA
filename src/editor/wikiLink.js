@@ -2,6 +2,7 @@ import { InputRule, Node } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { installOnce, matchAt } from './markdownIt.js';
 import { writeRaw } from './rawNode.js';
+import { mountEmbed } from './embeds.js';
 
 const DATA_ATTR = 'data-maia-wikilink';
 // No brackets or newlines inside, same as Obsidian. `!` makes it an embed.
@@ -59,7 +60,8 @@ export const WikiLink = Node.create({
   selectable: true,
 
   addOptions() {
-    return { onOpenLink: undefined };
+    // embeds: the vault-aware provider from embedProvider.js, null on the web
+    return { onOpenLink: undefined, embeds: null };
   },
 
   addAttributes() {
@@ -81,6 +83,49 @@ export const WikiLink = Node.create({
   },
 
   renderText: ({ node }) => node.attrs.raw,
+
+  addNodeView() {
+    const { embeds } = this.options;
+    return ({ node: initial }) => {
+      const dom = document.createElement('span');
+      let mounted = null;
+      const paint = (raw) => {
+        mounted?.destroy();
+        mounted = null;
+        const ref = { raw, ...parseWikiLink(raw) };
+        dom.setAttribute(DATA_ATTR, raw);
+        dom.title = raw;
+        dom.textContent = wikiLinkLabel(raw);
+        const resolves = ref.isEmbed && embeds?.isActive();
+        // the host stays a plain wrapper once the chip is replaced by an image, file card or note
+        dom.className = resolves ? 'maia-embed-host' : ref.isEmbed ? 'maia-embed' : 'maia-wikilink';
+        if (resolves) {
+          const pending = document.createElement('span');
+          pending.className = 'maia-embed';
+          pending.textContent = wikiLinkLabel(raw);
+          dom.replaceChildren(pending);
+          mounted = mountEmbed(dom, ref, embeds);
+        }
+      };
+      paint(initial.attrs.raw);
+      let current = initial.attrs.raw;
+      return {
+        dom,
+        update: (node) => {
+          if (node.type !== initial.type) return false;
+          if (node.attrs.raw !== current) {
+            current = node.attrs.raw;
+            paint(current);
+          }
+          return true;
+        },
+        // a note card is its own little document: clicks inside it are not editor clicks
+        stopEvent: (event) => Boolean(event.target?.closest?.('.maia-embed-note')),
+        ignoreMutation: () => true,
+        destroy: () => mounted?.destroy(),
+      };
+    };
+  },
 
   addInputRules() {
     return [new InputRule({
