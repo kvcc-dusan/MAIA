@@ -8,36 +8,43 @@ import { Button } from "@/components/arc/button/button";
 import { Alert } from "@/components/arc/alert/alert";
 import AssetTile, { PendingTile } from "./library/AssetTile";
 import AssetPreviewDialog from "./library/AssetPreviewDialog";
-import { useAssetSrc } from "./library/useAssetSrc";
+import { webAssetSrc } from "./library/useAssetSrc";
+import { useProjectAssets } from "../../../hooks/opus/useProjectAssets";
+import { useAssetPreviews } from "../../../hooks/opus/useAssetPreviews";
 import { useAssetUploads } from "./library/useAssetUploads";
 import { openPdf } from "./library/assetActions";
 import { ASSET_ERRORS, isPdfType } from "./library/assetRules";
 import styles from "./library/AssetsPanel.module.css";
 
 /**
- * Project files with a drop target and a thumbnail grid. Storage (disk in
- * Tauri with a vault, base64 on the web) lives in useAssetUploads.
+ * Project files with a drop target and a thumbnail grid. With a vault (Tauri)
+ * the grid lists <vault>/Opus/<Project>/assets/ (useProjectAssets); on the web
+ * files stay base64 in the project (useAssetUploads).
  */
 export default function AssetsPanel({ project }) {
   const { updateProject } = useData();
-  const srcFor = useAssetSrc();
-  const { pending, errors, addFiles, removeAsset, dismissError, reportError } = useAssetUploads({ project, updateProject });
+  const web = useAssetUploads({ project, updateProject });
+  const files = useProjectAssets(project.id);
+  const { isFileMode } = files;
+  const { pending, errors, addFiles, removeAsset, dismissError, reportError } = isFileMode ? files : web;
+  const previewSrc = useAssetPreviews(files.assets, files.readBytes, isFileMode);
+  const srcFor = isFileMode ? previewSrc : webAssetSrc;
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewAsset, setPreviewAsset] = useState(null);
   const [deletingAsset, setDeletingAsset] = useState(null);
   const fileInputRef = useRef(null);
 
-  const assets = project.assets ?? [];
+  const assets = isFileMode ? files.assets : project.assets ?? [];
   const isEmpty = assets.length === 0 && pending.length === 0;
   const browse = () => fileInputRef.current?.click();
 
   const openAsset = (asset) => {
-    if (!isPdfType(asset.type)) {
+    if (!isPdfType(asset.type) || asset.path) {
       setPreviewAsset(asset);
       return;
     }
     try {
-      openPdf(asset, srcFor);
+      openPdf(asset);
     } catch (e) {
       console.error("[MAIA] Couldn't open PDF", e);
       reportError(asset.name, ASSET_ERRORS.open(asset.name));
@@ -105,7 +112,7 @@ export default function AssetsPanel({ project }) {
           <EmptyState
             icon={Upload}
             title="No assets yet"
-            description="Drop files here to keep specs, mockups and PDFs with this project."
+            description="Drop any files here to keep specs, mockups and PDFs with this project."
             action={addButton}
           />
         ) : (
@@ -118,7 +125,12 @@ export default function AssetsPanel({ project }) {
         )}
       </div>
 
-      <AssetPreviewDialog asset={previewAsset} src={previewAsset ? srcFor(previewAsset) : null} onClose={() => setPreviewAsset(null)} />
+      <AssetPreviewDialog
+        asset={previewAsset}
+        src={previewAsset ? srcFor(previewAsset) : null}
+        readBytes={isFileMode ? files.readBytes : undefined}
+        onClose={() => setPreviewAsset(null)}
+      />
 
       <ConfirmDialog
         open={Boolean(deletingAsset)}

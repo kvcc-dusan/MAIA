@@ -123,7 +123,7 @@ function AppContent() {
     // keeps log entries that point at items the restored data no longer has.
     setActivity(backup.data.activity);
     setPendingImport(null);
-    toast.success(isFileMode ? "Data restored from backup. A safety backup of the previous data is in the vault's Opus folder." : "Data restored from backup.");
+    toast.success(isFileMode ? "Data restored from backup. A safety backup of the previous data is in the vault's Opus/_backups folder." : "Data restored from backup.");
   }, [isFileMode, notes, projects, tasks, reminders, sessions, ledger, activity, setNotes, setProjects, setTasks, setReminders, setSessions, setLedger, setActivity]);
 
   const handleImportBackup = useCallback(async () => {
@@ -415,7 +415,7 @@ function AppContent() {
         title="Replace all data with this backup?"
         description={
           pendingImport
-            ? `This backup has ${importCounts}${pendingImport.exportedAt ? `, exported ${new Date(pendingImport.exportedAt).toLocaleString()}` : ""}. Everything currently in MAIA will be replaced${isFileMode ? ". Project, task, decision and question files that are not in the backup will be deleted from the vault. A safety backup of the current data is saved in the vault's Opus folder first." : " — this can't be undone."}`
+            ? `This backup has ${importCounts}${pendingImport.exportedAt ? `, exported ${new Date(pendingImport.exportedAt).toLocaleString()}` : ""}. Everything currently in MAIA will be replaced${isFileMode ? ". Project, task, decision and question files that are not in the backup will be deleted from the vault. A safety backup of the current data is saved in the vault's Opus/_backups folder first." : " (this can't be undone)."}`
             : ""
         }
         confirmLabel="Replace data"

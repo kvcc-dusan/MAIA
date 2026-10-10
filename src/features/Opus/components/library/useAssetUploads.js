@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { uid } from "@/lib/ids";
-import { isTauri, getVaultPath } from "@/lib/vault.js";
-import { saveAssetFile, deleteAssetFile } from "@/lib/assetStore.js";
 import { ASSET_ERRORS, base64Length, validateFile, webAssetsUsage } from "./assetRules";
 
 const readAsDataUrl = (file) =>
@@ -13,9 +11,8 @@ const readAsDataUrl = (file) =>
   });
 
 /**
- * Adds and removes a project's assets. In Tauri with a vault picked, files go
- * to `<vault>/.maia-assets/<projectId>/`; otherwise they stay base64 in the
- * project (web/PWA).
+ * Web/PWA assets: files stay base64 in the project. With a vault picked (Tauri)
+ * the Assets panel uses useProjectAssets instead, which works on real files.
  *
  * Writes go through a ref holding the newest list: updateProject merges a
  * patch, so computing `[...project.assets, one]` per file from a render-time
@@ -40,34 +37,22 @@ export const useAssetUploads = ({ project, updateProject }) => {
 
   const fail = useCallback((name, message) => setErrors((prev) => [...prev, { id: uid(), name, message }]), []);
 
-  const storeOne = useCallback(async (file, vaultPath, id) => {
-    const base = { id, name: file.name, type: file.type, createdAt: new Date().toISOString() };
-    if (vaultPath) {
-      try {
-        const path = await saveAssetFile(vaultPath, project.id, id, file.name, await file.arrayBuffer());
-        return { ...base, path };
-      } catch (e) {
-        console.error(`[MAIA] Failed to save asset "${file.name}" to disk`, e);
-        fail(file.name, ASSET_ERRORS.disk(file.name));
-        return null;
-      }
-    }
+  const storeOne = useCallback(async (file, id) => {
     try {
-      return { ...base, dataUrl: await readAsDataUrl(file) };
+      return { id, name: file.name, type: file.type, createdAt: new Date().toISOString(), dataUrl: await readAsDataUrl(file) };
     } catch (e) {
       console.error(`[MAIA] Failed to read asset "${file.name}"`, e);
       fail(file.name, ASSET_ERRORS.read(file.name));
       return null;
     }
-  }, [fail, project.id]);
+  }, [fail]);
 
   const addFiles = useCallback(
     async (fileList) => {
-      const vaultPath = isTauri() ? getVaultPath() : null;
       let usage = webAssetsUsage(assetsRef.current);
       const accepted = [];
       Array.from(fileList).forEach((file) => {
-        const problem = validateFile(file, { isDisk: Boolean(vaultPath), usage });
+        const problem = validateFile(file, { isDisk: false, usage });
         if (problem) {
           fail(file.name, problem.message);
           return;
@@ -78,7 +63,7 @@ export const useAssetUploads = ({ project, updateProject }) => {
       setPending((prev) => [...prev, ...accepted.map(({ file, id }) => ({ id, name: file.name }))]);
 
       for (const { file, id } of accepted) {
-        const asset = await storeOne(file, vaultPath, id);
+        const asset = await storeOne(file, id);
         if (asset) write([...assetsRef.current, asset]);
         setPending((prev) => prev.filter((p) => p.id !== id));
       }
@@ -88,7 +73,6 @@ export const useAssetUploads = ({ project, updateProject }) => {
 
   const removeAsset = useCallback(
     async (asset) => {
-      if (asset.path && isTauri()) await deleteAssetFile(asset.path).catch(console.error);
       write(assetsRef.current.filter((a) => a.id !== asset.id));
     },
     [write]

@@ -3,12 +3,12 @@ import { Download, File } from "lucide-react";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { Button } from "@/components/arc/button/button";
 import { Alert } from "@/components/arc/alert/alert";
-import { ASSET_ERRORS, isImageType } from "./assetRules";
+import { ASSET_ERRORS, formatBytes, isImageType } from "./assetRules";
 import { downloadAsset } from "./assetActions";
 import styles from "./AssetPreviewDialog.module.css";
 
-/** Image preview, or a file card for types the app can't show. Both can be downloaded. */
-export default function AssetPreviewDialog({ asset, src, onClose }) {
+/** Image preview, or a file card (name, type, size) for everything else. Both can be downloaded. */
+export default function AssetPreviewDialog({ asset, src, readBytes, onClose }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,7 +16,7 @@ export default function AssetPreviewDialog({ asset, src, onClose }) {
     setIsSaving(true);
     setError(null);
     try {
-      await downloadAsset(asset);
+      await downloadAsset(asset, readBytes);
     } catch (e) {
       console.error("[MAIA] Asset download failed", e);
       setError(ASSET_ERRORS.download(asset.name));
@@ -52,7 +52,9 @@ export default function AssetPreviewDialog({ asset, src, onClose }) {
         <div className={styles.file}>
           <File size={32} strokeWidth={1.75} aria-hidden="true" />
           <p className={styles.name}>{asset.name}</p>
-          <p className={styles.type}>{asset.type || "Unknown file type"}</p>
+          <p className={styles.type}>
+            {[asset.type || "Unknown file type", asset.size != null && formatBytes(asset.size)].filter(Boolean).join(", ")}
+          </p>
         </div>
       ))}
     </AppDialog>

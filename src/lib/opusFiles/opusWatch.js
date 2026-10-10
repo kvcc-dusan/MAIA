@@ -1,11 +1,17 @@
 // @maia:opusFiles - recursive watcher for the Opus/ tree, modelled on watchVault.
-import { loadFs, opusRoot, state, isHidden } from "./opusFs.js";
+import { loadFs, opusRoot, state, isHidden, ASSETS_DIR } from "./opusFs.js";
 
 const isRelevant = (path) => {
   const segments = path.split("/");
   const last = segments[segments.length - 1];
   if (segments.some((s) => s !== "" && isHidden(s))) return false;
   return /\.md$/i.test(last) || !last.includes(".");
+};
+
+// <Project>/assets/** : any file type counts, and it never means a project or task changed.
+const isAssetPath = (root, path) => {
+  const segments = path.startsWith(`${root}/`) ? path.slice(root.length + 1).split("/") : [];
+  return segments.length >= 2 && segments[1] === ASSETS_DIR && !segments.some(isHidden);
 };
 
 // Our own writes echo back as events; drop paths whose disk text equals what we remember.
@@ -21,10 +27,11 @@ const isOwnEcho = async (fs, path, byPath) => {
 
 /**
  * Calls onChange({ paths }) (debounced, own writes filtered out) when files
- * under Opus/ change outside MAIA. Returns an unwatch function. If Opus/ does
+ * under Opus/ change outside MAIA. Changes inside a project's assets/ go to
+ * onAssetsChange({ paths }) instead, so they never cause a project/task reload. Returns an unwatch function. If Opus/ does
  * not exist yet it resolves to a no-op: call it again after the folder exists.
  */
-export const watchOpus = async (vaultPath, onChange, { debounceMs = 400 } = {}) => {
+export const watchOpus = async (vaultPath, onChange, { debounceMs = 400, onAssetsChange } = {}) => {
   const fs = await loadFs();
   const root = opusRoot(vaultPath);
   if (!(await fs.exists(root))) return () => {};
@@ -32,12 +39,15 @@ export const watchOpus = async (vaultPath, onChange, { debounceMs = 400 } = {}) 
   let timer = null;
   let pending = new Set();
   const flush = async () => {
-    const paths = [...pending].filter(isRelevant);
+    const all = [...pending];
     pending = new Set();
+    const assetPaths = all.filter((p) => isAssetPath(root, p));
+    const paths = all.filter((p) => !isAssetPath(root, p) && isRelevant(p));
     const byPath = new Map([...state.tracked.values()].map((e) => [e.path, e]));
     const changed = [];
     for (const path of paths) if (!(await isOwnEcho(fs, path, byPath))) changed.push(path);
     if (changed.length > 0) onChange({ paths: changed });
+    if (assetPaths.length > 0) onAssetsChange?.({ paths: assetPaths });
   };
   const unwatch = await fs.watchImmediate(
     root,

@@ -3,8 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useAssetUploads } from "./useAssetUploads";
 
-vi.mock("@/lib/vault.js", () => ({ isTauri: () => false, getVaultPath: () => null }));
-vi.mock("@/lib/assetStore.js", () => ({ saveAssetFile: vi.fn(), deleteAssetFile: vi.fn() }));
 
 const makeFile = (name, size = 4) => new File([new Uint8Array(size)], name, { type: "image/png" });
 

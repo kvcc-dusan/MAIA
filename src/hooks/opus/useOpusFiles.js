@@ -7,6 +7,8 @@ import { mergeDirty, addExtras } from "./opusMerge.js";
 import { planConflicts } from "./opusConflict.js";
 import { attachAssets, persistAssetChanges } from "./opusAssets.js";
 import { runMigration } from "./opusMigration.js";
+import { migrateLegacyAssets } from "./assetMigration.js";
+import { emitAssetsChanged } from "./assetEvents.js";
 import { getOpusApi, runOp } from "./opusOps.js";
 
 const WRITE_DEBOUNCE_MS = 1000;
@@ -51,8 +53,10 @@ export function useOpusFiles(vaultPath) {
     if (!path || generation !== generationRef.current) return false;
     try {
       const api = await getOpusApi();
-      const { loaded } = await runMigration(api, path, await api.loadOpus(path));
+      const { loaded, status: migration } = await runMigration(api, path, await api.loadOpus(path));
       if (generation !== generationRef.current) return false;
+      // Copies legacy browser-side assets into assets/ folders once; files only, no project or task write.
+      if (migration !== "failed") await migrateLegacyAssets(api, path, loaded.projects);
 
       const disk = { projects: attachAssets(loaded.projects), tasks: loaded.tasks };
       revertKeys?.forEach((key) => pendingRef.current.delete(key));
@@ -70,6 +74,7 @@ export function useOpusFiles(vaultPath) {
       setError(null);
       statusRef.current = "ready";
       setStatus("ready");
+      emitAssetsChanged(); // a reload resets the adapter's folder map, so open panels re-list
       return true;
     } catch (e) {
       console.error("[MAIA] Failed to load Opus files", e);
@@ -167,7 +172,7 @@ export function useOpusFiles(vaultPath) {
     let cancelled = false;
     let unwatch = null;
     getOpusApi()
-      .then((api) => api.watchOpus(vaultPath, () => reload()))
+      .then((api) => api.watchOpus(vaultPath, () => reload(), { onAssetsChange: emitAssetsChanged }))
       .then((fn) => {
         if (cancelled) fn();
         else unwatch = fn;

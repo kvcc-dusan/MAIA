@@ -8,7 +8,7 @@ import * as questionFile from "./questionFile.js";
 import { contextOf } from "./projectFile.js";
 import { EMPTY_CONTEXT } from "./fileCodec.js";
 import {
-  INBOX_DIR, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
+  INBOX_DIR, BACKUPS_DIR, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
   stableId, state, track, resetOpusState,
 } from "./opusFs.js";
 
@@ -79,6 +79,7 @@ const loadProject = async (fs, root, folder, shared) => {
   state.projectDirs.set(project.id, folder);
   state.contexts.set(project.id, ctx);
 
+  // Only tasks/, decisions/ and questions/ are read; assets/ is never scanned for items.
   const args = { projectId: project.id, ctx, seenIds, warnings };
   const tasks = await readFolder(fs, joinPath(dir, KIND_DIRS.task), { ...args, kind: "task" });
   const decisions = await readFolder(fs, joinPath(dir, KIND_DIRS.decision), { ...args, kind: "decision" });
@@ -108,7 +109,7 @@ export const loadOpus = async (vaultPath) => {
   const tasks = [];
   const folders = (await listDir(fs, root)).filter((e) => e.isDirectory).map((e) => e.name).sort();
 
-  for (const folder of folders.filter((f) => f !== INBOX_DIR)) {
+  for (const folder of folders.filter((f) => f !== INBOX_DIR && f !== BACKUPS_DIR)) {
     const loaded = await loadProject(fs, root, folder, shared);
     if (!loaded) continue;
     projects.push(loaded.project);

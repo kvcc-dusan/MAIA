@@ -1,8 +1,5 @@
-// Open and download for stored assets. Browser APIs only; the Tauri branches
-// import their plugins dynamically.
-import { isTauri } from "@/lib/vault.js";
-import { readAssetFile } from "@/lib/assetStore.js";
-
+// Open and download for stored assets. Browser APIs only; the Tauri branch
+// imports its plugins dynamically.
 const BLOB_REVOKE_DELAY_MS = 60_000;
 
 const dataUrlToBlob = (dataUrl, type) => {
@@ -12,14 +9,8 @@ const dataUrlToBlob = (dataUrl, type) => {
   return new Blob([buffer], { type });
 };
 
-/** Opens a PDF in a new tab. Must run inside the click so popup blockers allow it. */
-export const openPdf = (asset, srcFor) => {
-  if (asset.path) {
-    const src = srcFor(asset);
-    if (!src) throw new Error("Asset source is not ready");
-    window.open(src, "_blank", "noopener,noreferrer");
-    return;
-  }
+/** Opens a web (base64) PDF in a new tab. Must run inside the click so popup blockers allow it. */
+export const openPdf = (asset) => {
   const url = URL.createObjectURL(dataUrlToBlob(asset.dataUrl, "application/pdf"));
   window.open(url, "_blank", "noopener,noreferrer");
   setTimeout(() => URL.revokeObjectURL(url), BLOB_REVOKE_DELAY_MS);
@@ -36,10 +27,14 @@ const browserSave = (blob, name) => {
   setTimeout(() => URL.revokeObjectURL(url), BLOB_REVOKE_DELAY_MS);
 };
 
-/** Saves a copy of the asset: native Save dialog under Tauri, a download in the browser. */
-export const downloadAsset = async (asset) => {
-  if (asset.path && isTauri()) {
-    const bytes = await readAssetFile(asset.path);
+/**
+ * Saves a copy of the asset: native Save dialog when `readBytes` is given (a file
+ * in the vault), a download in the browser for base64 assets. Resolves false if
+ * the person cancels the dialog.
+ */
+export const downloadAsset = async (asset, readBytes) => {
+  if (readBytes) {
+    const bytes = await readBytes(asset);
     const { save } = await import("@tauri-apps/plugin-dialog");
     const { writeFile } = await import("@tauri-apps/plugin-fs");
     const target = await save({ defaultPath: asset.name });

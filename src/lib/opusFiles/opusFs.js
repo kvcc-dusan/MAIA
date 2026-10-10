@@ -5,6 +5,10 @@ import { normalizeEol } from "./yamlFrontmatter.js";
 
 export const OPUS_DIR = "Opus";
 export const INBOX_DIR = "_inbox";
+// Not projects: the loader skips them at the Opus root. Plain names, never dot paths,
+// because the Tauri fs scope does not match leading-dot components.
+export const BACKUPS_DIR = "_backups";
+export const ASSETS_DIR = "assets";
 export const PROJECT_FILE = "project.md";
 export const KIND_DIRS = { task: "tasks", decision: "decisions", question: "questions" };
 

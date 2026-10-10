@@ -7,10 +7,10 @@ import { writeOpusSafetyBackup } from "./opusSafetyBackup.js";
 import { registerCloseFlush, hasPendingCloseFlush, runCloseFlush } from "./closeFlush.js";
 
 describe("writeOpusSafetyBackup", () => {
-  it("writes a hidden timestamped JSON inside the Opus folder", async () => {
+  it("writes a timestamped JSON in Opus/_backups, with no dot path", async () => {
     const path = await writeOpusSafetyBackup("/vault/", { projects: [{ id: "p" }] }, new Date("2026-10-10T12:30:00.000Z"));
-    expect(path).toBe("/vault/Opus/.backup-2026-10-10T12-30-00.json");
-    expect(fs.mkdir).toHaveBeenCalledWith("/vault/Opus", { recursive: true });
+    expect(path).toBe("/vault/Opus/_backups/backup-2026-10-10T12-30-00.json");
+    expect(fs.mkdir).toHaveBeenCalledWith("/vault/Opus/_backups", { recursive: true });
     expect(JSON.parse(fs.writeTextFile.mock.calls[0][1]).data.projects).toEqual([{ id: "p" }]);
   });
 

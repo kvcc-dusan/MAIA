@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   MAX_FILE_BYTES,
+  MAX_DISK_FILE_BYTES,
   MAX_WEB_ASSETS_BASE64_BYTES,
   isImageType,
   isPdfType,
@@ -50,19 +51,24 @@ describe("validateFile", () => {
     expect(validateFile(file("a.png", 1024), { isDisk: false, usage: 0 })).toBeNull();
   });
 
-  it("rejects a file over the per-file cap, in both modes, naming the file and the fix", () => {
-    const big = file("deck.pdf", MAX_FILE_BYTES + 1);
-    for (const isDisk of [true, false]) {
-      const result = validateFile(big, { isDisk });
-      expect(result.code).toBe("too-large");
-      expect(result.message).toContain("deck.pdf");
-      expect(result.message).toContain("5.0 MB");
-      expect(result.message).toMatch(/Compress it/);
-    }
+  it("rejects a web file over 5 MB, naming the file and the fix", () => {
+    const result = validateFile(file("deck.pdf", MAX_FILE_BYTES + 1), { isDisk: false });
+    expect(result.code).toBe("too-large");
+    expect(result.message).toContain("deck.pdf");
+    expect(result.message).toContain("5.0 MB");
+    expect(result.message).toMatch(/Compress it/);
   });
 
-  it("accepts a file of exactly the cap", () => {
-    expect(validateFile(file("a.bin", MAX_FILE_BYTES), { isDisk: true })).toBeNull();
+  it("lets vault files past 5 MB up to 250 MB, then explains the limit", () => {
+    expect(validateFile(file("a.zip", MAX_FILE_BYTES * 20), { isDisk: true })).toBeNull();
+    expect(validateFile(file("a.zip", MAX_DISK_FILE_BYTES), { isDisk: true })).toBeNull();
+    const result = validateFile(file("big.zip", MAX_DISK_FILE_BYTES + 1), { isDisk: true });
+    expect(result.code).toBe("too-large");
+    expect(result.message).toContain("250.0 MB");
+  });
+
+  it("accepts a web file of exactly the cap", () => {
+    expect(validateFile(file("a.bin", MAX_FILE_BYTES), { isDisk: false })).toBeNull();
   });
 
   it("rejects when the web budget would be exceeded, counting the new file", () => {

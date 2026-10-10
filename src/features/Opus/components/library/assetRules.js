@@ -1,8 +1,12 @@
 // Project asset rules: size limits, the web storage budget and file typing.
+// Types are not restricted: any file can be added.
 // Pure, no React, so the limits are testable without a file picker.
 
-// Per-file cap in every mode.
+// Per-file cap in the web build, where files become base64 in localStorage.
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+// Per-file cap for files written into the vault (any type; read into memory once).
+export const MAX_DISK_FILE_BYTES = 250 * 1024 * 1024;
 
 // Total base64 budget per project in the web/localStorage fallback. The
 // per-file cap alone doesn't stop many-small-files quota exhaustion, since all
@@ -32,10 +36,11 @@ export const webAssetsUsage = (assets) =>
  * the same drop); it is ignored for disk-backed storage.
  */
 export const validateFile = (file, { isDisk, usage = 0 }) => {
-  if (file.size > MAX_FILE_BYTES) {
+  const limit = isDisk ? MAX_DISK_FILE_BYTES : MAX_FILE_BYTES;
+  if (file.size > limit) {
     return {
       code: "too-large",
-      message: `${file.name} is ${formatBytes(file.size)} and the limit is ${formatBytes(MAX_FILE_BYTES)} per file. Compress it or split it, then add it again.`,
+      message: `${file.name} is ${formatBytes(file.size)} and the limit is ${formatBytes(limit)} per file. Compress it or split it, then add it again.`,
     };
   }
   if (!isDisk && usage + base64Length(file.size) > MAX_WEB_ASSETS_BASE64_BYTES) {
@@ -50,6 +55,10 @@ export const validateFile = (file, { isDisk, usage = 0 }) => {
 export const ASSET_ERRORS = {
   disk: (name) =>
     `Couldn't save ${name} to your vault folder. Check that the folder still exists and that MAIA can write to it, then add the file again.`,
+  noFolder: (name) =>
+    `Couldn't add ${name} because this project has no folder in your vault yet. Wait a moment for MAIA to save the project, then add the file again.`,
+  remove: (name) =>
+    `Couldn't delete ${name}. Check that the file isn't open in another app and that MAIA can write to your vault folder, then try again.`,
   read: (name) => `Couldn't read ${name}. Check that the file still exists and isn't open elsewhere, then add it again.`,
   open: (name) => `Couldn't open ${name}. Try again, or delete it and add the file again.`,
   download: (name) => `Couldn't download ${name}. Try again, or delete it and add the file again.`,

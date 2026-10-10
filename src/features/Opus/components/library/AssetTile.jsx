@@ -23,7 +23,8 @@ export default function AssetTile({ asset, src, onOpen, onDelete }) {
   const showImage = isImageType(asset.type) && src && !broken;
   const isPdf = isPdfType(asset.type);
   const Icon = isPdf ? FileText : File;
-  const hint = isPdf ? "opens in a new tab" : "preview";
+  // Only web (base64) PDFs open in a tab; files in the vault open the preview card.
+  const hint = isPdf && !asset.path ? "opens in a new tab" : "preview";
 
   return (
     <li className={styles.tile}>
