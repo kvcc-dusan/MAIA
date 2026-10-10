@@ -1,0 +1,32 @@
+.group { display: flex; flex-direction: column; gap: var(--space-2); }
+.group + .group { margin-top: var(--space-8); }
+.groupTitle { margin: 0; color: var(--text-secondary); font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; }
+.rows { display: flex; flex-direction: column; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  min-height: var(--control-height-lg);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.rows > .row:last-child { border-bottom: 0; }
+
+.copy { display: flex; flex: 1 1 auto; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.label { color: var(--foreground); font-size: var(--text-base); font-weight: 400; }
+.description {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.control { display: flex; flex: none; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+
+/* Container query: the pane, not the window, decides when rows stack. */
+@container settings-pane (max-width: 35rem) {
+  .row { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .control { justify-content: flex-start; }
+}

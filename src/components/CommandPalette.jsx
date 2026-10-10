@@ -10,6 +10,7 @@ import {
   FolderKanban,
   BookOpen,
   Network,
+  Settings,
 } from "lucide-react";
 import { CommandPalette as ArcPalette } from "@/components/arc/command-palette/command-palette";
 import styles from "./CommandPalette.module.css";
@@ -44,6 +45,7 @@ function PaletteBody({
   onOpenCronos,
   onExportBackup,
   onImportBackup,
+  onOpenSettings,
 }) {
   const [query, setQuery] = useState("");
   const wrapRef = useRef(null);
@@ -82,12 +84,13 @@ function PaletteBody({
       { id: "new-note", label: "New note", icon: StickyNote, run: onCreateNote },
       { id: "new-project", label: "New project", icon: FolderPlus, run: onCreateProject },
       { id: "open-chronos", label: "Open Chronos", icon: Clock, run: onOpenCronos },
+      { id: "open-settings", label: "Open settings", icon: Settings, run: onOpenSettings },
       { id: "export", label: "Export all data (backup)", icon: Download, run: onExportBackup },
       { id: "import", label: "Import backup", icon: Upload, run: onImportBackup },
     ].map(({ icon: Icon, ...rest }) => ({ ...rest, group: "Actions", icon: icon(Icon) }));
 
     return [...noteItems, ...pageItems, ...actionItems];
-  }, [notes, query, onOpenNote, go, onCreateNote, onCreateProject, onOpenCronos, onExportBackup, onImportBackup]);
+  }, [notes, query, onOpenNote, go, onCreateNote, onCreateProject, onOpenCronos, onExportBackup, onImportBackup, onOpenSettings]);
 
   const handleSelect = (item) => {
     onClose();

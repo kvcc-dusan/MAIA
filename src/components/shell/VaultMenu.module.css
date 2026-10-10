@@ -1,0 +1,18 @@
+/* Wider than a plain menu so a folder path stays readable. */
+.popup { width: 20rem; max-width: calc(100vw - var(--space-8)); }
+
+.option { min-height: var(--control-height-lg); }
+.text { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; }
+.name { overflow: hidden; font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.path {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.check { flex: none; color: var(--text-secondary); }
+
+@media (pointer: coarse) {
+  .option { min-height: calc(var(--control-height-lg) + var(--space-1)); }
+}

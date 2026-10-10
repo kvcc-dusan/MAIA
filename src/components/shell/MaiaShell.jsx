@@ -1,23 +1,21 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
   Clock,
   FolderKanban,
-  Monitor,
-  Moon,
   Network,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
-  Sun,
+  Settings,
 } from "lucide-react";
 import { IconButton } from "@/components/composed/IconButton";
-import { getTheme, resolveTheme, setTheme, subscribe } from "@/lib/theme";
 import { isTauri } from "@/lib/vault";
 import { RailButton } from "./RailButton";
 import { ShellProvider } from "./ShellContext";
+import { VaultMenu } from "./VaultMenu";
 import styles from "./MaiaShell.module.css";
 
 const SIDEBAR_KEY = "maia.shell.sidebar";
@@ -55,25 +53,9 @@ const PAGE_TITLES = {
   graph: "Conexa",
 };
 
-const THEME_ICONS = { system: Monitor, light: Sun, dark: Moon };
-const THEME_ORDER = ["light", "dark", "system"];
-
 // macOS draws its traffic lights over our top bar when the title bar is an overlay.
 const hasTrafficLights = () =>
   isTauri() && typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
-
-const ThemeButton = () => {
-  const mode = useSyncExternalStore(subscribe, getTheme, () => "system");
-  const next = THEME_ORDER[(THEME_ORDER.indexOf(mode) + 1) % THEME_ORDER.length];
-  return (
-    <RailButton
-      icon={THEME_ICONS[mode]}
-      label={`Theme: ${mode}`}
-      hint={`Theme: ${mode} (showing ${resolveTheme(mode)}). Switch to ${next}`}
-      onClick={() => setTheme(next)}
-    />
-  );
-};
 
 /**
  * App chrome, laid out like Obsidian: a top bar across the whole window (traffic
@@ -86,6 +68,8 @@ export const MaiaShell = ({
   onNavigate,
   onOpenChronos,
   onToggleSearch,
+  onOpenSettings,
+  onOpenVaultSettings,
   history,
   children,
 }) => {
@@ -178,7 +162,14 @@ export const MaiaShell = ({
               />
             </div>
             <div className={styles.railFooter}>
-              <ThemeButton />
+              <RailButton
+                icon={Settings}
+                label="Settings"
+                hint="Settings ⌘,"
+                shortcut="Meta+, Control+,"
+                onClick={onOpenSettings}
+              />
+              <VaultMenu onOpenVaultSettings={onOpenVaultSettings} />
             </div>
           </nav>
 

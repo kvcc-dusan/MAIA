@@ -15,6 +15,7 @@ import { useNavHistory } from "./hooks/useNavHistory.js";
 
 import ChronosModal from "./features/Chronos/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
+import { SettingsDialog } from "./features/Settings/SettingsDialog.jsx";
 import GlassSkeleton from "./components/GlassSkeleton.jsx";
 import { GlassErrorBoundary } from "./components/GlassErrorBoundary.jsx";
 import VaultSetup from "./components/VaultSetup.jsx";
@@ -75,6 +76,8 @@ function AppContent() {
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState(null);
 
   /* -----------------------------------------
      Backup — export/import (STATE_OF_MAIA.md P0 #4: no export path existed)
@@ -207,6 +210,15 @@ function AppContent() {
   );
   const handleToggleSearch = useCallback(() => setCmdOpen((prev) => !prev), []);
   const handleOpenPalette = useCallback(() => setCmdOpen(true), []);
+  const handleOpenSettings = useCallback(() => {
+    setSettingsSection(null); // null keeps whichever section was open last
+    setSettingsOpen(true);
+  }, []);
+  const handleOpenVaultSettings = useCallback(() => {
+    setSettingsSection("vault");
+    setSettingsOpen(true);
+  }, []);
+  const handleCloseSettings = useCallback(() => setSettingsOpen(false), []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
   const handleCloseChronos = useCallback(() => setChronosOpen(false), []);
@@ -228,11 +240,18 @@ function AppContent() {
         e.preventDefault();
         // Toggle, not open-only — ⌘K to dismiss is muscle memory.
         setCmdOpen((prev) => !prev);
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && !e.repeat && e.key === ",") {
+        // A dialog (settings itself, the palette, a confirm) owns the keyboard while open.
+        if (document.querySelector("[role=dialog]")) return;
+        e.preventDefault();
+        handleOpenSettings();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [handleOpenSettings]);
 
   /* -----------------------------------------
      Persistent Notifications
@@ -266,6 +285,8 @@ function AppContent() {
         onNavigate={go}
         onOpenChronos={handleOpenPulse}
         onToggleSearch={handleToggleSearch}
+        onOpenSettings={handleOpenSettings}
+        onOpenVaultSettings={handleOpenVaultSettings}
         history={history}
       >
         <GlassErrorBoundary>
@@ -348,6 +369,15 @@ function AppContent() {
         onCreateProject={handleCreateProject}
         go={go}
         onOpenCronos={handleOpenPulse}
+        onExportBackup={handleExportBackup}
+        onImportBackup={handleImportBackup}
+        onOpenSettings={handleOpenSettings}
+      />
+
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={handleCloseSettings}
+        section={settingsSection}
         onExportBackup={handleExportBackup}
         onImportBackup={handleImportBackup}
       />

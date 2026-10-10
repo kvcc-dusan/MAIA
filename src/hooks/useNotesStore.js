@@ -7,6 +7,8 @@ import { uid } from "../lib/ids.js";
 import {
   isTauri,
   getVaultPath,
+  setVaultPath,
+  probeVault,
   loadNotes,
   saveNote,
   deleteNoteFile,
@@ -32,7 +34,7 @@ export function useNotesStore() {
 
 function useLocalNotes() {
   const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
-  const meta = useMemo(() => ({ status: "ready", error: null, reload: () => {} }), []);
+  const meta = useMemo(() => ({ status: "ready", error: null, reload: () => {}, switchVault: async () => {} }), []);
   return [notes, setNotes, meta];
 }
 
@@ -45,6 +47,7 @@ function useVaultNotes() {
   const pendingRef = useRef(new Map()); // id → note (debounce buffer)
   const timerRef = useRef(null);
   const dirtyRef = useRef(new Set()); // ids with unflushed changes
+  const inflightRef = useRef(new Set()); // running flushes, so a vault switch can wait for them
 
   const load = useCallback(async () => {
     const vaultPath = getVaultPath();
@@ -80,10 +83,12 @@ function useVaultNotes() {
       prevNotesRef.current = null; // reset diff baseline after external reload
       setStatus("ready");
       setError(null);
+      return true;
     } catch (e) {
       console.error("[MAIA] Failed to load vault", e);
       setError(e);
       setStatus("error");
+      return false;
     }
   }, []);
 
@@ -121,7 +126,7 @@ function useVaultNotes() {
     };
   }, [status, load]);
 
-  const flush = useCallback(async () => {
+  const runFlush = useCallback(async () => {
     const vaultPath = getVaultPath();
     if (!vaultPath) return;
     const batch = [...pendingRef.current.values()];
@@ -172,6 +177,44 @@ function useVaultNotes() {
       }
     }
   }, []);
+
+  const flush = useCallback(() => {
+    const run = runFlush();
+    inflightRef.current.add(run);
+    const done = () => inflightRef.current.delete(run);
+    run.then(done, done);
+    return run;
+  }, [runFlush]);
+
+  // Point the app at another vault folder. Order matters: the target is probed
+  // first (a bad folder changes nothing), pending edits are written to the OLD
+  // vault, and only then is the path swapped and the in-memory state reset, so
+  // the old vault's notes can never be written into the new one.
+  const switchVault = useCallback(async (nextPath) => {
+    const prevPath = getVaultPath();
+    if (!nextPath || nextPath === prevPath) return;
+    await probeVault(nextPath);
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await flush();
+    await Promise.allSettled([...inflightRef.current]);
+    if (pendingRef.current.size > 0) {
+      throw new Error("Some notes could not be saved to the current vault yet, so nothing was switched. Try again in a moment.");
+    }
+
+    setVaultPath(nextPath);
+    dirtyRef.current.clear();
+    prevNotesRef.current = null;
+    setNotes([]);
+    setStatus("loading");
+    setError(null);
+    const isLoaded = await load();
+    if (isLoaded) return;
+
+    if (prevPath) setVaultPath(prevPath);
+    await load();
+    throw new Error("The new vault could not be read, so MAIA went back to the previous one.");
+  }, [flush, load]);
 
   // Diff notes state → schedule per-note writes
   useEffect(() => {
@@ -247,6 +290,6 @@ function useVaultNotes() {
     };
   }, [flush]);
 
-  const meta = useMemo(() => ({ status, error, reload: load }), [status, error, load]);
+  const meta = useMemo(() => ({ status, error, reload: load, switchVault }), [status, error, load, switchVault]);
   return [notes, setNotes, meta];
 }

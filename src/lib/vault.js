@@ -27,6 +27,49 @@ export const pickVaultFolder = async () => {
   return selected;
 };
 
+const RECENT_VAULTS_KEY = "maia.recentVaults";
+export const MAX_RECENT_VAULTS = 5;
+
+/** Last path segment, for showing a vault by name. Handles / and \\ separators. */
+export const vaultName = (path) => {
+  if (typeof path !== "string") return "";
+  const parts = path.split(/[\\/]+/).filter(Boolean);
+  return parts[parts.length - 1] ?? path;
+};
+
+/** Recently used vault paths, most recent first. Anything malformed in storage is dropped. */
+export const getRecentVaults = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RECENT_VAULTS_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    const valid = parsed.filter((p) => typeof p === "string" && p.trim() !== "");
+    return [...new Set(valid)].slice(0, MAX_RECENT_VAULTS);
+  } catch {
+    return [];
+  }
+};
+
+/** Moves `path` to the front of the recents (deduped, capped) and returns the new list. */
+export const pushRecentVault = (path) => {
+  if (typeof path !== "string" || path.trim() === "") return getRecentVaults();
+  const next = [path, ...getRecentVaults().filter((p) => p !== path)].slice(0, MAX_RECENT_VAULTS);
+  try {
+    localStorage.setItem(RECENT_VAULTS_KEY, JSON.stringify(next));
+  } catch {
+    // storage blocked: the list lasts for this session only
+  }
+  return next;
+};
+
+/**
+ * Throws if the folder can't be listed (moved, offline, no fs scope). Run it
+ * before committing to a vault switch so a bad target changes nothing.
+ */
+export const probeVault = async (path) => {
+  const { readDir } = await import("@tauri-apps/plugin-fs");
+  await readDir(path);
+};
+
 /**
  * Thrown by saveNote when the on-disk file has changed since MAIA last read
  * it (an external editor — Obsidian, a text editor, iCloud resolving a

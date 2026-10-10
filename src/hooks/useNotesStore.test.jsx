@@ -10,6 +10,8 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 const vaultMocks = vi.hoisted(() => ({
   isTauri: vi.fn(() => true),
   getVaultPath: vi.fn(() => "/mock/vault"),
+  setVaultPath: vi.fn(),
+  probeVault: vi.fn(() => Promise.resolve()),
   loadNotes: vi.fn(),
   saveNote: vi.fn(),
   deleteNoteFile: vi.fn(),
@@ -152,5 +154,54 @@ describe("useNotesStore (vault branch)", () => {
     expect(conflictCopy.content).toBe("local edit");
     expect(conflictCopy.title).toBe("Shared (conflict copy)");
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("conflict copy"));
+  });
+
+  describe("switchVault", () => {
+    const makeNote = (id) => ({ id, title: id, content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" });
+
+    it("writes pending edits to the old vault, then loads the new one without carrying old notes over", async () => {
+      let path = "/old";
+      vaultMocks.getVaultPath.mockImplementation(() => path);
+      vaultMocks.setVaultPath.mockImplementation((p) => { path = p; });
+      vaultMocks.loadNotes.mockImplementation(async (p) => (p === "/old" ? [makeNote("a")] : [makeNote("b")]));
+      vaultMocks.saveNote.mockResolvedValue(undefined);
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+      act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "edited" }))));
+      await act(async () => { await result.current[2].switchVault("/new"); });
+
+      expect(vaultMocks.saveNote).toHaveBeenCalledWith("/old", expect.objectContaining({ id: "a", content: "edited" }));
+      expect(vaultMocks.saveNote).not.toHaveBeenCalledWith("/new", expect.anything());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+      expect(result.current[0].map((n) => n.id)).toEqual(["b"]);
+      expect(path).toBe("/new");
+    });
+
+    it("changes nothing when the target folder can't be read", async () => {
+      vaultMocks.probeVault.mockRejectedValueOnce(new Error("ENOENT"));
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+      await expect(result.current[2].switchVault("/gone")).rejects.toThrow("ENOENT");
+      expect(vaultMocks.setVaultPath).not.toHaveBeenCalled();
+      expect(result.current[2].status).toBe("ready");
+    });
+
+    it("cancels the switch when pending edits can't be saved", async () => {
+      vaultMocks.loadNotes.mockResolvedValue([makeNote("a")]);
+      vaultMocks.saveNote.mockRejectedValue(new Error("disk full"));
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+      act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "edited" }))));
+      await act(async () => {
+        await expect(result.current[2].switchVault("/new")).rejects.toThrow(/nothing was switched/);
+      });
+      expect(vaultMocks.setVaultPath).not.toHaveBeenCalled();
+    });
   });
 });

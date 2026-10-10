@@ -68,7 +68,7 @@
   padding-top: var(--space-2);
   border-top: 1px solid var(--border-subtle);
 }
-.railFooter { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: flex-end; }
+.railFooter { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--space-1); }
 
 .railButton {
   display: grid;
@@ -83,7 +83,9 @@
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
+.railButton:disabled { cursor: progress; opacity: 0.6; }
 .railButton:hover { background: var(--surface-muted); color: var(--foreground); }
+.railButton[data-popup-open],
 .railButton[data-active] { background: var(--surface-muted); color: var(--foreground); }
 
 .sidebar {

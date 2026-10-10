@@ -200,3 +200,65 @@ describe("vault.js", () => {
     expect(Object.keys(fsState.files)).toHaveLength(0);
   });
 });
+
+describe("vault.js recent vaults", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it("returns an empty list when nothing is stored", async () => {
+    const { getRecentVaults } = await importVault();
+    expect(getRecentVaults()).toEqual([]);
+  });
+
+  it("puts the newest first and dedupes a repeated path", async () => {
+    const { pushRecentVault, getRecentVaults } = await importVault();
+    pushRecentVault("/a");
+    pushRecentVault("/b");
+    pushRecentVault("/a");
+    expect(getRecentVaults()).toEqual(["/a", "/b"]);
+  });
+
+  it("caps the list at five, dropping the oldest", async () => {
+    const { pushRecentVault, getRecentVaults, MAX_RECENT_VAULTS } = await importVault();
+    for (let i = 1; i <= 7; i++) pushRecentVault(`/v${i}`);
+    const list = getRecentVaults();
+    expect(list).toHaveLength(MAX_RECENT_VAULTS);
+    expect(list[0]).toBe("/v7");
+    expect(list).not.toContain("/v1");
+  });
+
+  it("ignores empty and non-string paths", async () => {
+    const { pushRecentVault, getRecentVaults } = await importVault();
+    pushRecentVault("");
+    pushRecentVault("   ");
+    pushRecentVault(null);
+    expect(getRecentVaults()).toEqual([]);
+  });
+
+  it("survives corrupt or malformed storage", async () => {
+    const { getRecentVaults } = await importVault();
+    localStorage.setItem("maia.recentVaults", "{not json");
+    expect(getRecentVaults()).toEqual([]);
+    localStorage.setItem("maia.recentVaults", JSON.stringify({ a: 1 }));
+    expect(getRecentVaults()).toEqual([]);
+    localStorage.setItem("maia.recentVaults", JSON.stringify(["/ok", 5, "", null, "/ok", "/two"]));
+    expect(getRecentVaults()).toEqual(["/ok", "/two"]);
+  });
+
+  it("vaultName gives the last path segment", async () => {
+    const { vaultName } = await importVault();
+    expect(vaultName("/Users/me/Notes")).toBe("Notes");
+    expect(vaultName("/Users/me/Notes/")).toBe("Notes");
+    expect(vaultName("C:\\Users\\me\\Vault")).toBe("Vault");
+  });
+
+  it("probeVault rejects when the folder can't be listed and resolves otherwise", async () => {
+    const { readDir } = await import("@tauri-apps/plugin-fs");
+    const { probeVault } = await importVault();
+    await expect(probeVault("/mock/vault")).resolves.toBeUndefined();
+    readDir.mockRejectedValueOnce(new Error("ENOENT"));
+    await expect(probeVault("/gone")).rejects.toThrow("ENOENT");
+  });
+});
