@@ -11,8 +11,21 @@ const listReasons = (reasons) => {
  * Shown on a note the rich editor cannot save without changing it. In source mode it offers the
  * way out; in rich view (the user's own choice) it says what is at stake and offers the way back.
  */
-export default function SyntaxNotice({ reasons = [], isSource, onSwitchView }) {
+export default function SyntaxNotice({ reasons = [], isSource, isSafe = false, onSwitchView }) {
   const detail = listReasons(reasons);
+  // A safe note can still be in source mode (remembered per note): say so, or it looks broken.
+  if (isSafe) {
+    return (
+      <div className="mb-4">
+        <Alert tone="info" title="Source mode">
+          You are seeing the raw markdown, so tables and formatting are not rendered.{" "}
+          <Button variant="secondary" size="sm" onClick={onSwitchView}>
+            Switch to rich view
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
   return (
     <div className="mb-4">
       <Alert

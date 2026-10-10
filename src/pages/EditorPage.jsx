@@ -194,10 +194,11 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
                 {local.tags.map((t) => <span key={t}>#{t}</span>)}
               </p>
             )}
-            {!roundTrip.safe && (
+            {(!roundTrip.safe || isSource) && (
               <SyntaxNotice
                 reasons={roundTrip.reasons}
                 isSource={isSource}
+                isSafe={roundTrip.safe}
                 onSwitchView={toggleView}
               />
             )}
