@@ -26,6 +26,12 @@ export const noteToMarkdown = (note) => {
     if (value === undefined || value === null) return;
     lines.push(yamlLine(key, value));
   });
+  // Unknown keys (Obsidian aliases, user props, ...) go back verbatim after the known ones
+  Object.entries(note.frontmatterExtra || {}).forEach(([key, raw]) => {
+    // A key that became known since this note was read is written by the loop above, unless it has no value
+    if (FRONTMATTER_KEYS.includes(key) && note[key] != null) return;
+    if (typeof raw === "string" && raw !== "") lines.push(raw);
+  });
   lines.push("---", "");
   return lines.join("\n") + (note.content || "");
 };
@@ -50,13 +56,50 @@ const parseYamlValue = (raw) => {
   return parseYamlScalar(trimmed);
 };
 
+// Indented, list-item, comment and blank lines belong to the key above them
+const isContinuationLine = (line) => /^(\s|-(\s|$)|#|$)/.test(line);
+
+// Returns parsed known keys plus the raw text of every other top-level key (continuation
+// lines included). Raw text is kept instead of parsed values so lists, block scalars,
+// quotes and comments survive a save byte for byte.
 const parseFrontmatter = (block) => {
   const data = {};
+  const extra = {};
+  let currentExtraKey = null;
+  let knownKey = null;
+  let pending = [];
+
   block.split("\n").forEach((line) => {
+    if (isContinuationLine(line)) {
+      if (currentExtraKey !== null) extra[currentExtraKey] += `\n${line}`;
+      else if (knownKey !== null) {
+        // Block list under a known key (`tags:` then `- item`), the form Obsidian writes
+        const item = line.match(/^\s*-\s+(.*)$/);
+        if (item && (data[knownKey] === "" || Array.isArray(data[knownKey]))) {
+          data[knownKey] = [...(data[knownKey] || []), parseYamlScalar(item[1])].filter((v) => v !== "");
+        }
+      } else pending.push(line);
+      return;
+    }
+
     const match = line.match(/^([A-Za-z][\w-]*)\s*:\s*(.*)$/);
-    if (match) data[match[1]] = parseYamlValue(match[2]);
+    if (match && FRONTMATTER_KEYS.includes(match[1])) {
+      data[match[1]] = parseYamlValue(match[2]);
+      currentExtraKey = null;
+      knownKey = match[1];
+      pending = [];
+      return;
+    }
+
+    const key = line.includes(":") ? line.slice(0, line.indexOf(":")).trim() : line.trim();
+    const raw = [...pending, line].join("\n");
+    pending = [];
+    // Duplicate keys stay as separate raw lines under one entry so nothing is dropped
+    extra[key] = Object.hasOwn(extra, key) ? `${extra[key]}\n${raw}` : raw;
+    currentExtraKey = key;
+    knownKey = null;
   });
-  return data;
+  return { data, extra };
 };
 
 const asArray = (value) =>
@@ -65,11 +108,12 @@ const asArray = (value) =>
 export const markdownToNote = (text, { fallbackId, fallbackTitle } = {}) => {
   const source = String(text ?? "");
   let data = {};
+  let extra = {};
   let content = source;
 
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
   if (match) {
-    data = parseFrontmatter(match[1]);
+    ({ data, extra } = parseFrontmatter(match[1]));
     content = source.slice(match[0].length).replace(/^\r?\n/, "");
   }
 
@@ -82,6 +126,7 @@ export const markdownToNote = (text, { fallbackId, fallbackTitle } = {}) => {
     projectIds: asArray(data.projectIds),
     createdAt: data.createdAt || isoNow(),
     project: null,
+    ...(Object.keys(extra).length > 0 ? { frontmatterExtra: extra } : {}),
   };
 };
 
