@@ -11,7 +11,7 @@ import styles from "./ProjectIdentity.module.css";
  * stays editable in place and still outlines the page. Overview renders the
  * hub's full header block itself.
  */
-export default function ProjectIdentity({ project, updateProject }) {
+export default function ProjectIdentity({ project, updateProject, showProgress = true }) {
   const { tasks } = useData();
 
   const projectTasks = tasks.filter((t) => t.projectId === project.id);
@@ -36,10 +36,12 @@ export default function ProjectIdentity({ project, updateProject }) {
         />
       </h2>
       {headline ? <p className={styles.headline}>{headline}</p> : null}
-      <div className={styles.meta}>
-        <span>{doneCount} of {projectTasks.length} tasks done</span>
-        <Progress className={styles.progress} value={doneCount} max={Math.max(projectTasks.length, 1)} />
-      </div>
+      {showProgress ? (
+        <div className={styles.meta}>
+          <span>{doneCount} of {projectTasks.length} tasks done</span>
+          <Progress className={styles.progress} value={doneCount} max={Math.max(projectTasks.length, 1)} />
+        </div>
+      ) : null}
     </div>
   );
 }

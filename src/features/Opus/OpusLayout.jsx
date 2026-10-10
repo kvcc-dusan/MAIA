@@ -63,7 +63,7 @@ function OpusPage({ project, updateProject, selectNote }) {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <ProjectIdentity project={project} updateProject={updateProject} />
+        <ProjectIdentity project={project} updateProject={updateProject} showProgress={tab !== "overview"} />
       </header>
 
       <Tabs value={tab} onValueChange={(next) => navigate(next)} className={styles.tabs}>
