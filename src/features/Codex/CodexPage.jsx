@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
+import { useData } from "@/context/DataContext.jsx";
 import { ShellSidebar, ShellTopBar } from "@/components/shell/ShellContext";
 import NotesPage from "@/pages/NotesPage.jsx";
 import EditorPage from "@/pages/EditorPage.jsx";
@@ -45,7 +46,18 @@ export default function CodexPage({
   onOpenPalette,
 }) {
   const { tabs, activeTab, activeNoteId, openNote, activate, close, newTab, openNotesView } = codex;
-  useCodexShortcuts({ onCreateNote, onOpenPalette });
+  const { createNote, notesMeta } = useData();
+  const activeFolder = notes.find((n) => n.id === activeNoteId)?.folder ?? "";
+
+  // The shared onCreateNote takes no arguments; folder-aware creation lives here.
+  const createNoteInFolder = useCallback(
+    (folder) => openNote(createNote(folder ? { folder } : {})),
+    [createNote, openNote]
+  );
+  const createNoteHere = useCallback(() => createNoteInFolder(activeFolder), [createNoteInFolder, activeFolder]);
+  const moveNote = useCallback((id, folder) => updateNote(id, { folder }), [updateNote]);
+
+  useCodexShortcuts({ onCreateNote: createNoteHere, onOpenPalette });
 
   const renderContent = () => {
     if (activeTab.kind === "note") {
@@ -103,10 +115,13 @@ export default function CodexPage({
       <ShellSidebar>
         <NotesSidebar
           notes={notes}
+          folders={notesMeta?.folders}
           currentNoteId={activeNoteId}
           onOpenNote={openNote}
-          onCreateNote={onCreateNote}
+          onCreateNote={createNoteInFolder}
           onCreateJournal={onCreateJournal}
+          onCreateFolder={notesMeta?.createFolder}
+          onMoveNote={moveNote}
         />
       </ShellSidebar>
       {renderContent()}
