@@ -1,0 +1,5 @@
+.card { min-width: 0; }
+/* A definite height lets the graph fill it; the list scrolls inside. */
+.body { position: relative; flex: 1 1 auto; height: 22rem; min-height: 0; }
+.actions { display: flex; flex: none; align-items: center; gap: var(--space-1); }
+.pad { padding: var(--space-4); }

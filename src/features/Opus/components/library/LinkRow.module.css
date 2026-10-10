@@ -1,0 +1,32 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  border-radius: var(--radius-control);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) { .row:hover { background: var(--surface-muted); } }
+
+.main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--control-height-md);
+  padding: var(--space-1) var(--space-3);
+  border-radius: inherit;
+  color: inherit;
+  text-decoration: none;
+}
+a.main:hover .title { color: var(--accent); }
+.icon { display: grid; flex: none; place-items: center; width: var(--space-5); height: var(--space-5); color: var(--text-muted); }
+.favicon { border-radius: 4px; }
+.text { display: grid; min-width: 0; }
+.title, .url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.title { color: var(--foreground); font-size: var(--text-sm); font-weight: 500; }
+.url { color: var(--text-muted); font-size: var(--text-xs); }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) { .row { transition: none; } }
