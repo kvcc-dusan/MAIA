@@ -31,7 +31,7 @@ const icon = (Icon) => React.createElement(Icon, { size: 16, strokeWidth: 1.75, 
 
 const PAGES = [
   { label: "Go to Opus", icon: FolderKanban, to: "projects" },
-  { label: "Go to Codex", icon: BookOpen, to: "overview" },
+  { label: "Go to Codex", icon: BookOpen, to: "codex" },
   { label: "Go to Conexa", icon: Network, to: "graph" },
   { label: "Go to Ledger", icon: Wallet, to: "ledgerPage" },
 ];

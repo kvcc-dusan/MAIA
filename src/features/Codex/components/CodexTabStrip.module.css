@@ -1,0 +1,92 @@
+/* Sits in the shell's top bar slot. The extra 1px at the bottom lets the active
+   tab overlap the bar's hairline so it reads as joined to the page below. */
+.root {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  gap: var(--space-1);
+  min-width: 0;
+  margin-bottom: -1px;
+}
+
+.scroller {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: flex-end;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar { display: none; }
+
+.tab {
+  position: relative;
+  display: flex;
+  flex: 0 1 12rem;
+  align-items: center;
+  min-width: 6.5rem;
+  max-width: 12rem;
+  height: var(--control-height-sm);
+  padding-inline: var(--space-3) var(--space-1);
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.tab:hover { background: var(--surface-muted); color: var(--text-secondary); }
+.tab[data-active] { background: var(--background); border-color: var(--border); color: var(--foreground); font-weight: 500; }
+
+/* Hairline between neighbours, hidden next to the active tab and after the last one. */
+.tab::after {
+  content: "";
+  position: absolute;
+  inset-block: 25%;
+  inset-inline-end: -1px;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.tab:last-child::after,
+.tab[data-active]::after,
+.tab:has(+ .tab[data-active])::after,
+.tab:hover::after,
+.tab:has(+ .tab:hover)::after { opacity: 0; }
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Arc's button sets its own size; tripled so a 24px close target out-ranks it. */
+.close.close.close {
+  flex: none;
+  width: 1.5rem;
+  min-height: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  opacity: 0;
+}
+.tab:hover .close.close.close,
+.tab:focus-within .close.close.close,
+.tab[data-active] .close.close.close { opacity: 1; }
+
+.add { flex: none; align-self: center; }
+.drag { flex: 1 1 0; align-self: stretch; min-width: var(--space-2); }
+
+@media (pointer: coarse) {
+  .tab { height: var(--control-height-md); }
+  .close.close.close { width: var(--control-height-md); min-height: var(--control-height-md); height: var(--control-height-md); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

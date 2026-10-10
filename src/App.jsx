@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 // Context
@@ -9,8 +9,8 @@ import { isTauri as isTauriRuntime } from "./lib/vault.js";
 
 // Components
 import { MaiaShell } from "./components/shell/MaiaShell.jsx";
-import { ShellSidebar } from "./components/shell/ShellContext.jsx";
-import NotesSidebar from "./features/Codex/components/NotesSidebar.jsx";
+import CodexPage from "./features/Codex/CodexPage.jsx";
+import { useCodexTabs } from "./features/Codex/useCodexTabs.js";
 import { useNavHistory } from "./hooks/useNavHistory.js";
 
 import ChronosModal from "./features/Chronos/ChronosModal.jsx";
@@ -24,8 +24,6 @@ import { TooltipProvider } from "./components/ui/tooltip.jsx";
 import { MotionConfig } from "framer-motion";
 
 // Pages
-import NotesPage from "./pages/NotesPage.jsx";
-import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
 
 import LedgerPage from "./pages/LedgerPage.jsx";
@@ -33,7 +31,9 @@ import LedgerPage from "./pages/LedgerPage.jsx";
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
 
-const PAGES = ["overview", "projects", "editor", "graph", "ledgerPage"];
+const PAGES = ["codex", "projects", "graph", "ledgerPage"];
+// Codex used to be two pages; old stored values land on the merged one.
+const LEGACY_PAGES = { overview: "codex", editor: "codex" };
 // A fresh install, or a stored page that no longer exists, opens on Opus.
 const DEFAULT_PAGE = "projects";
 
@@ -41,7 +41,8 @@ function AppContent() {
   // Pages
   const [currentPage, setCurrentPage] = useState(() => {
     const stored = localStorage.getItem("maia_current_view");
-    return PAGES.includes(stored) ? stored : DEFAULT_PAGE;
+    const page = LEGACY_PAGES[stored] ?? stored;
+    return PAGES.includes(page) ? page : DEFAULT_PAGE;
   });
 
   useEffect(() => {
@@ -50,7 +51,7 @@ function AppContent() {
 
   // Data from Context
   const {
-    notes, setNotes,
+    notes, setNotes, notesMeta,
     projects, setProjects,
     ledger, setLedger,
     tasks, setTasks,
@@ -63,20 +64,14 @@ function AppContent() {
   } = useData();
 
   // Local state for navigation/selection
-  const [currentNoteId, _setCurrentNoteId] = useState(() => localStorage.getItem("maia_current_note_id") || null);
-  const setCurrentNoteId = useCallback((id) => {
-    _setCurrentNoteId(id);
-    if (id) localStorage.setItem("maia_current_note_id", id);
-    else localStorage.removeItem("maia_current_note_id");
-  }, []);
+  const codex = useCodexTabs({ notes, isReady: notesMeta.status === "ready" });
+  const { activeNoteId, openNote, openNotesView } = codex;
   const [activeProjectId, _setActiveProjectId] = useState(() => localStorage.getItem("maia_current_project") || null);
   const setActiveProjectId = useCallback((id) => {
     _setActiveProjectId(id);
     if (id) localStorage.setItem("maia_current_project", id);
     else localStorage.removeItem("maia_current_project");
   }, []);
-  const [search] = useState("");
-
 
   // Modals
   const [chronosOpen, setChronosOpen] = useState(false);
@@ -152,25 +147,6 @@ function AppContent() {
     : "";
 
   /* -----------------------------------------
-     Derived State
-  ----------------------------------------- */
-  const filteredNotes = useMemo(() => {
-    if (!search) return notes;
-    const q = search.toLowerCase();
-    return notes.filter(
-      (n) =>
-        (n.title || "").toLowerCase().includes(q) ||
-        (n.content || "").toLowerCase().includes(q) ||
-        (n.tags || []).some((t) => t.toLowerCase().includes(q))
-    );
-  }, [notes, search]);
-
-  const currentNote = useMemo(
-    () => notes.find((n) => n.id === currentNoteId) || null,
-    [notes, currentNoteId]
-  );
-
-  /* -----------------------------------------
      Navigation Helpers (Memoized)
   ----------------------------------------- */
   const selectItem = useCallback((id, type = "note") => {
@@ -178,27 +154,27 @@ function AppContent() {
       setActiveProjectId(id);
       setCurrentPage("projects");
     } else {
-      setCurrentNoteId(id);
-      setCurrentPage("editor");
+      openNote(id);
+      setCurrentPage("codex");
     }
-  }, [setActiveProjectId]);
+  }, [setActiveProjectId, openNote]);
 
   const openInternalByTitle = useCallback((title) => {
     const norm = (s) => (s || "").trim().toLowerCase();
     const target = notes.find((n) => norm(n.title) === norm(title));
     if (target) {
-      setCurrentNoteId(target.id);
-      setCurrentPage("editor");
+      openNote(target.id);
+      setCurrentPage("codex");
     }
-  }, [notes]);
+  }, [notes, openNote]);
 
   const go = useCallback((page) => setCurrentPage(page), []);
 
   const handleCreateNote = useCallback(() => {
     const id = createNote();
-    setCurrentNoteId(id);
-    setCurrentPage("editor");
-  }, [createNote]);
+    openNote(id);
+    setCurrentPage("codex");
+  }, [createNote, openNote]);
 
   const handleCreateJournal = useCallback(() => {
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -206,21 +182,11 @@ function AppContent() {
       title: `Journal — ${dateStr}`,
       tags: ["journal"]
     });
-    setCurrentNoteId(id);
-    setCurrentPage("editor");
-  }, [createNote]);
+    openNote(id);
+    setCurrentPage("codex");
+  }, [createNote, openNote]);
 
   // Handlers for shell/modals
-  // Codex is one rail item over two internal pages (the notes view and the editor).
-  const isCodexPage = currentPage === "overview" || currentPage === "editor";
-  const handleNavigate = useCallback(
-    (page) => setCurrentPage((current) => {
-      if (page !== "codex") return page;
-      return current === "overview" || current === "editor" ? current : "overview";
-    }),
-    []
-  );
-
   // Opus picks its first project a render after it opens; don't record that gap.
   const opusResolving = currentPage === "projects" && !activeProjectId && projects.length > 0;
   const history = useNavHistory(
@@ -229,15 +195,19 @@ function AppContent() {
       : {
           page: currentPage,
           projectId: currentPage === "projects" ? activeProjectId : null,
-          noteId: currentPage === "editor" ? currentNoteId : null,
+          noteId: currentPage === "codex" ? activeNoteId : null,
         },
     useCallback((loc) => {
       setCurrentPage(loc.page);
       if (loc.projectId) setActiveProjectId(loc.projectId);
-      if (loc.noteId) setCurrentNoteId(loc.noteId);
-    }, [setActiveProjectId, setCurrentNoteId])
+      if (loc.page !== "codex") return;
+      // A null note on the Codex page means its notes or new tab was active.
+      if (loc.noteId) openNote(loc.noteId);
+      else openNotesView();
+    }, [setActiveProjectId, openNote, openNotesView])
   );
   const handleToggleSearch = useCallback(() => setCmdOpen((prev) => !prev), []);
+  const handleOpenPalette = useCallback(() => setCmdOpen(true), []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
   const handleCloseChronos = useCallback(() => setChronosOpen(false), []);
@@ -293,38 +263,30 @@ function AppContent() {
       <VaultSetup />
 
       <MaiaShell
-        currentPage={isCodexPage ? "codex" : currentPage}
-        onNavigate={handleNavigate}
+        currentPage={currentPage}
+        onNavigate={go}
         onOpenChronos={handleOpenPulse}
         onToggleSearch={handleToggleSearch}
         history={history}
       >
-        {isCodexPage && (
-          <ShellSidebar>
-            <NotesSidebar
-              notes={notes}
-              currentNoteId={currentPage === "editor" ? currentNoteId : null}
-              onOpenNote={selectItem}
-              onCreateNote={handleCreateNote}
-              onCreateJournal={handleCreateJournal}
-            />
-          </ShellSidebar>
-        )}
         <GlassErrorBoundary>
           <React.Suspense fallback={<GlassSkeleton />}>
 
 
-            {currentPage === "overview" && (
-              <NotesPage
-                notes={filteredNotes}
-                selectNote={selectItem}
+            {currentPage === "codex" && (
+              <CodexPage
+                codex={codex}
+                notes={notes}
+                projects={projects}
+                updateNote={updateNote}
                 onDelete={deleteNote}
                 onDeleteAll={deleteAllNotes}
                 onRename={renameNote}
                 onMove={moveNoteToProject}
-                projects={projects}
                 onCreateNote={handleCreateNote}
                 onCreateJournal={handleCreateJournal}
+                onOpenInternalLink={openInternalByTitle}
+                onOpenPalette={handleOpenPalette}
               />
             )}
 
@@ -339,16 +301,6 @@ function AppContent() {
                 onSelectProject={setActiveProjectId}
                 isCreateModalOpen={projectModalOpen}
                 setCreateModalOpen={setProjectModalOpen}
-              />
-            )}
-
-            {currentPage === "editor" && (
-              <EditorPage
-                key={currentNote?.id}
-                note={currentNote}
-                updateNote={updateNote}
-                onOpenInternalLink={openInternalByTitle}
-                projects={projects}
               />
             )}
 

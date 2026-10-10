@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import { CollapseIcon, ExpandIcon, ReadIcon, WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { IconButton } from "../components/composed/IconButton.jsx";
@@ -44,9 +44,24 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
   };
 
   // Persist
+  const savedRef = useRef(note);
   useDebounced(() => {
-    if (local) updateNote(local);
+    if (local) {
+      savedRef.current = local;
+      updateNote(local);
+    }
   }, [local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project], 250);
+
+  // The debounce cancels when this editor unmounts, which is what switching tabs
+  // does. Flush anything typed in that last window so a quick switch loses nothing.
+  const localRef = useRef(local);
+  localRef.current = local;
+  const updateNoteRef = useRef(updateNote);
+  updateNoteRef.current = updateNote;
+  useEffect(() => () => {
+    const pending = localRef.current;
+    if (pending && pending !== savedRef.current) updateNoteRef.current(pending);
+  }, []);
 
   // These were previously created inline inside JSX props below the early
   // return — a real Rules-of-Hooks violation (hook order changes whenever
