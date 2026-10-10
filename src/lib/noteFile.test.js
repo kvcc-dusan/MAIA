@@ -56,6 +56,103 @@ describe("markdownToNote with external / partial files", () => {
   });
 });
 
+describe("unknown frontmatter keys", () => {
+  const obsidian = [
+    "---",
+    "id: abc1234",
+    "title: Meeting notes",
+    "aliases:",
+    "  - Standup",
+    '  - "Daily: sync"',
+    "created: 2026-07-13 10:00",
+    "status: draft",
+    "cssclasses: [wide, dim]",
+    'quote: "He said \\"hi\\" # not a comment"',
+    "single: 'it''s: fine'",
+    "nested:",
+    "  author:",
+    "    name: Dusan",
+    "  count: 3",
+    "summary: |",
+    "  line one",
+    "",
+    "  line three",
+    "# a comment between keys",
+    "tags: [a, b]",
+    "list:",
+    "- zero-indent item",
+    "- other",
+    "---",
+    "Body",
+  ].join("\n");
+
+  it("keeps unknown keys out of the known fields and in frontmatterExtra", () => {
+    const note = markdownToNote(obsidian);
+    expect(note.id).toBe("abc1234");
+    expect(note.tags).toEqual(["a", "b"]);
+    expect(Object.keys(note.frontmatterExtra)).toEqual([
+      "aliases", "created", "status", "cssclasses", "quote", "single", "nested", "summary", "list",
+    ]);
+    expect(note.frontmatterExtra.aliases).toBe('aliases:\n  - Standup\n  - "Daily: sync"');
+    expect(note.frontmatterExtra.created).toBe("created: 2026-07-13 10:00");
+  });
+
+  it("writes every unknown line back verbatim, after the known keys", () => {
+    const out = noteToMarkdown(markdownToNote(obsidian));
+    const fm = out.split("\n---\n")[0].split("\n");
+    ["aliases:", "  - Standup", '  - "Daily: sync"', "created: 2026-07-13 10:00",
+      "cssclasses: [wide, dim]", "  author:", "    name: Dusan", "summary: |",
+      "  line one", "", "  line three", "- zero-indent item", "- other"]
+      .forEach((line) => expect(fm).toContain(line));
+    expect(fm.indexOf("aliases:")).toBeGreaterThan(fm.indexOf("tags: [a, b]"));
+    expect(out.endsWith("Body")).toBe(true);
+  });
+
+  it("is stable across repeated read/write cycles", () => {
+    const once = noteToMarkdown(markdownToNote(obsidian));
+    const twice = noteToMarkdown(markdownToNote(once));
+    expect(twice).toBe(once);
+    expect(markdownToNote(twice).frontmatterExtra).toEqual(markdownToNote(obsidian).frontmatterExtra);
+  });
+
+  it("does not attach block-list lines of a known key to an unknown key", () => {
+    const note = markdownToNote("---\nid: a\ntags:\n  - x\nfoo: bar\n---\nb");
+    expect(note.frontmatterExtra).toEqual({ foo: "foo: bar" });
+  });
+
+  it("reads Obsidian block-list tags and keeps them across a save", () => {
+    const src = '---\nid: a\ntags:\n  - alpha\n  - "two words"\n- beta\nprojectIds:\n  - p1\nlinks:\nfoo: bar\n---\nb';
+    const note = markdownToNote(src);
+    expect(note.tags).toEqual(["alpha", "two words", "beta"]);
+    expect(note.projectIds).toEqual(["p1"]);
+    expect(note.links).toEqual([]);
+    expect(note.frontmatterExtra).toEqual({ foo: "foo: bar" });
+    expect(markdownToNote(noteToMarkdown(note)).tags).toEqual(["alpha", "two words", "beta"]);
+  });
+
+  it("omits frontmatterExtra when there are no unknown keys", () => {
+    expect("frontmatterExtra" in markdownToNote(noteToMarkdown(sampleNote))).toBe(false);
+  });
+
+  it("keeps duplicate unknown keys and survives edits to known fields", () => {
+    const note = markdownToNote("---\nid: a\nx: 1\nx: 2\n---\nb");
+    const out = noteToMarkdown({ ...note, title: "New title" });
+    expect(out).toContain("x: 1\nx: 2");
+    expect(out).toContain("title: New title");
+  });
+
+  it("does not duplicate a key that is also written as a known key", () => {
+    const note = { ...sampleNote, frontmatterExtra: { title: "title: old" } };
+    const out = noteToMarkdown(note);
+    expect(out).not.toContain("title: old");
+  });
+
+  it("still writes an extra key when the note has no value for it", () => {
+    const out = noteToMarkdown({ ...sampleNote, title: undefined, frontmatterExtra: { title: "title: old" } });
+    expect(out).toContain("title: old");
+  });
+});
+
 describe("slugifyTitle / noteFilename", () => {
   it("slugifies diacritics and illegal chars", () => {
     expect(slugifyTitle("Dušan's Plan: v2 / final?")).toBe("dusan's-plan-v2-final");
