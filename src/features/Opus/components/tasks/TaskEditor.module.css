@@ -1,3 +1,4 @@
-.editor { display: grid; gap: var(--space-4); min-width: 0; }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
-.grid > * { min-width: 0; }
+.form { display: grid; gap: var(--space-5); min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-4); }
+.row > * { min-width: 0; }
+.delete { margin-inline-end: auto; }

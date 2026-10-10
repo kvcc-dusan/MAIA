@@ -1,126 +1,107 @@
-// Pure filter state, filtering and grouping for the Tasks tab. No React.
-// `today` is always passed in as "YYYY-MM-DD" (metrics.toDayString builds it).
-import { day } from "../../lib/metrics.js";
+// Pure filter state, filtering, sorting and grouping for the Tasks tab, after
+// the hub's plain filterable list. No React. `today` is "YYYY-MM-DD".
+import { day, weekStart } from "../../lib/metrics.js";
 import { workstreamColor } from "./taskDisplay.js";
 
-/** Filter value meaning "tasks with no workstream / no milestone". */
-export const UNASSIGNED = "__none__";
-
-// One row of chips. Statuses are the task's own; "overdue" is a date
-// condition on an open task. A task matches when it fits ANY selected chip.
 export const STATUS_FILTERS = [
-  { value: "todo", label: "To do" },
-  { value: "doing", label: "In progress" },
+  { value: "open", label: "Open" },
   { value: "blocked", label: "Blocked" },
-  { value: "done", label: "Done" },
   { value: "overdue", label: "Overdue" },
+  { value: "done-week", label: "Done this week" },
+  { value: "done", label: "Done" },
+  { value: "all", label: "All" },
 ];
-const STATUS_FILTER_VALUES = STATUS_FILTERS.map((o) => o.value);
+const CHIP_VALUES = STATUS_FILTERS.map((o) => o.value);
+
+// Reachable only through navigate(): the hub shows them as a removable chip.
+export const EXACT_STATUSES = { todo: "To do", doing: "In progress" };
 
 export const GROUP_OPTIONS = [
-  { value: "status", label: "Status" },
   { value: "workstream", label: "Workstream" },
   { value: "milestone", label: "Milestone" },
   { value: "none", label: "None" },
 ];
 const GROUP_VALUES = GROUP_OPTIONS.map((o) => o.value);
 
+export const SORT_OPTIONS = [
+  { value: "due", label: "Due date" },
+  { value: "priority", label: "Priority" },
+  { value: "updated", label: "Recently updated" },
+  { value: "title", label: "Title" },
+];
+const SORT_VALUES = SORT_OPTIONS.map((o) => o.value);
+
 export const initialFilters = {
-  statuses: [],
+  status: "open",
   workstreamId: "",
   milestoneId: "",
+  owner: "",
   query: "",
-  groupBy: "status",
+  sort: "due",
+  groupBy: "workstream",
 };
 
 /* filter state */
 
-const canonicalStatuses = (list) => STATUS_FILTER_VALUES.filter((v) => list.includes(v));
-const asList = (v) => (Array.isArray(v) ? v : v == null || v === "" ? [] : [v]);
 const asId = (v) => (typeof v === "string" ? v : "");
+const asStatus = (v) => (CHIP_VALUES.includes(v) || v in EXACT_STATUSES ? v : initialFilters.status);
 
-/** Seeds filters from a navigate() payload: { status, ws, milestone }. Unknown statuses are dropped. */
-export const filtersFromParams = (params = {}, groupBy = initialFilters.groupBy) => ({
+/** Seeds filters from a navigate() payload: { status, ws, milestone, owner }. An unknown status means Open. */
+export const filtersFromParams = (params = {}, keep = {}) => ({
   ...initialFilters,
-  groupBy,
-  statuses: canonicalStatuses(asList(params?.status)),
+  sort: keep.sort ?? initialFilters.sort,
+  groupBy: keep.groupBy ?? initialFilters.groupBy,
+  status: asStatus(params?.status),
   workstreamId: asId(params?.ws),
   milestoneId: asId(params?.milestone),
+  owner: asId(params?.owner),
 });
 
-export const hasActiveFilters = (filters) =>
-  filters.statuses.length > 0 || !!filters.workstreamId || !!filters.milestoneId || filters.query.trim() !== "";
+/** Anything beyond the status chips and the sort: what "Clear filters" resets. */
+export const hasExtraFilters = (f) => !!(f.workstreamId || f.milestoneId || f.owner || f.query.trim());
 
 /**
- * Actions: statuses, workstream, milestone, query, groupBy, remove (a chip id
- * from activeFilterChips), clear (filters only, grouping stays), params.
+ * Actions: status, workstream, milestone, owner, query, sort, groupBy,
+ * clear (workstream, milestone, owner and search; status and layout stay),
+ * params (re-seed from a navigate payload; sort and grouping stay).
  */
 export const filtersReducer = (state, action) => {
   switch (action.type) {
-    case "statuses":
-      return { ...state, statuses: canonicalStatuses(asList(action.value)) };
+    case "status":
+      return { ...state, status: asStatus(action.value) };
     case "workstream":
       return { ...state, workstreamId: action.value ?? "" };
     case "milestone":
       return { ...state, milestoneId: action.value ?? "" };
+    case "owner":
+      return { ...state, owner: action.value ?? "" };
     case "query":
       return { ...state, query: action.value ?? "" };
+    case "sort":
+      return SORT_VALUES.includes(action.value) ? { ...state, sort: action.value } : state;
     case "groupBy":
       return GROUP_VALUES.includes(action.value) ? { ...state, groupBy: action.value } : state;
-    case "remove": {
-      if (action.id.startsWith("status:")) {
-        const status = action.id.slice("status:".length);
-        return { ...state, statuses: state.statuses.filter((s) => s !== status) };
-      }
-      if (action.id === "workstream") return { ...state, workstreamId: "" };
-      if (action.id === "milestone") return { ...state, milestoneId: "" };
-      if (action.id === "query") return { ...state, query: "" };
-      return state;
-    }
     case "clear":
-      return { ...initialFilters, groupBy: state.groupBy };
+      return { ...state, workstreamId: "", milestoneId: "", owner: "", query: "" };
     case "params":
-      return filtersFromParams(action.params, state.groupBy);
+      return filtersFromParams(action.params, state);
     default:
       return state;
   }
 };
 
-const knownOrUnassigned = (id, list) => id === "" || id === UNASSIGNED || list.some((x) => x.id === id);
-
-/** Drops a workstream or milestone id that no longer exists, so a deleted one cannot silently empty the list. */
-export const sanitizeFilters = (filters, { workstreams = [], milestones = [] } = {}) => {
-  const workstreamOk = knownOrUnassigned(filters.workstreamId, workstreams);
-  const milestoneOk = knownOrUnassigned(filters.milestoneId, milestones);
-  if (workstreamOk && milestoneOk) return filters;
+/** Drops a workstream, milestone or owner that no longer exists, so a deleted one cannot silently empty the list. */
+export const sanitizeFilters = (filters, { workstreams = [], milestones = [], owners = [] } = {}) => {
+  const workstreamOk = !filters.workstreamId || workstreams.some((w) => w.id === filters.workstreamId);
+  const milestoneOk = !filters.milestoneId || milestones.some((m) => m.id === filters.milestoneId);
+  const ownerOk = !filters.owner || owners.includes(filters.owner);
+  if (workstreamOk && milestoneOk && ownerOk) return filters;
   return {
     ...filters,
     workstreamId: workstreamOk ? filters.workstreamId : "",
     milestoneId: milestoneOk ? filters.milestoneId : "",
+    owner: ownerOk ? filters.owner : "",
   };
-};
-
-/** Chips for FilterToolbar: one per active condition. */
-export const activeFilterChips = (filters, { workstreams = [], milestones = [] } = {}) => {
-  const chips = filters.statuses.map((status) => ({
-    id: `status:${status}`,
-    label: "Status",
-    value: STATUS_FILTERS.find((o) => o.value === status)?.label ?? status,
-  }));
-  if (filters.workstreamId) {
-    const name = filters.workstreamId === UNASSIGNED
-      ? "None"
-      : workstreams.find((w) => w.id === filters.workstreamId)?.name;
-    if (name) chips.push({ id: "workstream", label: "Workstream", value: name });
-  }
-  if (filters.milestoneId) {
-    const name = filters.milestoneId === UNASSIGNED
-      ? "None"
-      : milestones.find((m) => m.id === filters.milestoneId)?.title;
-    if (name) chips.push({ id: "milestone", label: "Milestone", value: name });
-  }
-  if (filters.query.trim()) chips.push({ id: "query", label: "Search", value: filters.query.trim() });
-  return chips;
 };
 
 /* filtering */
@@ -129,128 +110,102 @@ export const isDone = (task) => task.status === "done" || task.done === true;
 
 export const isOverdue = (task, today) => !isDone(task) && !!day(task.due) && day(task.due) < today;
 
-const matchesStatus = (task, statuses, today) =>
-  statuses.length === 0 ||
-  statuses.some((s) => (s === "overdue" ? isOverdue(task, today) : task.status === s));
-
-const matchesLink = (taskValue, filterValue) => {
-  if (!filterValue) return true;
-  return filterValue === UNASSIGNED ? !taskValue : taskValue === filterValue;
+const matchesStatus = (task, status, today) => {
+  switch (status) {
+    case "open": return !isDone(task);
+    case "blocked": return task.status === "blocked";
+    case "overdue": return isOverdue(task, today);
+    case "done-week": return isDone(task) && !!task.doneAt && day(task.doneAt) >= weekStart(today);
+    case "done": return isDone(task);
+    case "all": return true;
+    default: return task.status === status;
+  }
 };
 
-const matchesQuery = (task, query) => {
-  if (!query) return true;
-  return `${task.title ?? ""} ${task.desc ?? ""}`.toLowerCase().includes(query);
-};
+const matchesQuery = (task, query) =>
+  !query || `${task.title ?? ""} ${task.desc ?? ""}`.toLowerCase().includes(query);
 
-/** Keeps the incoming order; sorting belongs to groupTasks. */
+/** Keeps the incoming order; sortTasks orders what remains. */
 export const filterTasks = (tasks, filters, today) => {
   const query = filters.query.trim().toLowerCase();
   return tasks.filter(
     (t) =>
-      matchesStatus(t, filters.statuses, today) &&
-      matchesLink(t.workstreamId, filters.workstreamId) &&
-      matchesLink(t.milestoneId, filters.milestoneId) &&
+      matchesStatus(t, filters.status, today) &&
+      (!filters.workstreamId || t.workstreamId === filters.workstreamId) &&
+      (!filters.milestoneId || t.milestoneId === filters.milestoneId) &&
+      (!filters.owner || t.owner === filters.owner) &&
       matchesQuery(t, query)
   );
 };
 
-/** Open / blocked / overdue counts for the tab's summary line. */
-export const summarizeTasks = (tasks, today) => ({
-  open: tasks.filter((t) => !isDone(t)).length,
-  blocked: tasks.filter((t) => !isDone(t) && t.status === "blocked").length,
-  overdue: tasks.filter((t) => isOverdue(t, today)).length,
-});
+/* sorting */
 
-/* ordering and grouping */
+const PRIORITY_RANK = { p1: 0, p2: 1, p3: 2 };
+const rankOf = (t) => PRIORITY_RANK[t.priority] ?? 2;
+const byTitle = (a, b) => String(a.title ?? "").localeCompare(String(b.title ?? ""));
+const byDue = (a, b) => (day(a.due) || "9").localeCompare(day(b.due) || "9");
+const byPriority = (a, b) => rankOf(a) - rankOf(b);
+const touchedAt = (t) => t.updatedAt ?? t.doneAt ?? t.startedAt ?? t.createdAt ?? "";
 
-const SCHED_ORDER = { today: 0, soon: 1, future: 2 };
-const PRIORITY_ORDER = { p1: 0, p2: 1, p3: 2 };
-const timeOf = (iso) => Date.parse(iso) || 0;
+const COMPARATORS = {
+  title: byTitle,
+  updated: (a, b) => touchedAt(b).localeCompare(touchedAt(a)) || byTitle(a, b),
+  priority: (a, b) => byPriority(a, b) || byDue(a, b) || byTitle(a, b),
+  due: (a, b) => byDue(a, b) || byPriority(a, b) || byTitle(a, b),
+};
 
-// One comparator for every group: schedule bucket, then priority, then
-// creation order.
-export const sortTasks = (list) =>
-  [...list].sort((a, b) => {
-    const bySchedule = (SCHED_ORDER[a.schedule] ?? 0) - (SCHED_ORDER[b.schedule] ?? 0);
-    if (bySchedule !== 0) return bySchedule;
-    const byPriority = (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
-    if (byPriority !== 0) return byPriority;
-    return timeOf(a.createdAt) - timeOf(b.createdAt);
-  });
+export const sortTasks = (list, sort = "due") => [...list].sort(COMPARATORS[sort] ?? COMPARATORS.due);
 
-// Open work first inside a workstream or milestone, finished work after it.
-const sortOpenFirst = (list) => [...sortTasks(list.filter((t) => !isDone(t))), ...sortTasks(list.filter(isDone))];
+/* grouping */
 
-const isSoon = (t) => t.schedule === "soon";
-const isFuture = (t) => t.schedule === "future";
-// Anything that is not soon or future counts as today, so no task falls out of the bands.
-const STATUS_BANDS = [
-  { key: "today", label: "Today", defaultOpen: true, has: (t) => !isDone(t) && t.status !== "blocked" && !isSoon(t) && !isFuture(t) },
-  { key: "soon", label: "Soon", defaultOpen: true, has: (t) => !isDone(t) && t.status !== "blocked" && isSoon(t) },
-  { key: "future", label: "Future", defaultOpen: false, has: (t) => !isDone(t) && t.status !== "blocked" && isFuture(t) },
-  { key: "blocked", label: "Blocked", defaultOpen: true, has: (t) => !isDone(t) && t.status === "blocked" },
-  { key: "done", label: "Done", defaultOpen: false, has: isDone },
-];
+const doneCount = (list) => list.filter(isDone).length;
 
-const progressOf = (members) => ({
-  total: members.length,
-  done: members.filter(isDone).length,
-});
+const withProgress = (group, members) => ({ ...group, total: members.length, done: doneCount(members) });
 
-const byRank = (rank) => (a, b) => rank(a) - rank(b);
-
-const linkGroups = ({ tasks, allTasks, definitions, field, fallbackLabel }) => {
+/**
+ * Splits already-filtered tasks into display groups, sorted, empty ones left
+ * out. Each group: { key, label, color, tasks, total, done }. `total` and
+ * `done` count the group in `allTasks` (unfiltered), so a filter does not
+ * distort "10 of 14 done".
+ */
+export const groupTasks = (tasks, groupBy, { workstreams = [], milestones = [], allTasks = tasks, sort = "due" } = {}) => {
+  if (groupBy === "none") {
+    if (tasks.length === 0) return [];
+    return [{ key: "all", label: "All tasks", color: null, tasks: sortTasks(tasks, sort), total: allTasks.length, done: doneCount(allTasks) }];
+  }
+  const isWorkstream = groupBy === "workstream";
+  const field = isWorkstream ? "workstreamId" : "milestoneId";
+  const definitions = isWorkstream
+    ? [...workstreams]
+        .sort((a, b) => (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER))
+        .map((w) => ({ key: w.id, label: w.name, color: workstreamColor(w) }))
+    : [...milestones]
+        .sort((a, b) => (day(a.date) || "9").localeCompare(day(b.date) || "9"))
+        .map((m) => ({ key: m.id, label: m.title, color: null }));
   const known = new Set(definitions.map((d) => d.key));
-  const groups = definitions.map((d) => {
-    const members = tasks.filter((t) => t[field] === d.key);
-    return { ...d, tasks: sortOpenFirst(members), defaultOpen: true, ...progressOf(allTasks.filter((t) => t[field] === d.key)) };
-  });
+  const groups = definitions.map((d) =>
+    withProgress({ ...d, tasks: sortTasks(tasks.filter((t) => t[field] === d.key), sort) }, allTasks.filter((t) => t[field] === d.key))
+  );
   const loose = tasks.filter((t) => !known.has(t[field]));
   if (loose.length) {
-    groups.push({
-      key: UNASSIGNED,
-      label: fallbackLabel,
-      color: null,
-      date: null,
-      tasks: sortOpenFirst(loose),
-      defaultOpen: true,
-      ...progressOf(allTasks.filter((t) => !known.has(t[field]))),
-    });
+    groups.push(
+      withProgress(
+        { key: "none", label: isWorkstream ? "No workstream" : "No milestone", color: null, tasks: sortTasks(loose, sort) },
+        allTasks.filter((t) => !known.has(t[field]))
+      )
+    );
   }
   return groups.filter((g) => g.tasks.length > 0);
 };
 
-/**
- * Splits already-filtered tasks into display groups. Empty groups are left out.
- * Each group: { key, label, color, date, tasks, defaultOpen, total, done }.
- * `total` and `done` count the group in `allTasks` (unfiltered), so a filter
- * does not distort the progress; they are null for the status bands, where
- * "x of y done" means nothing.
- */
-export const groupTasks = (tasks, groupBy, { workstreams = [], milestones = [], allTasks = tasks } = {}) => {
-  if (groupBy === "workstream") {
-    const ordered = [...workstreams].sort(byRank((w) => w.order ?? Number.MAX_SAFE_INTEGER));
-    const definitions = ordered.map((w) => ({ key: w.id, label: w.name, color: workstreamColor(w), date: null }));
-    return linkGroups({ tasks, allTasks, definitions, field: "workstreamId", fallbackLabel: "No workstream" });
-  }
-  if (groupBy === "milestone") {
-    const ordered = [...milestones].sort((a, b) => (day(a.date) || "9").localeCompare(day(b.date) || "9"));
-    const definitions = ordered.map((m) => ({ key: m.id, label: m.title, color: null, date: m.date ?? null }));
-    return linkGroups({ tasks, allTasks, definitions, field: "milestoneId", fallbackLabel: "No milestone" });
-  }
-  if (groupBy === "none") {
-    if (tasks.length === 0) return [];
-    return [{ key: "all", label: "All tasks", color: null, date: null, tasks: sortOpenFirst(tasks), defaultOpen: true, total: null, done: null }];
-  }
-  return STATUS_BANDS.map(({ key, label, defaultOpen, has }) => ({
-    key,
-    label,
-    color: null,
-    date: null,
-    tasks: sortTasks(tasks.filter(has)),
-    defaultOpen,
-    total: null,
-    done: null,
-  })).filter((g) => g.tasks.length > 0);
+/** Hub copy for an empty list under the status chips alone. */
+export const EMPTY_COPY = {
+  open: ["No open tasks", "Everything is done, or nothing has been added yet."],
+  blocked: ["Nothing is blocked", "No task is currently marked as blocked."],
+  overdue: ["No overdue tasks", "Every open task is on time or has no due date."],
+  "done-week": ["Nothing finished this week", "Tasks marked done since Monday show up here."],
+  done: ["No finished tasks yet", "Completed tasks show up here."],
+  todo: ["No tasks to do", "Nothing is waiting to start."],
+  doing: ["Nothing in progress", "No task is currently being worked on."],
+  all: ["No tasks", "Nothing has been added yet."],
 };

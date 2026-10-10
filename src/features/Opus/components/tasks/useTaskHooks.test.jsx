@@ -8,7 +8,7 @@ describe("useTaskFilters", () => {
   it("starts from the navigation params", () => {
     const params = { status: "blocked", ws: "w1" };
     const { result } = renderHook(() => useTaskFilters(params));
-    expect(result.current[0]).toMatchObject({ statuses: ["blocked"], workstreamId: "w1" });
+    expect(result.current[0]).toMatchObject({ status: "blocked", workstreamId: "w1" });
   });
 
   it("re-applies when a new params object arrives, and not when the same one re-renders", () => {
@@ -20,14 +20,14 @@ describe("useTaskFilters", () => {
     expect(result.current[0].query).toBe("login");
 
     rerender({ params: { status: "overdue" } });
-    expect(result.current[0]).toMatchObject({ statuses: ["overdue"], query: "" });
+    expect(result.current[0]).toMatchObject({ status: "overdue", query: "" });
   });
 
   it("keeps the grouping across a params change", () => {
     const { result, rerender } = renderHook(({ params }) => useTaskFilters(params), { initialProps: { params: {} } });
-    act(() => result.current[1]({ type: "groupBy", value: "workstream" }));
+    act(() => result.current[1]({ type: "groupBy", value: "milestone" }));
     rerender({ params: { status: "todo" } });
-    expect(result.current[0].groupBy).toBe("workstream");
+    expect(result.current[0].groupBy).toBe("milestone");
   });
 });
 
