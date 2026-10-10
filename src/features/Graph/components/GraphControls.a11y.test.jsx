@@ -33,8 +33,8 @@ function Harness({ onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSub
       activeCluster={null}
       setActiveCluster={() => {}}
       clusters={[]}
-      colors={["#000"]}
-      nodeDotColor={() => "#000"}
+      colors={["black"]}
+      nodeDotColor={() => "black"}
       view={{ mode: "3d", setMode: () => {}, colorBy: "folder", setColorBy: () => {}, legend: [] }}
     />
   );
