@@ -3,7 +3,7 @@ import { toLocalInputValue } from "../../../../lib/time.js";
 import { localDay } from "./model.js";
 
 export const emptyDraft = ({ status = "todo", workstreamId = null } = {}) => ({
-  title: "", desc: "", status, workstreamId, milestoneId: null, due: "", estimate: null, schedule: "today",
+  title: "", desc: "", status, workstreamId, milestoneId: null, due: "", estimate: null, schedule: "today", owner: "", priority: "p3",
 });
 
 export const draftFromTask = (task) => ({
@@ -15,6 +15,8 @@ export const draftFromTask = (task) => ({
   due: task.due ? toLocalInputValue(new Date(task.due)) : "",
   estimate: task.estimate ?? null,
   schedule: task.schedule ?? "today",
+  owner: task.owner ?? "",
+  priority: task.priority ?? "p3",
 });
 
 export const validateDraft = (draft) => (draft.title.trim() ? {} : { title: "Add a title to save this task." });
@@ -42,6 +44,8 @@ export const buildPatch = (task, draft) => {
   if (localDay(draft.due) !== localDay(task.due)) patch.due = dueFromField(draft.due);
   if (!Object.is(draft.estimate ?? null, task.estimate ?? null)) patch.estimate = draft.estimate ?? null;
   if (draft.schedule !== (task.schedule ?? "today")) patch.schedule = draft.schedule;
+  if ((draft.owner ?? "").trim() !== (task.owner ?? "")) patch.owner = draft.owner.trim() || null;
+  if (draft.priority !== (task.priority ?? "p3")) patch.priority = draft.priority;
   return patch;
 };
 
@@ -57,5 +61,7 @@ export const buildCreateArgs = (draft, projectId) => ({
     milestoneId: draft.milestoneId ?? null,
     estimate: draft.estimate ?? null,
     schedule: draft.schedule,
+    owner: (draft.owner ?? "").trim() || null,
+    priority: draft.priority ?? "p3",
   },
 });

@@ -13,8 +13,14 @@
 .column[data-target] { border-color: var(--accent); }
 
 .header { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2) 0; }
+.dot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--text-muted); }
+.column[data-status="doing"] .dot { background: var(--accent); }
+.column[data-status="blocked"] .dot { background: var(--danger); }
+.column[data-status="done"] .dot { background: var(--success); }
 .title { margin: 0; color: var(--foreground); font-size: var(--text-sm); font-weight: 500; }
-.sizes { margin-inline-start: auto; color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.count { color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.wip { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding-inline: var(--space-2); color: var(--text-secondary); font-size: var(--text-sm); }
+.wipDot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--warning); }
 
 .drop { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 6rem; }
 .list { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; }

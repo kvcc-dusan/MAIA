@@ -5,14 +5,16 @@ import { GlassErrorBoundary } from "@/components/GlassErrorBoundary";
 import { useData } from "@/context/DataContext";
 import { useOpusNav } from "../OpusNavContext";
 import { toDayString } from "../lib/metrics";
+import { projectPeople, showOwners } from "../lib/people";
+import { FilterChips, PageBar } from "../kit";
 import Board from "../components/board/Board";
-import BoardToolbar from "../components/board/BoardToolbar";
 import TaskDrawer from "../components/board/TaskDrawer";
 import { STATUS_LABELS, STATUS_ORDER, buildColumns, filterTasks, wsFromParams } from "../components/board/model";
 import { insertIndex, planOrder, sortColumn } from "../components/board/order";
 import { buildCreateArgs, buildPatch } from "../components/board/taskForm";
 import styles from "../components/board/BoardTab.module.css";
 
+const ALL = "";
 const DRAWER_EXIT_MS = 450;
 const CLOSED = { open: false, mode: "create", session: 0, taskId: null, initial: {} };
 
@@ -33,30 +35,34 @@ export default function BoardTab({ project }) {
   const tasks = data?.tasks;
   const { addTask, updateTask, deleteTask, setNextAction } = data ?? {};
 
-  const [selected, setSelected] = useState(() => wsFromParams(params));
-  const [query, setQuery] = useState("");
+  const [wsId, setWsId] = useState(() => wsFromParams(params)[0] ?? ALL);
+  const [owner, setOwner] = useState(ALL);
   const [showAllDone, setShowAllDone] = useState(false);
   const [drawer, setDrawer] = useState(CLOSED);
   const [message, setMessage] = useState("");
   const pendingFocus = useRef(null);
-  const seenParams = useRef(params);
 
-  // A navigate from another tab carries { ws } and arrives as a new params object.
+  // A navigate from another tab carries { ws, status } and arrives as a new params object.
   useEffect(() => {
-    if (seenParams.current === params) return;
-    seenParams.current = params;
-    setSelected(wsFromParams(params));
-    if (STATUS_ORDER.includes(params?.status)) {
+    setWsId(wsFromParams(params)[0] ?? ALL);
+    setOwner(ALL);
+    if (!STATUS_ORDER.includes(params?.status)) return;
+    requestAnimationFrame(() => {
       document.querySelector(`[data-status="${params.status}"]`)?.scrollIntoView?.({ inline: "start", block: "nearest" });
-    }
+    });
   }, [params]);
 
   const projectTasks = useMemo(() => (tasks ?? []).filter((t) => t && t.projectId === project.id), [tasks, project.id]);
   const workstreams = useMemo(() => [...project.workstreams].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)), [project.workstreams]);
   const workstreamsById = useMemo(() => new Map(workstreams.map((w) => [w.id, w])), [workstreams]);
-  const activeSelection = useMemo(() => selected.filter((id) => workstreamsById.has(id)), [selected, workstreamsById]);
-  const filtered = useMemo(() => filterTasks(projectTasks, { workstreamIds: activeSelection, query }), [projectTasks, activeSelection, query]);
+  const activeSelection = useMemo(() => (workstreamsById.has(wsId) ? [wsId] : []), [wsId, workstreamsById]);
+  const people = useMemo(() => projectPeople(project, tasks), [project, tasks]);
+  const isOwnerShown = useMemo(() => showOwners(project, tasks), [project, tasks]);
+  const activeOwner = isOwnerShown && people.includes(owner) ? owner : ALL;
+  const filtered = useMemo(() => filterTasks(projectTasks, { workstreamIds: activeSelection, owner: activeOwner }), [projectTasks, activeSelection, activeOwner]);
   const columns = useMemo(() => buildColumns(filtered, { showAllDone }), [filtered, showAllDone]);
+  const wsOptions = useMemo(() => [{ value: ALL, label: "All" }, ...workstreams.map((w) => ({ value: w.id, label: w.name }))], [workstreams]);
+  const ownerOptions = useMemo(() => [{ value: ALL, label: "All owners" }, ...people.map((name) => ({ value: name, label: name }))], [people]);
   const today = toDayString(new Date());
 
   // Hand focus back to a card that was re-mounted in another column.
@@ -141,34 +147,39 @@ export default function BoardTab({ project }) {
           <div className={styles.empty}>
             <div className={styles.emptyText}>
               <p className={styles.emptyTitle}>No tasks yet</p>
-              <p className={styles.emptyBody}>Tasks you add show up here as cards you can move between columns.</p>
+              <p className={styles.emptyBody}>Tasks show up here as cards you can move between columns.</p>
             </div>
-            <Button onClick={() => openCreate("todo")}>Add a task</Button>
+            <Button onClick={() => openCreate("todo")}>New task</Button>
           </div>
         ) : (
-          <BoardToolbar
-            workstreams={workstreams}
-            selected={activeSelection}
-            onSelectedChange={setSelected}
-            query={query}
-            onQueryChange={setQuery}
-            shown={filtered.length}
-            total={projectTasks.length}
-            onClear={() => { setSelected([]); setQuery(""); }}
-          />
+          <>
+            <PageBar
+              action={(
+                <div className={styles.actions}>
+                  <span className={styles.count}>{filtered.length} {filtered.length === 1 ? "task" : "tasks"}</span>
+                  <Button onClick={() => openCreate("todo")}>New task</Button>
+                </div>
+              )}
+            >
+              <div className={styles.filters}>
+                <FilterChips label="Workstream" options={wsOptions} value={wsId && activeSelection.length ? wsId : ALL} onValueChange={setWsId} />
+                {isOwnerShown && <FilterChips label="Owner" options={ownerOptions} value={activeOwner} onValueChange={setOwner} />}
+              </div>
+            </PageBar>
+            <Board
+              columns={columns}
+              workstreamsById={workstreamsById}
+              today={today}
+              showOwner={isOwnerShown}
+              showAllDone={showAllDone}
+              onOpen={openTask}
+              onMoveTo={handleMoveTo}
+              onAdd={openCreate}
+              onToggleShowAll={() => setShowAllDone((v) => !v)}
+              onDrop={handleDrop}
+            />
+          </>
         )}
-
-        <Board
-          columns={columns}
-          workstreamsById={workstreamsById}
-          today={today}
-          showAllDone={showAllDone}
-          onOpen={openTask}
-          onMoveTo={handleMoveTo}
-          onAdd={openCreate}
-          onToggleShowAll={() => setShowAllDone((v) => !v)}
-          onDrop={handleDrop}
-        />
 
         <TaskDrawer
           open={isDrawerOpen}
@@ -177,6 +188,7 @@ export default function BoardTab({ project }) {
           task={editing}
           initial={drawer.initial}
           project={project}
+          people={people}
           onClose={closeDrawer}
           onSave={handleSave}
           onDelete={handleDelete}

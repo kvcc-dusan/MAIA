@@ -78,3 +78,11 @@ describe("workstreamColor", () => {
     expect(workstreamColor(null)).toBe("var(--text-muted)");
   });
 });
+
+describe("owner filter", () => {
+  it("keeps only the chosen owner's tasks", () => {
+    const tasks = [task("a", { owner: "Ana" }), task("b", { owner: "Bo" }), task("c")];
+    expect(filterTasks(tasks, { owner: "Ana" }).map((t) => t.id)).toEqual(["a"]);
+    expect(filterTasks(tasks, { owner: "" })).toHaveLength(3);
+  });
+});

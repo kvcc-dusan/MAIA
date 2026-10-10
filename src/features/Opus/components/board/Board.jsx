@@ -27,7 +27,7 @@ const isBelow = (active, over) => {
  * buildColumns; the board keeps a local arrangement only while a card is held,
  * and reports the final spot through `onDrop` (it writes nothing itself).
  */
-export default function Board({ columns, workstreamsById, today, showAllDone, onOpen, onMoveTo, onAdd, onToggleShowAll, onDrop }) {
+export default function Board({ columns, workstreamsById, today, showOwner, showAllDone, onOpen, onMoveTo, onAdd, onToggleShowAll, onDrop }) {
   const reduced = useReducedMotion();
   const baseIds = useMemo(() => Object.fromEntries(STATUS_ORDER.map((s) => [s, columns[s].tasks.map((t) => t.id)])), [columns]);
   const tasksById = useMemo(() => new Map(STATUS_ORDER.flatMap((s) => columns[s].tasks).map((t) => [t.id, t])), [columns]);
@@ -147,7 +147,7 @@ export default function Board({ columns, workstreamsById, today, showAllDone, on
               today={today}
               total={columns[status].total}
               hidden={columns[status].hidden}
-              sizes={columns[status].sizes}
+              showOwner={showOwner}
               showAllDone={showAllDone}
               isTarget={activeStatus === status}
               onOpen={onOpen}
@@ -159,7 +159,7 @@ export default function Board({ columns, workstreamsById, today, showAllDone, on
         </div>
       </div>
       <DragOverlay dropAnimation={reduced ? null : undefined} zIndex="var(--z-overlay)">
-        {activeTask ? <OverlayCard task={activeTask} workstream={workstreamsById.get(activeTask.workstreamId)} today={today} /> : null}
+        {activeTask ? <OverlayCard task={activeTask} workstream={workstreamsById.get(activeTask.workstreamId)} today={today} showOwner={showOwner} /> : null}
       </DragOverlay>
     </DndContext>
   );

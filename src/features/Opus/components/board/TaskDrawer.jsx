@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { Target } from "lucide-react";
 import { Badge } from "@/components/arc/badge/badge";
 import { Button } from "@/components/arc/button/button";
@@ -15,13 +15,20 @@ import styles from "./TaskDrawer.module.css";
 const FORM_ID = "board-task-form";
 const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({ value, label: STATUS_LABELS[value] }));
 
+const PRIORITY_OPTIONS = [
+  { value: "p1", label: "High" },
+  { value: "p2", label: "Medium" },
+  { value: "p3", label: "Normal" },
+];
+
 const makeDraft = (mode, task, initial) => (mode === "edit" && task ? draftFromTask(task) : emptyDraft(initial));
 
 /**
  * Create and edit drawer. It stays mounted so the panel can animate out; the
  * draft resets whenever `session` changes (BoardTab bumps it on every open).
  */
-export default function TaskDrawer({ open, mode, session, task, initial, project, onClose, onSave, onDelete, onSetNextAction }) {
+export default function TaskDrawer({ open, mode, session, task, initial, project, people = [], onClose, onSave, onDelete, onSetNextAction }) {
+  const listId = useId();
   const [draft, setDraft] = useState(() => makeDraft(mode, task, initial));
   const [seenSession, setSeenSession] = useState(session);
   const [errors, setErrors] = useState({});
@@ -112,6 +119,19 @@ export default function TaskDrawer({ open, mode, session, task, initial, project
               placeholder="None"
               onChange={(milestoneId) => patch({ milestoneId })}
             />
+          </div>
+          <div className={styles.row}>
+            <Input
+              label="Owner"
+              value={draft.owner}
+              onChange={(e) => patch({ owner: e.target.value })}
+              list={listId}
+              autoComplete="off"
+            />
+            <datalist id={listId}>
+              {people.map((name) => <option key={name} value={name} />)}
+            </datalist>
+            <Select label="Priority" value={draft.priority} options={PRIORITY_OPTIONS} onChange={(priority) => patch({ priority: priority ?? "p3" })} />
           </div>
           <div className={styles.row}>
             <DateTimeField dateOnly label="Due date" value={draft.due} onChange={(due) => patch({ due })} />

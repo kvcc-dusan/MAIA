@@ -3,13 +3,12 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
-import { CountPill } from "@/components/composed/SectionBits";
 import TaskCard from "./TaskCard";
-import { STATUS_LABELS } from "./model";
+import { STATUS_LABELS, WIP_LIMIT } from "./model";
 import styles from "./BoardColumn.module.css";
 
 export default function BoardColumn({
-  status, ids, tasksById, workstreamsById, today, total, hidden, sizes, showAllDone, isTarget,
+  status, ids, tasksById, workstreamsById, today, total, hidden, showAllDone, showOwner, isTarget,
   onOpen, onMoveTo, onAdd, onToggleShowAll,
 }) {
   const headingId = useId();
@@ -20,10 +19,13 @@ export default function BoardColumn({
   return (
     <section className={styles.column} aria-labelledby={headingId} data-status={status} data-target={isTarget ? "" : undefined}>
       <header className={styles.header}>
+        <span className={styles.dot} aria-hidden="true" />
         <h2 id={headingId} className={styles.title}>{label}</h2>
-        <CountPill>{total}</CountPill>
-        {sizes && <span className={styles.sizes}>{sizes}</span>}
+        <span className={styles.count}>{total}</span>
       </header>
+      {status === "doing" && total > WIP_LIMIT && (
+        <p className={styles.wip}><span className={styles.wipDot} aria-hidden="true" />More than {WIP_LIMIT} in progress</p>
+      )}
 
       <SortableContext id={status} items={ids} strategy={verticalListSortingStrategy}>
         <div ref={setNodeRef} className={styles.drop}>
@@ -38,6 +40,7 @@ export default function BoardColumn({
                     status={status}
                     workstream={workstreamsById.get(task.workstreamId)}
                     today={today}
+                    showOwner={showOwner}
                     onOpen={onOpen}
                     onMoveTo={onMoveTo}
                   />
@@ -45,7 +48,7 @@ export default function BoardColumn({
               })}
             </ul>
           ) : (
-            <p className={styles.hint}>Nothing here yet</p>
+            <p className={styles.hint}>No tasks</p>
           )}
         </div>
       </SortableContext>

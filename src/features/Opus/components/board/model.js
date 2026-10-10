@@ -4,6 +4,7 @@ import { sortColumn } from "./order.js";
 export const STATUS_ORDER = ["todo", "doing", "blocked", "done"];
 export const STATUS_LABELS = { todo: "To do", doing: "In progress", blocked: "Blocked", done: "Done" };
 export const DONE_LIMIT = 20;
+export const WIP_LIMIT = 5;
 export const ALL_WORKSTREAMS = "__all__";
 export const SCHEDULE_OPTIONS = [
   { value: "today", label: "Today" },
@@ -23,8 +24,8 @@ export const matchesQuery = (task, query) => {
   return `${task.title ?? ""} ${task.desc ?? ""}`.toLowerCase().includes(q);
 };
 
-export const filterTasks = (tasks, { workstreamIds = [], query = "" } = {}) =>
-  tasks.filter((t) => (workstreamIds.length === 0 || workstreamIds.includes(t.workstreamId)) && matchesQuery(t, query));
+export const filterTasks = (tasks, { workstreamIds = [], owner = "", query = "" } = {}) =>
+  tasks.filter((t) => (workstreamIds.length === 0 || workstreamIds.includes(t.workstreamId)) && (!owner || t.owner === owner) && matchesQuery(t, query));
 
 /** Newest doneAt first; falls back to createdAt. */
 const byRecentlyDone = (a, b) => {
@@ -91,12 +92,14 @@ export const dueInfo = (task, today) => {
   return { label: formatDay(day), isOverdue: task.status !== "done" && day < today };
 };
 
-export const cardLabel = ({ task, statusLabel, due, workstreamName }) => [
+export const cardLabel = ({ task, statusLabel, due, workstreamName, showOwner = false }) => [
   task.title || "Untitled task",
   statusLabel,
   due ? (due.isOverdue ? `overdue since ${due.label}` : `due ${due.label}`) : null,
   workstreamName ? `workstream ${workstreamName}` : null,
   formatEstimate(task.estimate) ? `estimate ${formatEstimate(task.estimate)}` : null,
+  task.priority === "p1" ? "high priority" : task.priority === "p2" ? "medium priority" : null,
+  showOwner && task.owner ? `owner ${task.owner}` : null,
   task.isNextAction ? "next action" : null,
 ].filter(Boolean).join(", ");
 

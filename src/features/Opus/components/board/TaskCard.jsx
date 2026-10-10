@@ -2,44 +2,35 @@ import React, { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useReducedMotion } from "motion/react";
-import { ArrowRightLeft, Check, CircleAlert } from "lucide-react";
-import { Badge } from "@/components/arc/badge/badge";
+import { ArrowRightLeft, Check } from "lucide-react";
 import { IconButton } from "@/components/composed/IconButton";
 import { Menu } from "@/components/composed/Menu";
-import { STATUS_LABELS, STATUS_ORDER, cardLabel, dueInfo, formatEstimate, workstreamColor } from "./model";
+import { DueLabel, OwnerAvatar, PriorityBadge, SizeMark, WorkstreamTag } from "../../kit";
+import { STATUS_LABELS, STATUS_ORDER, cardLabel, dueInfo, localDay } from "./model";
 import styles from "./TaskCard.module.css";
 
 /** Presentational card content, shared by the list item and the drag overlay. */
-export function CardBody({ task, workstream, due }) {
-  const estimate = formatEstimate(task.estimate);
+export function CardBody({ task, workstream, today, showOwner }) {
+  const hasMeta = task.due || task.priority === "p1" || task.priority === "p2" || task.estimate || (showOwner && task.owner);
   return (
     <span className={styles.body}>
       <span className={styles.title}>{task.title || "Untitled task"}</span>
-      {workstream && (
-        <span className={styles.ws}>
-          <span className={styles.dot} style={{ "--ws-color": workstreamColor(workstream) }} aria-hidden="true" />
-          <span className={styles.wsName}>{workstream.name}</span>
-        </span>
-      )}
-      {(due || estimate || task.isNextAction) && (
+      <WorkstreamTag workstream={workstream} />
+      {hasMeta && (
         <span className={styles.meta}>
-          {due && (
-            <span className={styles.due} data-overdue={due.isOverdue ? "" : undefined}>
-              {due.isOverdue && <CircleAlert size={14} strokeWidth={1.75} aria-hidden="true" />}
-              {due.isOverdue ? `Overdue ${due.label}` : due.label}
-            </span>
-          )}
-          {estimate && <span className={styles.estimate}>{estimate}</span>}
-          {task.isNextAction && <Badge tone="info" size="sm">Next action</Badge>}
+          <DueLabel due={localDay(task.due)} today={today} done={task.status === "done"} />
+          <PriorityBadge priority={task.priority} />
+          <SizeMark size={task.estimate} />
+          {showOwner && <span className={styles.owner}><OwnerAvatar name={task.owner} /></span>}
         </span>
       )}
     </span>
   );
 }
 
-export const OverlayCard = ({ task, workstream, today }) => (
+export const OverlayCard = ({ task, workstream, today, showOwner }) => (
   <div className={`${styles.card} ${styles.overlay}`}>
-    <span className={styles.main}><CardBody task={task} workstream={workstream} due={dueInfo(task, today)} /></span>
+    <span className={styles.main}><CardBody task={task} workstream={workstream} today={today} showOwner={showOwner} /></span>
   </div>
 );
 
@@ -47,7 +38,7 @@ export const OverlayCard = ({ task, workstream, today }) => (
 // keyup, which would open the editor at the end of every keyboard drag.
 const swallowSpaceClick = (e) => { if (e.key === " ") e.preventDefault(); };
 
-function TaskCard({ task, status, workstream, today, onOpen, onMoveTo }) {
+function TaskCard({ task, status, workstream, today, showOwner, onOpen, onMoveTo }) {
   const reduced = useReducedMotion();
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -55,7 +46,7 @@ function TaskCard({ task, status, workstream, today, onOpen, onMoveTo }) {
     transition: reduced ? null : undefined,
   });
   const due = dueInfo({ ...task, status }, today);
-  const label = cardLabel({ task, statusLabel: STATUS_LABELS[status], due, workstreamName: workstream?.name });
+  const label = cardLabel({ task, statusLabel: STATUS_LABELS[status], due, workstreamName: workstream?.name, showOwner });
 
   return (
     <li
@@ -77,7 +68,7 @@ function TaskCard({ task, status, workstream, today, onOpen, onMoveTo }) {
           onClick={() => onOpen(task.id)}
           onKeyUp={swallowSpaceClick}
         >
-          <CardBody task={task} workstream={workstream} due={due} />
+          <CardBody task={{ ...task, status }} workstream={workstream} today={today} showOwner={showOwner} />
         </button>
         <Menu.Root>
           <Menu.Trigger

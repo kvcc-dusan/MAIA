@@ -44,3 +44,16 @@ describe("create and validate", () => {
   });
   it("dueFromField handles empty input", () => expect(dueFromField("")).toBeNull());
 });
+
+describe("owner and priority", () => {
+  it("patches only when they change", () => {
+    const t = { title: "x", desc: "", status: "todo", owner: "Ana", priority: "p2" };
+    expect(buildPatch(t, draftFromTask(t))).toEqual({});
+    expect(buildPatch(t, { ...draftFromTask(t), owner: " Bo ", priority: "p1" })).toEqual({ owner: "Bo", priority: "p1" });
+    expect(buildPatch(t, { ...draftFromTask(t), owner: "" })).toEqual({ owner: null });
+  });
+  it("sends both on create", () => {
+    const args = buildCreateArgs({ ...emptyDraft(), title: "t", owner: "Ana", priority: "p1" }, "p");
+    expect(args.extras).toMatchObject({ owner: "Ana", priority: "p1" });
+  });
+});
