@@ -6,10 +6,11 @@ use tauri_plugin_fs::FsExt;
 /// capabilities/default.json (and `security.assetProtocol.scope` in
 /// tauri.conf.json) can stay empty instead of covering all of `$HOME`.
 ///
-/// The vault's asset store (`<vault>/.maia-assets/...`, see
-/// src/lib/assetStore.js) lives under the same picked folder, so one grant
-/// covers both the markdown files and the project assets — no separate,
-/// location-anchored static scope entry needed for either.
+/// Opus projects and their assets (`<vault>/Opus/<Project>/assets/...`, see
+/// src/lib/opusFiles/assetFiles.js) live under the same picked folder, so one
+/// grant covers the markdown files and the project assets. The grant is
+/// recursive but does not match dot-prefixed paths, so the vault must never
+/// use them.
 ///
 /// `tauri-plugin-persisted-scope` listens for both of these grants and
 /// restores them automatically on the next launch, so the user only has to

@@ -108,7 +108,7 @@ The last few sprints fixed real data-loss and security bugs. Read the git log. S
 - `src/lib/vault.js` — conflict guard (compares on-disk content against a baseline before overwriting, throws `VaultConflictError` rather than clobbering an external edit), duplicate-id reassignment, `watchVault()` fs watcher.
 - `src/hooks/useNotesStore.js` (252 lines) — conflict resolution keeps both versions, deleted-file detection, extras-merge for not-yet-flushed notes, Tauri `onCloseRequested` flush.
 - `src/utils/notify.js` — browser notifications + Web Audio + service-worker task scheduling. The SW communication pattern is subtle. Don't touch without understanding it.
-- `src-tauri/` — CSP is now explicit, `fs:scope` is `[]` with runtime-only grants via the `allow_vault_scope` command + `tauri-plugin-persisted-scope`. Asset files live in `<vault>/.maia-assets/`.
+- `src-tauri/` — CSP is now explicit, `fs:scope` is `[]` with runtime-only grants via the `allow_vault_scope` command + `tauri-plugin-persisted-scope`. Project assets are plain files in `<vault>/Opus/<Project>/assets/` (no dot paths: the fs scope does not match them).
 - `src/lib/backup.js` — export/import of all entities to JSON.
 
 ### Current measurable baseline
