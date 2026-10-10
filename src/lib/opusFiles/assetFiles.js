@@ -2,6 +2,7 @@
 // The folder is the source of truth: no metadata record, so a file dropped in
 // by Finder, Obsidian or Claude shows up and a removed one disappears.
 import { cleanName, uniqueName } from "./names.js";
+import { MAX_DISK_FILE_BYTES } from "../../features/Opus/components/library/assetRules.js";
 import { ASSETS_DIR, joinPath, opusRoot, loadFs, listDir, stableId, state } from "./opusFs.js";
 
 const MIME_BY_EXT = {
@@ -77,6 +78,8 @@ export const listAssets = async (vaultPath, projectId) => {
 
 /** Writes `bytes` (Uint8Array) as a new file. Never overwrites: a taken name gets " 2", " 3"... */
 export const saveAsset = async (vaultPath, projectId, { name, bytes }) => {
+  // The picker checks this too, but migrations and other callers do not go through the picker.
+  if ((bytes?.byteLength ?? 0) > MAX_DISK_FILE_BYTES) throw new Error(`"${name}" is too large to store (over ${MAX_DISK_FILE_BYTES / 1024 / 1024} MB)`);
   const dir = assetsDirOf(vaultPath, projectId);
   const fs = await loadFs();
   await fs.mkdir(dir, { recursive: true });

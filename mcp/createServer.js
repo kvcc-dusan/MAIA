@@ -9,8 +9,10 @@ import { registerAgenda } from "./tools/agenda.js";
 import { registerReport } from "./tools/report.js";
 import { registerTrash } from "./tools/trash.js";
 import { registerExtras } from "./tools/extras.js";
+import { scrubPathsFor } from "./tools/util.js";
 
 export const createServer = (vault) => {
+  scrubPathsFor(vault);
   const server = new McpServer({ name: "maia", version: "0.2.0" });
   registerRead(server, vault);
   registerProjectWrites(server, vault);

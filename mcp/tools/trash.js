@@ -2,6 +2,7 @@
 // and can be restored. Nothing is ever deleted for good. Plain visible names only (no dot paths).
 import path from "node:path";
 import { z } from "zod";
+import { short, medium } from "./schemas.js";
 import { isoNow } from "../../src/lib/ids.js";
 import { uniqueName } from "../../src/lib/opusFiles/names.js";
 import { EMPTY_CONTEXT } from "../../src/lib/opusFiles/fileCodec.js";
@@ -51,7 +52,7 @@ const listTrashItems = async (root) => {
       for (const [kindDir, kind] of Object.entries(KIND_OF_DIR)) {
         const dir = path.join(base, d.name, f.name, kindDir);
         for (const file of (await listDir(dir)).filter((e) => e.isFile && /\.md$/i.test(e.name))) {
-          const text = await readText(path.join(dir, file.name));
+          const text = await readText(path.join(dir, file.name)).catch(() => null);
           const parsed = text === null ? null : CODECS[kind].fromFile(text, {
             fallbackId: null, fallbackTitle: file.name.replace(/\.md$/i, ""), projectContext: EMPTY_CONTEXT,
           });
@@ -103,7 +104,7 @@ const restore = async (vault, input) => {
 export const registerTrash = (server, vault) => {
   const del = (kind, what) => server.registerTool(`delete_${kind}`, {
     description: `Delete a ${kind} by id. It is moved to Opus/_trash (recoverable with restore_from_trash), never erased. Use when the user asks to remove ${what}.`,
-    inputSchema: { id: z.string() },
+    inputSchema: { id: short },
   }, handler(({ id }) => trashItem(vault, kind, id)));
   del("task", "a task");
   del("decision", "a decision");
@@ -111,7 +112,7 @@ export const registerTrash = (server, vault) => {
 
   server.registerTool("list_trash", {
     description: "List deleted tasks, decisions and questions in Opus/_trash (newest first) with original project, kind, title, deleted date and trashPath. Use before restore_from_trash.",
-    inputSchema: { project: z.string().optional().describe("Original project folder name; 'inbox' for inbox tasks"), limit: z.number().int().min(1).max(500).default(50) },
+    inputSchema: { project: short.optional().describe("Original project folder name; 'inbox' for inbox tasks"), limit: z.number().int().min(1).max(500).default(50) },
   }, handler(async ({ project, limit = 50 }) => {
     const wanted = project?.trim().toLowerCase();
     const items = (await listTrashItems(path.join(vault, "Opus"))).filter((i) => {
@@ -123,6 +124,6 @@ export const registerTrash = (server, vault) => {
 
   server.registerTool("restore_from_trash", {
     description: "Move a trashed item back to its original folder. path = trashPath from list_trash. Refuses if a file with that name exists there, if the project folder is gone, or if the file no longer parses.",
-    inputSchema: { path: z.string() },
+    inputSchema: { path: medium },
   }, handler(({ path: p }) => restore(vault, p)));
 };

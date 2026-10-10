@@ -21,12 +21,25 @@ const stableId = (p) => {
   return `f${hash.toString(36)}`;
 };
 
+const relTo = (root, p) => path.relative(root, p);
+
+/** Text of a file, or null (with a warning) when it cannot be read safely. The file is then never tracked or written. */
+const readOrWarn = async (p, shared) => {
+  try {
+    return await readText(p);
+  } catch (e) {
+    shared.warnings.push({ path: p, message: e?.message ?? String(e) });
+    return null;
+  }
+};
+
 const readItems = async (dir, { kind, projectId, ctx, seen, warnings }) => {
+  const shared = { warnings };
   const files = (await listDir(dir)).filter((e) => e.isFile && /\.md$/i.test(e.name)).sort((a, b) => a.name.localeCompare(b.name));
   const out = [];
   for (const file of files) {
     const p = path.join(dir, file.name);
-    const text = await readText(p);
+    const text = await readOrWarn(p, shared);
     if (text === null) continue;
     const parsed = CODECS[kind].fromFile(text, {
       fallbackId: stableId(p), fallbackTitle: file.name.replace(/\.md$/i, ""), projectContext: ctx,
@@ -50,9 +63,9 @@ const readItems = async (dir, { kind, projectId, ctx, seen, warnings }) => {
 const loadProject = async (root, folder, shared) => {
   const dir = path.join(root, folder);
   const p = path.join(dir, PROJECT_FILE);
-  const text = await readText(p);
+  const text = await readOrWarn(p, shared);
   if (text === null) {
-    shared.warnings.push({ path: dir, message: `Folder has no ${PROJECT_FILE}, ignored` });
+    if (!shared.warnings.some((w) => w.path === p)) shared.warnings.push({ path: dir, message: `Folder has no ${PROJECT_FILE}, ignored` });
     return null;
   }
   const parsed = projectFile.fromFile(text, { fallbackId: stableId(p), fallbackTitle: folder });
@@ -87,7 +100,9 @@ export const loadSnapshot = async (vault) => {
   const inboxTasks = await readItems(path.join(root, INBOX_DIR, KIND_DIRS.task), {
     kind: "task", projectId: null, ctx: EMPTY_CONTEXT, ...shared,
   });
-  return { root, projects, inboxTasks, warnings: shared.warnings };
+  // Relative to Opus/ so tool output never carries the user's absolute paths.
+  const warnings = shared.warnings.map((w) => ({ ...w, path: relTo(root, w.path) }));
+  return { root, projects, inboxTasks, warnings };
 };
 
 export const allTaskRecords = (snap) => [...snap.projects.flatMap((p) => p.tasks), ...snap.inboxTasks];

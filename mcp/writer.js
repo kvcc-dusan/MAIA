@@ -10,6 +10,7 @@ import {
   INBOX_DIR, PROJECT_FILE, ACTIVITY_FILE, KIND_DIRS, ConflictError, listDir, readText, safeWrite, removeIfUnchanged,
 } from "./fsx.js";
 import { CODECS } from "./store.js";
+import { scrub } from "./tools/util.js";
 
 export const ACTOR = "claude-mcp";
 const NAMERS = { task: taskFileName, decision: decisionFileName, question: questionFileName };
@@ -29,7 +30,7 @@ export const logActivity = async (snap, { projectId, kind, collection, itemId, t
     await safeWrite(file, serializeActivity([...entries, entry], badLines), text);
     return null;
   } catch (e) {
-    return `Activity entry not written: ${e?.message ?? e}`;
+    return `Activity entry not written: ${scrub(e?.message ?? e)}`;
   }
 };
 
@@ -56,7 +57,11 @@ export const moveTaskFile = async (snap, rec, nextTask, toProjectRec) => {
   const current = await readText(rec.path);
   if (current !== rec.text) throw new ConflictError(rec.path, "File changed on disk since it was read");
   await safeWrite(file, text, null);
-  await removeIfUnchanged(rec.path, rec.text);
+  if (!(await removeIfUnchanged(rec.path, rec.text))) {
+    // Edited elsewhere in the last instant: keep their version, drop our copy, or the id would exist twice.
+    await removeIfUnchanged(file, text);
+    throw new ConflictError(rec.path, "File changed on disk while moving");
+  }
   return file;
 };
 

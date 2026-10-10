@@ -60,3 +60,31 @@ describe("item names", () => {
     expect(questionFileName({ id: "q1", question: "Which auth?" }, [])).toBe("Which auth.md");
   });
 });
+
+describe("name safety", () => {
+  const bytes = (s) => new TextEncoder().encode(s).length;
+
+  it("keeps names under the 255-byte file name limit for multi-byte text", () => {
+    const emoji = cleanName("😀".repeat(80));
+    expect(bytes(emoji)).toBeLessThanOrEqual(180);
+    expect(emoji).not.toMatch(/�/);
+    const cjk = uniqueName(cleanName("日".repeat(80)), [`${cleanName("日".repeat(80))}.md`], ".md");
+    expect(bytes(cjk)).toBeLessThanOrEqual(190);
+  });
+
+  it("treats NFC and NFD spellings as the same name (APFS does)", () => {
+    expect(uniqueName("Café", ["Café.md"].map((n) => n.replace(".md", "")))).toBe("Café 2");
+    expect(uniqueName("Café", ["Café.md"], ".md")).toBe("Café 2.md");
+  });
+
+  it("never leaves a leading dot after separators are removed", () => {
+    expect(cleanName("../../escape")).toBe("escape");
+    expect(cleanName("..\\.. /x")).toBe("x");
+    expect(cleanName(". . .")).toBe("");
+  });
+
+  it("removes bidi override and line separator characters", () => {
+    expect(cleanName("report‮fdp.md")).toBe("report fdp.md");
+    expect(cleanName("a b")).toBe("a b");
+  });
+});

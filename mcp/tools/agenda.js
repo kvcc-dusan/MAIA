@@ -4,7 +4,7 @@ import { z } from "zod";
 import { overdue, dueWithin, blocked, addDays, diffDays, day, toDayString } from "../../src/features/Opus/lib/metrics.js";
 import { findProject, projectRecordOf } from "../store.js";
 import { handler, snapshotOf, taskView, norm } from "./util.js";
-import { isoDate } from "./schemas.js";
+import { isoDate, short } from "./schemas.js";
 
 const DEFAULT_DAYS = 7;
 const DEFAULT_LIMIT = 20;
@@ -93,8 +93,8 @@ export const registerAgenda = (server, vault) => {
     description:
       "What needs attention: use for 'what should I work on today', morning planning or a status check. Groups, most urgent first: overdue (most days late first), dueToday, dueSoon (next `days`), blocked, doing, nextActions (each project's flagged next task), blockingQuestions (open, blocking), milestones (overdue, due within `days`, or at-risk). A task appears only in its most urgent date/blocked/doing group (nextActions is always complete). Skips Paused/Done projects unless `project` is given. `owner` filters tasks and questions. Days are plain calendar days (UTC day numbers, like the app's metrics); `today` defaults to this machine's local date. `limit` caps each group; counts are always the full totals.",
     inputSchema: {
-      project: z.string().optional().describe("Name or id; default all projects plus the inbox"),
-      owner: z.string().optional(),
+      project: short.optional().describe("Name or id; default all projects plus the inbox"),
+      owner: short.optional(),
       days: z.number().int().min(0).max(365).default(DEFAULT_DAYS).describe("Look-ahead window in days"),
       today: isoDate.optional().describe("YYYY-MM-DD, default today"),
       limit: z.number().int().min(1).max(200).default(DEFAULT_LIMIT).describe("Max items per group"),

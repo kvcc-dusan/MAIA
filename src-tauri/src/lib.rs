@@ -34,16 +34,34 @@ const BLOCKED_EXTENSIONS: &[&str] = &[
   // macOS
   "app", "appex", "command", "tool", "scpt", "scptd", "applescript", "workflow", "action",
   "dmg", "pkg", "mpkg", "prefpane", "saver", "terminal", "webloc", "mobileconfig", "dylib",
+  // .inetloc/.fileloc/.ftploc/.afploc open URLs, files or servers; disk images mount on open.
+  "inetloc", "fileloc", "ftploc", "afploc", "wflow", "service", "plugin", "bundle", "kext", "xpc",
+  "qlgenerator", "iso", "img", "sparseimage", "sparsebundle",
   // Windows
   "exe", "msi", "msp", "bat", "cmd", "com", "scr", "pif", "lnk", "url", "cpl", "msc", "reg",
   "inf", "dll", "ps1", "psm1", "vbs", "vbe", "js", "jse", "wsf", "wsh", "hta", "appx",
+  "msix", "msixbundle", "appxbundle", "appinstaller", "application", "gadget", "chm", "scf", "sct",
+  "wsc", "settingcontent-ms", "library-ms", "search-ms", "diagcab", "rdp", "ocx", "sys", "drv",
+  "xll", "vb", "ws", "ade", "adp", "mde", "ps1xml", "psc1", "mst",
   // Unix and cross-platform
   "sh", "bash", "zsh", "fish", "ksh", "csh", "run", "bin", "so", "desktop", "appimage",
-  "jar", "jnlp", "py", "pyc", "rb", "pl", "php",
+  "jar", "jnlp", "py", "pyw", "pyc", "rb", "pl", "php", "deb", "rpm", "apk", "ipa",
 ];
 
+/// NTFS alternate data stream ("report.pdf:evil.exe"). Only meaningful on Windows: on macOS a colon
+/// is a legal character that Finder shows as a slash.
+fn has_stream_marker(name: &str) -> bool {
+  name.contains(':')
+}
+
 fn is_blocked_extension(path: &std::path::Path) -> bool {
-  match path.extension().and_then(|e| e.to_str()) {
+  let Some(name) = path.file_name().and_then(|n| n.to_str()) else { return true };
+  if cfg!(windows) && has_stream_marker(name) {
+    return true;
+  }
+  // Windows ignores trailing dots and spaces, so "run.exe " and "run.exe." are run.exe.
+  let trimmed = name.trim_end_matches(|c| c == ' ' || c == '.');
+  match std::path::Path::new(trimmed).extension().and_then(|e| e.to_str()) {
     Some(ext) if !ext.is_empty() => BLOCKED_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()),
     _ => true,
   }
@@ -72,7 +90,10 @@ fn opener() -> std::process::Command { std::process::Command::new("xdg-open") }
 /// Opens a vault file in the OS default app. The path is canonicalized first, so the scope check
 /// sees the real location: a symlink pointing out of the vault is refused. The fs scope holds
 /// only the folders the user picked (see `allow_vault_scope`), so "allowed by scope" means
-/// "inside a granted vault". The path goes to the opener as one argument, never through a shell.
+/// "inside a granted vault". The path goes to the opener as one argument, never through a shell, and
+/// is always the absolute canonical path, so it can never start with `-` and be read as an option.
+/// Known limit: the file could be swapped between this check and the opener starting (needs write
+/// access to the vault, which already means the attacker can write any note).
 #[tauri::command]
 async fn open_in_default_app(app: tauri::AppHandle, path: String) -> Result<(), String> {
   let canonical = checked_file(&path)?;
@@ -123,6 +144,34 @@ mod tests {
   }
 
   #[test]
+  fn blocks_url_and_location_files_scripts_and_images_that_mount() {
+    for name in [
+      "a.inetloc", "a.fileloc", "a.ftploc", "a.jnlp", "a.workflow", "a.sparseimage", "a.iso",
+      "a.msix", "a.chm", "a.scf", "a.rdp", "a.settingcontent-ms", "a.Inetloc",
+    ] {
+      assert!(is_blocked_extension(Path::new(name)), "{name} should be blocked");
+    }
+  }
+
+  #[test]
+  fn ignores_trailing_dots_and_spaces_like_windows_does() {
+    for name in ["run.exe ", "run.exe.", "run.exe. .", "run.EXE  "] {
+      assert!(is_blocked_extension(Path::new(name)), "{name:?} should be blocked");
+    }
+    assert!(!is_blocked_extension(Path::new("notes.pdf ")));
+  }
+
+  #[test]
+  fn detects_alternate_data_streams() {
+    assert!(has_stream_marker("report.pdf:evil.exe"));
+    assert!(has_stream_marker("a.txt:hidden:$DATA"));
+    assert!(!has_stream_marker("report.pdf"));
+    // a stream suffix hides the real type from an extension check, so Windows builds refuse it
+    #[cfg(windows)]
+    assert!(is_blocked_extension(Path::new("report.pdf:evil")));
+  }
+
+  #[test]
   fn blocks_files_without_an_extension() {
     assert!(is_blocked_extension(Path::new("Makefile")));
     assert!(is_blocked_extension(Path::new("script.")));
@@ -168,6 +217,51 @@ mod tests {
 
     // the returned path is the resolved target, which is what the scope check then sees
     assert_eq!(checked_file(link.to_str().unwrap()), Err("blocked_type".into()));
+    let _ = std::fs::remove_dir_all(&dir);
+  }
+
+  #[test]
+  fn refuses_app_bundles_and_other_directories() {
+    let dir = scratch("bundles");
+    let bundle = dir.join("Evil.app");
+    std::fs::create_dir_all(bundle.join("Contents/MacOS")).unwrap();
+    std::fs::write(bundle.join("Contents/MacOS/Evil"), b"x").unwrap();
+    assert_eq!(checked_file(bundle.to_str().unwrap()), Err("not_a_file".into()));
+    // the executable inside has no extension
+    assert_eq!(checked_file(bundle.join("Contents/MacOS/Evil").to_str().unwrap()), Err("blocked_type".into()));
+    let _ = std::fs::remove_dir_all(&dir);
+  }
+
+  #[test]
+  fn treats_urls_and_odd_strings_as_missing_paths() {
+    for input in ["file:///etc/hosts", "https://example.com/a.pdf", "", "a\0b.pdf", "--help", "-n"] {
+      assert_eq!(checked_file(input), Err("missing".into()), "{input:?}");
+    }
+  }
+
+  #[test]
+  fn hands_the_opener_an_absolute_path_even_when_the_name_starts_with_a_dash() {
+    let dir = scratch("dash");
+    let file = dir.join("-rf.pdf");
+    std::fs::write(&file, b"x").unwrap();
+    let canonical = checked_file(file.to_str().unwrap()).unwrap();
+    assert!(canonical.is_absolute());
+    assert!(!canonical.to_string_lossy().starts_with('-'));
+    let _ = std::fs::remove_dir_all(&dir);
+  }
+
+  #[cfg(unix)]
+  #[test]
+  fn refuses_a_symlink_to_a_directory_and_a_dangling_link() {
+    let dir = scratch("links");
+    let sub = dir.join("sub");
+    std::fs::create_dir_all(&sub).unwrap();
+    let to_dir = dir.join("dirlink.pdf");
+    std::os::unix::fs::symlink(&sub, &to_dir).unwrap();
+    let dangling = dir.join("gone.pdf");
+    std::os::unix::fs::symlink(dir.join("nowhere"), &dangling).unwrap();
+    assert_eq!(checked_file(to_dir.to_str().unwrap()), Err("not_a_file".into()));
+    assert_eq!(checked_file(dangling.to_str().unwrap()), Err("missing".into()));
     let _ = std::fs::remove_dir_all(&dir);
   }
 }

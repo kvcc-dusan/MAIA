@@ -4,18 +4,18 @@ import { createProjectDecision, createQuestion, applyQuestionPatch } from "../..
 import { findProject, findRecord, projectRecordOf } from "../store.js";
 import { createItemFile, updateItemFile, logActivity } from "../writer.js";
 import { handler, snapshotOf, rel, resolveWorkstream } from "./util.js";
-import { isoDate, defined } from "./schemas.js";
+import { isoDate, defined, short, medium, long } from "./schemas.js";
 
 export const registerItemWrites = (server, vault) => {
   server.registerTool("add_decision", {
     description: "Record a decision in a project (decisions/<title>.md).",
     inputSchema: {
-      project: z.string(),
-      title: z.string().min(1),
-      detail: z.string().optional(),
+      project: short,
+      title: short.min(1),
+      detail: long.optional(),
       date: isoDate.optional().describe("Defaults to today"),
-      by: z.string().optional().describe("Defaults to Claude"),
-      workstream: z.string().optional(),
+      by: short.optional().describe("Defaults to Claude"),
+      workstream: short.optional(),
     },
   }, handler(async (a) => {
     const snap = await snapshotOf(vault);
@@ -34,11 +34,11 @@ export const registerItemWrites = (server, vault) => {
   server.registerTool("add_question", {
     description: "Add an open question to a project (questions/<question>.md).",
     inputSchema: {
-      project: z.string(),
-      question: z.string().min(1),
-      owner: z.string().optional(),
+      project: short,
+      question: medium.min(1),
+      owner: short.optional(),
       blocking: z.boolean().optional(),
-      workstream: z.string().optional(),
+      workstream: short.optional(),
     },
   }, handler(async (a) => {
     const snap = await snapshotOf(vault);
@@ -55,7 +55,7 @@ export const registerItemWrites = (server, vault) => {
 
   server.registerTool("answer_question", {
     description: "Answer a question by id and mark it answered.",
-    inputSchema: { id: z.string(), answer: z.string().min(1) },
+    inputSchema: { id: short, answer: long.min(1) },
   }, handler(async ({ id, answer }) => {
     const snap = await snapshotOf(vault);
     const rec = findRecord(snap, "question", id);

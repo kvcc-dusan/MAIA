@@ -1,6 +1,7 @@
 // Read tools: projects, tasks, decisions, questions, activity.
 import path from "node:path";
 import { z } from "zod";
+import { short } from "./schemas.js";
 import { findProject, findRecord, allTaskRecords } from "../store.js";
 import { readText, ACTIVITY_FILE, INBOX_DIR } from "../fsx.js";
 import { parseActivity } from "../../src/lib/opusFiles/activityFile.js";
@@ -29,7 +30,7 @@ export const registerRead = (server, vault) => {
 
   server.registerTool("get_project", {
     description: "Full project: description, workstreams, milestones, success criteria, links, task counts. project = name or id.",
-    inputSchema: { project: z.string() },
+    inputSchema: { project: short },
   }, handler(async ({ project }) => {
     const snap = await snapshotOf(vault);
     const rec = findProject(snap, project);
@@ -50,10 +51,10 @@ export const registerRead = (server, vault) => {
   server.registerTool("list_tasks", {
     description: "List tasks, filterable by project (name/id), status, workstream name, owner. Omit project for all, including the inbox.",
     inputSchema: {
-      project: z.string().optional().describe("Project name or id; 'inbox' for tasks with no project"),
+      project: short.optional().describe("Project name or id; 'inbox' for tasks with no project"),
       status: z.enum(STATUSES).optional(),
-      workstream: z.string().optional(),
-      owner: z.string().optional(),
+      workstream: short.optional(),
+      owner: short.optional(),
       limit,
     },
   }, handler(async ({ project, status, workstream, owner, limit: max = 50 }) => {
@@ -79,7 +80,7 @@ export const registerRead = (server, vault) => {
 
   server.registerTool("get_task", {
     description: "One task by id, with description and timestamps.",
-    inputSchema: { id: z.string() },
+    inputSchema: { id: short },
   }, handler(async ({ id }) => {
     const snap = await snapshotOf(vault);
     return taskView(snap, findRecord(snap, "task", id), { full: true });
@@ -87,7 +88,7 @@ export const registerRead = (server, vault) => {
 
   server.registerTool("list_decisions", {
     description: "Decisions of a project, newest first.",
-    inputSchema: { project: z.string() },
+    inputSchema: { project: short },
   }, handler(async ({ project }) => {
     const snap = await snapshotOf(vault);
     const rec = findProject(snap, project);
@@ -99,7 +100,7 @@ export const registerRead = (server, vault) => {
 
   server.registerTool("list_questions", {
     description: "Questions of a project, optionally only open or answered.",
-    inputSchema: { project: z.string(), status: z.enum(["open", "answered"]).optional() },
+    inputSchema: { project: short, status: z.enum(["open", "answered"]).optional() },
   }, handler(async ({ project, status }) => {
     const snap = await snapshotOf(vault);
     const rec = findProject(snap, project);
@@ -114,7 +115,7 @@ export const registerRead = (server, vault) => {
 
   server.registerTool("list_activity", {
     description: "Activity log entries, newest first. since = ISO date or datetime.",
-    inputSchema: { project: z.string().optional(), since: z.string().optional(), limit },
+    inputSchema: { project: short.optional(), since: short.optional(), limit },
   }, handler(async ({ project, since, limit: max = 50 }) => {
     const snap = await snapshotOf(vault);
     const dirs = project
@@ -122,7 +123,7 @@ export const registerRead = (server, vault) => {
       : [...snap.projects.map((p) => p.dir), path.join(snap.root, INBOX_DIR)];
     const all = [];
     for (const dir of dirs) {
-      const text = await readText(path.join(dir, ACTIVITY_FILE));
+      const text = await readText(path.join(dir, ACTIVITY_FILE)).catch(() => null);
       if (text) all.push(...parseActivity(text).entries);
     }
     const names = new Map(snap.projects.map((p) => [p.item.id, p.item.name]));

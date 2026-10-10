@@ -8,17 +8,15 @@ import { contextOf } from "../../src/lib/opusFiles/projectFile.js";
 import { findProject } from "../store.js";
 import { createProjectFile, updateItemFile, logActivity } from "../writer.js";
 import { handler, snapshotOf, rel, norm, resolveWorkstream } from "./util.js";
-import {
-  isoDate, projectStatus, milestoneStatus, workstreamInput, milestoneInput, linkInput, defined,
-} from "./schemas.js";
+import { isoDate, projectStatus, milestoneStatus, workstreamInput, milestoneInput, linkInput, defined, short, long, list } from "./schemas.js";
 
 const scalar = {
   status: projectStatus.optional(),
-  phase: z.string().optional(),
-  headline: z.string().optional(),
-  focus: z.string().optional(),
-  objective: z.string().optional(),
-  description: z.string().optional().describe("Markdown body of project.md"),
+  phase: short.optional(),
+  headline: short.optional(),
+  focus: short.optional(),
+  objective: short.optional(),
+  description: long.optional().describe("Markdown body of project.md"),
   startDate: isoDate.optional(),
   targetDate: isoDate.optional(),
   nextMeeting: isoDate.optional(),
@@ -62,12 +60,12 @@ export const registerProjectWrites = (server, vault) => {
   server.registerTool("create_project", {
     description: "Create a project folder with project.md. Never overwrites; a taken name gets ' 2'.",
     inputSchema: {
-      name: z.string().min(1),
+      name: short.min(1),
       ...scalar,
-      workstreams: z.array(workstreamInput).optional(),
-      milestones: z.array(milestoneInput).optional(),
-      successCriteria: z.array(z.string().min(1)).optional(),
-      links: z.array(linkInput).optional(),
+      workstreams: list(workstreamInput).optional(),
+      milestones: list(milestoneInput).optional(),
+      successCriteria: list(short.min(1)).optional(),
+      links: list(linkInput).optional(),
     },
   }, handler(async (a) => {
     const snap = await snapshotOf(vault);
@@ -95,17 +93,17 @@ export const registerProjectWrites = (server, vault) => {
   server.registerTool("update_project", {
     description: "Update project fields. Scalars replace; workstreams, milestones, successCriteria and links are appended; milestonePatches and criteriaPatches change existing entries. The project name and folder are never renamed.",
     inputSchema: {
-      project: z.string().describe("Name or id"),
+      project: short.describe("Name or id"),
       fields: z.object({
         ...scalar,
-        addWorkstreams: z.array(workstreamInput).optional(),
-        addMilestones: z.array(milestoneInput).optional(),
-        addSuccessCriteria: z.array(z.string().min(1)).optional(),
-        addLinks: z.array(linkInput).optional(),
-        milestonePatches: z.array(z.object({
-          title: z.string(), status: milestoneStatus.optional(), date: isoDate.optional(), start: isoDate.optional(),
+        addWorkstreams: list(workstreamInput).optional(),
+        addMilestones: list(milestoneInput).optional(),
+        addSuccessCriteria: list(short.min(1)).optional(),
+        addLinks: list(linkInput).optional(),
+        milestonePatches: list(z.object({
+          title: short, status: milestoneStatus.optional(), date: isoDate.optional(), start: isoDate.optional(),
         })).optional(),
-        criteriaPatches: z.array(z.object({ id: z.string().optional(), text: z.string().optional(), done: z.boolean() })).optional(),
+        criteriaPatches: list(z.object({ id: short.optional(), text: short.optional(), done: z.boolean() })).optional(),
       }),
     },
   }, handler(async ({ project, fields: f }) => {

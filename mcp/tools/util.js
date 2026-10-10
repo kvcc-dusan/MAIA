@@ -2,8 +2,18 @@
 import path from "node:path";
 import { loadSnapshot, projectRecordOf } from "../store.js";
 
+// Error text from fs and from our own ConflictError carries absolute paths. The client (an LLM
+// transcript) gets "<vault>/..." instead of the user's home directory layout.
+const roots = new Set();
+export const scrubPathsFor = (vault) => roots.add(vault);
+export const scrub = (message) => {
+  let text = String(message);
+  for (const root of [...roots].sort((a, b) => b.length - a.length)) text = text.split(root).join("<vault>");
+  return text;
+};
+
 export const ok = (data) => ({ content: [{ type: "text", text: JSON.stringify(data, null, 2) }] });
-export const fail = (message) => ({ isError: true, content: [{ type: "text", text: String(message) }] });
+export const fail = (message) => ({ isError: true, content: [{ type: "text", text: scrub(message) }] });
 
 /** Wraps a handler so nothing ever escapes as an uncaught exception. */
 export const handler = (fn) => async (args) => {

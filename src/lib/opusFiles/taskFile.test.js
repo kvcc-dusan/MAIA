@@ -156,3 +156,11 @@ Body with <!-- a comment --> inside.
     expect(read("---\nid: 5\ntitle: [1, 2]\norder: abc\n---\n").ok).toBe(true);
   });
 });
+
+describe("binary content", () => {
+  it("reports a file with NUL bytes instead of treating its bytes as a task body", () => {
+    const result = fromFile("%PDF-1.4\u0000\u0001garbage", { fallbackId: "x" });
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/binary/i);
+  });
+});

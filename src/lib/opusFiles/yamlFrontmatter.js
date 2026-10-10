@@ -6,6 +6,9 @@ import { parseDocument, stringify } from "yaml";
 const STRINGIFY_OPTIONS = { lineWidth: 0 };
 const FRONTMATTER = /^---[ \t]*\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/;
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+// The yaml parser is quadratic in the number of keys: ~1 MB of "k: v" lines freezes the app for
+// minutes, on every window focus. Real frontmatter is a few KB.
+export const MAX_FRONTMATTER_CHARS = 128 * 1024;
 
 export const normalizeEol = (text) =>
   String(text ?? "").replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
@@ -18,6 +21,15 @@ export const splitFrontmatter = (text) => {
   return { hasFrontmatter: true, yaml: match[1] ?? "", body: source.slice(match[0].length) };
 };
 
+/** Copy of parsed YAML without prototype-related keys at any depth. */
+const stripUnsafeKeys = (value) => {
+  if (Array.isArray(value)) return value.map(stripUnsafeKeys);
+  if (value === null || typeof value !== "object" || value instanceof Date) return value;
+  return Object.fromEntries(
+    Object.entries(value).filter(([key]) => !UNSAFE_KEYS.has(key)).map(([key, v]) => [key, stripUnsafeKeys(v)]),
+  );
+};
+
 const errorMessage = (e) => String(e?.message ?? e).split("\n")[0];
 
 /** Parses the frontmatter into a plain object. Never throws. */
@@ -25,13 +37,14 @@ export const parseFrontmatter = (text) => {
   try {
     const parts = splitFrontmatter(text);
     if (!parts.hasFrontmatter) return { ok: true, ...parts, data: {} };
+    if (parts.yaml.length > MAX_FRONTMATTER_CHARS) return { ok: false, error: "Frontmatter is too large to read" };
     const doc = parseDocument(parts.yaml, { uniqueKeys: true });
     if (doc.errors.length > 0) return { ok: false, error: errorMessage(doc.errors[0]) };
     const raw = doc.toJS() ?? {};
     if (typeof raw !== "object" || Array.isArray(raw)) {
       return { ok: false, error: "Frontmatter is not a block of key: value pairs" };
     }
-    const data = Object.fromEntries(Object.entries(raw).filter(([key]) => !UNSAFE_KEYS.has(key)));
+    const data = stripUnsafeKeys(raw);
     return { ok: true, ...parts, data };
   } catch (e) {
     return { ok: false, error: errorMessage(e) };

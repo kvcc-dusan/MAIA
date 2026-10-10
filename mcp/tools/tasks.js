@@ -5,21 +5,21 @@ import { applyTaskPatch } from "../../src/features/Opus/lib/taskModel.js";
 import { findProject, findRecord, projectRecordOf } from "../store.js";
 import { createItemFile, updateItemFile, moveTaskFile, logActivity } from "../writer.js";
 import { handler, snapshotOf, taskView, rel, norm, resolveWorkstream, resolveMilestone } from "./util.js";
-import { isoDate, taskStatus, priority, estimate, defined } from "./schemas.js";
+import { isoDate, taskStatus, priority, estimate, defined, short, long } from "./schemas.js";
 
 const SCHEDULES = z.enum(["today", "soon", "future"]);
 const INBOX = "inbox";
 
 const taskFields = {
-  title: z.string().min(1),
-  desc: z.string().optional().describe("Markdown description"),
+  title: short.min(1),
+  desc: long.optional().describe("Markdown description"),
   status: taskStatus.optional(),
   priority: priority.optional(),
-  owner: z.string().optional(),
+  owner: short.optional(),
   estimate: estimate.optional(),
   due: isoDate.optional(),
-  workstream: z.string().optional().describe("Workstream name in the project"),
-  milestone: z.string().optional().describe("Milestone title in the project"),
+  workstream: short.optional().describe("Workstream name in the project"),
+  milestone: short.optional().describe("Milestone title in the project"),
   schedule: SCHEDULES.optional(),
   isNextAction: z.boolean().optional(),
 };
@@ -29,7 +29,7 @@ const projectOrNull = (snap, ref) => (ref == null || norm(ref) === INBOX ? null 
 export const registerTaskWrites = (server, vault) => {
   server.registerTool("create_task", {
     description: "Create a task file. Omit project (or use 'inbox') for Opus/_inbox/tasks. Status goes through the app's transition rule.",
-    inputSchema: { project: z.string().optional().describe("Project name or id"), ...taskFields },
+    inputSchema: { project: short.optional().describe("Project name or id"), ...taskFields },
   }, handler(async (a) => {
     const snap = await snapshotOf(vault);
     const projRec = projectOrNull(snap, a.project);
@@ -50,17 +50,17 @@ export const registerTaskWrites = (server, vault) => {
   server.registerTool("update_task", {
     description: "Patch a task by id. Only given keys change; null clears owner, priority, estimate, due, workstream, milestone. project moves the file ('inbox' or null = no project; workstream/milestone are kept by name if the target has them).",
     inputSchema: {
-      id: z.string(),
+      id: short,
       patch: z.object({
         ...taskFields,
         title: taskFields.title.optional(),
-        project: z.string().nullable().optional(),
-        owner: z.string().nullable().optional(),
+        project: short.nullable().optional(),
+        owner: short.nullable().optional(),
         priority: priority.nullable().optional(),
         estimate: estimate.nullable().optional(),
         due: isoDate.nullable().optional(),
-        workstream: z.string().nullable().optional(),
-        milestone: z.string().nullable().optional(),
+        workstream: short.nullable().optional(),
+        milestone: short.nullable().optional(),
       }),
     },
   }, handler(async ({ id, patch: p }) => {

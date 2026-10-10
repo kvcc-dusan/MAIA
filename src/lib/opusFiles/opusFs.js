@@ -15,6 +15,10 @@ export const PROJECT_FILE = "project.md";
 export const ACTIVITY_FILE = "activity.jsonl";
 export const KIND_DIRS = { task: "tasks", decision: "decisions", question: "questions" };
 
+// Whole files are read and parsed on every reload (each window focus). A multi-GB file dropped into
+// the vault must not be pulled into memory.
+export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
 export const joinPath = (...parts) =>
   parts.map((p, i) => (i === 0 ? p.replace(/\/+$/, "") : p.replace(/^\/+|\/+$/g, ""))).join("/");
 
@@ -67,6 +71,15 @@ export const statMtime = async (fs, path) => {
   }
 };
 
+/** readTextFile that refuses oversized files. Throws; the loader turns that into a warning and never tracks the file. */
+export const readTextChecked = async (fs, path) => {
+  const info = await fs.stat(path);
+  if (typeof info?.size === "number" && info.size > MAX_FILE_BYTES) {
+    throw new Error(`File is too large to read (over ${MAX_FILE_BYTES / 1024 / 1024} MB)`);
+  }
+  return fs.readTextFile(path);
+};
+
 export const listDir = async (fs, path) => {
   if (!(await fs.exists(path))) return [];
   const entries = await fs.readDir(path);
@@ -95,7 +108,8 @@ export const guardedWrite = async (fs, { entry, path, text, kind, id }) => {
   }
   const target = entry ? entry.path : path;
   await fs.mkdir(parentOf(target), { recursive: true });
-  await fs.writeTextFile(target, text);
+  // createNew makes the OS refuse an overwrite even if the file appeared since the exists check.
+  await fs.writeTextFile(target, text, entry ? undefined : { createNew: true });
   return { path: target, text, mtimeMs: await statMtime(fs, target), kind };
 };
 

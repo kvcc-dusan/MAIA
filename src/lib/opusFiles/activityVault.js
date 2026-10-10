@@ -5,7 +5,7 @@ import { VaultConflictError } from "../vault.js";
 import { parseActivity, serializeActivity } from "./activityFile.js";
 import {
   INBOX_DIR, ACTIVITY_FILE, joinPath, opusRoot, loadFs, state, keyOf, statMtime, trackInto,
-  guardedWrite, track,
+  guardedWrite, track, readTextChecked,
 } from "./opusFs.js";
 
 const trackId = (projectId) => projectId ?? INBOX_DIR;
@@ -19,7 +19,7 @@ export const readActivity = async (fs, dir, projectId, { warnings, fresh }) => {
   if (!(await fs.exists(path))) return null;
   let text;
   try {
-    text = await fs.readTextFile(path);
+    text = await readTextChecked(fs, path);
   } catch (e) {
     warnings.push({ path, message: `Could not read file: ${e?.message ?? e}` });
     return null;

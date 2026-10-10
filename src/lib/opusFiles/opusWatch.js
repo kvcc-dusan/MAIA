@@ -1,5 +1,5 @@
 // @maia:opusFiles - recursive watcher for the Opus/ tree, modelled on watchVault.
-import { loadFs, opusRoot, state, isHidden, ASSETS_DIR, ACTIVITY_FILE, BACKUPS_DIR, TRASH_DIR } from "./opusFs.js";
+import { loadFs, opusRoot, state, isHidden, ASSETS_DIR, ACTIVITY_FILE, BACKUPS_DIR, TRASH_DIR, readTextChecked } from "./opusFs.js";
 
 // _backups/ and _trash/ at the Opus root hold no live data; _trash keeps .md files that must not look like tasks.
 const isReservedPath = (root, path) => {
@@ -31,7 +31,7 @@ const isOwnEcho = async (fs, path, byPath) => {
   const entry = byPath.get(path);
   if (!entry) return false;
   try {
-    return (await fs.exists(path)) && (await fs.readTextFile(path)) === entry.text;
+    return (await fs.exists(path)) && (await readTextChecked(fs, path)) === entry.text;
   } catch {
     return false;
   }

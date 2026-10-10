@@ -11,6 +11,9 @@ export const BACKUPS_DIR = "_backups";
 export const TRASH_DIR = "_trash";
 export const PROJECT_FILE = "project.md";
 export const ACTIVITY_FILE = "activity.jsonl";
+// Whole files are read into memory and parsed on every tool call; a multi-GB or binary file named
+// .md must not take the server down or be "repaired" by a rewrite.
+export const MAX_TEXT_BYTES = 5 * 1024 * 1024;
 export const KIND_DIRS = { task: "tasks", decision: "decisions", question: "questions" };
 
 export class ConflictError extends Error {
@@ -30,12 +33,22 @@ export const exists = async (p) => {
   }
 };
 
-/** File text, or null when the file does not exist. */
+const strictUtf8 = new TextDecoder("utf-8", { fatal: true });
+
+/**
+ * File text, or null when the file does not exist. Throws a path-free Error for anything that is
+ * not safe to round-trip as text (too large, not valid UTF-8, a folder, no permission): decoding
+ * invalid bytes leniently would turn them into U+FFFD and the next rewrite would destroy them.
+ */
 export const readText = async (p) => {
   try {
-    return await fs.readFile(p, "utf8");
+    const info = await fs.stat(p);
+    if (info.size > MAX_TEXT_BYTES) throw new Error(`File is larger than ${MAX_TEXT_BYTES / 1024 / 1024} MB, skipped`);
+    return strictUtf8.decode(await fs.readFile(p));
   } catch (e) {
     if (e?.code === "ENOENT") return null;
+    if (e instanceof TypeError) throw new Error("File is not valid UTF-8 text, skipped");
+    if (e?.code) throw new Error(`Cannot read file (${e.code})`);
     throw e;
   }
 };
@@ -53,7 +66,26 @@ export const listDir = async (dir) => {
   }
 };
 
-const tmpName = (target) => `${target}.${process.pid}-${Math.random().toString(36).slice(2, 8)}.tmp`;
+// Short and dot-prefixed: Obsidian and cloud drives skip hidden files, and `<name>.<pid>.tmp` could
+// exceed the 255-byte file name limit for a long (multi-byte) title.
+const tmpName = (target) => path.join(path.dirname(target), `.maia-${process.pid}-${Math.random().toString(36).slice(2, 10)}.tmp`);
+
+// rename() replaces silently, so reserve the name first with an exclusive create (O_EXCL) and
+// rename over our own empty placeholder. An exists() check here would leave a race window.
+const renameOverPlaceholder = async (tmp, target) => {
+  try {
+    await (await fs.open(target, "wx")).close();
+  } catch (e) {
+    if (e?.code === "EEXIST") throw new ConflictError(target, "File already exists");
+    throw e;
+  }
+  try {
+    await fs.rename(tmp, target);
+  } catch (e) {
+    await fs.rm(target, { force: true });
+    throw e;
+  }
+};
 
 const createExclusive = async (target, text) => {
   const tmp = tmpName(target);
@@ -64,8 +96,7 @@ const createExclusive = async (target, text) => {
     } catch (e) {
       if (e?.code === "EEXIST") throw new ConflictError(target, "File already exists");
       if (e?.code !== "EPERM" && e?.code !== "ENOTSUP" && e?.code !== "EXDEV") throw e;
-      if (await exists(target)) throw new ConflictError(target, "File already exists");
-      await fs.rename(tmp, target); // filesystem without hard links
+      await renameOverPlaceholder(tmp, target); // filesystem without hard links
     }
   } finally {
     await fs.rm(tmp, { force: true });

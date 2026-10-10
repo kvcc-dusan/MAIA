@@ -88,3 +88,28 @@ describe("stringifyFile / patchFile", () => {
     expect(changed).toBe("---\nid: a\ntitle: x\n---\n\nplain text\n");
   });
 });
+
+describe("hostile frontmatter", () => {
+  it("rejects an oversized block fast instead of freezing the app (yaml parsing is quadratic in keys)", () => {
+    const yamlText = Array.from({ length: 20000 }, (_, i) => `k${i}: ${i}`).join("\n");
+    const started = Date.now();
+    const result = parseFrontmatter(`---\n${yamlText}\n---\nbody`);
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/too large/i);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
+  it("strips prototype keys at any depth", () => {
+    const result = parseFrontmatter("---\nok: 1\nnested:\n  __proto__:\n    polluted: true\n  fine: 2\nlist:\n  - constructor: x\n    keep: y\n---\n");
+    expect(result.ok).toBe(true);
+    expect(Object.keys(result.data.nested)).toEqual(["fine"]);
+    expect(result.data.list).toEqual([{ keep: "y" }]);
+    expect({}.polluted).toBeUndefined();
+  });
+
+  it("refuses alias bombs without throwing", () => {
+    let yamlText = "a0: &a0 [x,x,x,x,x,x,x,x,x,x]\n";
+    for (let i = 1; i < 10; i += 1) yamlText += `a${i}: &a${i} [${Array(10).fill(`*a${i - 1}`).join(",")}]\n`;
+    expect(parseFrontmatter(`---\n${yamlText}---\n`).ok).toBe(false);
+  });
+});

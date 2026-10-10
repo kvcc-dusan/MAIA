@@ -5,7 +5,7 @@ import { contextOf } from "../../src/lib/opusFiles/projectFile.js";
 import { findProject, findRecord, projectRecordOf } from "../store.js";
 import { updateItemFile, logActivity } from "../writer.js";
 import { handler, snapshotOf, rel, resolveWorkstream } from "./util.js";
-import { isoDate, defined } from "./schemas.js";
+import { isoDate, defined, short, medium, long } from "./schemas.js";
 import { buildWorkstreams, buildMilestones } from "./projects.js";
 
 const withWorkstream = (proj, patch) => {
@@ -17,10 +17,10 @@ export const registerExtras = (server, vault) => {
   server.registerTool("update_decision", {
     description: "Edit a decision by id (title, detail, date, by, workstream; null clears the workstream). The file name is never renamed.",
     inputSchema: {
-      id: z.string(),
+      id: short,
       patch: z.object({
-        title: z.string().min(1).optional(), detail: z.string().optional(), date: isoDate.optional(),
-        by: z.string().optional(), workstream: z.string().nullable().optional(),
+        title: short.min(1).optional(), detail: long.optional(), date: isoDate.optional(),
+        by: short.optional(), workstream: short.nullable().optional(),
       }),
     },
   }, handler(async ({ id, patch }) => {
@@ -36,10 +36,10 @@ export const registerExtras = (server, vault) => {
   server.registerTool("update_question", {
     description: "Edit a question by id: reword, set owner/blocking/workstream, write an answer, or reopen it with status 'open'. Use answer_question for the common 'answer it' case.",
     inputSchema: {
-      id: z.string(),
+      id: short,
       patch: z.object({
-        question: z.string().min(1).optional(), owner: z.string().optional(), blocking: z.boolean().optional(),
-        answer: z.string().optional(), status: z.enum(["open", "answered"]).optional(), workstream: z.string().nullable().optional(),
+        question: medium.min(1).optional(), owner: short.optional(), blocking: z.boolean().optional(),
+        answer: long.optional(), status: z.enum(["open", "answered"]).optional(), workstream: short.nullable().optional(),
       }),
     },
   }, handler(async ({ id, patch }) => {
@@ -67,7 +67,7 @@ export const registerExtras = (server, vault) => {
 
   server.registerTool("add_workstream", {
     description: "Add a workstream to a project. Existing workstreams are never renamed; a duplicate name is an error.",
-    inputSchema: { project: z.string(), name: z.string().min(1), owner: z.string().optional() },
+    inputSchema: { project: short, name: short.min(1), owner: short.optional() },
   }, handler(async ({ project, name, owner }) => {
     const snap = await snapshotOf(vault);
     const rec = findProject(snap, project);
@@ -78,7 +78,7 @@ export const registerExtras = (server, vault) => {
 
   server.registerTool("add_milestone", {
     description: "Add a milestone (title + date) to a project, optionally under a workstream by name. A duplicate title is an error; use update_project milestonePatches to change one.",
-    inputSchema: { project: z.string(), title: z.string().min(1), date: isoDate, workstream: z.string().optional() },
+    inputSchema: { project: short, title: short.min(1), date: isoDate, workstream: short.optional() },
   }, handler(async ({ project, title, date, workstream }) => {
     const snap = await snapshotOf(vault);
     const rec = findProject(snap, project);

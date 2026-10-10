@@ -78,6 +78,10 @@ export const makeCodec = ({ knownKeys, parse, toFields, bodyOf }) => {
   const known = new Set(knownKeys);
 
   const fromFile = (text, { fallbackId, fallbackTitle, projectContext } = {}) => {
+    // A binary file named .md would load as a task whose "body" is mojibake, and the first edit would overwrite the original bytes.
+    if (typeof text === "string" && text.includes("\u0000")) {
+      return { ok: false, error: "Binary file, not Markdown text", item: null, warnings: [] };
+    }
     const parsed = parseFrontmatter(text);
     if (!parsed.ok) return { ok: false, error: parsed.error, item: null, warnings: [] };
     const warnings = [];

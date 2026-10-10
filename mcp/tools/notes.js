@@ -10,7 +10,7 @@ import { findProject } from "../store.js";
 import { listDir, readText, safeWrite } from "../fsx.js";
 import { logActivity } from "../writer.js";
 import { handler, snapshotOf, norm } from "./util.js";
-import { defined } from "./schemas.js";
+import { defined, short, long, list } from "./schemas.js";
 
 // Same walk and exclusions as the app (src/lib/vault.js): dot entries,
 // node_modules, and Opus/ + _backups at the vault root are skipped.
@@ -28,7 +28,8 @@ const walk = async (vault, folder = "") => {
 export const loadNotes = async (vault) => {
   const notes = [];
   for (const rel of (await walk(vault)).sort()) {
-    const text = await readText(path.join(vault, rel));
+    // A binary, oversized or unreadable .md is left alone rather than failing the whole listing.
+    const text = await readText(path.join(vault, rel)).catch(() => null);
     if (text === null) continue;
     const note = markdownToNote(text, { fallbackId: stableId(rel), fallbackTitle: relBase(rel).replace(/\.md$/i, "") });
     notes.push({ ...note, file: rel, folder: relDir(rel) });
@@ -63,9 +64,9 @@ export const registerNotes = (server, vault) => {
   server.registerTool("list_notes", {
     description: "List vault notes in all folders (each has a folder path). query matches title and body.",
     inputSchema: {
-      query: z.string().optional(), folder: z.string().optional().describe("Only notes in this folder and its subfolders"),
-      project: z.string().optional().describe("Project name or id"),
-      tag: z.string().optional(), limit: z.number().int().min(1).max(500).default(50),
+      query: short.optional(), folder: short.optional().describe("Only notes in this folder and its subfolders"),
+      project: short.optional().describe("Project name or id"),
+      tag: short.optional(), limit: z.number().int().min(1).max(500).default(50),
     },
   }, handler(async ({ query, folder, project, tag, limit = 50 }) => {
     const projectId = project ? findProject(await snapshotOf(vault), project).item.id : null;
@@ -80,7 +81,7 @@ export const registerNotes = (server, vault) => {
 
   server.registerTool("read_note", {
     description: "Read one note by id or title.",
-    inputSchema: { id: z.string().optional(), title: z.string().optional() },
+    inputSchema: { id: short.optional(), title: short.optional() },
   }, handler(async ({ id, title }) => {
     if (!id && !title) throw new Error("Give an id or a title.");
     const notes = await loadNotes(vault);
@@ -94,8 +95,8 @@ export const registerNotes = (server, vault) => {
   server.registerTool("create_note", {
     description: "Create a new note, in the vault root or in `folder` (created if missing). Never overwrites an existing file.",
     inputSchema: {
-      title: z.string().min(1), content: z.string(), folder: z.string().optional().describe('e.g. "Omnis/PROJECTS"; default vault root'), tags: z.array(z.string()).optional(),
-      project: z.string().optional(), kind: z.string().optional(), status: z.string().optional(),
+      title: short.min(1), content: long, folder: short.optional().describe('e.g. "Omnis/PROJECTS"; default vault root'), tags: list(short).optional(),
+      project: short.optional(), kind: short.optional(), status: short.optional(),
     },
   }, handler(async (a) => createNoteFile(vault, await snapshotOf(vault), a)));
 };

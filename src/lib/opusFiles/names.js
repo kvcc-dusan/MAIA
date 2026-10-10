@@ -3,13 +3,31 @@
 // Obsidian; collisions are case-insensitive since macOS and Windows disks are.
 
 export const MAX_NAME_LENGTH = 80;
+// File names are limited to 255 UTF-8 bytes on APFS/ext4, so 80 emoji or CJK characters do not
+// fit. Leaves room for " 99", ".md" and the writer's temp name.
+export const MAX_NAME_BYTES = 180;
 const MAX_QUESTION_NAME = 60;
 const SUFFIX_LIMIT = 1000;
 
 // Illegal on macOS/Windows, plus # ^ [ ] which break Obsidian links.
+// Also bidi overrides (a file shown as "report fdp.md" that is really "report<RLO>fdp.md") and line separators.
 // eslint-disable-next-line no-control-regex
-const ILLEGAL = /[\u0000-\u001f\u007f/\\:*?"<>|#^[\]]+/g;
+const ILLEGAL = /[\u0000-\u001f\u007f/\\:*?"<>|#^[\]\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]+/g;
 const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
+const encoder = new TextEncoder();
+
+/** Cuts text to at most `maxBytes` UTF-8 bytes without splitting a character. */
+export const truncateBytes = (text, maxBytes) => {
+  let used = 0;
+  let out = "";
+  for (const ch of text) {
+    used += encoder.encode(ch).length;
+    if (used > maxBytes) break;
+    out += ch;
+  }
+  return out;
+};
 
 /** A single path segment from free text. Empty string when nothing usable is left. */
 export const cleanName = (text, max = MAX_NAME_LENGTH) => {
@@ -18,15 +36,18 @@ export const cleanName = (text, max = MAX_NAME_LENGTH) => {
     .replace(ILLEGAL, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/^\.+/, "")
-    .slice(0, max)
+    // "../x" becomes ".. x" once the slash is gone: strip dots and the spaces they leave behind, or the name stays hidden.
+    .replace(/^[\s.]+/, "")
+    .slice(0, max);
+  name = truncateBytes(name, MAX_NAME_BYTES)
     .replace(/[\s.]+$/, "")
     .trim();
   if (WINDOWS_RESERVED.test(name)) name = `${name} item`;
   return name;
 };
 
-const lower = (s) => s.toLowerCase();
+// APFS and HFS+ treat NFC and NFD spellings as one name, so compare on both.
+const lower = (s) => s.normalize("NFC").toLowerCase();
 
 /**
  * First free name: "Base", "Base 2", "Base 3"... `taken` holds existing names
@@ -34,7 +55,10 @@ const lower = (s) => s.toLowerCase();
  */
 export const uniqueName = (base, taken = [], ext = "") => {
   const used = new Set([...taken].map(lower));
-  const fit = (suffix) => `${base.slice(0, MAX_NAME_LENGTH - suffix.length).replace(/\s+$/, "")}${suffix}${ext}`;
+  const fit = (suffix) => {
+    const room = Math.min(MAX_NAME_LENGTH - suffix.length, MAX_NAME_BYTES - suffix.length);
+    return `${truncateBytes(base.slice(0, MAX_NAME_LENGTH - suffix.length), room).replace(/\s+$/, "")}${suffix}${ext}`;
+  };
   let candidate = fit("");
   for (let n = 2; used.has(lower(candidate)) && n <= SUFFIX_LIMIT; n += 1) candidate = fit(` ${n}`);
   return candidate;

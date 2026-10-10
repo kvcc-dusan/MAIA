@@ -4,7 +4,7 @@ import { buildReportSummary, reportMarkdown, reportNoteTitle } from "../../src/f
 import { weekRange, toDayString, day } from "../../src/features/Opus/lib/metrics.js";
 import { findProject } from "../store.js";
 import { handler, snapshotOf, norm } from "./util.js";
-import { isoDate } from "./schemas.js";
+import { isoDate, short } from "./schemas.js";
 import { loadNotes, createNoteFile } from "./notes.js";
 
 export const registerReport = (server, vault) => {
@@ -12,7 +12,7 @@ export const registerReport = (server, vault) => {
     description:
       "Generate a project's weekly status report as markdown, identical to the app's Weekly report tab (week = Monday to Sunday, forecast and slipped use `today`). Use for 'write the weekly report' or a status summary. `week_start` is any date inside the wanted week (default: the current week). With save: true it also creates a vault note 'Weekly report: <project>, <Monday>' tagged #report and linked to the project; if that note already exists nothing is written and its path is returned.",
     inputSchema: {
-      project: z.string().describe("Name or id"),
+      project: short.describe("Name or id"),
       week_start: isoDate.optional().describe("Any date in the wanted week; default current week"),
       save: z.boolean().default(false),
       today: isoDate.optional().describe("YYYY-MM-DD, default today (local date, like the app)"),

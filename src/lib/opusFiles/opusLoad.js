@@ -8,7 +8,7 @@ import * as questionFile from "./questionFile.js";
 import { contextOf } from "./projectFile.js";
 import { EMPTY_CONTEXT } from "./fileCodec.js";
 import {
-  INBOX_DIR, BACKUPS_DIR, TRASH_DIR, ASSETS_DIR, ACTIVITY_FILE, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
+  INBOX_DIR, BACKUPS_DIR, TRASH_DIR, ASSETS_DIR, ACTIVITY_FILE, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime, readTextChecked,
   stableId, state, trackInto,
 } from "./opusFs.js";
 import { readActivity } from "./activityVault.js";
@@ -20,7 +20,7 @@ const byCreatedDesc = (a, b) => String(b.createdAt ?? "").localeCompare(String(a
 const readOne = async (fs, { path, name, kind, projectId, ctx, seenIds, warnings, fresh }) => {
   let text;
   try {
-    text = await fs.readTextFile(path);
+    text = await readTextChecked(fs, path);
   } catch (e) {
     warnings.push({ path, message: `Could not read file: ${e?.message ?? e}` });
     return null;
@@ -79,7 +79,14 @@ const loadProject = async (fs, root, folder, shared) => {
     }
     return null;
   }
-  const text = await fs.readTextFile(projectPath);
+  let text;
+  try {
+    text = await readTextChecked(fs, projectPath);
+  } catch (e) {
+    // One unreadable project.md (a folder with that name, a bad encoding, no permission) must not stop every other project from loading.
+    warnings.push({ path: projectPath, message: `Could not read file: ${e?.message ?? e}` });
+    return null;
+  }
   const result = projectFile.fromFile(text, { fallbackId: stableId(projectPath), fallbackTitle: folder });
   if (!result.ok) {
     warnings.push({ path: projectPath, message: `Project skipped, not valid frontmatter: ${result.error}` });
