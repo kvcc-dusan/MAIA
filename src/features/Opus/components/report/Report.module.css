@@ -1,0 +1,10 @@
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); min-width: 0; }
+@container report (min-width: 40rem) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.card { display: grid; gap: var(--space-4); min-width: 0; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); }
+.head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.cardTitle { margin: 0; font-size: var(--text-base); font-weight: 500; color: var(--foreground); }
+.content { min-width: 0; }
+.source { margin: 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface-muted); color: var(--foreground); font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: var(--text-sm); line-height: var(--leading-body); white-space: pre-wrap; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+/* Arc's copy button is 36px; touch gets the 44px minimum. */
+@media (pointer: coarse) { .copy { min-height: var(--control-height-md); } }

@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Button } from "@/components/arc/button/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { useData } from "../../context/DataContext";
 import ProjectIdentity from "./components/ProjectIdentity";
-import WeeklyReportDialog from "./components/WeeklyReportDialog";
 import { OpusNavProvider, useOpusNav } from "./OpusNavContext";
 import OverviewTab from "./tabs/OverviewTab";
 import BoardTab from "./tabs/BoardTab";
@@ -20,7 +18,7 @@ import styles from "./OpusLayout.module.css";
 const TAB_STORAGE_KEY = "maia.opus.tab";
 
 // Order here is the order on screen, named as in the project hub. Each Panel
-// receives { project, selectNote, onOpenReport }.
+// receives { project, selectNote }.
 const TABS = [
   { id: "overview", label: "Overview", Panel: OverviewTab },
   { id: "board", label: "Board", Panel: BoardTab },
@@ -61,13 +59,11 @@ const saveTab = (tab) => {
 
 function OpusPage({ project, updateProject, selectNote }) {
   const { tab, navigate } = useOpusNav();
-  const [isReportOpen, setIsReportOpen] = useState(false);
 
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <ProjectIdentity project={project} updateProject={updateProject} />
-        <Button variant="secondary" onClick={() => setIsReportOpen(true)}>Weekly report</Button>
       </header>
 
       <Tabs value={tab} onValueChange={(next) => navigate(next)} className={styles.tabs}>
@@ -82,24 +78,17 @@ function OpusPage({ project, updateProject, selectNote }) {
           const Panel = entry.Panel;
           return (
             <TabsContent key={entry.id} value={entry.id}>
-              <Panel project={project} selectNote={selectNote} onOpenReport={() => setIsReportOpen(true)} />
+              <Panel project={project} selectNote={selectNote} />
             </TabsContent>
           );
         })}
       </Tabs>
-
-      <WeeklyReportDialog
-        open={isReportOpen}
-        onClose={() => setIsReportOpen(false)}
-        project={project}
-        selectNote={selectNote}
-      />
     </div>
   );
 }
 
 /**
- * OPUS: the project command center. A header (phase, name, headline, progress, weekly report)
+ * OPUS: the project command center. A header (phase, name, headline, progress)
  * above Arc tabs. The selected tab lives in OpusNavContext so any panel can
  * link to another with a filter applied; it is remembered across visits.
  */

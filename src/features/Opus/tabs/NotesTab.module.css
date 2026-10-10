@@ -1,0 +1,2 @@
+.page { display: grid; gap: var(--space-4); min-width: 0; }
+.list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
