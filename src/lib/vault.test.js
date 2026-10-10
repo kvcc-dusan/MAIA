@@ -82,6 +82,25 @@ describe("vault.js", () => {
     expect(notes).toHaveLength(1);
   });
 
+  it("loadNotes ignores the Opus/ folder: only top-level files are notes", async () => {
+    const { readDir, readTextFile } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes } = await importVault();
+    fsState.files[`${VAULT}/note.md`] = noteToMarkdown({
+      id: "n1", title: "Note", content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z",
+    });
+    fsState.files[`${VAULT}/Opus/Atlas/project.md`] = "---\nid: p1\nname: Atlas\n---\n";
+    // A real readDir is not recursive: it lists Opus as a directory entry.
+    readDir.mockResolvedValueOnce([
+      { name: "note.md", isFile: true, isDirectory: false },
+      { name: "Opus", isFile: false, isDirectory: true },
+    ]);
+
+    const notes = await loadNotes(VAULT);
+
+    expect(notes.map((n) => n.id)).toEqual(["n1"]);
+    expect(readTextFile).not.toHaveBeenCalledWith(expect.stringContaining("/Opus"));
+  });
+
   it("reassigns a fresh id on collision instead of dropping the duplicate note", async () => {
     const { loadNotes } = await importVault();
     const dup = noteToMarkdown({
