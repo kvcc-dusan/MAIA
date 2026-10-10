@@ -15,6 +15,8 @@ const fromField = (value) => (value ? value.slice(0, 10) : "");
 /**
  * Add or edit one milestone in a side panel. The parent mounts a fresh
  * instance (new `key`) per open, so the form always starts from `milestone`.
+ * A `milestone` without an id is a draft (e.g. from a click on a lane) that
+ * only prefills the form.
  */
 export default function MilestonePanel({ open, milestone, workstreams, onClose, onSave, onDelete, onCloseAutoFocus }) {
   const isEditing = Boolean(milestone?.id);

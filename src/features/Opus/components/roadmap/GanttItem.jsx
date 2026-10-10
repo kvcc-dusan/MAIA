@@ -1,8 +1,8 @@
 import React from "react";
-import { STATUS_LABELS, ariaLabelFor, rangeText } from "./roadmapModel";
+import { STATUS_LABELS, ariaLabelFor, rangeText, statsText } from "./roadmapModel";
 import styles from "./RoadmapGantt.module.css";
 
-/** One bar or diamond marker. The status is always text; its colour is a second cue. */
+/** One bar, or a pill for a milestone with only a due date. The status is always text; its colour is a second cue. */
 export default function GanttItem({ item, isActive, referenceYear, onOpen, onFocusItem, onKeyDown }) {
   const label = ariaLabelFor(item, referenceYear);
   const style = {
@@ -20,12 +20,16 @@ export default function GanttItem({ item, isActive, referenceYear, onOpen, onFoc
       style={style}
       tabIndex={isActive ? 0 : -1}
       aria-label={label}
-      title={`${item.title}, ${rangeText(item, referenceYear)}`}
+      title={`${item.title}, ${rangeText(item, referenceYear)}. ${statsText(item.stats)}`}
       onClick={() => onOpen(item.id)}
       onFocus={() => onFocusItem(item.id)}
       onKeyDown={onKeyDown}
     >
-      <span className={styles.shape} aria-hidden="true" />
+      <span className={styles.shape} aria-hidden="true">
+        {item.kind === "bar" && item.stats.total > 0 && (
+          <span className={styles.progress} style={{ "--p": item.stats.done / item.stats.total }} />
+        )}
+      </span>
       <span className={styles.label} aria-hidden="true">
         <span className={styles.title}>{item.title}</span>
         <span className={styles.tag}>

@@ -13,7 +13,19 @@ export const DEFAULT_FUTURE_DAYS = 56;
 export const WEEK_TICKS_MAX_DAYS = 140;
 // The Gantt never gets tighter than this, it scrolls instead.
 export const MIN_PX_PER_DAY = 10;
-export const MARKER_HIT_PX = 36;
+// A dated-only milestone is a pill whose left tip sits on its due day.
+export const MARKER_ANCHOR_PX = 8;
+
+// Day width per zoom, same scale as the hub: weeks are wide enough for a
+// weekday column, quarter packs a year into ~1500px.
+export const ZOOMS = { week: 28, month: 9, quarter: 4 };
+export const DEFAULT_ZOOM = "month";
+export const ZOOM_OPTIONS = [
+  { value: "week", label: "Weeks" },
+  { value: "month", label: "Months" },
+  { value: "quarter", label: "Quarter" },
+];
+export const pxPerDayFor = (zoom) => ZOOMS[zoom] ?? ZOOMS[DEFAULT_ZOOM];
 
 const LABEL_GAP_PX = 6;
 const BAR_PAD_PX = 16;
@@ -87,12 +99,41 @@ export const barSpan = (a, b, range) => {
 
 const weekdayIndex = (day) => (((day + MONDAY_OFFSET) % 7) + 7) % 7; // 0 is Monday
 
+const buildQuarters = (range) => {
+  const first = new Date(range.start * DAY_MS);
+  let year = first.getUTCFullYear();
+  let quarter = Math.floor(first.getUTCMonth() / 3);
+  const quarters = [];
+  for (;;) {
+    const quarterStart = Math.round(Date.UTC(year, quarter * 3, 1) / DAY_MS);
+    if (quarterStart > range.end) break;
+    const nextStart = Math.round(Date.UTC(year, quarter * 3 + 3, 1) / DAY_MS);
+    quarters.push({
+      key: `${year}-q${quarter + 1}`,
+      quarterStart,
+      startDay: Math.max(quarterStart, range.start),
+      endDay: Math.min(nextStart - 1, range.end),
+      label: `Q${quarter + 1} ${year}`,
+    });
+    quarter += 1;
+    if (quarter > 3) {
+      quarter = 0;
+      year += 1;
+    }
+  }
+  return quarters;
+};
+
 /**
- * Month segments for the axis header, week ticks (only on short spans) and
- * the gridline days. Labels are sentence case ("Oct"); the year is added to the
- * first month and to every January when the window crosses a year boundary.
+ * Month segments for the axis header, week ticks and the gridline days.
+ * Labels are sentence case ("Oct"); the year is added to the first month and to
+ * every January when the window crosses a year boundary.
+ *
+ * `zoom` picks the granularity: "week" adds Monday ticks and weekend shading,
+ * "quarter" adds a quarter row above the months, "month" is months only. With
+ * no zoom, week ticks appear on short spans only.
  */
-export const buildTicks = (range) => {
+export const buildTicks = (range, zoom = null) => {
   const first = new Date(range.start * DAY_MS);
   const spansYears = first.getUTCFullYear() !== new Date(range.end * DAY_MS).getUTCFullYear();
   const months = [];
@@ -117,19 +158,23 @@ export const buildTicks = (range) => {
     }
   }
 
-  const showWeeks = range.days <= WEEK_TICKS_MAX_DAYS;
+  const showWeeks = zoom === null ? range.days <= WEEK_TICKS_MAX_DAYS : zoom === "week";
   const weeks = [];
+  const weekends = [];
   if (showWeeks) {
     for (let day = range.start; day <= range.end; day += 1) {
-      if (weekdayIndex(day) === 0) weeks.push({ day, label: String(new Date(day * DAY_MS).getUTCDate()) });
+      const index = weekdayIndex(day);
+      if (index === 0) weeks.push({ day, label: String(new Date(day * DAY_MS).getUTCDate()) });
+      if (zoom === "week" && index >= 5) weekends.push(day);
     }
   }
+  const quarters = zoom === "quarter" ? buildQuarters(range) : [];
 
   const monthLines = months.filter((m) => m.monthStart > range.start).map((m) => ({ day: m.monthStart, kind: "month" }));
   const monthDays = new Set(monthLines.map((l) => l.day));
   const weekLines = weeks.filter((w) => !monthDays.has(w.day) && w.day > range.start).map((w) => ({ day: w.day, kind: "week" }));
 
-  return { months, weeks, showWeeks, lines: [...monthLines, ...weekLines] };
+  return { months, weeks, weekends, quarters, showWeeks, lines: [...monthLines, ...weekLines] };
 };
 
 const estimateLabelPx = (title, statusText) =>
@@ -139,8 +184,8 @@ const estimateLabelPx = (title, statusText) =>
  * Places one lane's milestones and stacks overlapping ones on sub-rows.
  *
  * `items`: `{ id, title, statusText, startDay, dueDay }`. A milestone with no
- * start (or a start equal to its due day) is a marker: a diamond on its due day
- * with the label beside it. Otherwise it is a bar from start to due, with the
+ * start (or a start equal to its due day) is a marker: a rounded pill whose
+ * left tip sits on its due day, label inside. Otherwise it is a bar from start to due, with the
  * label inside when it fits and beside the bar when it doesn't. Whatever the
  * label takes up beside the shape counts when deciding what overlaps, so text
  * never runs under the next milestone.
@@ -156,7 +201,7 @@ export const layoutLane = (items, range, pxPerDay) => {
 
     if (isMarker) {
       const center = dayCenterPercent(item.dueDay, range);
-      const leftPx = (center / 100) * totalPx - MARKER_HIT_PX / 2;
+      const leftPx = (center / 100) * totalPx - MARKER_ANCHOR_PX;
       return {
         ...item,
         kind: "marker",
@@ -164,7 +209,7 @@ export const layoutLane = (items, range, pxPerDay) => {
         center,
         mid: center,
         leftPx,
-        endPx: leftPx + MARKER_HIT_PX + LABEL_GAP_PX + labelPx,
+        endPx: leftPx + labelPx + BAR_PAD_PX * 2,
       };
     }
 

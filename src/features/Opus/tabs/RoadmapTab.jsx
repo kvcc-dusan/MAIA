@@ -1,14 +1,16 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { Route } from "lucide-react";
+import { Plus, Route } from "lucide-react";
 import { useData } from "@/context/DataContext";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { WORKSTREAM_COLORS } from "../lib/projectModel";
-import { dayNumber, computeRange, defaultRange, todayDay } from "../components/roadmap/geometry";
-import { buildRoadmap, groupByMonth, summaryText, unassignText, workstreamMenuId } from "../components/roadmap/roadmapModel";
+import { PageBar, FilterChips } from "../kit";
+import { DEFAULT_ZOOM, ZOOM_OPTIONS, dayNumber, computeRange, defaultRange, todayDay, containsDay } from "../components/roadmap/geometry";
+import { buildRoadmap, groupByMonth, unassignText, workstreamMenuId } from "../components/roadmap/roadmapModel";
 import { useElementWidth } from "../components/roadmap/useElementWidth";
 import RoadmapGantt from "../components/roadmap/RoadmapGantt";
+import RoadmapLegend from "../components/roadmap/RoadmapLegend";
 import RoadmapList from "../components/roadmap/RoadmapList";
 import WorkstreamList from "../components/roadmap/WorkstreamList";
 import MilestonePanel from "../components/roadmap/MilestonePanel";
@@ -30,6 +32,7 @@ export default function RoadmapTab({ project }) {
     addWorkstream, updateWorkstream, deleteWorkstream,
   } = useData();
   const rootRef = useRef(null);
+  const ganttRef = useRef(null);
   const addButtonRef = useRef(null);
   const restoreFocusId = useRef(null);
   const wasDeleted = useRef(false);
@@ -39,6 +42,7 @@ export default function RoadmapTab({ project }) {
   const [panel, setPanel] = useState(null); // { kind, key, id|null, open }
   const [confirm, setConfirm] = useState(null); // { kind, id }
   const [announcement, setAnnouncement] = useState("");
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
 
   const projectTasks = useMemo(() => tasks.filter((t) => t.projectId === project.id), [tasks, project.id]);
   const roadmap = useMemo(() => buildRoadmap(project, projectTasks), [project, projectTasks]);
@@ -53,10 +57,10 @@ export default function RoadmapTab({ project }) {
     [project.startDate, project.targetDate, scheduled]
   );
 
-  const openPanel = useCallback((kind, id = null, restoreId = null) => {
+  const openPanel = useCallback((kind, id = null, restoreId = null, draft = null) => {
     restoreFocusId.current = restoreId;
     wasDeleted.current = false;
-    setPanel({ kind, id, key: `${kind}-${id ?? "new"}-${Date.now()}`, open: true });
+    setPanel({ kind, id, draft, key: `${kind}-${id ?? "new"}-${Date.now()}`, open: true });
   }, []);
   const closePanel = useCallback(() => setPanel((p) => (p ? { ...p, open: false } : p)), []);
 
@@ -102,7 +106,7 @@ export default function RoadmapTab({ project }) {
 
   const editedMilestone = panel?.kind === "milestone" && panel.id
     ? [...scheduled, ...unscheduled].find((m) => m.id === panel.id) ?? null
-    : null;
+    : panel?.draft ?? null;
   const editedWorkstream = panel?.kind === "workstream" && panel.id
     ? workstreams.find((w) => w.id === panel.id) ?? null
     : null;
@@ -136,38 +140,35 @@ export default function RoadmapTab({ project }) {
   const defaultColor = WORKSTREAM_COLORS[workstreams.length % WORKSTREAM_COLORS.length];
 
   const addMilestoneButton = (
-    <Button ref={addButtonRef} onClick={() => openPanel("milestone")}>Add milestone</Button>
+    <Button ref={addButtonRef} onClick={() => openPanel("milestone")}>New milestone</Button>
   );
 
   const monthGroups = groupByMonth(scheduled);
   const unscheduledGroup = unscheduled.length
     ? [{ key: "unscheduled", label: "Unscheduled", showCount: true, items: unscheduled }]
     : [];
+  const canJumpToToday = !isNarrow && lanes.length > 0 && containsDay(range, today);
 
   return (
     <div ref={rootRef} className={styles.root}>
-      <header className={styles.header}>
-        <div className={styles.heading}>
-          <h2 className={styles.title}>Roadmap</h2>
-          {!isEmpty && (
-            <p className={styles.summary}>
-              {summaryText({ milestoneCount: project.milestones.length, workstreamCount: workstreams.length, targetDay, referenceYear })}
-            </p>
-          )}
-        </div>
-        <div className={styles.actions}>
-          <Button variant="secondary" onClick={() => openPanel("workstream")}>Add workstream</Button>
-          {!isEmpty && addMilestoneButton}
-        </div>
-      </header>
+      <PageBar action={addMilestoneButton}>
+        {!isNarrow && (
+          <>
+            <FilterChips options={ZOOM_OPTIONS} value={zoom} onValueChange={setZoom} label="Zoom" />
+            <Button variant="ghost" size="sm" disabled={!canJumpToToday} onClick={() => ganttRef.current?.scrollToToday(true)}>
+              Today
+            </Button>
+            <RoadmapLegend />
+          </>
+        )}
+      </PageBar>
 
       {isEmpty ? (
         <EmptyState
           icon={Route}
           size="page"
-          title="No roadmap yet"
-          description="Add a milestone with a due date to see it on the timeline. Workstreams group milestones into lanes."
-          action={addMilestoneButton}
+          title="No milestones yet"
+          description="Add milestones with a start and a due date to see them on the roadmap."
         />
       ) : (
         <div className={styles.sections}>
@@ -186,14 +187,17 @@ export default function RoadmapTab({ project }) {
           ) : (
             lanes.length > 0 && (
               <RoadmapGantt
+                ref={ganttRef}
                 lanes={lanes}
                 range={range}
+                zoom={zoom}
                 today={today}
                 targetDay={targetDay}
                 referenceYear={referenceYear}
                 onOpenMilestone={(id) => openPanel("milestone", id)}
                 onEditWorkstream={openWorkstream}
                 onDeleteWorkstream={(id) => setConfirm({ kind: "workstream", id })}
+                onAddAt={(draft) => openPanel("milestone", null, null, draft)}
               />
             )
           )}
@@ -202,6 +206,13 @@ export default function RoadmapTab({ project }) {
           )}
         </div>
       )}
+
+      <div>
+        <Button variant="ghost" size="sm" onClick={() => openPanel("workstream")}>
+          <Plus width={16} height={16} strokeWidth={1.75} aria-hidden="true" />
+          Add workstream
+        </Button>
+      </div>
 
       {panel?.kind === "milestone" && (
         <MilestonePanel

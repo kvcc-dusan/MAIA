@@ -1,0 +1,6 @@
+.root { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0 0 0 auto; padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--text-xs); }
+.item { --tone: var(--text-muted); display: inline-flex; align-items: center; gap: var(--space-2); }
+.item[data-status="active"] { --tone: var(--accent); }
+.item[data-status="at-risk"] { --tone: var(--warning); }
+.item[data-status="done"] { --tone: var(--success); }
+.dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-pill); background: var(--tone); }

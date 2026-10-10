@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/arc/button/button";
-import { buildTicks, containsDay, dayCenterPercent, dayLeftPercent, layoutLane, MIN_PX_PER_DAY } from "./geometry";
+import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { buildTicks, containsDay, dayCenterPercent, dayLeftPercent, dayString, layoutLane, pxPerDayFor } from "./geometry";
 import { useElementWidth } from "./useElementWidth";
 import { nextFocusId, resolveActiveId } from "./navigation";
 import { STATUS_LABELS, UNASSIGNED_LANE_ID, workstreamStatusLabel } from "./roadmapModel";
@@ -8,6 +7,8 @@ import GanttItem from "./GanttItem";
 import WorkstreamMenu from "./WorkstreamMenu";
 import styles from "./RoadmapGantt.module.css";
 
+// A click on empty track starts a milestone this long, as in the hub.
+const NEW_SPAN_DAYS = 14;
 const NAV_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -16,18 +17,20 @@ const prefersReducedMotion = () =>
  * Hand-built Gantt (Arc has no item for it): workstream lanes down, a day axis
  * across, scrolling sideways inside its own frame with the lane labels pinned.
  * Items form one roving-tabindex group: one Tab stop, arrows move between them.
+ * `ref` exposes scrollToToday() for the page's Today button.
  */
 export default function RoadmapGantt({
-  lanes, range, today, targetDay, referenceYear,
-  onOpenMilestone, onEditWorkstream, onDeleteWorkstream,
+  ref, lanes, range, zoom, today, targetDay, referenceYear,
+  onOpenMilestone, onEditWorkstream, onDeleteWorkstream, onAddAt,
 }) {
   const scrollerRef = useRef(null);
   const axisRef = useRef(null);
   const trackWidth = useElementWidth(axisRef);
   const [focusedId, setFocusedId] = useState(null);
 
-  const ticks = useMemo(() => buildTicks(range), [range]);
-  const pxPerDay = trackWidth > 0 ? trackWidth / range.days : MIN_PX_PER_DAY;
+  const ticks = useMemo(() => buildTicks(range, zoom), [range, zoom]);
+  const zoomPx = pxPerDayFor(zoom);
+  const pxPerDay = trackWidth > 0 ? trackWidth / range.days : zoomPx;
 
   const laid = useMemo(
     () => lanes.map((lane) => layoutLane(
@@ -55,6 +58,8 @@ export default function RoadmapGantt({
     });
   }, [range, today]);
 
+  useImperativeHandle(ref, () => ({ scrollToToday }), [scrollToToday]);
+
   // Open on today, once the axis has a width to scroll against.
   const hasScrolled = useRef(false);
   useLayoutEffect(() => {
@@ -63,6 +68,35 @@ export default function RoadmapGantt({
       scrollToToday(false);
     }
   }, [trackWidth, scrollToToday]);
+
+  // A zoom change keeps the same date at the left edge instead of jumping.
+  const leftDayRef = useRef(null);
+  const lastZoom = useRef(zoom);
+  const handleScroll = (event) => {
+    const axisWidth = axisRef.current?.offsetWidth ?? 0;
+    if (event.currentTarget.clientWidth && axisWidth) {
+      leftDayRef.current = event.currentTarget.scrollLeft / (axisWidth / range.days);
+    }
+  };
+  useLayoutEffect(() => {
+    if (lastZoom.current === zoom) return;
+    lastZoom.current = zoom;
+    const axisWidth = axisRef.current?.offsetWidth ?? 0;
+    if (leftDayRef.current !== null && axisWidth && scrollerRef.current) {
+      scrollerRef.current.scrollLeft = leftDayRef.current * (axisWidth / range.days);
+    }
+  }, [zoom, range.days]);
+
+  const handleTrackClick = (event, lane) => {
+    if (event.target !== event.currentTarget || !onAddAt) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const day = Math.floor(((event.clientX - rect.left) / rect.width) * range.days) + range.start;
+    onAddAt({
+      workstreamId: lane.id === UNASSIGNED_LANE_ID ? null : lane.id,
+      start: dayString(day),
+      date: dayString(day + NEW_SPAN_DAYS),
+    });
+  };
 
   const handleKeyDown = (event) => {
     if (!NAV_KEYS.includes(event.key)) return;
@@ -82,22 +116,30 @@ export default function RoadmapGantt({
 
   return (
     <div className={styles.root}>
-      {showToday && (
-        <div className={styles.toolbar}>
-          <Button variant="secondary" size="sm" onClick={() => scrollToToday(true)}>Jump to today</Button>
-        </div>
-      )}
       <div className={styles.frame}>
-        <div ref={scrollerRef} className={styles.scroller}>
+        <div ref={scrollerRef} className={styles.scroller} onScroll={handleScroll}>
           <div
             className={styles.chart}
-            data-weeks={ticks.showWeeks || undefined}
-            style={{ "--days": range.days, gridTemplateRows: `var(--roadmap-axis-h) repeat(${laneCount}, auto)` }}
+            data-zoom={zoom}
+            style={{ "--days": range.days, "--ppd": `${zoomPx}px`, gridTemplateRows: `var(--roadmap-axis-h) repeat(${laneCount}, auto)` }}
             role="group"
             aria-label="Milestone timeline"
           >
-            <div className={styles.corner} data-roadmap-corner>Workstream</div>
+            <div className={styles.corner} data-roadmap-corner aria-hidden="true" />
             <div ref={axisRef} className={styles.axis} aria-hidden="true">
+              {ticks.quarters.length > 0 && (
+                <div className={styles.quarters}>
+                  {ticks.quarters.map((q) => (
+                    <span
+                      key={q.key}
+                      className={styles.quarter}
+                      style={{ left: pct(q.startDay), width: `${((q.endDay - q.startDay + 1) / range.days) * 100}%` }}
+                    >
+                      {q.label}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className={styles.months}>
                 {ticks.months.map((m) => (
                   <span
@@ -119,6 +161,9 @@ export default function RoadmapGantt({
             </div>
 
             <div className={styles.overlay} style={{ gridRow: `1 / span ${laneCount + 1}` }} aria-hidden="true">
+              {ticks.weekends.map((day) => (
+                <i key={`we-${day}`} className={styles.weekend} style={{ left: pct(day), width: `${100 / range.days}%` }} />
+              ))}
               {ticks.lines.map((l) => (
                 <i key={`${l.kind}-${l.day}`} className={styles.line} data-kind={l.kind} style={{ left: pct(l.day) }} />
               ))}
@@ -159,8 +204,10 @@ export default function RoadmapGantt({
                   <div
                     className={styles.track}
                     style={{ gridRow: row, gridColumn: 2, "--rows": rowCount }}
+                    data-addable={onAddAt ? "" : undefined}
                     role="group"
                     aria-labelledby={labelId}
+                    onClick={(event) => handleTrackClick(event, lane)}
                   >
                     {items.length === 0 && <span className={styles.empty}>No dated milestones</span>}
                     {items.map((item) => (

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   MIN_PX_PER_DAY,
+  ZOOMS,
+  pxPerDayFor,
   barSpan,
   buildTicks,
   computeRange,
@@ -148,6 +150,37 @@ describe("buildTicks", () => {
   });
 });
 
+describe("zoom", () => {
+  it("has a day width per zoom, widest for weeks", () => {
+    expect(pxPerDayFor("week")).toBeGreaterThan(pxPerDayFor("month"));
+    expect(pxPerDayFor("month")).toBeGreaterThan(pxPerDayFor("quarter"));
+    expect(pxPerDayFor("nope")).toBe(ZOOMS.month);
+  });
+
+  it("week zoom forces week ticks and shades weekends, even on a long span", () => {
+    const { showWeeks, weekends, quarters } = buildTicks(range("2026-01-01", "2026-12-31"), "week");
+    expect(showWeeks).toBe(true);
+    expect(weekends.length).toBeGreaterThan(100);
+    expect(quarters).toEqual([]);
+  });
+
+  it("month zoom draws months only", () => {
+    const t = buildTicks(range("2026-10-01", "2026-10-31"), "month");
+    expect(t.showWeeks).toBe(false);
+    expect(t.weeks).toEqual([]);
+    expect(t.weekends).toEqual([]);
+  });
+
+  it("quarter zoom adds clipped quarter segments labelled with the year", () => {
+    const { quarters, showWeeks } = buildTicks(range("2026-08-15", "2027-02-10"), "quarter");
+    expect(showWeeks).toBe(false);
+    expect(quarters.map((q) => q.label)).toEqual(["Q3 2026", "Q4 2026", "Q1 2027"]);
+    expect(quarters[0].startDay).toBe(d("2026-08-15"));
+    expect(quarters[0].endDay).toBe(d("2026-09-30"));
+    expect(quarters[2].endDay).toBe(d("2027-02-10"));
+  });
+});
+
 describe("layoutLane", () => {
   const r = range("2026-10-01", "2026-12-31"); // 92 days
   const px = MIN_PX_PER_DAY;
@@ -163,6 +196,12 @@ describe("layoutLane", () => {
     const { items } = layoutLane([item("a", null, "2026-10-10")], r, px);
     expect(items[0].kind).toBe("marker");
     expect(items[0].center).toBeCloseTo(dayCenterPercent(d("2026-10-10"), r));
+  });
+
+  it("anchors a marker pill's left tip on its due day", () => {
+    const { items } = layoutLane([item("a", null, "2026-10-10")], r, px);
+    const centerPx = (items[0].center / 100) * r.days * px;
+    expect(items[0].leftPx).toBeCloseTo(centerPx - 8);
   });
 
   it("treats a single day bar as a marker", () => {
