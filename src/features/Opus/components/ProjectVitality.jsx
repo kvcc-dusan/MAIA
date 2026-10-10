@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from "../../../context/DataContext";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/arc/badge/badge.jsx";
 
 // Internal hook — not exported: react-refresh requires components-only
 // exports from component files.
@@ -41,7 +41,7 @@ function useProjectVitality(project) {
         // State: COLD (Default / Start)
         // If no activity ever, it's Cold (User request: "When I create project it is called cold")
         if (timestamps.length === 0) {
-            return { status: 'Cold', color: 'text-muted-foreground', bg: 'bg-muted-foreground' };
+            return { status: 'Cold', tone: 'neutral' };
         }
 
         const lastActive = Math.max(...timestamps);
@@ -49,12 +49,12 @@ function useProjectVitality(project) {
 
         // State: DORMANT (> 30 days inactivity)
         if (diffDays > 30) {
-            return { status: 'Dormant', color: 'text-faint-foreground', bg: 'bg-faint-foreground' };
+            return { status: 'Dormant', tone: 'neutral' };
         }
 
         // State: COLD (> 10 days inactivity)
         if (diffDays > 10) {
-            return { status: 'Cold', color: 'text-muted-foreground', bg: 'bg-muted-foreground' };
+            return { status: 'Cold', tone: 'neutral' };
         }
 
         // State: HIGH TEMPO (Active > 3 days)
@@ -68,31 +68,17 @@ function useProjectVitality(project) {
             });
 
         if (recentActivityDays.length >= 3) {
-            return { status: 'High Tempo', color: 'text-orange-500', bg: 'bg-orange-500', animate: true };
+            return { status: 'High tempo', tone: 'info' };
         }
 
         // State: ACTIVE (Default if activity < 10 days ago but not high tempo)
-        return { status: 'Active', color: 'text-success', bg: 'bg-success' };
+        return { status: 'Active', tone: 'success' };
 
     }, [project, tasks, sessions]);
 }
 
 export default function ProjectVitality({ project }) {
-    const { status, color, bg, animate } = useProjectVitality(project);
-
-    return (
-        <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-overlay-subtle border border-border-subtle backdrop-blur-xs">
-            <span className={cn(
-                "w-2 h-2 rounded-full",
-                bg,
-                animate && "animate-pulse shadow-[0_0_8px_currentColor]"
-            )} />
-            <span className={cn(
-                "text-xs font-bold uppercase tracking-wider",
-                color
-            )}>
-                {status}
-            </span>
-        </div>
-    );
+    const { status, tone } = useProjectVitality(project);
+    // The label carries the meaning; tone is only a cue (rules: status never by color alone).
+    return <Badge tone={tone} size="sm">{status}</Badge>;
 }

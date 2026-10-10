@@ -56,6 +56,7 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
 
   return (
     <EntityForm
+      inPanel
       title={isEditing ? "Edit question" : "New question"}
       onCancel={onCancel}
       onSubmit={handleSubmit}

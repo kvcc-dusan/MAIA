@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { useData } from "../../../context/DataContext";
-import { Fire03 as Zap } from "../../../components/ui/CustomIcon.jsx";
-import { cn } from "@/lib/utils";
+import { Zap } from "lucide-react";
 
 /**
  * ActivitySummary — Compact project stats replacing full heatmap
@@ -49,24 +48,16 @@ export default function ActivitySummary({ project }) {
         return { lastActionLabel, last7d, trend };
     }, [tasks, sessions, project.id]);
 
-    const trendConfig = {
-        increasing: { label: '↑', color: 'text-success' },
-        stable: { label: '→', color: 'text-subtle-foreground' },
-        declining: { label: '↓', color: 'text-destructive' },
-    };
-
-    const { color: trendColor } = trendConfig[stats.trend];
+    const trendLabel = { increasing: 'Rising', stable: 'Steady', declining: 'Falling' }[stats.trend];
 
     return (
-        <div className="flex items-center gap-4 text-xs text-subtle-foreground">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-                <Zap size={10} className="text-faint-foreground" />
+                <Zap size={12} strokeWidth={1.75} aria-hidden="true" />
                 {stats.lastActionLabel}
             </span>
-            <span>{stats.last7d} / 7d</span>
-            <span className={cn("font-bold", trendColor)}>
-                {trendConfig[stats.trend].label}
-            </span>
+            <span>{stats.last7d} in 7 days</span>
+            <span>{trendLabel}</span>
         </div>
     );
 }

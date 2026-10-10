@@ -14,8 +14,11 @@ import styles from "./EntityForm.module.css";
  * Actions live in one footer row: Cancel (secondary) left of the primary
  * submit, the old top-corner Cancel link read as an exit, not an action, and
  * fought the dialog's close affordance for the corner.
+ *
+ * `inPanel` drops the heading and the outer padding for forms that live in a
+ * SidePanel, which supplies both.
  */
-function EntityForm({ title, onCancel, onSubmit, submitLabel, children }) {
+function EntityForm({ title, onCancel, onSubmit, submitLabel, children, inPanel = false }) {
   return (
     <div className={`${styles.scroller} custom-scrollbar`}>
       <form
@@ -23,9 +26,10 @@ function EntityForm({ title, onCancel, onSubmit, submitLabel, children }) {
           e.preventDefault();
           onSubmit();
         }}
-        className={styles.form}
+        className={inPanel ? `${styles.form} ${styles.inPanel}` : styles.form}
       >
-        <h2 className={styles.title}>{title}</h2>
+        {/* Inside a SidePanel the panel already shows the title and pads the body. */}
+        {inPanel ? null : <h2 className={styles.title}>{title}</h2>}
 
         <div className={styles.fields}>{children}</div>
 

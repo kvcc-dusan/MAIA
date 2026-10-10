@@ -58,6 +58,7 @@ export default function DecisionForm({ decision, workstreams, today, onSave, onC
 
   return (
     <EntityForm
+      inPanel
       title={isEditing ? "Edit decision" : "New decision"}
       onCancel={onCancel}
       onSubmit={handleSubmit}

@@ -74,7 +74,7 @@ describe("filters", () => {
 describe("workstreamColor", () => {
   it("maps series colors", () => {
     expect(workstreamColor({ color: "2" })).toBe("var(--series-2)");
-    expect(workstreamColor({ color: "#fff" })).toBe("var(--text-muted)");
+    expect(workstreamColor({ color: "not-a-token" })).toBe("var(--text-muted)");
     expect(workstreamColor(null)).toBe("var(--text-muted)");
   });
 });
