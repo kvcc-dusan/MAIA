@@ -1,145 +1,205 @@
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import {
+  ArrowLeft,
+  ArrowRight,
   BookOpen,
   Clock,
   FolderKanban,
+  Monitor,
+  Moon,
   Network,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
+  Sun,
   Wallet,
 } from "lucide-react";
-import { AppShell } from "@/components/arc/app-shell/app-shell";
-import { Button } from "@/components/arc/button/button";
-import { ThemeSwitch } from "@/components/arc/theme-switch/theme-switch";
+import { IconButton } from "@/components/composed/IconButton";
 import { getTheme, resolveTheme, setTheme, subscribe } from "@/lib/theme";
+import { isTauri } from "@/lib/vault";
+import { RailButton } from "./RailButton";
+import { ShellProvider } from "./ShellContext";
 import styles from "./MaiaShell.module.css";
 
-const RAIL_KEY = "maia.shell.rail";
+const SIDEBAR_KEY = "maia.shell.sidebar";
+const NARROW_QUERY = "(max-width: 720px)";
 
-const readRail = () => {
+const readSidebarOpen = () => {
   try {
-    return localStorage.getItem(RAIL_KEY) === "1";
+    const stored = localStorage.getItem(SIDEBAR_KEY);
+    if (stored !== null) return stored === "1";
   } catch {
-    return false;
+    // storage blocked: fall through to the default
   }
+  // On a narrow window the sidebar would cover the page, so it starts closed.
+  return !(typeof window !== "undefined" && window.matchMedia?.(NARROW_QUERY).matches);
 };
 
-const writeRail = (collapsed) => {
+const writeSidebarOpen = (open) => {
   try {
-    localStorage.setItem(RAIL_KEY, collapsed ? "1" : "0");
+    localStorage.setItem(SIDEBAR_KEY, open ? "1" : "0");
   } catch {
     // storage blocked: the choice lasts for this session only
   }
 };
 
 // Pages are routes; "chronos" and "search" are actions that open overlays.
-const GROUPS = [
-  {
-    id: "pages",
-    items: [
-      { id: "projects", label: "Opus", icon: FolderKanban },
-      { id: "overview", label: "Codex", icon: BookOpen },
-      { id: "graph", label: "Conexa", icon: Network },
-      { id: "ledgerPage", label: "Ledger", icon: Wallet },
-    ],
-  },
-  {
-    id: "tools",
-    items: [
-      { id: "chronos", label: "Chronos", icon: Clock },
-      { id: "search", label: "Search", icon: Search, badge: "⌘K" },
-    ],
-  },
+const PAGES = [
+  { id: "projects", label: "Opus", icon: FolderKanban },
+  { id: "codex", label: "Codex", icon: BookOpen },
+  { id: "graph", label: "Conexa", icon: Network },
+  { id: "ledgerPage", label: "Ledger", icon: Wallet },
 ];
 
 const PAGE_TITLES = {
   projects: "Opus",
-  overview: "Codex",
+  codex: "Codex",
   graph: "Conexa",
   ledgerPage: "Ledger",
-  editor: "Note",
 };
 
-// The editor has no nav item of its own: it lives under Codex.
-const NAV_FOR_PAGE = { editor: "overview" };
+const THEME_ICONS = { system: Monitor, light: Sun, dark: Moon };
+const THEME_ORDER = ["light", "dark", "system"];
 
-const ThemeFooter = ({ rail }) => {
+// macOS draws its traffic lights over our top bar when the title bar is an overlay.
+const hasTrafficLights = () =>
+  isTauri() && typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
+
+const ThemeButton = () => {
   const mode = useSyncExternalStore(subscribe, getTheme, () => "system");
-  const resolved = resolveTheme(mode);
-
+  const next = THEME_ORDER[(THEME_ORDER.indexOf(mode) + 1) % THEME_ORDER.length];
   return (
-    <div className={styles.footer} data-rail={rail || undefined}>
-      <ThemeSwitch
-        theme={resolved}
-        iconOnly={rail}
-        label={`Switch to ${resolved === "dark" ? "light" : "dark"} mode`}
-        onThemeChange={(next) => setTheme(next)}
-      />
-      {!rail && (
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-pressed={mode === "system"}
-          onClick={() => setTheme("system")}
-        >
-          {mode === "system" ? "Following system" : "Follow system"}
-        </Button>
-      )}
-    </div>
+    <RailButton
+      icon={THEME_ICONS[mode]}
+      label={`Theme: ${mode}`}
+      hint={`Theme: ${mode} (showing ${resolveTheme(mode)}). Switch to ${next}`}
+      onClick={() => setTheme(next)}
+    />
   );
 };
 
-const Brand = ({ rail }) => (
-  <span aria-label="MAIA">{rail ? "M" : "MAIA"}</span>
-);
-
 /**
- * App chrome: Arc's sidebar shell in place of the floating dock.
- * Navigation state stays in App; this only maps nav ids to callbacks.
+ * App chrome, laid out like Obsidian: a top bar across the whole window (traffic
+ * lights, sidebar toggle, back and forward, then the page's own strip), a slim
+ * icon rail, an optional secondary sidebar a page fills through ShellSidebar,
+ * and the page itself. Navigation state stays in App.
  */
 export const MaiaShell = ({
   currentPage,
   onNavigate,
   onOpenChronos,
   onToggleSearch,
+  history,
   children,
 }) => {
-  const [collapsed, setCollapsed] = useState(readRail);
+  const [sidebarOpen, setSidebarOpen] = useState(readSidebarOpen);
+  const [sidebarEl, setSidebarEl] = useState(null);
+  const [topBarEl, setTopBarEl] = useState(null);
+  const [sidebarCount, setSidebarCount] = useState(0);
+  const hasSidebar = sidebarCount > 0;
 
-  const handleCollapsedChange = useCallback((next) => {
-    setCollapsed(next);
-    writeRail(next);
+  const registerSidebar = useCallback(() => {
+    setSidebarCount((n) => n + 1);
+    return () => setSidebarCount((n) => n - 1);
   }, []);
 
-  const handleNavigate = useCallback(
-    (id) => {
-      if (id === "chronos") onOpenChronos();
-      else if (id === "search") onToggleSearch();
-      else onNavigate(id);
-    },
-    [onNavigate, onOpenChronos, onToggleSearch]
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((open) => {
+      writeSidebarOpen(!open);
+      return !open;
+    });
+  }, []);
+
+  const shell = useMemo(
+    () => ({ sidebarEl, topBarEl, registerSidebar }),
+    [sidebarEl, topBarEl, registerSidebar]
   );
 
-  // An open modal doesn't take over the highlight: the page underneath stays
-  // the active destination.
-  const activeId = useMemo(
-    () => NAV_FOR_PAGE[currentPage] ?? currentPage,
-    [currentPage]
-  );
+  const title = PAGE_TITLES[currentPage] ?? "MAIA";
+  const showSidebar = hasSidebar && sidebarOpen;
+  const ToggleIcon = sidebarOpen ? PanelLeftClose : PanelLeftOpen;
 
   return (
-    <div className={styles.frame}>
-      <AppShell
-        brand={Brand}
-        groups={GROUPS}
-        activeId={activeId}
-        onNavigate={handleNavigate}
-        title={PAGE_TITLES[currentPage] ?? "MAIA"}
-        footer={ThemeFooter}
-        collapsed={collapsed}
-        onCollapsedChange={handleCollapsedChange}
-      >
-        {children}
-      </AppShell>
-    </div>
+    <ShellProvider value={shell}>
+      <div className={styles.frame} data-lights={hasTrafficLights() || undefined}>
+        <header className={styles.topBar} data-tauri-drag-region>
+          <div className={styles.lights} data-tauri-drag-region aria-hidden="true" />
+          <div className={styles.controls}>
+            {hasSidebar && (
+              <IconButton
+                icon={ToggleIcon}
+                label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+                aria-expanded={sidebarOpen}
+                side="bottom"
+                onClick={toggleSidebar}
+              />
+            )}
+            <IconButton
+              icon={ArrowLeft}
+              label="Back"
+              side="bottom"
+              disabled={!history.canBack}
+              onClick={history.back}
+            />
+            <IconButton
+              icon={ArrowRight}
+              label="Forward"
+              side="bottom"
+              disabled={!history.canForward}
+              onClick={history.forward}
+            />
+          </div>
+          <div className={styles.topBarSlot} ref={setTopBarEl} data-tauri-drag-region />
+          {currentPage !== "codex" && (
+            <span className={styles.pageTitle} data-tauri-drag-region>
+              {title}
+            </span>
+          )}
+        </header>
+
+        <div className={styles.body}>
+          <nav className={styles.rail} aria-label="Primary">
+            <div className={styles.railGroup}>
+              {PAGES.map(({ id, label, icon }) => (
+                <RailButton
+                  key={id}
+                  icon={icon}
+                  label={label}
+                  active={currentPage === id}
+                  onClick={() => onNavigate(id)}
+                />
+              ))}
+            </div>
+            <div className={styles.railGroup} data-divided>
+              <RailButton icon={Clock} label="Chronos" onClick={onOpenChronos} />
+              <RailButton
+                icon={Search}
+                label="Search"
+                hint="Search ⌘K"
+                shortcut="Meta+K Control+K"
+                onClick={onToggleSearch}
+              />
+            </div>
+            <div className={styles.railFooter}>
+              <ThemeButton />
+            </div>
+          </nav>
+
+          <aside
+            className={styles.sidebar}
+            data-open={showSidebar || undefined}
+            aria-label="Sidebar"
+            inert={showSidebar ? undefined : true}
+          >
+            <div className={styles.sidebarInner} ref={setSidebarEl} />
+          </aside>
+
+          <main className={styles.content}>
+            <h1 className="sr-only">{title}</h1>
+            {children}
+          </main>
+        </div>
+      </div>
+    </ShellProvider>
   );
 };

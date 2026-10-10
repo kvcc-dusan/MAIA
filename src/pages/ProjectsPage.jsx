@@ -1,46 +1,18 @@
 // @maia:projects
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { FolderKanban, PanelLeftOpen, Plus } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { FolderKanban } from "lucide-react";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";
-import { SidePanel } from "@/components/composed/SidePanel";
-import { SectionLabel } from "@/components/composed/SectionBits";
 import { Button } from "@/components/arc/button/button";
-import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
+import { ShellSidebar } from "@/components/shell/ShellContext";
 import { uid } from "../lib/ids.js";
 import CreateProjectModal from "../components/CreateProjectModal";
 import IconPicker from "../components/projectIcon/IconPicker";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
-import ProjectList from "../features/Opus/components/ProjectList";
 import ProjectSidebar from "../features/Opus/components/ProjectSidebar";
 import { normalizeProject } from "../features/Opus/lib/projectModel.js";
 import { useData } from "../context/DataContext";
 import styles from "./ProjectsPage.module.css";
-
-const SIDEBAR_COLLAPSED_KEY = "opus_sidebar_collapsed";
-
-// "Done" is stored; the UI calls it Archived.
-const STATUS_OPTIONS = [
-  { value: "Active", label: "Active" },
-  { value: "Paused", label: "Paused" },
-  { value: "Done", label: "Archived" },
-];
-
-const readCollapsed = () => {
-  try {
-    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-};
-
-const writeCollapsed = (isCollapsed) => {
-  try {
-    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isCollapsed));
-  } catch {
-    // storage blocked: the choice lasts for this session only
-  }
-};
 
 /* -----------------------------------------
    Helpers
@@ -66,19 +38,15 @@ export default function Projects({
   projects,
   setProjects,
   selectNote,
-  targetProjectId,
+  activeProjectId,
+  onSelectProject,
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
   const { updateProject, deleteProject: deleteProjectCascade } = useData();
-  const [activeId, setActiveId] = useState(null);
-
-  // Sync targetProjectId from parent if provided
-  useEffect(() => {
-    if (targetProjectId) {
-      setActiveId(targetProjectId);
-    }
-  }, [targetProjectId]);
+  // The selection lives in App so back/forward and the palette can drive it.
+  const activeId = activeProjectId;
+  const setActiveId = onSelectProject;
 
   // Use lifted state if provided
   const [localModalOpen, setLocalModalOpen] = useState(false);
@@ -88,12 +56,12 @@ export default function Projects({
   // Normalize projects
   const normalizedProjects = useMemo(() => projects.map(withDefaults), [projects]);
 
-  // Set initial active project
+  // Nothing selected, or the selected project is gone: land on the first one.
   useEffect(() => {
-    if (!activeId && normalizedProjects.length > 0 && !targetProjectId) {
+    if (normalizedProjects.length > 0 && !normalizedProjects.some((p) => p.id === activeId)) {
       setActiveId(normalizedProjects[0].id);
     }
-  }, [normalizedProjects, activeId, targetProjectId]);
+  }, [normalizedProjects, activeId, setActiveId]);
 
   const activeProject = useMemo(
     () => normalizedProjects.find((p) => p.id === activeId) || null,
@@ -143,30 +111,15 @@ export default function Projects({
   const activeList = normalizedProjects.filter((p) => p.status === "Active");
   const otherList = normalizedProjects.filter((p) => p.status !== "Active");
 
-  const [isCollapsed, setIsCollapsed] = useState(readCollapsed);
-
-  const toggleCollapse = () => {
-    const next = !isCollapsed;
-    setIsCollapsed(next);
-    writeCollapsed(next);
-  };
-
-  // Below 768px the list opens in a drawer instead of a sidebar.
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const closeMobile = useCallback(() => setMobileOpen(false), []);
-
   const openCreateModal = () => setIsModalOpen(true);
-  const createFromDrawer = () => {
-    closeMobile();
-    openCreateModal();
-  };
 
   const listProps = {
     activeList,
     otherList,
     activeId,
     renamingId,
-    onSelect: (id) => { setActiveId(id); closeMobile(); },
+    onSelect: setActiveId,
+    onSetStatus: (id, status) => updateProject(id, { status }),
     onStartRename: setRenamingId,
     onCommitRename: commitRename,
     onCancelRename: () => setRenamingId(null),
@@ -178,71 +131,29 @@ export default function Projects({
 
   return (
     <div className={styles.page}>
-      <ProjectSidebar
-        isCollapsed={isCollapsed}
-        onToggleCollapse={toggleCollapse}
-        onCreate={openCreateModal}
-        {...listProps}
-      />
+      <ShellSidebar>
+        <ProjectSidebar onCreate={openCreateModal} {...listProps} />
+      </ShellSidebar>
 
-      <div className={styles.main}>
-        {/* Mobile project switcher: inside the content area, not a fixed overlay */}
-        <div className={styles.mobileBar}>
-          <Button variant="secondary" aria-haspopup="dialog" onClick={() => setMobileOpen(true)}>
-            <PanelLeftOpen size={16} strokeWidth={1.75} aria-hidden="true" />
-            Projects
-          </Button>
-        </div>
-
-        <div className={styles.scroll}>
-          {activeProject ? (
-            <OpusLayout
-              key={activeProject.id} // Re-mount on switch to reset local states if any
-              projectId={activeProject.id}
-              selectNote={selectNote}
+      <div className={styles.scroll}>
+        {activeProject ? (
+          <OpusLayout
+            key={activeProject.id} // Re-mount on switch to reset local states if any
+            projectId={activeProject.id}
+            selectNote={selectNote}
+          />
+        ) : (
+          <div className={styles.empty}>
+            <EmptyState
+              size="page"
+              icon={FolderKanban}
+              title="No projects yet"
+              description="Create a project to start tracking its tasks, milestones and notes."
+              action={<Button onClick={openCreateModal}>New project</Button>}
             />
-          ) : (
-            <div className={styles.empty}>
-              <EmptyState
-                size="page"
-                icon={FolderKanban}
-                title={normalizedProjects.length ? "No project selected" : "No projects yet"}
-                description={
-                  normalizedProjects.length
-                    ? "Pick a project from the list to see its tasks, milestones and notes."
-                    : "Create a project to start tracking its tasks, milestones and notes."
-                }
-                action={<Button onClick={openCreateModal}>New project</Button>}
-              />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-
-      <SidePanel open={mobileOpen} onClose={closeMobile} side="left" title="Projects">
-        <div className={styles.drawerBody}>
-          <Button variant="secondary" onClick={createFromDrawer}>
-            <Plus size={16} strokeWidth={1.75} aria-hidden="true" />
-            New project
-          </Button>
-          <ProjectList {...listProps} onCreate={createFromDrawer} />
-
-          {activeProject && (
-            <section className={styles.manage}>
-              <SectionLabel as="h3">Manage {activeProject.name}</SectionLabel>
-              <SegmentedControl
-                label="Project status"
-                options={STATUS_OPTIONS}
-                value={activeProject.status}
-                onValueChange={(status) => { updateProject(activeId, { status }); closeMobile(); }}
-              />
-              <Button variant="danger" onClick={() => { requestDelete(activeId); closeMobile(); }}>
-                Delete project
-              </Button>
-            </section>
-          )}
-        </div>
-      </SidePanel>
 
       <CreateProjectModal
         isOpen={isModalOpen}

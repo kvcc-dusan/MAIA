@@ -9,6 +9,9 @@ import { isTauri as isTauriRuntime } from "./lib/vault.js";
 
 // Components
 import { MaiaShell } from "./components/shell/MaiaShell.jsx";
+import { ShellSidebar } from "./components/shell/ShellContext.jsx";
+import NotesSidebar from "./features/Codex/components/NotesSidebar.jsx";
+import { useNavHistory } from "./hooks/useNavHistory.js";
 
 import ChronosModal from "./features/Chronos/ChronosModal.jsx";
 import CommandPalette from "./components/CommandPalette.jsx";
@@ -66,7 +69,12 @@ function AppContent() {
     if (id) localStorage.setItem("maia_current_note_id", id);
     else localStorage.removeItem("maia_current_note_id");
   }, []);
-  const [targetProjectId, setTargetProjectId] = useState(null);
+  const [activeProjectId, _setActiveProjectId] = useState(() => localStorage.getItem("maia_current_project") || null);
+  const setActiveProjectId = useCallback((id) => {
+    _setActiveProjectId(id);
+    if (id) localStorage.setItem("maia_current_project", id);
+    else localStorage.removeItem("maia_current_project");
+  }, []);
   const [search] = useState("");
 
 
@@ -167,13 +175,13 @@ function AppContent() {
   ----------------------------------------- */
   const selectItem = useCallback((id, type = "note") => {
     if (type === "project") {
-      setTargetProjectId(id);
+      setActiveProjectId(id);
       setCurrentPage("projects");
     } else {
       setCurrentNoteId(id);
       setCurrentPage("editor");
     }
-  }, []);
+  }, [setActiveProjectId]);
 
   const openInternalByTitle = useCallback((title) => {
     const norm = (s) => (s || "").trim().toLowerCase();
@@ -203,7 +211,32 @@ function AppContent() {
   }, [createNote]);
 
   // Handlers for shell/modals
-  const handleNavigate = useCallback((page) => setCurrentPage(page), []);
+  // Codex is one rail item over two internal pages (the notes view and the editor).
+  const isCodexPage = currentPage === "overview" || currentPage === "editor";
+  const handleNavigate = useCallback(
+    (page) => setCurrentPage((current) => {
+      if (page !== "codex") return page;
+      return current === "overview" || current === "editor" ? current : "overview";
+    }),
+    []
+  );
+
+  // Opus picks its first project a render after it opens; don't record that gap.
+  const opusResolving = currentPage === "projects" && !activeProjectId && projects.length > 0;
+  const history = useNavHistory(
+    opusResolving
+      ? null
+      : {
+          page: currentPage,
+          projectId: currentPage === "projects" ? activeProjectId : null,
+          noteId: currentPage === "editor" ? currentNoteId : null,
+        },
+    useCallback((loc) => {
+      setCurrentPage(loc.page);
+      if (loc.projectId) setActiveProjectId(loc.projectId);
+      if (loc.noteId) setCurrentNoteId(loc.noteId);
+    }, [setActiveProjectId, setCurrentNoteId])
+  );
   const handleToggleSearch = useCallback(() => setCmdOpen((prev) => !prev), []);
 
   const handleOpenPulse = useCallback(() => setChronosOpen(true), []);
@@ -260,11 +293,23 @@ function AppContent() {
       <VaultSetup />
 
       <MaiaShell
-        currentPage={currentPage}
+        currentPage={isCodexPage ? "codex" : currentPage}
         onNavigate={handleNavigate}
         onOpenChronos={handleOpenPulse}
         onToggleSearch={handleToggleSearch}
+        history={history}
       >
+        {isCodexPage && (
+          <ShellSidebar>
+            <NotesSidebar
+              notes={notes}
+              currentNoteId={currentPage === "editor" ? currentNoteId : null}
+              onOpenNote={selectItem}
+              onCreateNote={handleCreateNote}
+              onCreateJournal={handleCreateJournal}
+            />
+          </ShellSidebar>
+        )}
         <GlassErrorBoundary>
           <React.Suspense fallback={<GlassSkeleton />}>
 
@@ -290,7 +335,8 @@ function AppContent() {
                 setProjects={setProjects}
                 setNotes={setNotes}
                 selectNote={selectItem}
-                targetProjectId={targetProjectId}
+                activeProjectId={activeProjectId}
+                onSelectProject={setActiveProjectId}
                 isCreateModalOpen={projectModalOpen}
                 setCreateModalOpen={setProjectModalOpen}
               />

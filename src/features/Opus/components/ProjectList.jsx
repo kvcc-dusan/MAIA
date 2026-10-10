@@ -16,12 +16,22 @@ const DROPDOWN_PARTS = { Item: Menu.Item, Separator: Menu.Separator, DangerItem:
 const CONTEXT_PARTS = { Item: Menu.ContextItem, Separator: Menu.ContextSeparator, DangerItem: ContextDangerItem };
 
 // Right-click and the row's actions button offer the same three actions.
-function ProjectMenuItems({ parts, onRename, onEditIcon, onDelete }) {
+const STATUS_ACTIONS = [
+  { status: "Active", label: "Mark active" },
+  { status: "Paused", label: "Pause" },
+  { status: "Done", label: "Archive" },
+];
+
+function ProjectMenuItems({ parts, status, onRename, onEditIcon, onSetStatus, onDelete }) {
   const { Item, Separator, DangerItem } = parts;
   return (
     <>
       <Item onClick={onRename}><Pencil size={16} strokeWidth={1.75} aria-hidden="true" />Rename</Item>
       <Item onClick={onEditIcon}><Shapes size={16} strokeWidth={1.75} aria-hidden="true" />Edit icon</Item>
+      <Separator />
+      {STATUS_ACTIONS.filter((a) => a.status !== status).map((a) => (
+        <Item key={a.status} onClick={() => onSetStatus(a.status)}>{a.label}</Item>
+      ))}
       <Separator />
       <DangerItem onClick={onDelete}><Trash2 size={16} strokeWidth={1.75} aria-hidden="true" />Delete project</DangerItem>
     </>
@@ -64,7 +74,7 @@ function RenameInput({ initialValue, onCommit, onCancel }) {
 }
 
 function ProjectRow({ project, isActive, isRail, isRenaming, handlers }) {
-  const { onSelect, onStartRename, onCommitRename, onCancelRename, onEditIcon, onDelete } = handlers;
+  const { onSelect, onStartRename, onCommitRename, onCancelRename, onEditIcon, onSetStatus, onDelete } = handlers;
   const selectRef = useRef(null);
   const wasRenaming = useRef(false);
 
@@ -78,6 +88,8 @@ function ProjectRow({ project, isActive, isRail, isRenaming, handlers }) {
   const menuActions = {
     onRename: () => onStartRename(project.id),
     onEditIcon: () => onEditIcon(project.id),
+    onSetStatus: (status) => onSetStatus(project.id, status),
+    status: project.status,
     onDelete: () => onDelete(project.id),
   };
 

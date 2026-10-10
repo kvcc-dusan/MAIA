@@ -1,14 +1,115 @@
 /*
- * MAIA's pages are viewport-filling panes that scroll themselves (h-full +
- * their own overflow), not a document that scrolls. Arc's shell assumes the
- * latter, so this frame pins it to the viewport and strips the main padding.
- * Layout only; selectors are structural because AppShell takes no className.
+ * App chrome. The structure follows Obsidian: one top bar across the window,
+ * a slim icon rail under it, a secondary sidebar, then the page. Every line is
+ * a 1px hairline, so the regions read as one frame.
  */
-.frame { height: calc(var(--vh, 1vh) * 100); }
-.frame > div { height: 100%; min-height: 0; }
-.frame > div > div:last-child { height: 100%; min-height: 0; overflow: hidden; }
-.frame > div > div:last-child > main { position: relative; min-height: 0; padding: 0; overflow: hidden; }
+.frame {
+  --shell-top: var(--control-height-md);
+  --shell-rail: 48px;
+  --shell-sidebar: 264px;
+  display: grid;
+  grid-template-rows: var(--shell-top) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
 
-.footer { display: grid; gap: var(--space-2); justify-items: start; }
-.footer[data-rail] { justify-items: center; }
-.footerRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; }
+/* ---- top bar ---------------------------------------------------------- */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-inline: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Room for the macOS traffic lights, which sit over the bar in the Tauri window. */
+.lights { flex: none; width: 0; align-self: stretch; }
+.frame[data-lights] .lights { width: 78px; }
+
+.controls { display: flex; flex: none; align-items: center; gap: var(--space-1); }
+
+.topBarSlot { display: flex; flex: 1 1 auto; align-self: stretch; align-items: stretch; min-width: 0; }
+
+.pageTitle {
+  flex: none;
+  margin-inline: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* ---- body: rail | sidebar | content ------------------------------------ */
+
+.body {
+  position: relative;
+  display: flex;
+  min-height: 0;
+}
+
+.rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: var(--shell-rail);
+  padding-block: var(--space-2);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.railGroup { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.railGroup[data-divided] {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+.railFooter { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: flex-end; }
+
+.railButton {
+  display: grid;
+  place-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.railButton:hover { background: var(--surface-muted); color: var(--foreground); }
+.railButton[data-active] { background: var(--surface-muted); color: var(--foreground); }
+
+.sidebar {
+  flex: none;
+  width: 0;
+  overflow: hidden;
+  border-right: 0 solid var(--border-subtle);
+  transition: width var(--duration-spring) var(--ease-spring);
+}
+.sidebar[data-open] { width: var(--shell-sidebar); border-right-width: 1px; }
+.sidebarInner { display: flex; flex-direction: column; width: var(--shell-sidebar); height: 100%; min-height: 0; }
+
+/* The page fills the rest and scrolls itself. */
+.content { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; }
+
+@media (pointer: coarse) {
+  .frame { --shell-rail: 56px; }
+  .railButton { width: var(--control-height-md); height: var(--control-height-md); }
+}
+
+/* On a narrow window the sidebar floats over the page instead of squeezing it. */
+@media (max-width: 720px) {
+  .sidebar { position: absolute; z-index: var(--z-drawer, 30); inset-block: 0; left: var(--shell-rail); background: var(--surface-raised); }
+  .sidebar[data-open] { box-shadow: var(--shadow-floating); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .railButton { transition: none; }
+}
