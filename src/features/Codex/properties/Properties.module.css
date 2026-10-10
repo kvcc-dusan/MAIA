@@ -1,0 +1,62 @@
+/* The block under the note title. Rows sit on hairlines, no cards. */
+.panel { margin: 0 0 var(--space-6); color: var(--foreground); font-size: var(--text-sm); }
+
+.head { display: flex; align-items: center; gap: var(--space-2); margin: 0; }
+.headToggle {
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height-md);
+  padding: 0 var(--space-2); margin-left: calc(var(--space-2) * -1); border: 0; border-radius: var(--radius-control);
+  background: transparent; color: var(--text-secondary); font: inherit; font-weight: 500; cursor: pointer;
+}
+.headToggle:hover { background: var(--surface-muted); color: var(--foreground); }
+.chevron { transition: transform var(--duration-fast) var(--ease-standard); }
+.chevron[data-open="true"] { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .chevron { transition: none; } }
+
+.list { display: grid; margin: 0; padding: 0; list-style: none; }
+.row {
+  display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(0, 1fr) auto; align-items: center;
+  column-gap: var(--space-3); min-height: var(--control-height-md); border-bottom: 1px solid var(--border-subtle);
+}
+.row:first-child { border-top: 1px solid var(--border-subtle); }
+.key { display: flex; min-width: 0; align-items: center; gap: var(--space-2); color: var(--text-secondary); }
+.keyIcon { flex: none; color: var(--text-muted); }
+.keyName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.value { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
+.hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); }
+
+.valueButton {
+  display: block; width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-2);
+  border: 0; border-radius: var(--radius-control); background: transparent; color: var(--foreground);
+  font: inherit; text-align: left; overflow-wrap: anywhere; cursor: text;
+}
+.valueButton:hover { background: var(--surface-muted); }
+.empty { color: var(--text-muted); }
+.editor { width: 100%; min-width: 0; }
+.editor label, .srLabel label {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.chips { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-2); }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-1); max-width: 100%;
+  padding: 0 0 0 var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-pill);
+  background: var(--surface-muted); color: var(--foreground); overflow-wrap: anywhere;
+}
+.chipText { padding: var(--space-1) 0; }
+.chipRemove { flex: none; }
+.chipAdd { flex: 1 1 8rem; min-width: 8rem; }
+
+.add { margin-top: var(--space-2); }
+.form {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 14rem); gap: var(--space-3);
+  align-items: start; margin-top: var(--space-3);
+}
+.formActions { display: flex; grid-column: 1 / -1; flex-wrap: wrap; gap: var(--space-2); }
+.notice { margin: var(--space-2) 0 0; color: var(--text-muted); }
+.alert { margin: var(--space-2) 0 0; color: var(--danger); }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 0; padding-bottom: var(--space-2); }
+  .value { grid-column: 1 / -1; grid-row: 2; }
+  .form { grid-template-columns: minmax(0, 1fr); }
+}

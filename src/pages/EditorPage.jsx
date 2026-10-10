@@ -10,6 +10,7 @@ import SyntaxNotice from "../features/Codex/SyntaxNotice.jsx";
 import { checkRoundTrip } from "../editor/roundTripSafe.js";
 import { isTypingElsewhere } from "../editor/isTypingElsewhere.js";
 import { countBacklinks } from "../features/Codex/backlinks.js";
+import { PropertiesPanel, PROPERTY_FIELDS } from "../features/Codex/properties/index.js";
 import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
@@ -77,7 +78,10 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
       savedRef.current = local;
       updateNote(local);
     }
-  }, [local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project], 250);
+  }, [
+    local?.title, local?.content, local?.tags, local?.links, local?.wordCount, local?.charCount, local?.project,
+    local?.kind, local?.status, local?.owner, local?.frontmatterKeys, local?.frontmatterRaw, local?.frontmatterExtra,
+  ], 250);
 
   // The debounce cancels when this editor unmounts, which is what switching tabs
   // does. Flush anything typed in that last window so a quick switch loses nothing.
@@ -102,8 +106,8 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
   );
 
   const handleMetaChange = useCallback((meta) => setLocal((v) => {
-    // 1. Tags: Replace duplicative merging with direct set (fixes #k #ks #ksva bug)
-    const newTags = meta.tags || [];
+    // 1. Tags are the note's `tags` property, edited in the properties panel. Inline #tags in the
+    // body are not copied into it: that wrote them into the user's frontmatter on every edit.
 
     // 2. WikiLinks -> Projects
     // A [[Project Name]] in the body ADDS that project. It must never be the
@@ -126,11 +130,18 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
 
     return {
       ...v, ...meta,
-      tags: newTags,
+      tags: v.tags,
       projectIds: newProjectIds,
       project: newProjectName || null
     };
   }), [projects]);
+
+  // Property edits change a handful of fields; merging only those keeps a body keystroke
+  // that lands in the same frame from being overwritten.
+  const handlePropertiesChange = useCallback((next) => setLocal((v) => ({
+    ...v,
+    ...Object.fromEntries(PROPERTY_FIELDS.filter((f) => Object.hasOwn(next, f)).map((f) => [f, next[f]])),
+  })), []);
 
   if (!note) {
     return (
@@ -189,11 +200,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
               aria-label="Note title"
               className={styles.titleInput}
             />
-            {local.tags?.length > 0 && (
-              <p className={styles.tags}>
-                {local.tags.map((t) => <span key={t}>#{t}</span>)}
-              </p>
-            )}
+            <PropertiesPanel note={local} onChange={handlePropertiesChange} isEditable={editable} />
             {(!roundTrip.safe || isSource) && (
               <SyntaxNotice
                 reasons={roundTrip.reasons}

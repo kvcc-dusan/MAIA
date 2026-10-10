@@ -179,10 +179,11 @@ All of these draw the saved text without changing it: the stored markdown stays 
 | `![[img.png]]`, `\|300`, `\|300x200`, `![alt\|300](rel/path.png)` (desktop only) | Image through the Tauri asset protocol. Bare name: searched in the whole vault, shortest path wins; folder paths: relative to the note, then from the vault root, then as a path tail. Missing: muted dashed chip with the target | `embeds.js`, `embedProvider.js`, `src/lib/vaultFiles.js` |
 | `![[f.pdf]]`, `#page=3`, audio, video, other files | Card with kind, file name and page. Not opened or played: no opener plugin is installed | `embeds.js` |
 | `![[Note]]`, `![[Note#Heading]]`, `![[Note#^id]]` | Read-only bordered card with the note (or the heading section / block) and an "Open note" button. Depth 1: an embed inside an embedded note stays a chip, so cycles cannot happen | `embeds.js`, `src/lib/noteSection.js` |
+| `[[` and `![[` autocomplete | Popup under the caret (flips above when short of room) listing notes by title, folder muted underneath. Prefix and exact matches first, then recent notes; aliases from `aliases` frontmatter match and insert `[[Title\|Alias]]`. `[[Note#` lists that note's headings, `[[Note#^` its block ids, `[[#` the open note's headings; after `\|` nothing. `![[` adds vault images, PDFs, audio and video (desktop only). Inserts the `wikiLink` atom as `[[Target]]`, shortest unambiguous form (`Folder/Title` only when the title repeats), and eats an existing `]]`. Off in code, inline code, unclosed `%%` and `$`, read-only and during IME composition. No "Create note" row: the editor has no side-effect-free create path | `linkSuggest*.js` |
 
 The vault file index lists names only (no contents), skips dot folders, `node_modules` and the root `Opus`, caps at 50000 files, is built on first use and dropped on every vault reload (and rebuilt at most every 10 s when a lookup misses).
 
-Still open for the next stage: `[[` autocomplete. A wikilink atom cannot be edited in place: delete it and type `[[` again.
+A wikilink atom cannot be edited in place: delete it and type `[[` again. Not offered: block ids are only listed for blocks that already have one (Obsidian also writes new ones).
 
 ## 2. Top 10 dangerous round-trip failures
 
@@ -273,6 +274,7 @@ Package weights below are rough gzipped sizes from memory, not measured here. Ch
 | Tags styling and autocomplete | Decorations like the current wikilink one; no schema change (the round trip is already `=`). | none | No | No | S |
 | Typing shortcuts for the above | Input rules: `[[` autocomplete via `@tiptap/suggestion`; `> [!` for callouts; `$..$` for math. | `@tiptap/suggestion` (~3 KB) | n/a | n/a | M |
 | Frontmatter not at byte 0 (BOM, leading blank line) | Make `markdownToNote` tolerate BOM and leading whitespace. This lives in `noteFile.js`, not the editor. | none | n/a | n/a | S |
+| Frontmatter properties (Obsidian 'Properties' block) | Done outside the editor: `frontmatterProps.js` + `features/Codex/properties/`. Typed rows (text, number, checkbox, date, date and time, list, tags, aliases, cssclasses), each edit rewrites only that key's lines. Values it cannot represent (block scalars, maps, comments) stay read-only. Saves keep the file's own keys, order and quoting; no MAIA keys are added to foreign notes. | none | n/a | n/a | Done |
 
 ### Suggested order
 

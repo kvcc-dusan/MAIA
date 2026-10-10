@@ -1,12 +1,16 @@
 import { describe, it, expect } from "vitest";
 import { noteToMarkdown, markdownToNote, slugifyTitle, noteFilename } from "./noteFile.js";
 
+// Read-time bookkeeping the writer uses; not part of what a note "is" in these comparisons.
+const READ_TIME = ["frontmatterKeys", "frontmatterRaw", "frontmatterLayout"];
+const plain = (note) => Object.fromEntries(Object.entries(note).filter(([key]) => !READ_TIME.includes(key)));
+
 const sampleNote = {
   id: "abc1234",
   title: "My Note: a \"test\"",
   content: "# Hello\n\nSome [[wikilink]] body.\n",
   tags: ["journal", "deep work"],
-  links: [],
+  links: ["wikilink"],
   projectIds: ["p1"],
   createdAt: "2026-07-13T10:00:00.000Z",
   project: null,
@@ -16,13 +20,13 @@ describe("noteToMarkdown / markdownToNote round-trip", () => {
   it("preserves all fields and content", () => {
     const md = noteToMarkdown(sampleNote);
     const back = markdownToNote(md);
-    expect(back).toEqual(sampleNote);
+    expect(plain(back)).toEqual(sampleNote);
   });
 
   it("handles empty content and empty arrays", () => {
-    const note = { ...sampleNote, content: "", tags: [], projectIds: [] };
+    const note = { ...sampleNote, content: "", tags: [], projectIds: [], links: [] };
     const back = markdownToNote(noteToMarkdown(note));
-    expect(back).toEqual(note);
+    expect(plain(back)).toEqual(note);
   });
 
   it("preserves content that contains --- lines", () => {
@@ -97,14 +101,15 @@ describe("unknown frontmatter keys", () => {
     expect(note.frontmatterExtra.created).toBe("created: 2026-07-13 10:00");
   });
 
-  it("writes every unknown line back verbatim, after the known keys", () => {
+  it("writes every unknown line back verbatim, in the file's own order", () => {
     const out = noteToMarkdown(markdownToNote(obsidian));
     const fm = out.split("\n---\n")[0].split("\n");
     ["aliases:", "  - Standup", '  - "Daily: sync"', "created: 2026-07-13 10:00",
       "cssclasses: [wide, dim]", "  author:", "    name: Dusan", "summary: |",
       "  line one", "", "  line three", "- zero-indent item", "- other"]
       .forEach((line) => expect(fm).toContain(line));
-    expect(fm.indexOf("aliases:")).toBeGreaterThan(fm.indexOf("tags: [a, b]"));
+    // the file's own key order is kept
+    expect(fm.indexOf("aliases:")).toBeLessThan(fm.indexOf("tags: [a, b]"));
     expect(out.endsWith("Body")).toBe(true);
   });
 
@@ -172,7 +177,7 @@ describe("document fields", () => {
   it("round-trips kind, status, workstreamId and owner", () => {
     const doc = { ...sampleNote, kind: "spec", status: "notStarted", workstreamId: "ws1", owner: "Lea Horvat" };
     const back = markdownToNote(noteToMarkdown(doc));
-    expect(back).toEqual(doc);
+    expect(plain(back)).toEqual(doc);
   });
 
   it("leaves them undefined on a plain note", () => {
@@ -211,5 +216,89 @@ describe("frontmatter that does not start at byte 0", () => {
     const note = markdownToNote(`intro\n---\nid: a\n---\n${body}`);
     expect(note.id).not.toBe("a");
     expect(note.content).toBe(`intro\n---\nid: a\n---\n${body}`);
+  });
+});
+
+describe("minimal footprint: a note read from a file keeps the file's keys", () => {
+  const opts = { fallbackId: "f123", fallbackTitle: "Design System", fallbackCreatedAt: "2025-05-05T00:00:00.000Z" };
+  const edit = (text, patch) => noteToMarkdown({ ...markdownToNote(text, opts), ...patch });
+
+  it("a body-only edit of a note with no frontmatter writes no frontmatter", () => {
+    expect(edit("# Hi\n\nbody", { content: "# Hi\n\nbody more", wordCount: 3, links: [], tags: [] })).toBe("# Hi\n\nbody more");
+  });
+
+  it("writes no id, title, tags, projectIds, links or createdAt into an Obsidian note", () => {
+    const out = edit("---\naliases: [ds]\ncssclasses: wide\n---\nbody", { content: "edited" });
+    expect(out).toBe("---\naliases: [ds]\ncssclasses: wide\n---\nedited");
+  });
+
+  it("a note with only tags and unknown keys keeps exactly those", () => {
+    const src = "---\ntags:\n  - alpha\n  - beta\nreviewed: 2026-01-02\n---\n\nBody\n";
+    const out = edit(src, { content: "Body changed\n" });
+    expect(out).toBe("---\ntags:\n  - alpha\n  - beta\nreviewed: 2026-01-02\n---\n\nBody changed\n");
+  });
+
+  it("round trip of untouched content is byte identical", () => {
+    const sources = [
+      "no frontmatter at all\n",
+      "---\ntags: [a, b]\n---\nbody",
+      "---\n# lead comment\ntitle: 'Quoted: title'\ntags:\n- x\n- y\nrelated:\n  - \"[[Other]]\"\nnested:\n  a: 1\nsummary: |\n  one\n\n  two\n---\n\nText\n",
+      "﻿\n---\r\ntags: [a]\r\nstatus: draft\r\n---\r\n\r\nWindows body\r\n",
+      "---\nid: abc\ntitle: T\ncreatedAt: 2026-01-01\nlinks:\nprojectIds:\n  - p1\n---\nbody",
+    ];
+    sources.forEach((src) => expect(noteToMarkdown(markdownToNote(src, opts))).toBe(src));
+  });
+
+  it("keeps id, title and createdAt for a note that already has them, even when the body changes", () => {
+    const src = "---\nid: abc\ntitle: T\ncreatedAt: 2026-01-01\n---\nbody";
+    expect(edit(src, { content: "new" })).toBe("---\nid: abc\ntitle: T\ncreatedAt: 2026-01-01\n---\nnew");
+  });
+
+  it("does not write title while it equals the file name, and writes it once the user changes it", () => {
+    expect(edit("---\nfoo: 1\n---\nb", { title: "Design System" })).not.toContain("title");
+    expect(edit("---\nfoo: 1\n---\nb", { title: "Design System v2" })).toContain("title: Design System v2");
+  });
+
+  it("writes keys that now carry a value, and leaves the others out", () => {
+    const out = edit("body", { tags: ["x"], owner: "Lea", status: undefined, links: ["A"], projectIds: [] });
+    expect(out).toBe("---\ntags: [x]\nowner: Lea\n---\nbody");
+  });
+
+  it("rewrites only the key whose value changed", () => {
+    const out = edit("---\n# keep\ntags:\n  - a\nstatus: draft\naliases: [x]\n---\nb", { status: "done" });
+    expect(out).toBe("---\n# keep\ntags:\n  - a\nstatus: done\naliases: [x]\n---\nb");
+  });
+
+  it("drops the block when nothing is left", () => {
+    expect(edit("---\nstatus: draft\n---\nb", { status: undefined })).toBe("b");
+  });
+
+  it("derives wikilinks from the body without writing them", () => {
+    const note = markdownToNote("see [[Plan]] and [[Other|alias]]", opts);
+    expect(note.links).toEqual(["Plan", "Other"]);
+    expect(noteToMarkdown(note)).toBe("see [[Plan]] and [[Other|alias]]");
+  });
+
+  it("reads single quoted values", () => {
+    expect(markdownToNote("---\ntitle: 'It''s: fine'\n---\nb").title).toBe("It's: fine");
+  });
+});
+
+describe("a note MAIA created", () => {
+  const created = { id: "n1", title: "Fresh", content: "x", tags: [], links: ["A"], projectIds: [], createdAt: "2026-02-02T00:00:00.000Z" };
+
+  it("gets id, title and createdAt, and nothing empty", () => {
+    expect(noteToMarkdown(created)).toBe('---\nid: n1\ntitle: Fresh\ncreatedAt: "2026-02-02T00:00:00.000Z"\n---\nx');
+  });
+
+  it("adds tags and project ids once they have values", () => {
+    const out = noteToMarkdown({ ...created, tags: ["t"], projectIds: ["p"] });
+    expect(out).toContain("tags: [t]");
+    expect(out).toContain("projectIds: [p]");
+  });
+
+  it("is stable after being read back", () => {
+    const once = noteToMarkdown(created);
+    expect(noteToMarkdown(markdownToNote(once))).toBe(once);
   });
 });

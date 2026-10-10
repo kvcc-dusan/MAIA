@@ -286,19 +286,26 @@ describe("vault.js nested folders", () => {
     expect(first[0].createdAt).toBe("2025-05-05T00:00:00.000Z");
   });
 
-  it("saving an id-less note writes its id and keeps unknown keys and the file name", async () => {
+  it("saving an id-less note keeps the file exactly as it was apart from the body", async () => {
     const { loadNotes, saveNote } = await importVault();
     fsState.files[`${VAULT}/Areas/Design System.md`] = "---\naliases: [ds]\n---\nbody";
     const [note] = await loadNotes(VAULT);
 
     await saveNote(VAULT, { ...note, content: "edited" });
 
-    const text = fsState.files[`${VAULT}/Areas/Design System.md`];
-    expect(text).toContain(`id: ${note.id}`);
-    expect(text).toContain("aliases: [ds]");
-    expect(text).toContain("edited");
-    expect(text).not.toContain("folder");
+    // No id, title, tags, projectIds or createdAt are added to a foreign note
+    expect(fsState.files[`${VAULT}/Areas/Design System.md`]).toBe("---\naliases: [ds]\n---\nedited");
     expect(Object.keys(fsState.files)).toHaveLength(1);
+  });
+
+  it("saving a body-only edit of a note with no frontmatter writes no frontmatter", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/Plain.md`] = "# Plain\n\nbody";
+    const [note] = await loadNotes(VAULT);
+
+    await saveNote(VAULT, { ...note, content: "# Plain\n\nbody more", links: [], wordCount: 3 });
+
+    expect(fsState.files[`${VAULT}/Plain.md`]).toBe("# Plain\n\nbody more");
   });
 
   it("creates a note in a folder, making the folder first", async () => {
