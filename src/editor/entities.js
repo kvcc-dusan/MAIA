@@ -36,7 +36,7 @@ export const entityPlugin = (md) => {
 };
 
 /**
- * `&amp;`, `&copy;`, `&#169;`: shown as the character, saved as typed. Without this the
+ * `&amp;`, `&copy;` and numeric entities: shown as the character, saved as typed. Without this the
  * parser decodes them and the file loses the entity the author wrote.
  */
 export const HtmlEntity = Node.create({
