@@ -7,11 +7,19 @@ import { Network } from "lucide-react";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
 import GraphHoverCard from "../components/GraphHoverCard.jsx";
+import { assignGroups } from "../lib/graphGroups.js";
+import { intToHex } from "../lib/colorConvert.js";
+import { useGraphView } from "../hooks/useGraphView.js";
+import { useGroupColors } from "../hooks/useGroupColors.js";
 import { isHotNode } from "../lib/hot.js";
 import { useThemeTokens } from "../hooks/useThemeTokens.js";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
+import { Alert } from "@/components/arc/alert/alert";
 import styles from "./GraphPage.module.css";
+
+// three.js and 3d-force-graph load only when the 3D view is shown.
+const Graph3DRenderer = React.lazy(() => import("../components/Graph3DRenderer.jsx"));
 
 // Canvas colors come from the design tokens (lib/tokens.js) and follow the
 // theme. They are NOT stored on node data: changing node objects would restart
@@ -23,6 +31,9 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const svgRef = useRef(null);
   const wrapperRef = useRef(null);
   const zoomRef = useRef(null); // Store zoom behavior
+  const graph3dRef = useRef(null); // Imperative handle of the 3D scene
+  const view = useGraphView();
+  const is3d = view.mode === "3d";
 
   const [dims, setDims] = useState({ w: 800, h: 600 });
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -91,6 +102,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         group: clusterIdx,
         isHot: analysis.isHot(n),
         tags: noteTags(n),
+        folder: n.folder || "",
         val: 1, // Fixed base size (content length sizing disabled)
         projectIds: n.projectIds || [],
       };
@@ -180,6 +192,11 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
 
   // --- ZOOM HELPER (Passed to Controls) ---
   const handleZoomToNode = (nodeId) => {
+    if (is3d) {
+      graph3dRef.current?.focusNode(nodeId);
+      setHoveredNode(nodes.find((n) => n.id === nodeId) || null);
+      return;
+    }
     const targetNode = nodesRef.current.find(n => n.id === nodeId);
     if (!targetNode || !svgRef.current || !zoomRef.current) return;
 
@@ -217,7 +234,23 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     ).slice(0, 5); // Top 5
   }, [searchQuery, nodes]);
 
-  // Resize Handler
+  // Enter in the search box opens the first match: the pointer-free way in.
+  const openFirstResult = () => {
+    const first = searchResults[0];
+    if (!first) return;
+    if (first.type === "project") onOpenNote?.(first.realId, "project");
+    else onOpenNote?.(first.id);
+  };
+
+  // Group colours for the 3D view (folder or tag), and the legend that explains them.
+  const grouping = useMemo(() => assignGroups(nodes, view.colorBy), [nodes, view.colorBy]);
+  const groupColors = useGroupColors(theme, colors, grouping.groups);
+  const legend = useMemo(
+    () => grouping.groups.map((g) => ({ ...g, color: intToHex(groupColors.colors.get(g.key) ?? groupColors.neutral) })),
+    [grouping.groups, groupColors],
+  );
+
+  // Resize Handler (2D only: the 3D scene observes its own container)
   useEffect(() => {
     if (!wrapperRef.current) return;
     const obs = new ResizeObserver(entries => {
@@ -226,7 +259,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     });
     obs.observe(wrapperRef.current);
     return () => obs.disconnect();
-  }, []);
+  }, [is3d]);
 
   const hasContent = notes.length > 0 || projects.length > 0;
   const filtersActive = showOnlyProjects || !showOrphans;
@@ -234,26 +267,54 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   return (
     <div className={styles.page}>
 
-      <GraphRenderer
-        nodes={nodes}
-        links={links}
-        dims={dims}
-        theme={theme}
-        activeCluster={activeCluster}
-        onOpenNote={onOpenNote}
-        nodeSize={nodeSize}
-        linkThickness={linkThickness}
-        fontSize={fontSize}
-        repelForce={repelForce}
-        linkDistance={linkDistance}
-        query={searchQuery} // Pass as query
-        setHoveredNode={setHoveredNode}
-        wrapperRef={wrapperRef}
-        svgRef={svgRef}
-        zoomRef={zoomRef}
-        nodesRef={nodesRef}
-        searchRef={searchRef}
-      />
+      {is3d ? (
+        <React.Suspense fallback={<div className={styles.loading} role="status" aria-busy="true">Loading 3D graph</div>}>
+          <Graph3DRenderer
+            nodes={nodes}
+            links={links}
+            groupOf={grouping.groupOf}
+            groupColors={groupColors}
+            activeCluster={activeCluster}
+            onOpenNote={onOpenNote}
+            nodeSize={nodeSize}
+            linkThickness={linkThickness}
+            fontSize={fontSize}
+            repelForce={repelForce}
+            linkDistance={linkDistance}
+            query={searchQuery}
+            setHoveredNode={setHoveredNode}
+            controllerRef={graph3dRef}
+            onUnavailable={view.markWebglUnavailable}
+          />
+        </React.Suspense>
+      ) : (
+        <GraphRenderer
+          nodes={nodes}
+          links={links}
+          dims={dims}
+          theme={theme}
+          activeCluster={activeCluster}
+          onOpenNote={onOpenNote}
+          nodeSize={nodeSize}
+          linkThickness={linkThickness}
+          fontSize={fontSize}
+          repelForce={repelForce}
+          linkDistance={linkDistance}
+          query={searchQuery} // Pass as query
+          setHoveredNode={setHoveredNode}
+          wrapperRef={wrapperRef}
+          svgRef={svgRef}
+          zoomRef={zoomRef}
+          nodesRef={nodesRef}
+          searchRef={searchRef}
+        />
+      )}
+
+      {view.webglFailed && (
+        <Alert className={styles.notice} tone="warning" title="3D view is not available">
+          WebGL could not start here, so this is the 2D graph. Pick 3D again to retry.
+        </Alert>
+      )}
 
       {nodes.length === 0 && (
         <div className={styles.empty}>
@@ -278,6 +339,14 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         setSearchQuery={setSearchQuery}
         searchResults={searchResults}
         handleZoomToNode={handleZoomToNode}
+        view={{
+          mode: view.mode,
+          setMode: view.setViewMode,
+          colorBy: view.colorBy,
+          setColorBy: view.setColorBy,
+          legend,
+        }}
+        onSearchSubmit={openFirstResult}
         values={{ showOnlyProjects, showOrphans, showGhostNodes, nodeSize, linkThickness, fontSize, repelForce, linkDistance }}
         setters={{ showOnlyProjects: setShowOnlyProjects, showOrphans: setShowOrphans, showGhostNodes: setShowGhostNodes, nodeSize: setNodeSize, linkThickness: setLinkThickness, fontSize: setFontSize, repelForce: setRepelForce, linkDistance: setLinkDistance }}
         hotTags={analysis.hotTags}

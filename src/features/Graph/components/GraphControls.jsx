@@ -5,6 +5,7 @@ import { IconButton } from "@/components/composed/IconButton";
 import { SectionLabel } from "@/components/composed/SectionBits";
 import { Badge } from "@/components/arc/badge/badge";
 import { SearchField } from "@/components/arc/search-field/search-field";
+import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Slider } from "@/components/arc/slider/slider";
 import { Switch } from "@/components/arc/switch/switch";
 import styles from "./GraphControls.module.css";
@@ -14,6 +15,18 @@ const FILTERS = [
     { key: "showOrphans", label: "Show orphans" },
     { key: "showGhostNodes", label: "Show ghost nodes" },
 ];
+
+const VIEW_OPTIONS = [
+    { value: "2d", label: "2D" },
+    { value: "3d", label: "3D" },
+];
+
+const COLOR_BY_OPTIONS = [
+    { value: "folder", label: "Folder" },
+    { value: "tag", label: "Tag" },
+];
+
+const LEGEND_LIMIT = 10;
 
 const SLIDERS = {
     display: [
@@ -41,7 +54,9 @@ export default function GraphControls({
     setActiveCluster,
     clusters,
     colors,
-    nodeDotColor
+    nodeDotColor,
+    view,
+    onSearchSubmit
 }) {
     const panelId = useId();
     const toggleRef = useRef(null);
@@ -98,6 +113,11 @@ export default function GraphControls({
                             placeholder="Title or tag"
                             value={searchQuery}
                             onValueChange={setSearchQuery}
+                            onKeyDown={(e) => {
+                                if (e.key !== "Enter") return;
+                                e.preventDefault();
+                                onSearchSubmit?.();
+                            }}
                         />
                         {searchResults.length > 0 && (
                             <ul className={styles.results} aria-label="Matching nodes">
@@ -112,6 +132,37 @@ export default function GraphControls({
                                     </li>
                                 ))}
                             </ul>
+                        )}
+                    </div>
+
+                    <div className={styles.section}>
+                        <SectionLabel as="h3" className={styles.sectionTitle}>View</SectionLabel>
+                        <SegmentedControl
+                            label="Graph dimensions"
+                            options={VIEW_OPTIONS}
+                            value={view.mode}
+                            onValueChange={view.setMode}
+                        />
+                        {view.mode === "3d" && (
+                            <>
+                                <SegmentedControl
+                                    label="Color by"
+                                    options={COLOR_BY_OPTIONS}
+                                    value={view.colorBy}
+                                    onValueChange={view.setColorBy}
+                                />
+                                <ul className={styles.clusters} aria-label={`Colors by ${view.colorBy}`}>
+                                    {view.legend.slice(0, LEGEND_LIMIT).map(g => (
+                                        <li key={g.key} className={styles.legendRow}>
+                                            <span className={styles.rowMain}>
+                                                <span className={styles.dot} style={{ background: g.color }} aria-hidden="true" />
+                                                <span className={styles.truncate}>{g.label}</span>
+                                            </span>
+                                            <span className={styles.count}>{g.count}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
                         )}
                     </div>
 

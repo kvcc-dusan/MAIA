@@ -18,3 +18,20 @@
 .empty > * {
   pointer-events: auto;
 }
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.notice {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-sticky);
+  max-width: min(24rem, calc(100% - var(--space-8)));
+}
