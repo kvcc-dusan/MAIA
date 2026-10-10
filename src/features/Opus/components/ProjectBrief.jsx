@@ -1,108 +1,79 @@
-import React, { useState } from 'react';
-import { PlusSignSquare as Plus, CancelSquare as X, CheckmarkSquare02 as CheckSquare, Circle as Square, Target02 as Target } from "../../../components/ui/CustomIcon.jsx";
-import { SectionCard } from "../../../components/composed/SectionCard";
-import MilestonesList from "./MilestonesList";
+import React, { useState } from "react";
+import { Target, X } from "lucide-react";
+import { SectionCard } from "@/components/composed/SectionCard";
+import { IconButton } from "@/components/composed/IconButton";
+import { Textarea } from "@/components/arc/textarea/textarea";
+import { Input } from "@/components/arc/input/input";
+import { Button } from "@/components/arc/button/button";
+import { Checkbox } from "@/components/arc/checkbox/checkbox";
 import { uid } from "../../../lib/ids";
+import ProjectDetails from "./overview/ProjectDetails";
+import styles from "./ProjectBrief.module.css";
 
 /**
- * ProjectBrief — what this project is for.
- *
- * Was ProjectContext: a collapsed-by-default accordion pinned to the bottom of
- * the page, which meant the project's purpose and its definition of done were
- * the two things you could never see. It now renders expanded in the band
- * directly under the title, and hosts milestones alongside success criteria.
+ * What this project is for: the directive and the success criteria, plus the
+ * project details card. Milestones are edited on the Roadmap tab.
  */
 export default function ProjectBrief({ project, updateProject }) {
-    const [newCriteria, setNewCriteria] = useState("");
+  const [newCriteria, setNewCriteria] = useState("");
+  const criteria = project.successCriteria || [];
+  const writeCriteria = (next) => updateProject(project.id, { successCriteria: next });
 
-    const addCriteria = () => {
-        const text = newCriteria.trim();
-        if (!text) return;
-        updateProject(project.id, {
-            successCriteria: [...(project.successCriteria || []), { id: uid(), text, done: false }]
-        });
-        setNewCriteria("");
-    };
+  const addCriteria = (event) => {
+    event.preventDefault();
+    const text = newCriteria.trim();
+    if (!text) return;
+    writeCriteria([...criteria, { id: uid(), text, done: false }]);
+    setNewCriteria("");
+  };
 
-    const toggleCriteria = (id) => {
-        updateProject(project.id, {
-            successCriteria: (project.successCriteria || []).map(c =>
-                c.id === id ? { ...c, done: !c.done } : c
-            )
-        });
-    };
+  const toggleCriteria = (id) =>
+    writeCriteria(criteria.map((c) => (c.id === id ? { ...c, done: !c.done } : c)));
 
-    const removeCriteria = (id) => {
-        updateProject(project.id, {
-            successCriteria: (project.successCriteria || []).filter(c => c.id !== id)
-        });
-    };
+  return (
+    <>
+      <SectionCard icon={Target} titleAs="h2" title="Brief" bodyClassName={styles.body}>
+        <Textarea
+          label="Strategic directive"
+          value={project.description || ""}
+          onChange={(e) => updateProject(project.id, { description: e.target.value })}
+          placeholder="Describe the objective and the outcome you want"
+        />
 
-    return (
-        <SectionCard
-            icon={Target}
-            title="Brief"
-            bodyClassName="p-6 space-y-6"
-        >
-            {/* Strategic Directive */}
-            <div>
-                <label className="text-xs uppercase tracking-wider text-subtle-foreground font-bold mb-2 block" htmlFor={`directive-${project.id}`}>
-                    Strategic Directive
-                </label>
-                <textarea
-                    id={`directive-${project.id}`}
-                    value={project.description || ""}
-                    onChange={e => updateProject(project.id, { description: e.target.value })}
-                    className="w-full min-h-[64px] text-sm font-light leading-relaxed bg-transparent border-none p-0 focus:ring-0 outline-hidden resize-none placeholder:text-secondary placeholder:italic text-foreground/90"
-                    placeholder="Define the core objective and desired outcome..."
-                />
-            </div>
-
-            {/* Success Criteria */}
-            <div className="pt-4 border-t border-border-subtle">
-                <label className="text-xs uppercase tracking-wider text-subtle-foreground font-bold mb-3 block">
-                    Success Criteria
-                </label>
-                <div className="space-y-2 mb-3">
-                    {(project.successCriteria || []).map(c => (
-                        <div key={c.id} className="flex items-start gap-3 group/item">
-                            <button
-                                onClick={() => toggleCriteria(c.id)}
-                                aria-label={c.done ? `Mark "${c.text}" incomplete` : `Mark "${c.text}" complete`}
-                                className={`mt-0.5 ${c.done ? "text-success" : "text-subtle-foreground hover:text-muted-foreground"} transition-colors`}
-                            >
-                                {c.done ? <CheckSquare size={16} /> : <Square size={16} />}
-                            </button>
-                            <span className={`text-sm flex-1 leading-relaxed ${c.done ? "text-subtle-foreground line-through" : "text-foreground-secondary"}`}>
-                                {c.text}
-                            </span>
-                            <button
-                                onClick={() => removeCriteria(c.id)}
-                                aria-label={`Remove criteria "${c.text}"`}
-                                className="opacity-0 group-hover/item:opacity-100 text-subtle-foreground hover:text-destructive transition-opacity"
-                            >
-                                <X size={14} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-                <div className="flex items-center gap-2">
-                    <Plus size={14} className="text-subtle-foreground" />
-                    <input
-                        value={newCriteria}
-                        onChange={e => setNewCriteria(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addCriteria()}
-                        placeholder="Add success criteria..."
-                        aria-label="Add success criteria"
-                        className="bg-transparent text-sm text-foreground-secondary placeholder:text-faint-foreground outline-hidden flex-1"
-                    />
-                </div>
-            </div>
-
-            {/* Milestones */}
-            <div className="pt-4 border-t border-border-subtle">
-                <MilestonesList project={project} updateProject={updateProject} />
-            </div>
-        </SectionCard>
-    );
+        <div className={styles.criteria}>
+          <h3 className={styles.heading}>Success criteria</h3>
+          {criteria.length > 0 && (
+            <ul className={styles.list}>
+              {criteria.map((c) => (
+                <li key={c.id} className={styles.item}>
+                  <Checkbox
+                    id={`criterion-${c.id}`}
+                    checked={c.done}
+                    aria-label={c.text}
+                    onCheckedChange={() => toggleCriteria(c.id)}
+                  />
+                  <label htmlFor={`criterion-${c.id}`} className={c.done ? styles.done : styles.text}>{c.text}</label>
+                  <IconButton
+                    icon={X}
+                    label={`Remove criterion "${c.text}"`}
+                    onClick={() => writeCriteria(criteria.filter((x) => x.id !== c.id))}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          <form className={styles.add} onSubmit={addCriteria}>
+            <Input
+              label="Add a success criterion"
+              value={newCriteria}
+              onChange={(e) => setNewCriteria(e.target.value)}
+              placeholder="What has to be true when this is done"
+            />
+            <Button type="submit" variant="secondary" disabled={!newCriteria.trim()}>Add criterion</Button>
+          </form>
+        </div>
+      </SectionCard>
+      <ProjectDetails project={project} updateProject={updateProject} />
+    </>
+  );
 }

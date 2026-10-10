@@ -1,0 +1,10 @@
+.body { display: grid; min-width: 0; gap: var(--space-5); padding: var(--space-5); }
+.criteria { display: grid; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+.heading { margin: 0; color: var(--foreground); font-size: var(--text-sm); font-weight: 500; }
+.list { display: grid; margin: 0; padding: 0; list-style: none; }
+.item { display: flex; min-height: var(--control-height-md); align-items: center; gap: var(--space-3); }
+.text, .done { flex: 1 1 auto; min-width: 0; font-size: var(--text-sm); line-height: var(--leading-body); overflow-wrap: anywhere; }
+.text { color: var(--foreground); }
+.done { color: var(--text-muted); text-decoration: line-through; }
+.add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); }
+.add > :first-child { flex: 1 1 14rem; min-width: 0; }
