@@ -4,6 +4,7 @@ import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn, countWords } from "@/lib/utils";
 import { createExtensions } from "../editor/extensions.js";
 import { createEmbedProvider } from "../editor/embedProvider.js";
+import { listVaultFilePaths } from "../editor/linkSuggestFiles.js";
 import { isTypingElsewhere } from "../editor/isTypingElsewhere.js";
 import styles from "./EditorRich.module.css";
 
@@ -73,6 +74,10 @@ export default function EditorRich({
         onOpenNote: onOpenLink,
         createExtensions,
       }),
+      linkSuggest: {
+        getNotes: () => embedContextRef.current.notes,
+        getFiles: listVaultFilePaths,
+      },
     });
   }, []);
 

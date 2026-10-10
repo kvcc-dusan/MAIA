@@ -19,6 +19,7 @@ import { Callout, CalloutTitle } from './callout.js';
 import { RefDefinition, RefLink } from './refLinks.js';
 import { HtmlEntity } from './entities.js';
 import { InlineShortcuts } from './inlineShortcuts.js';
+import { LinkSuggest } from './linkSuggest.js';
 import { MarkdownTable, MarkdownTableRow, MarkdownTableHeader, MarkdownTableCell } from './table.js';
 
 const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
@@ -28,7 +29,8 @@ const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
  * parity harness (scripts/obsidian-parity.test.js) all build from this, so what is
  * measured is what runs. New syntax gets its own file in this folder and one line here.
  */
-export const createExtensions = ({ onOpenLink, embeds = null } = {}) => [
+// linkSuggest: sources for [[ autocomplete. Left out for read-only renderers (embedded notes, parity harness).
+export const createExtensions = ({ onOpenLink, embeds = null, linkSuggest = null } = {}) => [
   StarterKit.configure({
     heading: { levels: HEADING_LEVELS },
     horizontalRule: false,
@@ -75,4 +77,5 @@ export const createExtensions = ({ onOpenLink, embeds = null } = {}) => [
     transformCopiedText: true,
   }),
   AutoMarkdownShortcuts,
+  ...(linkSuggest ? [LinkSuggest.configure(linkSuggest)] : []),
 ];
