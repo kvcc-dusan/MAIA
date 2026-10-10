@@ -12,7 +12,7 @@ const NOTES = [
   { title: 'Deep', folder: 'a/b', content: 'deep content' },
 ];
 
-const setup = (markdown, { folder = '', findFile, onOpenNote = vi.fn(), isDesktop = () => true } = {}) => {
+const setup = (markdown, { folder = '', findFile, openFile = vi.fn(), onOpenNote = vi.fn(), isDesktop = () => true } = {}) => {
   const embeds = createEmbedProvider({
     getNotes: () => NOTES,
     getFolder: () => folder,
@@ -20,6 +20,7 @@ const setup = (markdown, { folder = '', findFile, onOpenNote = vi.fn(), isDeskto
     createExtensions,
     isDesktop,
     getVault: () => '/vault',
+    openFile,
     findFile: findFile ?? (async (_vault, target, from, options) => resolveVaultFile(FILES, target, from, options)),
     toAssetUrl: async (_vault, rel) => `asset://localhost/${rel}`,
   });
@@ -161,5 +162,23 @@ describe('helpers', () => {
 
   it('is null off the desktop', () => {
     expect(createEmbedProvider({ isDesktop: () => false })).toBeNull();
+  });
+});
+
+describe('file card opening', () => {
+  it('opens the file on click and on Enter or Space, and is a labelled button', async () => {
+    const openFile = vi.fn();
+    const { editor } = setup('![[spec.pdf]]', { openFile });
+    await until(editor, '.maia-embed-file');
+    const card = dom(editor).querySelector('.maia-embed-file');
+    expect(card.getAttribute('role')).toBe('button');
+    expect(card.getAttribute('aria-label')).toBe('Open spec.pdf');
+    card.click();
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+    expect(openFile).toHaveBeenCalledTimes(3);
+    expect(openFile).toHaveBeenCalledWith('/vault', 'docs/spec.pdf');
+    editor.destroy();
   });
 });

@@ -35,11 +35,22 @@ const imageNode = (file, ref) => {
   return img;
 };
 
-// Media and documents get a card only: playing or opening them needs the OS, not the webview.
-const fileCard = (file, ref) => {
+// Media and documents get a card only: playing them needs the OS, so a click hands the file over.
+const fileCard = (file, ref, provider) => {
   const page = PAGE.exec(ref.subpath)?.[1];
   const card = el('span', 'maia-embed-file');
   card.title = file.rel;
+  card.setAttribute('role', 'button');
+  card.tabIndex = 0;
+  card.setAttribute('aria-label', `Open ${file.name}`);
+  const open = () => provider.openFile?.(file.rel);
+  card.addEventListener('click', open);
+  card.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    event.stopPropagation();
+    open();
+  });
   card.append(el('span', 'maia-embed-file-kind', KIND_LABEL[file.kind] ?? 'File'), el('span', 'maia-embed-file-name', file.name));
   if (page) card.append(el('span', 'maia-embed-file-detail', `Page ${page}`));
   return card;
@@ -90,7 +101,7 @@ export const mountEmbed = (dom, ref, provider) => {
     }
     const file = await provider.resolveFile(ref.target);
     if (!file) show(missingChip(ref));
-    else show(file.kind === 'image' ? imageNode(file, ref) : fileCard(file, ref));
+    else show(file.kind === 'image' ? imageNode(file, ref) : fileCard(file, ref, provider));
   };
   run().catch((e) => {
     console.error('[MAIA] Failed to resolve embed', ref.raw, e);

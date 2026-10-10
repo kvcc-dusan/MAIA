@@ -1,6 +1,7 @@
 import { Editor } from '@tiptap/core';
 import { getVaultPath, isTauri } from '../lib/vault.js';
 import { findVaultFile, fileKind } from '../lib/vaultFiles.js';
+import { openVaultFile } from '../lib/openFile.js';
 
 const norm = (s) => (s || '').trim().toLowerCase();
 const stripMd = (s) => s.replace(/\.md$/i, '');
@@ -30,7 +31,7 @@ export const findNote = (notes, target) => {
  */
 export const createEmbedProvider = ({
   getNotes, getFolder, onOpenNote, createExtensions,
-  getVault = getVaultPath, isDesktop = isTauri, findFile = findVaultFile, toAssetUrl = defaultAssetUrl,
+  getVault = getVaultPath, openFile = openVaultFile, isDesktop = isTauri, findFile = findVaultFile, toAssetUrl = defaultAssetUrl,
 }) => {
   if (!isDesktop()) return null;
   return {
@@ -46,6 +47,8 @@ export const createEmbedProvider = ({
       const kind = fileKind(rel);
       return { rel, kind, name: rel.slice(rel.lastIndexOf('/') + 1), url: kind === 'image' ? await toAssetUrl(vault, rel) : '' };
     },
+
+    openFile: (rel) => openFile(getVault(), rel),
 
     openNote: (title) => onOpenNote?.(title),
 

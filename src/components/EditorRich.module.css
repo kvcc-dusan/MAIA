@@ -351,6 +351,7 @@
   border-radius: var(--radius-control);
   background: var(--surface-muted);
   font-size: var(--text-sm);
+  cursor: pointer;
 }
 
 .editor :global(.maia-embed-file-kind),

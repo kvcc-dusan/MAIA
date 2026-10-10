@@ -143,7 +143,7 @@ export const WikiLink = Node.create({
         handleClickOn: (view, pos, node) => {
           if (node.type.name !== 'wikiLink') return false;
           const { isEmbed, target } = parseWikiLink(node.attrs.raw);
-          // Embedded files (images, pdfs) have nothing to open yet; embedded notes do.
+          // Embedded file cards open themselves (embeds.js); embedded notes open here.
           if (!target || (isEmbed && FILE_EXTENSION.test(target))) return false;
           this.options.onOpenLink?.(target);
           return true;
