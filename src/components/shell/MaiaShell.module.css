@@ -9,6 +9,8 @@
   --shell-sidebar: 264px;
   display: grid;
   grid-template-rows: var(--shell-top) minmax(0, 1fr);
+  /* Without this the column grows to the top bar's min-content (tab strip, drag region) and the window scrolls sideways. */
+  grid-template-columns: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   background: var(--background);

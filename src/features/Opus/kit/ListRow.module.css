@@ -7,5 +7,11 @@ button.main { cursor: pointer; }
 .title { color: var(--foreground); font-size: var(--text-sm); font-weight: 500; overflow-wrap: anywhere; }
 .subtitle { color: var(--text-secondary); font-size: var(--text-sm); overflow-wrap: anywhere; }
 .trailing { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2) var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); }
-@media (max-width: 560px) { .row { flex-wrap: wrap; } .trailing { flex: 1 1 100%; justify-content: flex-start; } }
+/* Narrow: controls drop to their own line and long text truncates instead of pushing them around. */
+@media (max-width: 560px) {
+  .row { flex-wrap: wrap; }
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .title, .subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trailing { flex: 1 1 100%; justify-content: flex-start; }
+}
 @media (prefers-reduced-motion: reduce) { .row { transition: none; } }

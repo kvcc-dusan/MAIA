@@ -11,6 +11,7 @@
 
 .inner {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
   padding: var(--space-8) var(--spacing-page) var(--space-10);
 }
