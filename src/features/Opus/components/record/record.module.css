@@ -1,0 +1,158 @@
+/* Shared by the question and decision lists. The section card is the size
+   container, so rows react to the width they actually get beside the sidebar. */
+.section { container-type: inline-size; }
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2) var(--space-4);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+.row:first-child { border-top: 0; }
+
+.decisionRow { grid-template-columns: 5.5rem minmax(0, 1fr) auto; }
+
+.main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: var(--text-base);
+  font-weight: 500;
+  line-height: var(--leading-body);
+  overflow-wrap: anywhere;
+}
+
+.date {
+  padding-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+.workstream {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+.dot {
+  flex: none;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--ws-color, var(--text-muted));
+}
+.workstreamName { min-width: 0; overflow-wrap: anywhere; }
+
+.detail {
+  margin: 0;
+  max-width: 65ch;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.answer {
+  display: flex;
+  max-width: 65ch;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--surface-muted);
+}
+.answerLabel {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+.answerText,
+.answerMissing {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.answerText { color: var(--foreground); }
+.answerMissing { color: var(--text-muted); }
+
+.answerForm {
+  display: flex;
+  max-width: 40rem;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.more { align-self: flex-start; margin-left: calc(-1 * var(--space-3)); }
+
+.group + .group { border-top: 1px solid var(--border); }
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-2);
+}
+
+/* 36px buttons grow to the 44px touch minimum on touch screens and in narrow columns. */
+@media (pointer: coarse) {
+  .action.action { min-height: var(--control-height-md); }
+}
+@container (max-width: 36rem) {
+  .row,
+  .decisionRow {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--space-4);
+  }
+  .actions { justify-content: flex-start; }
+  .action.action { min-height: var(--control-height-md); }
+  .toolbar,
+  .groupHeader { padding-inline: var(--space-4); }
+  .date { padding-top: 0; }
+}
