@@ -38,15 +38,15 @@ export const validateQuestionDraft = (draft) => {
 };
 
 /**
- * Fields the editor may change. Status is not among them (rows own Mark answered
- * and Reopen), and a still-open question keeps whatever answer it had.
+ * Fields the editor may change. Status is not among them: Mark answered and
+ * Reopen in the panel set it on their own.
  */
 export const questionDraftToPatch = (draft) => ({
   question: text(draft.question),
   owner: text(draft.owner),
   workstreamId: draft.workstreamId || null,
   blocking: Boolean(draft.blocking),
-  ...(draft.status === "answered" ? { answer: text(draft.answer) } : {}),
+  answer: text(draft.answer),
 });
 
 /** Answer text from the inline composer; blank is an error. */

@@ -1,6 +1,8 @@
 import React, { useId, useRef, useState } from "react";
 import { EntityForm } from "@/components/composed/EntityForm";
 import { Select } from "@/components/composed/Select";
+import { Button } from "@/components/arc/button/button";
+import StatusBadge from "../../kit/StatusBadge";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { Switch } from "@/components/arc/switch/switch";
@@ -11,14 +13,13 @@ import styles from "./RecordForms.module.css";
 const SAVE_ERROR = "Couldn't save this question. Try again.";
 
 /**
- * Side-panel form for a question. Status is not a field: Mark answered and
- * Reopen live on the row, so the answer box only appears for a question that
- * is already answered.
+ * Side-panel form for a question. Save changes keeps the status; Mark answered
+ * (needs an answer) and Reopen change it together with the other fields.
  *
  * `onSave(patch)` returns a promise; a rejection keeps the panel open with an
  * error, success is up to the caller (it closes the panel).
  */
-export default function QuestionForm({ question, workstreams, onSave, onCancel }) {
+export default function QuestionForm({ question, workstreams, onSave, onCancel, onDelete }) {
   const isEditing = Boolean(question);
   const [draft, setDraft] = useState(() => (question ? questionToDraft(question) : emptyQuestionDraft()));
   const [errors, setErrors] = useState({});
@@ -35,9 +36,13 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
     setErrors((current) => (current[key] ? { ...current, [key]: undefined } : current));
   };
 
-  const handleSubmit = async () => {
+  const isAnswered = draft.status === "answered";
+
+  // `status` overrides the draft's, so one handler serves Save, Mark answered and Reopen.
+  const submitAs = async (status) => {
     if (isSavingRef.current) return;
-    const found = validateQuestionDraft(draft);
+    const next = { ...draft, status };
+    const found = validateQuestionDraft(next);
     setErrors(found);
     if (found.question) return questionRef.current?.focus();
     if (found.answer) return answerRef.current?.focus();
@@ -45,7 +50,7 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
     isSavingRef.current = true;
     setSaveError("");
     try {
-      await onSave(questionDraftToPatch(draft));
+      await onSave({ ...questionDraftToPatch(next), status });
     } catch (failure) {
       console.error("QuestionForm: save failed", failure);
       setSaveError(SAVE_ERROR);
@@ -53,6 +58,8 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
       isSavingRef.current = false;
     }
   };
+
+  const handleSubmit = () => submitAs(draft.status);
 
   return (
     <EntityForm
@@ -62,6 +69,13 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
       onSubmit={handleSubmit}
       submitLabel={isEditing ? "Save changes" : "Add question"}
     >
+      {isEditing && (
+        <div className={styles.statusRow}>
+          <span className={styles.switchLabel}>Status</span>
+          <StatusBadge status={draft.status} />
+        </div>
+      )}
+
       <Textarea
         ref={questionRef}
         autoFocus
@@ -107,13 +121,13 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
         />
       </div>
 
-      {draft.status === "answered" && (
+      {isEditing && (
         <Textarea
           ref={answerRef}
           label="Answer"
           placeholder="What was decided or found out?"
           rows={3}
-          aria-required="true"
+          aria-required={isAnswered || undefined}
           value={draft.answer}
           error={errors.answer}
           onChange={(event) => change("answer", event.target.value)}
@@ -121,6 +135,17 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel }
       )}
 
       {saveError && <p role="alert" className={styles.saveError}>{saveError}</p>}
+
+      {isEditing && (
+        <div className={styles.dangerRow}>
+          {isAnswered ? (
+            <Button type="button" variant="secondary" onClick={() => submitAs("open")}>Reopen</Button>
+          ) : (
+            <Button type="button" variant="secondary" onClick={() => submitAs("answered")}>Mark answered</Button>
+          )}
+          {onDelete && <Button type="button" variant="danger" onClick={onDelete}>Delete question</Button>}
+        </div>
+      )}
     </EntityForm>
   );
 }

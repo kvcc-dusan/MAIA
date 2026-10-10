@@ -29,21 +29,22 @@ const sample = [
 ];
 
 describe("filters", () => {
-  it("defaults to open and lists Open, Answered, All", () => {
+  it("defaults to open and lists Open, Blocking, Answered", () => {
     expect(DEFAULT_QUESTION_FILTER).toBe("open");
-    expect(QUESTION_FILTERS.map((f) => f.label)).toEqual(["Open", "Answered", "All"]);
+    expect(QUESTION_FILTERS.map((f) => f.label)).toEqual(["Open", "Blocking", "Answered"]);
   });
 
   it("parses valid filters and rejects the rest", () => {
     expect(parseQuestionFilter("answered")).toBe("answered");
-    expect(parseQuestionFilter("all")).toBe("all");
-    expect(parseQuestionFilter("blocking")).toBeNull();
+    expect(parseQuestionFilter("blocking")).toBe("blocking");
+    expect(parseQuestionFilter("all")).toBeNull();
     expect(parseQuestionFilter(undefined)).toBeNull();
   });
 
   it("filters open, answered and all", () => {
     expect(filterQuestions(sample, "open").map((x) => x.id)).toEqual(["a", "b"]);
     expect(filterQuestions(sample, "answered").map((x) => x.id)).toEqual(["c", "d"]);
+    expect(filterQuestions(sample, "blocking").map((x) => x.id)).toEqual(["a"]);
     expect(filterQuestions(sample, "all")).toHaveLength(4);
   });
 

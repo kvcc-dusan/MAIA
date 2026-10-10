@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { EntityForm } from "@/components/composed/EntityForm";
 import { Select } from "@/components/composed/Select";
 import { DateTimeField } from "@/components/composed/DateTimeField";
+import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import {
@@ -24,7 +25,7 @@ const SAVE_ERROR = "Couldn't save this decision. Try again.";
  * `onSave(data)` returns a promise; a rejection keeps the panel open with an
  * error, success is up to the caller (it closes the panel).
  */
-export default function DecisionForm({ decision, workstreams, today, onSave, onCancel }) {
+export default function DecisionForm({ decision, workstreams, today, onSave, onCancel, onDelete }) {
   const isEditing = Boolean(decision);
   const [draft, setDraft] = useState(() => (decision ? decisionToDraft(decision) : emptyDecisionDraft(today)));
   const [errors, setErrors] = useState({});
@@ -62,7 +63,7 @@ export default function DecisionForm({ decision, workstreams, today, onSave, onC
       title={isEditing ? "Edit decision" : "New decision"}
       onCancel={onCancel}
       onSubmit={handleSubmit}
-      submitLabel={isEditing ? "Save changes" : "Add decision"}
+      submitLabel={isEditing ? "Save changes" : "Log decision"}
     >
       <Input
         ref={titleRef}
@@ -109,6 +110,12 @@ export default function DecisionForm({ decision, workstreams, today, onSave, onC
       />
 
       {saveError && <p role="alert" className={styles.saveError}>{saveError}</p>}
+
+      {isEditing && onDelete && (
+        <div className={styles.dangerRow}>
+          <Button type="button" variant="danger" onClick={onDelete}>Delete decision</Button>
+        </div>
+      )}
     </EntityForm>
   );
 }

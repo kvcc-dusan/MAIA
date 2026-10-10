@@ -43,9 +43,8 @@ describe("question drafts", () => {
 
   it("builds a trimmed patch without touching status", () => {
     const patch = questionDraftToPatch({ question: "  Ship?  ", owner: " Ana ", workstreamId: "", blocking: 1, answer: "x", status: "open" });
-    expect(patch).toEqual({ question: "Ship?", owner: "Ana", workstreamId: null, blocking: true });
+    expect(patch).toEqual({ question: "Ship?", owner: "Ana", workstreamId: null, blocking: true, answer: "x" });
     expect("status" in patch).toBe(false);
-    expect("answer" in patch).toBe(false);
   });
 
   it("includes the answer for an answered question", () => {

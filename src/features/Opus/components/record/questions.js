@@ -3,12 +3,18 @@
 
 export const QUESTION_FILTERS = [
   { value: "open", label: "Open" },
+  { value: "blocking", label: "Blocking" },
   { value: "answered", label: "Answered" },
-  { value: "all", label: "All" },
 ];
 export const DEFAULT_QUESTION_FILTER = "open";
 
 const FILTER_VALUES = QUESTION_FILTERS.map((f) => f.value);
+
+export const QUESTION_EMPTY_COPY = {
+  open: { title: "No open questions", description: "Everything has an answer, or nothing has been asked yet." },
+  blocking: { title: "Nothing is blocking", description: "No open question is holding up progress." },
+  answered: { title: "No answered questions yet", description: "Answers show up here once you record them." },
+};
 
 /** A navigation param (`{ q: "answered" }`) or stored value to a valid filter, or null. */
 export const parseQuestionFilter = (value) => (FILTER_VALUES.includes(value) ? value : null);
@@ -34,6 +40,7 @@ export const countQuestions = (questions) => {
 export const filterQuestions = (questions, filter) => {
   const list = asList(questions);
   if (filter === "answered") return list.filter(isAnswered);
+  if (filter === "blocking") return list.filter(isBlockingOpen);
   if (filter === "all") return list;
   return list.filter((q) => !isAnswered(q));
 };
