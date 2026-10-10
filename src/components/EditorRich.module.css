@@ -438,7 +438,7 @@
   left: 0;
   z-index: var(--z-sticky, 10);
   display: none;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-1);
   max-width: 100%;
   padding: var(--space-1);
@@ -446,12 +446,15 @@
   border-radius: var(--radius-control);
   background: var(--surface-raised);
   box-shadow: var(--shadow-floating);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
   user-select: none;
 }
 
 .editor :global(.maia-table[data-active="true"]) :global(.maia-table-tools) { display: flex; }
 
 .editor :global(.maia-table-button) {
+  flex: none; /* the bar scrolls sideways; shrinking made the labels overlap */
   display: inline-grid;
   place-items: center;
   min-height: 28px;
@@ -474,6 +477,18 @@
 
 @media (pointer: coarse) {
   .editor :global(.maia-table-button) { min-width: 44px; min-height: 44px; }
+}
+
+/* The bar is a single row that scrolls sideways, so its height is fixed (buttons + padding + border).
+   Narrow and touch layouts reserve that height above the table so the bar never covers the block above. */
+.editor :global(.maia-table) { --table-tools-h: calc(28px + var(--space-2) + 2px); }
+
+@media (pointer: coarse) {
+  .editor :global(.maia-table) { --table-tools-h: calc(44px + var(--space-2) + 2px); }
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .editor :global(.maia-table) { margin-top: calc(var(--table-tools-h) + var(--space-1)); }
 }
 
 /* Callouts. Four semantic hues only, so several types share one and the icon tells them apart. */
