@@ -273,6 +273,39 @@ describe("opus vault adapter", () => {
     expect(files[`${OPUS}/Atlas/tasks/First.md`]).toBe("edited");
   });
 
+  it("loads a deleted project's leftover assets folder silently and never removes it", async () => {
+    seed();
+    files[`${OPUS}/Old/assets/photo.png`] = "bytes";
+    files[`${OPUS}/Old/activity.jsonl`] = "{}\n";
+    dirs.add(`${OPUS}/Old/tasks`);
+    const { loadOpus } = await load();
+    const { projects, warnings } = await loadOpus(VAULT);
+    expect(warnings).toEqual([]);
+    expect(projects.map((p) => p.id)).toEqual(["p1"]);
+    expect(files[`${OPUS}/Old/assets/photo.png`]).toBe("bytes");
+    expect(files[`${OPUS}/Old/activity.jsonl`]).toBe("{}\n");
+    expect(dirs.has(`${OPUS}/Old/tasks`)).toBe(true);
+  });
+
+  it("still warns about a folder without project.md when it holds anything besides leftovers", async () => {
+    seed();
+    files[`${OPUS}/Old/assets/photo.png`] = "bytes";
+    files[`${OPUS}/Old/notes.txt`] = "mine";
+    dirs.add(`${OPUS}/Old`);
+    const { loadOpus } = await load();
+    const { warnings } = await loadOpus(VAULT);
+    expect(warnings).toEqual([{ path: `${OPUS}/Old`, message: "Folder has no project.md, ignored" }]);
+  });
+
+  it("still warns when a leftover item folder is not empty", async () => {
+    seed();
+    files[`${OPUS}/Old/assets/photo.png`] = "bytes";
+    files[`${OPUS}/Old/tasks/Stray.md`] = "---\nid: zz\n---\n";
+    const { loadOpus } = await load();
+    const { warnings } = await loadOpus(VAULT);
+    expect(warnings).toEqual([{ path: `${OPUS}/Old`, message: "Folder has no project.md, ignored" }]);
+  });
+
   it("watchOpus reports external changes and drops echoes of its own writes", async () => {
     seed();
     vi.useFakeTimers();

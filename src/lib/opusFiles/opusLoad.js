@@ -8,7 +8,7 @@ import * as questionFile from "./questionFile.js";
 import { contextOf } from "./projectFile.js";
 import { EMPTY_CONTEXT } from "./fileCodec.js";
 import {
-  INBOX_DIR, BACKUPS_DIR, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
+  INBOX_DIR, BACKUPS_DIR, ASSETS_DIR, ACTIVITY_FILE, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
   stableId, state, trackInto,
 } from "./opusFs.js";
 import { readActivity } from "./activityVault.js";
@@ -54,12 +54,29 @@ const readFolder = async (fs, dir, args) => {
   return items;
 };
 
+// A deleted project keeps its assets/ (user files are never deleted) and may keep activity.jsonl
+// or empty item folders. That leftover is not a broken project, so it loads silently.
+const isLeftoverFolder = async (fs, dir, entries) => {
+  if (entries.length === 0) return false;
+  for (const entry of entries) {
+    if (entry.isDirectory && entry.name === ASSETS_DIR) continue;
+    if (!entry.isDirectory && entry.name === ACTIVITY_FILE) continue;
+    if (entry.isDirectory && Object.values(KIND_DIRS).includes(entry.name)) {
+      if ((await listDir(fs, joinPath(dir, entry.name))).length === 0) continue;
+    }
+    return false;
+  }
+  return true;
+};
+
 const loadProject = async (fs, root, folder, shared) => {
   const { warnings, seenIds, fresh } = shared;
   const dir = joinPath(root, folder);
   const projectPath = joinPath(dir, PROJECT_FILE);
   if (!(await fs.exists(projectPath))) {
-    warnings.push({ path: dir, message: `Folder has no ${PROJECT_FILE}, ignored` });
+    if (!(await isLeftoverFolder(fs, dir, await listDir(fs, dir)))) {
+      warnings.push({ path: dir, message: `Folder has no ${PROJECT_FILE}, ignored` });
+    }
     return null;
   }
   const text = await fs.readTextFile(projectPath);
