@@ -248,10 +248,12 @@ export const saveNote = async (vaultPath, note) => {
   // Conflict check: if we have a prior baseline for this note and the file
   // on disk no longer matches it, something else touched the file since we
   // last read it. Overwriting blind would silently destroy that edit.
+  let onDiskText = null;
   if (current) {
     const path = joinPath(vaultPath, current);
     if (await exists(path)) {
       const onDisk = await readTextFile(path);
+      onDiskText = onDisk;
       const baseline = contentMap.get(note.id);
       if (baseline !== undefined && onDisk !== baseline && onDisk !== nextText) {
         throw new VaultConflictError(note.id, { diskText: onDisk, attemptedText: nextText, filename: current });
@@ -266,6 +268,13 @@ export const saveNote = async (vaultPath, note) => {
   while (desired.toLowerCase() !== current?.toLowerCase() && await exists(joinPath(vaultPath, desired))) {
     taken.add(relBase(desired).toLowerCase());
     desired = joinRel(folder, pickName(note, current, taken));
+  }
+
+  // Opening a note triggers a save (the counts change). When the text and the path are exactly what
+  // is on disk, writing again would only bump the file's mtime and make a cloud drive re-sync it.
+  if (current && desired === current && onDiskText === nextText) {
+    contentMap.set(note.id, nextText);
+    return;
   }
 
   if (folder) await mkdir(joinPath(vaultPath, folder), { recursive: true });

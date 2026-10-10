@@ -226,6 +226,21 @@ describe("vault.js", () => {
     ).resolves.not.toThrow();
   });
 
+  it("saveNote does not rewrite a file whose text and path would not change", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    const note = { id: "n1", title: "Same", content: "same content", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
+    fsState.files[`${VAULT}/same.md`] = noteToMarkdown(note);
+    await loadNotes(VAULT);
+    const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    writeTextFile.mockClear();
+
+    await saveNote(VAULT, note); // opening a note saves it with unchanged text
+    expect(writeTextFile).not.toHaveBeenCalled();
+
+    await saveNote(VAULT, { ...note, content: "changed" });
+    expect(writeTextFile).toHaveBeenCalledTimes(1);
+  });
+
   it("deleteNoteFile removes the file and forgets it", async () => {
     const { loadNotes, saveNote, deleteNoteFile } = await importVault();
     await loadNotes(VAULT);
