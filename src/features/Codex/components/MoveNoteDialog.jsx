@@ -8,19 +8,27 @@ import styles from "./FileTree.module.css";
 const INDENT_STEP = 16;
 
 /** Folder picker for "Move to folder". `folders` is every path, depth-first. */
-export default function MoveNoteDialog({ note, folders, onMove, onClose }) {
+export default function MoveNoteDialog({ note, folders, onMove, onClose, onCloseAutoFocus }) {
   const current = note?.folder ?? "";
   const options = ["", ...folders];
   return (
     <AppDialog
       open={Boolean(note)}
       onClose={onClose}
+      onCloseAutoFocus={onCloseAutoFocus}
+      onOpenAutoFocus={(event) => {
+        // Start on where the note lives now, so Enter-then-arrows reads naturally.
+        const here = event.target.querySelector?.('[aria-current="true"]');
+        if (!here) return;
+        event.preventDefault();
+        here.focus();
+      }}
       title="Move to folder"
       description={note ? `Choose where "${note.title || "Untitled"}" should live.` : undefined}
       size="sm"
       footer={<Button variant="secondary" onClick={onClose}>Cancel</Button>}
     >
-      <ul className={styles.pickList}>
+      <ul className={styles.pickList} aria-label="Folders">
         {options.map((path) => {
           const depth = path ? path.split("/").length : 0;
           const name = path ? path.slice(path.lastIndexOf("/") + 1) : ROOT_LABEL;
@@ -31,11 +39,12 @@ export default function MoveNoteDialog({ note, folders, onMove, onClose }) {
                 className={styles.pickRow}
                 style={{ paddingInlineStart: 12 + Math.max(depth - 1, 0) * INDENT_STEP }}
                 aria-current={path === current ? "true" : undefined}
+                aria-label={`${path || ROOT_LABEL}${path === current ? ", current folder" : ""}`}
                 onClick={() => onMove(path)}
               >
                 <Folder size={16} strokeWidth={1.75} aria-hidden="true" />
                 <span className={styles.title}>{name}</span>
-                {path === current && <Check size={16} strokeWidth={1.75} aria-label="Current folder" />}
+                {path === current && <Check size={16} strokeWidth={1.75} aria-hidden="true" />}
               </button>
             </li>
           );

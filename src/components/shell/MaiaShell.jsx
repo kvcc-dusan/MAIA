@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,6 +19,7 @@ import { VaultMenu } from "./VaultMenu";
 import styles from "./MaiaShell.module.css";
 
 const SIDEBAR_KEY = "maia.shell.sidebar";
+const MAIN_ID = "maia-main";
 const NARROW_QUERY = "(max-width: 720px)";
 
 const readSidebarOpen = () => {
@@ -78,6 +79,13 @@ export const MaiaShell = ({
   const [topBarEl, setTopBarEl] = useState(null);
   const [sidebarCount, setSidebarCount] = useState(0);
   const hasSidebar = sidebarCount > 0;
+  const mainRef = useRef(null);
+
+  // A hash link would rewrite the URL (base path /MAIA/, no router), so move focus by hand.
+  const skipToMain = (event) => {
+    event.preventDefault();
+    mainRef.current?.focus();
+  };
 
   const registerSidebar = useCallback(() => {
     setSidebarCount((n) => n + 1);
@@ -103,6 +111,9 @@ export const MaiaShell = ({
   return (
     <ShellProvider value={shell}>
       <div className={styles.frame} data-lights={hasTrafficLights() || undefined}>
+        <a className={styles.skipLink} href={`#${MAIN_ID}`} onClick={skipToMain}>
+          Skip to content
+        </a>
         <header className={styles.topBar} data-tauri-drag-region>
           <div className={styles.lights} data-tauri-drag-region aria-hidden="true" />
           <div className={styles.controls}>
@@ -110,7 +121,6 @@ export const MaiaShell = ({
               <IconButton
                 icon={ToggleIcon}
                 label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-                aria-expanded={sidebarOpen}
                 side="bottom"
                 onClick={toggleSidebar}
               />
@@ -182,7 +192,7 @@ export const MaiaShell = ({
             <div className={styles.sidebarInner} ref={setSidebarEl} />
           </aside>
 
-          <main className={styles.content}>
+          <main id={MAIN_ID} ref={mainRef} tabIndex={-1} className={styles.content}>
             <h1 className="sr-only">{title}</h1>
             {children}
           </main>

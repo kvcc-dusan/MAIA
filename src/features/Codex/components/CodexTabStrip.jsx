@@ -3,6 +3,7 @@ import { ChevronDown, Plus, X } from "lucide-react";
 import { IconButton } from "@/components/composed/IconButton";
 import { Menu } from "@/components/composed/Menu";
 import { tabTitle } from "../codexTabs.js";
+import { CODEX_PANEL_ID, codexTabId } from "./tabIds.js";
 import styles from "./CodexTabStrip.module.css";
 
 const NEXT_KEYS = { ArrowRight: 1, ArrowLeft: -1 };
@@ -87,8 +88,11 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
                 type="button"
                 role="tab"
                 className={styles.label}
+                id={codexTabId(tab.id)}
                 data-tab-id={tab.id}
                 aria-selected={isActive}
+                aria-controls={isActive ? CODEX_PANEL_ID : undefined}
+                aria-keyshortcuts="Delete Backspace"
                 tabIndex={tab.id === rovingId ? 0 : -1}
                 title={title}
                 onClick={() => onActivate(tab.id)}

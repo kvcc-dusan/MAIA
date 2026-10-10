@@ -23,7 +23,7 @@
 .chevronSpace { flex: none; width: 16px; }
 .icon { flex: none; color: var(--text-muted); }
 .title { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.count { flex: none; color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.count { flex: none; color: var(--text-secondary); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
 
 .pickList { margin: 0; padding: 0; list-style: none; }
 .pickRow {

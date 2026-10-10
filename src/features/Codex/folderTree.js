@@ -75,20 +75,23 @@ export const listFolderPaths = (root) => {
 
 /**
  * Flattens the tree into the rows that are visible given the expanded set.
- * Row: { key, type: "folder"|"note", depth, path, name, note?, noteCount?, isExpanded?, parentKey }
+ * Row: { key, type: "folder"|"note", depth, path, name, note?, noteCount?, isExpanded?, parentKey,
+ *         posInSet, setSize }. posInSet and setSize count siblings under the same parent, which is what
+ * aria-posinset and aria-setsize mean, and they stay right while a sibling folder is collapsed.
  */
 export const flattenTree = (root, expanded) => {
   const rows = [];
   const walk = (node, depth, parentKey) => {
-    for (const child of node.folders) {
+    const setSize = node.folders.length + node.notes.length;
+    node.folders.forEach((child, index) => {
       const isExpanded = expanded.has(child.path);
       const key = `f:${child.path}`;
-      rows.push({ key, type: "folder", depth, path: child.path, name: child.name, noteCount: child.noteCount, isExpanded, parentKey });
+      rows.push({ key, type: "folder", depth, path: child.path, name: child.name, noteCount: child.noteCount, isExpanded, parentKey, posInSet: index + 1, setSize });
       if (isExpanded) walk(child, depth + 1, key);
-    }
-    for (const note of node.notes) {
-      rows.push({ key: `n:${note.id}`, type: "note", depth, path: node.path, name: noteTitle(note), note, parentKey });
-    }
+    });
+    node.notes.forEach((note, index) => {
+      rows.push({ key: `n:${note.id}`, type: "note", depth, path: node.path, name: noteTitle(note), note, parentKey, posInSet: node.folders.length + index + 1, setSize });
+    });
   };
   walk(root, 0, null);
   return rows;

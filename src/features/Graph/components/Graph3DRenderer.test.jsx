@@ -81,6 +81,25 @@ describe("Graph3DRenderer", () => {
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
+  it("names the stage and describes how to operate it and reach notes without a pointer", () => {
+    render(<Graph3DRenderer {...baseProps} />);
+    const stage = screen.getByRole("group", { name: "3D knowledge graph" });
+    const help = document.getElementById(stage.getAttribute("aria-describedby"));
+    expect(help.textContent).toMatch(/search/i);
+    expect(help.textContent).toMatch(/Shift\+Enter/);
+  });
+
+  it("turns auto-rotation off when the user prefers reduced motion", () => {
+    const original = window.matchMedia;
+    window.matchMedia = (query) => ({ matches: query.includes("reduce"), addEventListener() {}, removeEventListener() {} });
+    try {
+      render(<Graph3DRenderer {...baseProps} />);
+      expect(h.instances[0].controlsMock.autoRotate).toBe(false);
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
   it("updates data without recreating the scene", () => {
     const { rerender } = render(<Graph3DRenderer {...baseProps} />);
     const graph = h.instances[0];

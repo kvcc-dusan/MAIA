@@ -235,11 +235,12 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   }, [searchQuery, nodes]);
 
   // Enter in the search box opens the first match: the pointer-free way in.
+  const openNode = (node) => {
+    if (node.type === "project") onOpenNote?.(node.realId, "project");
+    else onOpenNote?.(node.id);
+  };
   const openFirstResult = () => {
-    const first = searchResults[0];
-    if (!first) return;
-    if (first.type === "project") onOpenNote?.(first.realId, "project");
-    else onOpenNote?.(first.id);
+    if (searchResults[0]) openNode(searchResults[0]);
   };
 
   // Group colours for the 3D view (folder or tag), and the legend that explains them.
@@ -339,6 +340,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         setSearchQuery={setSearchQuery}
         searchResults={searchResults}
         handleZoomToNode={handleZoomToNode}
+        onOpenNode={openNode}
         view={{
           mode: view.mode,
           setMode: view.setViewMode,

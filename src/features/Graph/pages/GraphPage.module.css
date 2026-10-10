@@ -24,7 +24,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--text-sm);
 }
 

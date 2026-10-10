@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FolderPlus, NotebookPen, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 import { IconButton } from "@/components/composed/IconButton";
@@ -38,6 +38,16 @@ export default function NotesSidebar({
   const [newFolderParent, setNewFolderParent] = useState(null);
   const [moving, setMoving] = useState(null);
   const [menuTarget, setMenuTarget] = useState(null);
+  const treeRef = useRef(null);
+  // The row to hand focus back to once a menu or dialog opened from it closes.
+  const pendingFocus = useRef(null);
+  const menuRowKey = useRef(null);
+  const returnKey = useRef(null);
+  const returnFocus = (event) => {
+    if (!returnKey.current) return;
+    event.preventDefault();
+    focusRow(returnKey.current);
+  };
 
   const tree = useMemo(() => buildTree(notes, folders), [notes, folders]);
   const rows = useMemo(() => flattenTree(tree, expanded), [tree, expanded]);
@@ -50,6 +60,27 @@ export default function NotesSidebar({
   useEffect(() => {
     if (activeFolder) expandAll(ancestorPaths(activeFolder));
   }, [currentNoteId, activeFolder, expandAll]);
+
+  const flushFocus = useCallback(() => {
+    const key = pendingFocus.current;
+    if (!key || !treeRef.current) return;
+    const el = [...treeRef.current.querySelectorAll('[role="treeitem"]')].find((node) => node.dataset.key === key);
+    if (!el) return;
+    pendingFocus.current = null;
+    setFocusKey(key);
+    el.focus();
+  }, []);
+
+  const focusRow = useCallback(
+    (key) => {
+      pendingFocus.current = key;
+      flushFocus();
+    },
+    [flushFocus]
+  );
+
+  // A row that was moved or revealed may only exist after the next render.
+  useEffect(flushFocus, [rows, flushFocus]);
 
   const targetFolder = selectedFolder ?? activeFolder ?? "";
 
@@ -73,10 +104,20 @@ export default function NotesSidebar({
     if (row) activate(row);
   };
 
-  const handleKeyDown = useTreeKeyboard({ rows, onActivate: activate, onSetOpen: setOpen, onFocusKey: setFocusKey });
+  // Base UI positions the menu from the event's coordinates. A keyboard-raised
+  // contextmenu event has none that are reliable, so replay one at the row.
+  const openRowMenu = useCallback((row, el) => {
+    const box = el.getBoundingClientRect();
+    el.dispatchEvent(new MouseEvent("contextmenu", {
+      bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 48), clientY: box.top + box.height / 2,
+    }));
+  }, []);
+
+  const handleKeyDown = useTreeKeyboard({ rows, onActivate: activate, onSetOpen: setOpen, onFocusKey: setFocusKey, onContextMenuKey: openRowMenu });
 
   const handleContextMenu = (event) => {
     const el = event.target.closest?.('[role="treeitem"]');
+    menuRowKey.current = el?.dataset.key ?? null;
     if (!el) return setMenuTarget({ kind: "root" });
     if (el.dataset.noteId) {
       const note = notes.find((n) => n.id === el.dataset.noteId);
@@ -114,7 +155,9 @@ export default function NotesSidebar({
   const moveTo = async (folder) => {
     const note = moving;
     setMoving(null);
-    if (!note || normalizeFolder(note.folder) === folder) return;
+    if (!note) return;
+    returnKey.current = `n:${note.id}`;
+    if (normalizeFolder(note.folder) === folder) return;
     try {
       await onMoveNote?.(note.id, folder);
       if (folder) expandAll(ancestorPaths(folder));
@@ -135,27 +178,31 @@ export default function NotesSidebar({
       <div className={styles.toolbar}>
         <IconButton icon={SquarePen} size="icon" label="New note" side="bottom" onClick={() => createNoteIn(targetFolder)} />
         <IconButton icon={NotebookPen} size="icon" label="New journal" side="bottom" onClick={onCreateJournal} />
-        <IconButton icon={FolderPlus} size="icon" label="New folder" side="bottom" onClick={() => setNewFolderParent(targetFolder)} />
+        <IconButton icon={FolderPlus} size="icon" label="New folder" side="bottom" onClick={() => { returnKey.current = null; setNewFolderParent(targetFolder); }} />
       </div>
 
       {isEmpty ? (
         <p className={styles.empty}>No notes yet. Create one with the buttons above.</p>
       ) : (
-        <Menu.Context>
+        <Menu.Context
+          onOpenChange={(open) => {
+            // Escape or a pick must not strand focus on <body>; a pick that opens a dialog hands it on from here.
+            if (!open && menuRowKey.current) focusRow(menuRowKey.current);
+          }}
+        >
           <Menu.ContextTrigger className={fileTree.tree}>
             <div
+              ref={treeRef}
               role="tree"
               aria-label="Notes and folders"
               onClick={handleClick}
               onKeyDown={handleKeyDown}
               onContextMenu={handleContextMenu}
             >
-              {rows.map((row, i) => (
+              {rows.map((row) => (
                 <TreeRow
                   key={row.key}
                   row={row}
-                  size={rows.length}
-                  position={i + 1}
                   isActive={row.type === "note" && row.note.id === currentNoteId}
                   isSelected={row.type === "folder" && row.path === selectedFolder}
                   isTabStop={row.key === tabStopKey}
@@ -165,11 +212,11 @@ export default function NotesSidebar({
           </Menu.ContextTrigger>
           <Menu.ContextContent>
             {menuTarget?.kind === "note" ? (
-              <Menu.ContextItem onClick={() => setMoving(menuTarget.note)}>Move to folder</Menu.ContextItem>
+              <Menu.ContextItem onClick={() => { returnKey.current = menuRowKey.current; setMoving(menuTarget.note); }}>Move to folder</Menu.ContextItem>
             ) : (
               <>
                 <Menu.ContextItem onClick={() => createNoteIn(menuFolder)}>New note here</Menu.ContextItem>
-                <Menu.ContextItem onClick={() => setNewFolderParent(menuFolder)}>New folder here</Menu.ContextItem>
+                <Menu.ContextItem onClick={() => { returnKey.current = menuRowKey.current; setNewFolderParent(menuFolder); }}>New folder here</Menu.ContextItem>
               </>
             )}
           </Menu.ContextContent>
@@ -184,13 +231,20 @@ export default function NotesSidebar({
         open={newFolderParent !== null}
         onClose={() => setNewFolderParent(null)}
         onSubmit={submitFolder}
+        onCloseAutoFocus={returnFocus}
         title="New folder"
         description={`Created in ${newFolderParent || ROOT_LABEL}.`}
         label="Folder name"
         submitLabel="Create folder"
         validate={validateFolderName}
       />
-      <MoveNoteDialog note={moving} folders={folderPaths} onMove={moveTo} onClose={() => setMoving(null)} />
+      <MoveNoteDialog
+        note={moving}
+        folders={folderPaths}
+        onMove={moveTo}
+        onClose={() => setMoving(null)}
+        onCloseAutoFocus={returnFocus}
+      />
     </nav>
   );
 }

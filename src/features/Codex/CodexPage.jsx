@@ -4,6 +4,7 @@ import { ShellSidebar, ShellTopBar } from "@/components/shell/ShellContext";
 import NotesPage from "@/pages/NotesPage.jsx";
 import EditorPage from "@/pages/EditorPage.jsx";
 import CodexTabStrip from "./components/CodexTabStrip.jsx";
+import { CODEX_PANEL_ID, codexTabId } from "./components/tabIds.js";
 import NewTabPage from "./components/NewTabPage.jsx";
 import NotesSidebar from "./components/NotesSidebar.jsx";
 
@@ -124,7 +125,9 @@ export default function CodexPage({
           onMoveNote={moveNote}
         />
       </ShellSidebar>
-      {renderContent()}
+      <div role="tabpanel" id={CODEX_PANEL_ID} aria-labelledby={codexTabId(activeTab.id)} className="h-full min-h-0">
+        {renderContent()}
+      </div>
     </>
   );
 }

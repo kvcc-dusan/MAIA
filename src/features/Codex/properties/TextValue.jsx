@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useId, useRef, useState } from "react";
 import { Input } from "@/components/arc/input/input";
 import styles from "./Properties.module.css";
 
@@ -13,6 +13,7 @@ export default function TextValue({ label, value, type, isEditable, autoFocus = 
   const [error, setError] = useState(null);
   // Enter and Escape unmount the input, which fires blur once more; that blur must not commit again
   const isDoneRef = useRef(false);
+  const valueId = useId();
 
   const start = () => {
     isDoneRef.current = false;
@@ -45,9 +46,13 @@ export default function TextValue({ label, value, type, isEditable, autoFocus = 
 
   if (!isEditing) {
     return (
-      <button type="button" className={styles.valueButton} aria-label={`Edit ${label}`} onClick={start}>
-        {String(value) === "" ? <span className={styles.empty}>Empty</span> : String(value)}
-      </button>
+      <>
+        {/* The name stays "Edit <property>"; the current value rides along as the description, so it is still heard. */}
+        <button type="button" className={styles.valueButton} aria-label={`Edit ${label}`} aria-describedby={valueId} onClick={start}>
+          {String(value) === "" ? <span className={styles.empty}>Empty</span> : String(value)}
+        </button>
+        <span id={valueId} hidden>{String(value) === "" ? "Empty" : `Value: ${String(value)}`}</span>
+      </>
     );
   }
 
@@ -55,6 +60,7 @@ export default function TextValue({ label, value, type, isEditable, autoFocus = 
     <div className={styles.editor}>
       <Input
         label={label}
+        aria-keyshortcuts="Enter Escape"
         value={draft}
         inputMode={isNumber ? "decimal" : undefined}
         error={error ?? undefined}

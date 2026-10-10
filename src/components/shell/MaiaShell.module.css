@@ -4,6 +4,7 @@
  * a 1px hairline, so the regions read as one frame.
  */
 .frame {
+  position: relative;
   --shell-top: var(--control-height-md);
   --shell-rail: 48px;
   --shell-sidebar: 264px;
@@ -16,6 +17,23 @@
   background: var(--background);
   color: var(--foreground);
 }
+
+/* First tab stop. Off-screen until focused, then it sits over the top bar. */
+.skipLink {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-popover, 60);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-floating);
+  color: var(--foreground);
+  font-size: var(--text-sm);
+  transform: translateY(-200%);
+}
+.skipLink:focus { transform: none; }
 
 /* ---- top bar ---------------------------------------------------------- */
 

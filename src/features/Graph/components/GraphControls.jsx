@@ -47,6 +47,7 @@ export default function GraphControls({
     setSearchQuery,
     searchResults,
     handleZoomToNode,
+    onOpenNode,
     values,
     setters,
     hotTags,
@@ -59,6 +60,7 @@ export default function GraphControls({
     onSearchSubmit
 }) {
     const panelId = useId();
+    const resultsHintId = useId();
     const toggleRef = useRef(null);
     const searchRef = useRef(null);
 
@@ -79,7 +81,7 @@ export default function GraphControls({
         <>
             <IconButton
                 ref={toggleRef}
-                label={isPanelOpen ? "Close graph controls" : "Open graph controls"}
+                label="Graph controls"
                 icon={isPanelOpen ? X : SlidersHorizontal}
                 variant="secondary"
                 size="icon-md"
@@ -119,11 +121,29 @@ export default function GraphControls({
                                 onSearchSubmit?.();
                             }}
                         />
+                        <p className="sr-only" role="status" aria-live="polite">
+                            {searchQuery.trim() === ""
+                                ? ""
+                                : `${searchResults.length} matching ${searchResults.length === 1 ? "node" : "nodes"}.`}
+                        </p>
+                        <p id={resultsHintId} hidden>Enter zooms to this node. Shift+Enter opens it.</p>
                         {searchResults.length > 0 && (
                             <ul className={styles.results} aria-label="Matching nodes">
                                 {searchResults.map(res => (
                                     <li key={res.id}>
-                                        <button type="button" className={styles.row} onClick={() => handleZoomToNode(res.id)}>
+                                        <button
+                                            type="button"
+                                            className={styles.row}
+                                            aria-keyshortcuts="Shift+Enter"
+                                            aria-describedby={resultsHintId}
+                                            onClick={() => handleZoomToNode(res.id)}
+                                            onKeyDown={(e) => {
+                                                // Enter alone is the button's own click (zoom); Shift+Enter is the way to open without a pointer.
+                                                if (e.key !== "Enter" || !e.shiftKey) return;
+                                                e.preventDefault();
+                                                onOpenNode?.(res);
+                                            }}
+                                        >
                                             <span className={styles.rowMain}>
                                                 <span className={styles.dot} style={{ background: nodeDotColor(res) }} aria-hidden="true" />
                                                 <span className={styles.truncate}>{res.title}</span>

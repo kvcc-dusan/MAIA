@@ -1,12 +1,13 @@
 // @maia:graph-3d
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { cssVar } from "@/lib/tokens";
 import { buildGraphData, clusterMembers, matchNodes } from "../lib/graphData3d.js";
 import { createGraphScene } from "../lib/graph3dScene.js";
 import styles from "./Graph3DRenderer.module.css";
 
-const DESCRIPTION =
-  "3D knowledge graph. Drag to orbit, scroll to zoom, arrow keys to pan. Use the search box to find a note, then press Enter to open it.";
+const GRAPH_NAME = "3D knowledge graph";
+const INSTRUCTIONS =
+  "Drag to orbit, scroll to zoom, arrow keys to pan. The nodes themselves are not readable here: open the graph controls, search for a note by title or tag, then press Enter to open the first match or Shift+Enter on a match to open that one.";
 
 const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -37,6 +38,7 @@ function Graph3DRenderer({
   const sceneRef = useRef(null);
   const dataRef = useRef(null);
   const [announcement, setAnnouncement] = useState("");
+  const helpId = useId();
 
   // Callbacks are read through a ref so the scene never needs to be rebuilt for them.
   const latest = useRef({});
@@ -137,7 +139,8 @@ function Graph3DRenderer({
 
   return (
     <div className={styles.canvas}>
-      <div ref={stageRef} className={styles.stage} tabIndex={0} role="group" aria-label={DESCRIPTION} />
+      <div ref={stageRef} className={styles.stage} tabIndex={0} role="group" aria-label={GRAPH_NAME} aria-describedby={helpId} />
+      <p id={helpId} className={styles.srOnly}>{INSTRUCTIONS}</p>
       <p className={styles.srOnly} role="status" aria-live="polite">{announcement}</p>
     </div>
   );

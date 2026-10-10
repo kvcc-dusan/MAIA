@@ -21,6 +21,7 @@ function KeyName({ name, isRenaming, onRename, onCancel, error }) {
     <div className={`${styles.editor} ${styles.srLabel}`}>
       <Input
         label={`Rename ${name}`}
+        aria-keyshortcuts="Enter Escape"
         value={draft}
         error={error ?? undefined}
         autoFocus
@@ -124,6 +125,7 @@ export default function PropertyRow({ row, isEditable, autoFocus = false, onSet,
       <ConfirmDialog
         open={isConfirming}
         onOpenChange={setIsConfirming}
+        onClose={() => setIsConfirming(false)}
         title={`Remove ${row.key}?`}
         description="The property and its value are removed from this note."
         confirmLabel="Remove property"

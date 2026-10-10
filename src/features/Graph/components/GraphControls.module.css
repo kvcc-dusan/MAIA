@@ -178,7 +178,7 @@
 
 .count {
   flex: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -190,6 +190,6 @@
 
 .muted {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--text-sm);
 }

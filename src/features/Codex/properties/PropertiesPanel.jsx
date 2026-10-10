@@ -1,4 +1,4 @@
-import React, { useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
 import {
@@ -22,9 +22,21 @@ export default function PropertiesPanel({ note, onChange, isEditable = true }) {
   const [isAdding, setIsAdding] = useState(false);
   const [newKey, setNewKey] = useState(null);
   const [failure, setFailure] = useState(null);
+  const panelRef = useRef(null);
+  // Removing a row or closing the add form unmounts the focused control; send focus to a stable button instead.
+  const refocus = useRef(null);
   const isReadable = isFrontmatterReadable(note);
   const rows = isReadable ? readProperties(note) : [];
   const [isOpen, setOpen] = usePropertiesOpen(note.id, rows.length > 0);
+
+  const rowCount = rows.length;
+  useEffect(() => {
+    const target = refocus.current;
+    if (!target) return;
+    refocus.current = null;
+    const root = panelRef.current;
+    root?.querySelector(target === "add" ? "[data-add-property]" : "button")?.focus();
+  }, [rowCount, isAdding]);
 
   // Every write goes through here so one bad value shows a message instead of crashing the editor
   const apply = (build) => {
@@ -39,7 +51,11 @@ export default function PropertiesPanel({ note, onChange, isEditable = true }) {
   };
 
   const set = (key, typed) => apply(() => setFrontmatterProperty(note, key, typed));
-  const remove = (key) => apply(() => removeFrontmatterProperty(note, key));
+  const remove = (key) => {
+    const error = apply(() => removeFrontmatterProperty(note, key));
+    if (!error) refocus.current = "first";
+    return error;
+  };
   const rename = (from, to) => validatePropertyKey(note, to, { ignore: from }) ?? apply(() => renameFrontmatterProperty(note, from, to));
 
   const add = (name, type) => {
@@ -63,16 +79,16 @@ export default function PropertiesPanel({ note, onChange, isEditable = true }) {
   if (!isEditable && rows.length === 0) return null;
 
   const addButton = isEditable && !isAdding && (
-    <Button variant="ghost" size="md" className={styles.add} onClick={() => { setIsAdding(true); setOpen(true); }}>
+    <Button variant="ghost" size="md" className={styles.add} data-add-property onClick={() => { setIsAdding(true); setOpen(true); }}>
       <Plus size={16} strokeWidth={1.75} aria-hidden="true" /> Add property
     </Button>
   );
 
   // A plain note stays clean: no heading, just the add affordance
-  if (rows.length === 0 && !isAdding) return <div className={styles.panel}>{addButton}</div>;
+  if (rows.length === 0 && !isAdding) return <div ref={panelRef} className={styles.panel}>{addButton}</div>;
 
   return (
-    <div className={styles.panel} role="group" aria-labelledby={headingId}>
+    <div ref={panelRef} className={styles.panel} role="group" aria-labelledby={headingId}>
       <h2 id={headingId} className={styles.head}>
         <button
           type="button"
@@ -103,7 +119,15 @@ export default function PropertiesPanel({ note, onChange, isEditable = true }) {
           </ul>
         )}
         {failure && <p className={styles.alert} role="alert">{failure}</p>}
-        {isAdding && <AddPropertyForm onAdd={add} onCancel={() => setIsAdding(false)} />}
+        {isAdding && (
+          <AddPropertyForm
+            onAdd={add}
+            onCancel={() => {
+              refocus.current = "add";
+              setIsAdding(false);
+            }}
+          />
+        )}
         {addButton}
       </div>
     </div>

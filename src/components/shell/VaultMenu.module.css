@@ -6,7 +6,7 @@
 .name { overflow: hidden; font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
 .path {
   overflow: hidden;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
