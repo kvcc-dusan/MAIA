@@ -10,6 +10,7 @@ import { CountPill } from "@/components/composed/SectionBits";
 import { Menu, MenuDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
 import { EmptyState } from "@/components/composed/EmptyState";
+import { noteTags } from "@/lib/noteTags";
 import { StickyNote03, Delete01, AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
 import { NoteCardMenu } from "../features/Notes/components/NoteCard.jsx";
 import { useData } from "../context/DataContext";
@@ -141,7 +142,7 @@ export default function NotesOverview({
     if (parsedFilter.q) {
       arr = arr.filter((n) => {
         const title = (n.title || "").toLowerCase();
-        const tags = (n.tags || []).map((t) => (t || "").toLowerCase());
+        const tags = noteTags(n).map((t) => t.toLowerCase());
         // Resolve project names from projectIds for filtering
         const noteProjectNames = (n.projectIds || []).map(pid => {
           const p = projects.find(proj => proj.id === pid);

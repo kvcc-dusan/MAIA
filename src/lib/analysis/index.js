@@ -3,6 +3,8 @@
  * Deterministic analysis of raw cognition.
  */
 
+import { noteTags } from "../noteTags.js";
+
 /* -------------------------------------------------------------------------- */
 /*                                  Helpers                                   */
 /* -------------------------------------------------------------------------- */
@@ -40,7 +42,7 @@ export function calculateVelocity(notes, windowDays = 7) {
     notes.forEach(note => {
         if (!note.createdAt) return;
         const daysAgo = getDaysAgo(note.createdAt);
-        const tags = note.tags || [];
+        const tags = noteTags(note);
 
         if (daysAgo <= windowDays) {
             // Recent Bucket

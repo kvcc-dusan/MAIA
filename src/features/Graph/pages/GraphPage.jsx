@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js";
+import { noteTags } from "../../../lib/noteTags.js";
 import { Network } from "lucide-react";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
@@ -69,7 +70,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     const hotTags = new Set(velocityStats.filter(v => v.velocity > 0).map(v => v.tag));
 
     // Helper to check if note is "Hot"
-    const isHot = (n) => (n.tags || []).some(t => hotTags.has(t));
+    const isHot = (n) => noteTags(n).some(t => hotTags.has(t));
 
     return { rawClusters, clusterMap, isHot, hotTags };
   }, [notes]);
@@ -89,7 +90,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         type: "note",
         group: clusterIdx,
         isHot: analysis.isHot(n),
-        tags: n.tags || [],
+        tags: noteTags(n),
         val: 1, // Fixed base size (content length sizing disabled)
         projectIds: n.projectIds || [],
       };

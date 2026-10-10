@@ -4,6 +4,7 @@ import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/M
 import { IconButton } from "@/components/composed/IconButton";
 import { Pin, CheckmarkSquare02, Delete01, Pen01 } from "@/components/ui/CustomIcon.jsx";
 import { useLongPress } from "@/hooks/useLongPress";
+import { noteTags } from "@/lib/noteTags";
 import styles from "./NoteCard.module.css";
 
 // NoteCard calls this for both real right-clicks and its synthetic
@@ -116,7 +117,7 @@ function NoteCard({ note, dateDisplay, previewText, projectName, isSelected, sel
       <div className={styles.footer}>
         <div className={styles.meta}>
           <span className={styles.date}>{dateDisplay}</span>
-          {(note.tags || []).includes("journal") && <Badge tone="neutral">journal</Badge>}
+          {noteTags(note).includes("journal") && <Badge tone="neutral">journal</Badge>}
           {projectName && (
             <Badge tone="neutral" className={styles.project}>
               {projectName}
