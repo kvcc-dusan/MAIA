@@ -1,0 +1,7 @@
+.form { display: grid; gap: var(--space-5); min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-4); }
+.row > * { min-width: 0; }
+.next { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+.note { color: var(--text-muted); font-size: var(--text-sm); }
+.error { margin: 0; color: var(--danger); font-size: var(--text-sm); }
+.delete { margin-inline-end: auto; }

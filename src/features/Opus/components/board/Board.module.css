@@ -1,0 +1,20 @@
+/* The board scrolls inside this box, never the page. */
+.scroller {
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: var(--space-2);
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(16rem, 1fr));
+  align-items: stretch;
+  gap: var(--space-4);
+}
+@media (max-width: 40rem) { .board { grid-template-columns: repeat(4, 80%); } }
+
+/* Snap on touch, but never while a card is held: snapping fights edge scrolling. */
+@media (pointer: coarse) {
+  .scroller { scroll-snap-type: x mandatory; }
+  .scroller[data-dragging] { scroll-snap-type: none; }
+}
