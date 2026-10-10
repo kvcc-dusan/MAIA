@@ -1,0 +1,11 @@
+.tile { display: grid; align-content: start; gap: var(--space-1); min-width: 0; padding: var(--space-4) var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); }
+.label { margin: 0; color: var(--text-secondary); font: inherit; font-size: var(--text-sm); font-weight: 500; }
+.value { margin: 0; color: var(--foreground); font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 500; letter-spacing: var(--tracking-display); line-height: var(--leading-display); font-variant-numeric: tabular-nums; }
+.unit { margin-left: var(--space-1); color: var(--text-muted); font-size: var(--text-lg); }
+.context { display: flex; align-items: center; gap: var(--space-2); margin: 0; color: var(--text-secondary); font-size: var(--text-sm); }
+.dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--text-muted); }
+.danger { background: var(--danger); }
+.warning { background: var(--warning); }
+.success { background: var(--success); }
+.link { justify-self: start; min-height: var(--control-height-sm); margin: 0; padding: 0; border: 0; background: none; color: var(--accent-strong); font: inherit; font-size: var(--text-sm); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (pointer: coarse) { .link { min-height: 44px; } }

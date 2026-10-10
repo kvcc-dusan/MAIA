@@ -9,30 +9,43 @@ import OverviewTab from "./tabs/OverviewTab";
 import BoardTab from "./tabs/BoardTab";
 import TasksTab from "./tabs/TasksTab";
 import RoadmapTab from "./tabs/RoadmapTab";
-import RecordTab from "./tabs/RecordTab";
-import LibraryTab from "./tabs/LibraryTab";
+import DecisionsTab from "./tabs/DecisionsTab";
+import QuestionsTab from "./tabs/QuestionsTab";
+import DocumentsTab from "./tabs/DocumentsTab";
+import NotesTab from "./tabs/NotesTab";
+import ReportTab from "./tabs/ReportTab";
+import CoreTab from "./tabs/CoreTab";
 import styles from "./OpusLayout.module.css";
 
 const TAB_STORAGE_KEY = "maia.opus.tab";
 
-// Order here is the order on screen. Each Panel receives { project, selectNote }.
+// Order here is the order on screen, named as in the project hub. Each Panel
+// receives { project, selectNote, onOpenReport }.
 const TABS = [
   { id: "overview", label: "Overview", Panel: OverviewTab },
   { id: "board", label: "Board", Panel: BoardTab },
   { id: "tasks", label: "Tasks", Panel: TasksTab },
   { id: "roadmap", label: "Roadmap", Panel: RoadmapTab },
-  { id: "record", label: "Record", Panel: RecordTab },
-  { id: "library", label: "Library", Panel: LibraryTab },
+  { id: "decisions", label: "Decisions", Panel: DecisionsTab },
+  { id: "questions", label: "Questions", Panel: QuestionsTab },
+  { id: "documents", label: "Documents", Panel: DocumentsTab },
+  { id: "notes", label: "Notes", Panel: NotesTab },
+  { id: "report", label: "Weekly report", Panel: ReportTab },
+  { id: "core", label: "Core", Panel: CoreTab },
 ];
 const TAB_IDS = TABS.map((t) => t.id);
 const DEFAULT_TAB = TAB_IDS[0];
+
+// Tabs that were folded into others when the hub pages arrived.
+const LEGACY_TABS = { record: "decisions", library: "core" };
 
 // Storage can be blocked or hold a tab id from another version, so both
 // directions swallow errors and the read validates against the current ids.
 const readSavedTab = () => {
   try {
     const saved = localStorage.getItem(TAB_STORAGE_KEY);
-    return TAB_IDS.includes(saved) ? saved : DEFAULT_TAB;
+    const resolved = LEGACY_TABS[saved] ?? saved;
+    return TAB_IDS.includes(resolved) ? resolved : DEFAULT_TAB;
   } catch {
     return DEFAULT_TAB;
   }
@@ -69,7 +82,7 @@ function OpusPage({ project, updateProject, selectNote }) {
           const Panel = entry.Panel;
           return (
             <TabsContent key={entry.id} value={entry.id}>
-              <Panel project={project} selectNote={selectNote} />
+              <Panel project={project} selectNote={selectNote} onOpenReport={() => setIsReportOpen(true)} />
             </TabsContent>
           );
         })}
@@ -86,7 +99,7 @@ function OpusPage({ project, updateProject, selectNote }) {
 }
 
 /**
- * OPUS: the project command center. A header (name, meta line, weekly report)
+ * OPUS: the project command center. A header (phase, name, headline, progress, weekly report)
  * above Arc tabs. The selected tab lives in OpusNavContext so any panel can
  * link to another with a filter applied; it is remembered across visits.
  */

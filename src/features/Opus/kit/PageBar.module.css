@@ -1,0 +1,4 @@
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-4); min-width: 0; }
+.filters { display: flex; flex: 1 1 auto; flex-wrap: wrap; align-items: center; gap: var(--space-3); min-width: 0; }
+.action { flex: 0 0 auto; }
+@media (max-width: 560px) { .action { flex: 1 1 100%; } .action > * { width: 100%; } }

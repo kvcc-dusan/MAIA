@@ -27,6 +27,62 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, Settings, Folder } from "lucide-react";
+import {
+  PageBar, FilterChips, SearchBox, MetricTile, GroupCard, ListRow, StatusBadge,
+  OwnerAvatar, DueLabel, WorkstreamTag, PriorityBadge, SizeMark,
+} from "@/features/Opus/kit";
+
+const KIT_STATUSES = ["todo", "doing", "blocked", "done", "open", "answered", "draft", "current", "notStarted", "superseded", "planned", "active", "atRisk"];
+const KIT_WORKSTREAMS = [{ name: "Design", color: "1" }, { name: "Engineering", color: "2" }, { name: "Launch", color: "3" }, { name: "Legal", color: "4" }];
+
+function OpusKitDemo() {
+  const [chip, setChip] = React.useState("open");
+  const [query, setQuery] = React.useState("");
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <PageBar action={<Button>New task</Button>}>
+        <FilterChips
+          label="Task status"
+          value={chip}
+          onValueChange={setChip}
+          options={[{ value: "open", label: "Open", count: 30 }, { value: "blocked", label: "Blocked", count: 6 }, { value: "done", label: "Done", count: 30 }, { value: "all", label: "All" }]}
+        />
+        <SearchBox label="Search tasks" placeholder="Search tasks" value={query} onValueChange={setQuery} />
+      </PageBar>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricTile label="Open tasks" value="30" unit="/60" context="8 in progress" />
+        <MetricTile label="Overdue" value="4" tone="danger" context="4 tasks past due" />
+        <MetricTile label="Blocking" value="6" tone="warning" context="3 tasks, 3 questions" link={{ label: "View blocked", onClick: () => {} }} />
+        <MetricTile label="Done this week" value="4" tone="success" context="3.8 per week on average" />
+      </div>
+      <GroupCard title="Engineering" color="var(--series-2)" meta="10 of 14 done" progress={{ value: 10, max: 14 }}>
+        <ListRow
+          title="Set up staging environment"
+          subtitle="High priority. Needs access to the cloud account."
+          leading={<Checkbox aria-label="Done" />}
+          onClick={() => {}}
+          trailing={<><StatusBadge status="doing" /><OwnerAvatar name="Sara Vidmar" showName /><DueLabel due="2026-10-08" today="2026-10-10" /></>}
+        />
+        <ListRow
+          title="Review the API contract"
+          subtitle="Question owner: Ana Kovač"
+          trailing={<><StatusBadge status="open" /><DueLabel due="2026-10-12" today="2026-10-10" /><DueLabel due="2026-11-27" today="2026-10-10" /></>}
+        />
+      </GroupCard>
+      <div className="flex flex-wrap items-center gap-3">
+        {KIT_STATUSES.map((status) => <StatusBadge key={status} status={status} />)}
+      </div>
+      <div className="flex flex-wrap items-center gap-4">
+        <PriorityBadge priority="p1" />
+        <PriorityBadge priority="p2" />
+        {["S", "M", "L"].map((size) => <SizeMark key={size} size={size} />)}
+        <OwnerAvatar name="Ana Kovač" />
+        <OwnerAvatar name="Ana Kovač" showName />
+        {KIT_WORKSTREAMS.map((ws) => <WorkstreamTag key={ws.name} workstream={ws} />)}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Dev-only component gallery — open with ?ui=gallery.
@@ -191,6 +247,10 @@ export default function Gallery() {
                 The eyebrow and the count pill — the two smallest atoms of the vocabulary.
               </span>
             </div>
+          </Section>
+
+          <Section title="Opus kit" note="The shared pieces of every Opus hub page: toolbar, chips, metric tile, group card, list row, badges, owner, due date.">
+            <OpusKitDemo />
           </Section>
 
           <Section title="Status & priority" note="Replaces three copies of getPriorityColor returning raw hex.">
