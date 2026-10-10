@@ -5,13 +5,21 @@ import { registerProjectWrites } from "./tools/projects.js";
 import { registerTaskWrites } from "./tools/tasks.js";
 import { registerItemWrites } from "./tools/items.js";
 import { registerNotes } from "./tools/notes.js";
+import { registerAgenda } from "./tools/agenda.js";
+import { registerReport } from "./tools/report.js";
+import { registerTrash } from "./tools/trash.js";
+import { registerExtras } from "./tools/extras.js";
 
 export const createServer = (vault) => {
-  const server = new McpServer({ name: "maia", version: "0.1.0" });
+  const server = new McpServer({ name: "maia", version: "0.2.0" });
   registerRead(server, vault);
   registerProjectWrites(server, vault);
   registerTaskWrites(server, vault);
   registerItemWrites(server, vault);
   registerNotes(server, vault);
+  registerAgenda(server, vault);
+  registerReport(server, vault);
+  registerTrash(server, vault);
+  registerExtras(server, vault);
   return server;
 };

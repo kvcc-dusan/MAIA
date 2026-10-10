@@ -25,7 +25,7 @@ const walk = async (vault, folder = "") => {
   return out;
 };
 
-const loadNotes = async (vault) => {
+export const loadNotes = async (vault) => {
   const notes = [];
   for (const rel of (await walk(vault)).sort()) {
     const text = await readText(path.join(vault, rel));
@@ -40,6 +40,24 @@ const summary = (n) => ({
   id: n.id, title: n.title, folder: n.folder, tags: n.tags, projectIds: n.projectIds, kind: n.kind ?? null,
   status: n.status ?? null, createdAt: n.createdAt, file: n.file,
 });
+
+/** Writes one new note file (never overwrites) and logs it. Shared by create_note and weekly_report. */
+export const createNoteFile = async (vault, snap, a) => {
+  const proj = a.project ? findProject(snap, a.project) : null;
+  const note = defined({
+    id: uid(), title: a.title.trim(), content: a.content, createdAt: isoNow(),
+    tags: a.tags?.map((t) => t.replace(/^#/, "")), projectIds: proj ? [proj.item.id] : undefined,
+    kind: a.kind, status: a.status,
+  });
+  const folder = validateFolderPath(a.folder ?? "", { allowRoot: true });
+  const taken = new Set((await listDir(folder ? path.join(vault, folder) : vault)).map((e) => e.name.toLowerCase()));
+  const name = joinRel(folder, noteFilename(note, taken));
+  await safeWrite(path.join(vault, name), noteToMarkdown(note), null);
+  const warning = await logActivity(snap, {
+    projectId: proj ? proj.item.id : null, kind: "created", collection: "notes", itemId: note.id, title: note.title,
+  });
+  return { id: note.id, folder, file: name, ...(warning ? { warning } : {}) };
+};
 
 export const registerNotes = (server, vault) => {
   server.registerTool("list_notes", {
@@ -79,21 +97,5 @@ export const registerNotes = (server, vault) => {
       title: z.string().min(1), content: z.string(), folder: z.string().optional().describe('e.g. "Omnis/PROJECTS"; default vault root'), tags: z.array(z.string()).optional(),
       project: z.string().optional(), kind: z.string().optional(), status: z.string().optional(),
     },
-  }, handler(async (a) => {
-    const snap = await snapshotOf(vault);
-    const proj = a.project ? findProject(snap, a.project) : null;
-    const note = defined({
-      id: uid(), title: a.title.trim(), content: a.content, createdAt: isoNow(),
-      tags: a.tags?.map((t) => t.replace(/^#/, "")), projectIds: proj ? [proj.item.id] : undefined,
-      kind: a.kind, status: a.status,
-    });
-    const folder = validateFolderPath(a.folder ?? "", { allowRoot: true });
-    const taken = new Set((await listDir(folder ? path.join(vault, folder) : vault)).map((e) => e.name.toLowerCase()));
-    const name = joinRel(folder, noteFilename(note, taken));
-    await safeWrite(path.join(vault, name), noteToMarkdown(note), null);
-    const warning = await logActivity(snap, {
-      projectId: proj ? proj.item.id : null, kind: "created", collection: "notes", itemId: note.id, title: note.title,
-    });
-    return { id: note.id, folder, file: name, ...(warning ? { warning } : {}) };
-  }));
+  }, handler(async (a) => createNoteFile(vault, await snapshotOf(vault), a)));
 };

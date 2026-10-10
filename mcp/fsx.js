@@ -8,6 +8,7 @@ import { normalizeEol } from "../src/lib/opusFiles/yamlFrontmatter.js";
 export const OPUS_DIR = "Opus";
 export const INBOX_DIR = "_inbox";
 export const BACKUPS_DIR = "_backups";
+export const TRASH_DIR = "_trash";
 export const PROJECT_FILE = "project.md";
 export const ACTIVITY_FILE = "activity.jsonl";
 export const KIND_DIRS = { task: "tasks", decision: "decisions", question: "questions" };
@@ -106,4 +107,21 @@ export const removeIfUnchanged = async (target, expected) => {
   if (onDisk !== expected) return false;
   await fs.rm(target);
   return true;
+};
+
+/**
+ * Moves a file without ever overwriting: the text must still match `expected`, the copy at
+ * `dest` is created exclusively, and the source is removed only if still unchanged. If it
+ * changed in that last instant the copy is rolled back and a conflict is reported.
+ */
+export const moveGuarded = async (src, dest, expected) => {
+  const current = await readText(src);
+  if (current === null) throw new ConflictError(src, "File disappeared since it was read");
+  if (current !== expected) throw new ConflictError(src, "File changed on disk since it was read");
+  await safeWrite(dest, expected, null);
+  if (!(await removeIfUnchanged(src, expected))) {
+    await removeIfUnchanged(dest, expected);
+    throw new ConflictError(src, "File changed on disk while moving");
+  }
+  return dest;
 };

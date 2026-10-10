@@ -24,13 +24,13 @@ const scalar = {
   nextMeeting: isoDate.optional(),
 };
 
-const buildWorkstreams = (inputs, existing = []) =>
+export const buildWorkstreams = (inputs, existing = []) =>
   inputs.reduce((acc, w) => {
     if (acc.some((x) => norm(x.name) === norm(w.name))) throw new Error(`Workstream "${w.name}" already exists.`);
     return [...acc, createWorkstream(acc, defined(w))];
   }, existing);
 
-const buildMilestones = (inputs, workstreams, existing = []) => {
+export const buildMilestones = (inputs, workstreams, existing = []) => {
   const proj = { item: { workstreams } };
   return inputs.reduce((acc, m) => {
     if (acc.some((x) => norm(x.title) === norm(m.title))) throw new Error(`Milestone "${m.title}" already exists.`);

@@ -9,7 +9,7 @@ import * as questionFile from "../src/lib/opusFiles/questionFile.js";
 import { contextOf } from "../src/lib/opusFiles/projectFile.js";
 import { EMPTY_CONTEXT } from "../src/lib/opusFiles/fileCodec.js";
 import {
-  OPUS_DIR, INBOX_DIR, BACKUPS_DIR, PROJECT_FILE, KIND_DIRS, listDir, readText,
+  OPUS_DIR, INBOX_DIR, BACKUPS_DIR, TRASH_DIR, PROJECT_FILE, KIND_DIRS, listDir, readText,
 } from "./fsx.js";
 
 export const CODECS = { project: projectFile, task: taskFile, decision: decisionFile, question: questionFile };
@@ -78,7 +78,7 @@ const loadProject = async (root, folder, shared) => {
 export const loadSnapshot = async (vault) => {
   const root = path.join(vault, OPUS_DIR);
   const shared = { warnings: [], seen: new Set() };
-  const folders = (await listDir(root)).filter((e) => e.isDirectory && e.name !== INBOX_DIR && e.name !== BACKUPS_DIR);
+  const folders = (await listDir(root)).filter((e) => e.isDirectory && ![INBOX_DIR, BACKUPS_DIR, TRASH_DIR].includes(e.name));
   const projects = [];
   for (const f of folders.sort((a, b) => a.name.localeCompare(b.name))) {
     const rec = await loadProject(root, f.name, shared);

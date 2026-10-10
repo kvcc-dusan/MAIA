@@ -170,4 +170,30 @@ describe("project assets as files", () => {
     expect(onChange).toHaveBeenCalledWith({ paths: [`${OPUS}/Atlas/tasks/New.md`] });
     expect(onAssetsChange).toHaveBeenCalledTimes(1);
   });
+  it("ignores _trash entirely, even when it holds valid task files", async () => {
+    put(`${OPUS}/_trash/2026-10-10/Atlas/tasks/Gone.md`, "---\nid: t7\ntitle: Gone\n---\n");
+    put(`${OPUS}/_trash/2026-10-10/Atlas/project.md`, "---\nid: p9\nname: Ghost\n---\n");
+    const { loadOpus } = await load();
+    const result = await loadOpus(VAULT);
+    expect(result.warnings).toEqual([]);
+    expect(result.projects.map((p) => p.id)).toEqual(["p1"]);
+    expect(result.tasks).toEqual([]);
+    const fs = await import("@tauri-apps/plugin-fs");
+    expect(fs.readTextFile).not.toHaveBeenCalledWith(expect.stringContaining("/_trash/"));
+  });
+
+  it("never gives a project the _trash folder name", async () => {
+    const { projectFolderName } = await load();
+    expect(projectFolderName({ name: "_trash" })).toBe("_trash 2");
+  });
+
+  it("the watcher does not report changes under _trash or _backups as project/task changes", async () => {
+    const { loadOpus, watchOpus } = await load();
+    await loadOpus(VAULT);
+    const onChange = vi.fn();
+    await watchOpus(VAULT, onChange, { debounceMs: 0 });
+    watchCb({ paths: [`${OPUS}/_trash/2026-10-10/Atlas/tasks/Gone.md`, `${OPUS}/_backups/old.md`] });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

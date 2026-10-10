@@ -43,7 +43,7 @@ export const uniqueName = (base, taken = [], ext = "") => {
 const fallbackBase = (kind, id) => `${kind} ${String(id ?? "").slice(0, 5) || "new"}`.trim();
 
 // Folders the loader treats as non-projects must never be handed to a project.
-const RESERVED_FOLDERS = ["_inbox", "_backups"];
+const RESERVED_FOLDERS = ["_inbox", "_backups", "_trash"];
 
 export const projectFolderName = (project, takenFolders = []) =>
   uniqueName(cleanName(project?.name) || fallbackBase("Project", project?.id), [...takenFolders, ...RESERVED_FOLDERS]);

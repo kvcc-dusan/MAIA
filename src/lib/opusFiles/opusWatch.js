@@ -1,5 +1,11 @@
 // @maia:opusFiles - recursive watcher for the Opus/ tree, modelled on watchVault.
-import { loadFs, opusRoot, state, isHidden, ASSETS_DIR, ACTIVITY_FILE } from "./opusFs.js";
+import { loadFs, opusRoot, state, isHidden, ASSETS_DIR, ACTIVITY_FILE, BACKUPS_DIR, TRASH_DIR } from "./opusFs.js";
+
+// _backups/ and _trash/ at the Opus root hold no live data; _trash keeps .md files that must not look like tasks.
+const isReservedPath = (root, path) => {
+  const first = path.startsWith(`${root}/`) ? path.slice(root.length + 1).split("/")[0] : "";
+  return first === BACKUPS_DIR || first === TRASH_DIR;
+};
 
 const isRelevant = (path) => {
   const segments = path.split("/");
@@ -50,7 +56,7 @@ export const watchOpus = async (vaultPath, onChange, { debounceMs = 400, onAsset
     pending = new Set();
     const assetPaths = all.filter((p) => isAssetPath(root, p));
     const activityAll = all.filter((p) => isActivityPath(root, p));
-    const paths = all.filter((p) => !isAssetPath(root, p) && !isActivityPath(root, p) && isRelevant(p));
+    const paths = all.filter((p) => !isAssetPath(root, p) && !isActivityPath(root, p) && isRelevant(p) && !isReservedPath(root, p));
     const byPath = new Map([...state.tracked.values()].map((e) => [e.path, e]));
     const changed = [];
     for (const path of paths) if (!(await isOwnEcho(fs, path, byPath))) changed.push(path);

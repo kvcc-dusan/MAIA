@@ -8,6 +8,8 @@ export const INBOX_DIR = "_inbox";
 // Not projects: the loader skips them at the Opus root. Plain names, never dot paths,
 // because the Tauri fs scope does not match leading-dot components.
 export const BACKUPS_DIR = "_backups";
+// Deleted items moved here by the MCP server (_trash/<date>/<project>/<kind>/<file>); never read as data.
+export const TRASH_DIR = "_trash";
 export const ASSETS_DIR = "assets";
 export const PROJECT_FILE = "project.md";
 export const ACTIVITY_FILE = "activity.jsonl";

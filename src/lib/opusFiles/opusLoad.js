@@ -8,7 +8,7 @@ import * as questionFile from "./questionFile.js";
 import { contextOf } from "./projectFile.js";
 import { EMPTY_CONTEXT } from "./fileCodec.js";
 import {
-  INBOX_DIR, BACKUPS_DIR, ASSETS_DIR, ACTIVITY_FILE, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
+  INBOX_DIR, BACKUPS_DIR, TRASH_DIR, ASSETS_DIR, ACTIVITY_FILE, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
   stableId, state, trackInto,
 } from "./opusFs.js";
 import { readActivity } from "./activityVault.js";
@@ -137,7 +137,7 @@ export const loadOpus = async (vaultPath) => {
   const activityFiles = [];
   const folders = (await listDir(fs, root)).filter((e) => e.isDirectory).map((e) => e.name).sort();
 
-  for (const folder of folders.filter((f) => f !== INBOX_DIR && f !== BACKUPS_DIR)) {
+  for (const folder of folders.filter((f) => f !== INBOX_DIR && f !== BACKUPS_DIR && f !== TRASH_DIR)) {
     const loaded = await loadProject(fs, root, folder, shared);
     if (!loaded) continue;
     projects.push(loaded.project);
