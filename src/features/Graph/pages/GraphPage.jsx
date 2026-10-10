@@ -7,6 +7,7 @@ import { Network } from "lucide-react";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
 import GraphHoverCard from "../components/GraphHoverCard.jsx";
+import { isHotNode } from "../lib/hot.js";
 import { useThemeTokens } from "../hooks/useThemeTokens.js";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
@@ -69,8 +70,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     const velocityStats = calculateVelocity(notes);
     const hotTags = new Set(velocityStats.filter(v => v.velocity > 0).map(v => v.tag));
 
-    // Helper to check if note is "Hot"
-    const isHot = (n) => noteTags(n).some(t => hotTags.has(t));
+    const isHot = (n) => isHotNode(noteTags(n), hotTags);
 
     return { rawClusters, clusterMap, isHot, hotTags };
   }, [notes]);
