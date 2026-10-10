@@ -59,8 +59,10 @@ const statEntry = async (fs, dir, name) => {
   const path = joinPath(dir, name);
   try {
     return toEntry(path, name, await fs.stat(path));
-  } catch {
-    return null; // vanished between listing and stat
+  } catch (e) {
+    // The file is in the listing, so show it even when size/date can't be read.
+    console.warn("[MAIA] Could not stat asset", path, e);
+    return toEntry(path, name, null);
   }
 };
 
