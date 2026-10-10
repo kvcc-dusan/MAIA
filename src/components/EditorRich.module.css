@@ -380,8 +380,9 @@
 
 /* === stage 2: tables, callouts, task statuses (src/editor/table*.js, callout*.js, taskStatus.js) === */
 
-/* Tables. The block scrolls sideways so a wide table never widens the page; the tool bar
-   sits in the space above it and only shows while the cursor is inside. */
+/* Tables fit the page width and wrap their cells like Obsidian does. The block only scrolls
+   sideways as a fallback when the columns' longest words alone are wider than the page; the
+   tool bar sits in the space above it and only shows while the cursor is inside. */
 .editor :global(.maia-table) { position: relative; margin: var(--space-10) 0 var(--space-4); }
 
 .editor :global(.maia-table-scroll) {
@@ -392,8 +393,7 @@
 }
 
 .editor :global(.ProseMirror) table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
   margin: 0;
   border-collapse: separate;
   border-spacing: 0;
@@ -403,8 +403,9 @@
 .editor :global(.ProseMirror) th,
 .editor :global(.ProseMirror) td {
   position: relative;
-  min-width: 5rem;
+  min-width: 3rem;
   padding: var(--space-2) var(--space-3);
+  overflow-wrap: break-word;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   text-align: left;
