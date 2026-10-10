@@ -5,6 +5,7 @@
 import { uid, isoNow } from "../../../lib/ids.js";
 
 export const MILESTONE_STATUSES = ["planned", "active", "at-risk", "done"];
+export const PROJECT_PHASES = ["Discovery", "Planning", "Build", "Launch", "Maintain"];
 export const WORKSTREAM_COLORS = ["1", "2", "3", "4"];
 const QUESTION_STATUSES = ["open", "answered"];
 
@@ -51,6 +52,8 @@ export const normalizeProject = (p) => ({
   startDate: p.startDate ?? null,
   targetDate: p.targetDate ?? null,
   phase: p.phase ?? null,
+  headline: p.headline ?? "",
+  focus: p.focus ?? "",
   nextMeeting: p.nextMeeting ?? null,
   workstreams: asArray(p.workstreams),
   decisions: asArray(p.decisions),

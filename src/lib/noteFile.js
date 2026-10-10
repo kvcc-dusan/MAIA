@@ -1,7 +1,7 @@
 // @maia:noteFile — note <-> markdown file serialization (pure, no IO)
 import { uid, isoNow } from "./ids.js";
 
-const FRONTMATTER_KEYS = ["id", "title", "tags", "projectIds", "links", "createdAt"];
+const FRONTMATTER_KEYS = ["id", "title", "tags", "projectIds", "links", "createdAt", "kind", "status", "workstreamId", "owner"];
 
 const escapeYamlString = (value) => {
   const str = String(value ?? "");
@@ -81,6 +81,10 @@ export const markdownToNote = (text, { fallbackId, fallbackTitle } = {}) => {
     links: asArray(data.links),
     projectIds: asArray(data.projectIds),
     createdAt: data.createdAt || isoNow(),
+    kind: data.kind || undefined,
+    status: data.status || undefined,
+    workstreamId: data.workstreamId || undefined,
+    owner: data.owner || undefined,
     project: null,
   };
 };

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   MILESTONE_STATUSES,
   WORKSTREAM_COLORS,
+  PROJECT_PHASES,
   normalizeMilestone,
   normalizeProject,
   normalizeProjects,
@@ -206,5 +207,15 @@ describe("applyQuestionPatch", () => {
     const answered = applyQuestionPatch(q, { status: "answered", answer: "Yes" }, NOW);
     expect(answered).toMatchObject({ status: "answered", answer: "Yes", updatedAt: NOW });
     expect(applyQuestionPatch(q, { status: "weird" }, NOW).status).toBe("open");
+  });
+});
+
+describe("hub fields", () => {
+  it("defaults headline and focus to empty strings and keeps set values", () => {
+    expect(normalizeProject({ id: "p" })).toMatchObject({ headline: "", focus: "" });
+    expect(normalizeProject({ id: "p", headline: "H", focus: "F" })).toMatchObject({ headline: "H", focus: "F" });
+  });
+  it("exports the phase options", () => {
+    expect(PROJECT_PHASES).toEqual(["Discovery", "Planning", "Build", "Launch", "Maintain"]);
   });
 });

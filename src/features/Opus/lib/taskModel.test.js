@@ -317,3 +317,13 @@ describe("patchTaskInList", () => {
     expect(out[0]).toMatchObject({ status: "todo", done: false, isNextAction: false });
   });
 });
+
+describe("owner", () => {
+  it("defaults to null and passes through patches", () => {
+    expect(normalizeTask({ id: "t" }).owner).toBeNull();
+    const created = applyTaskPatch(null, { id: "t", title: "x", owner: "Lea Horvat" });
+    expect(created.owner).toBe("Lea Horvat");
+    expect(applyTaskPatch(created, { owner: null }).owner).toBeNull();
+    expect(applyTaskPatch(created, { status: "doing" }).owner).toBe("Lea Horvat");
+  });
+});

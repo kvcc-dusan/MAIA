@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -15,6 +16,8 @@ const isTauri = !!process.env.TAURI_ENV_PLATFORM
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Git worktrees that tools create under .claude hold full copies of the repo; don't run their tests.
+  test: { exclude: [...configDefaults.exclude, '.claude/**'] },
   plugins: [
     react(),
     tailwindcss(),

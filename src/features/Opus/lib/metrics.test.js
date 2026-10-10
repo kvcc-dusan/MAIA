@@ -205,3 +205,66 @@ describe("date helpers", () => {
     expect(M.toDayString(new Date(2026, 9, 9, 23, 59))).toBe("2026-10-09");
   });
 });
+
+describe("hub overview helpers", () => {
+  const { doneThisWeek, weeklyDone, averagePerWeek, blockingSummary, daysToTarget, timeAgo, activityFeed } = M;
+  // Fri 9 Oct 2026; the week starts Mon 5 Oct.
+  const TODAY = "2026-10-09";
+  const done = (doneAt) => ({ status: "done", doneAt });
+
+  it("doneThisWeek counts Monday through today", () => {
+    const tasks = [done("2026-10-05T08:00:00Z"), done("2026-10-09T08:00:00Z"), done("2026-10-04T23:00:00Z"), { status: "todo" }];
+    expect(doneThisWeek(tasks, TODAY)).toBe(2);
+  });
+
+  it("weeklyDone is oldest first and ends with this week", () => {
+    const weekly = weeklyDone([done("2026-10-06"), done("2026-09-29"), done("2026-09-30")], { weeks: 3, today: TODAY });
+    expect(weekly.map((w) => w.count)).toEqual([0, 2, 1]);
+    expect(weekly[2].weekStart).toBe("2026-10-05");
+  });
+
+  it("averagePerWeek is the mean to one decimal", () => {
+    expect(averagePerWeek([{ count: 1 }, { count: 2 }, { count: 2 }])).toBe(1.7);
+    expect(averagePerWeek([])).toBe(0);
+  });
+
+  it("blockingSummary adds blocked tasks and open blocking questions", () => {
+    const tasks = [{ status: "blocked" }, { status: "blocked" }, { status: "todo" }];
+    const questions = [
+      { status: "open", blocking: true },
+      { status: "answered", blocking: true },
+      { status: "open", blocking: false },
+    ];
+    expect(blockingSummary(tasks, questions)).toEqual({ tasks: 2, questions: 1, total: 3 });
+    expect(blockingSummary([], undefined)).toEqual({ tasks: 0, questions: 0, total: 0 });
+  });
+
+  it("daysToTarget is signed and null without a target", () => {
+    expect(daysToTarget({ targetDate: "2026-10-19" }, TODAY)).toBe(10);
+    expect(daysToTarget({ targetDate: "2026-10-07" }, TODAY)).toBe(-2);
+    expect(daysToTarget({ targetDate: null }, TODAY)).toBeNull();
+    expect(daysToTarget(null, TODAY)).toBeNull();
+  });
+
+  it("timeAgo picks a human unit", () => {
+    const now = new Date("2026-10-09T12:00:00Z");
+    expect(timeAgo("2026-10-09T11:59:40Z", now)).toBe("just now");
+    expect(timeAgo("2026-10-09T11:59:00Z", now)).toBe("1 minute ago");
+    expect(timeAgo("2026-10-09T09:00:00Z", now)).toBe("3 hours ago");
+    expect(timeAgo("2026-10-08T09:00:00Z", now)).toBe("yesterday");
+    expect(timeAgo("2026-10-07T12:00:00Z", now)).toBe("2 days ago");
+    expect(timeAgo("2026-09-18T12:00:00Z", now)).toBe("3 weeks ago");
+    expect(timeAgo("2026-07-01T12:00:00Z", now)).toBe("3 months ago");
+  });
+
+  it("activityFeed is newest first, capped, labelled and does not mutate", () => {
+    const log = [
+      { at: "2026-10-01T10:00:00Z", title: "a" },
+      { at: "2026-10-08T10:00:00Z", title: "b" },
+      { at: "2026-10-07T10:00:00Z", title: "c" },
+    ];
+    const feed = activityFeed(log, { limit: 2, now: new Date("2026-10-09T10:00:00Z") });
+    expect(feed.map((e) => [e.title, e.ago])).toEqual([["b", "yesterday"], ["c", "2 days ago"]]);
+    expect(log[0].title).toBe("a");
+  });
+});

@@ -78,7 +78,7 @@ export function generateDummyData({ today = new Date() } = {}) {
 
     // Opus layer: workstreams, decisions, questions, milestones, tasks, activity.
     // Project ids are kept, so the notes below still link to the right project.
-    const { projects, tasks, activity } = buildOpusSample({ projects: baseProjects, today });
+    const { projects, tasks, activity, notes: opusNotes } = buildOpusSample({ projects: baseProjects, today });
 
     // 2. Generate Notes (1000 notes)
     const notes = Array.from({ length: 1000 }).map((_, i) => {
@@ -118,5 +118,5 @@ export function generateDummyData({ today = new Date() } = {}) {
         };
     });
 
-    return { projects, notes, tasks, activity };
+    return { projects, notes: [...opusNotes, ...notes], tasks, activity };
 }

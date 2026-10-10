@@ -185,3 +185,58 @@ export const weekSummary = (state, { from, to, today }) => {
     },
   };
 };
+
+/* hub overview and weekly report */
+
+/** Tasks finished this week so far (Monday to today, inclusive). */
+export const doneThisWeek = (tasks, today) => {
+  const { from } = weekRange(today);
+  return tasks.filter((t) => t.doneAt && inRange(t.doneAt, from, today)).length;
+};
+
+/** Done counts for the last `weeks` weeks, oldest first; the last one is this week. */
+export const weeklyDone = (tasks, { weeks = 8, today }) => throughput(tasks, { weeks, today });
+
+/** Mean of the weekly counts, one decimal. Accepts weeklyDone output. */
+export const averagePerWeek = (weekly) => {
+  if (!weekly.length) return 0;
+  const total = weekly.reduce((sum, w) => sum + w.count, 0);
+  return Math.round((total / weekly.length) * 10) / 10;
+};
+
+/** Open blocked tasks plus open blocking questions. */
+export const blockingSummary = (tasks, questions = []) => {
+  const taskCount = blocked(tasks).length;
+  const questionCount = questions.filter((q) => q.status === "open" && q.blocking).length;
+  return { tasks: taskCount, questions: questionCount, total: taskCount + questionCount };
+};
+
+/** Whole days from `today` to the project's target date; negative when past, null without a target. */
+export const daysToTarget = (project, today) =>
+  project?.targetDate ? diffDays(project.targetDate, today) : null;
+
+/**
+ * "just now", "5 minutes ago", "3 hours ago", "yesterday", "2 days ago",
+ * "3 weeks ago", "2 months ago". `now` is a Date or ISO string (never read from
+ * the clock here).
+ */
+export const timeAgo = (at, now) => {
+  const diff = Math.max(0, new Date(now).getTime() - new Date(at).getTime());
+  const minutes = Math.floor(diff / 6e4);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "yesterday";
+  if (days < 14) return `${days} days ago`;
+  if (days < 60) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
+};
+
+/** Newest first, capped at `limit`, each entry gains an `ago` label. */
+export const activityFeed = (activity, { limit = 10, now }) =>
+  [...activity]
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+    .slice(0, limit)
+    .map((entry) => ({ ...entry, ago: timeAgo(entry.at, now) }));

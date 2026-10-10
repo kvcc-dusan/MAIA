@@ -40,6 +40,7 @@ export const normalizeTask = (t) => {
     milestoneId: t.milestoneId ?? null,
     estimate: t.estimate ?? null,
     order: t.order ?? null,
+    owner: t.owner ?? null,
   };
 };
 

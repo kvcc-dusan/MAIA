@@ -22,21 +22,24 @@ const HISTORY_DAYS = 70; // roughly ten weeks of task history
 const PLANS = {
   "Maia Core": {
     phase: "Build",
+    headline: "A local-first workspace where notes, tasks and projects live in one vault.",
+    focus: "Freeze the data layer, ship the Opus hub, then cut a release candidate.",
+    people: ["Lea Horvat", "Marko Novak", "Tim Berger", "Sara Vidmar", "Ana Kovac"],
     startDay: -75,
     targetDay: 35,
     nextMeetingDay: 3,
     taskCount: 40,
     workstreams: [
       {
-        name: "Data layer", owner: "Dušan", status: "active",
+        name: "Data layer", owner: "Lea Horvat", status: "active",
         titles: ["Normalize task status on read", "Cap the activity log", "Backup round trip", "Vault conflict guard", "Flush debounced writes", "Surface quota errors", "Seed data generator", "Watch vault changes"],
       },
       {
-        name: "Interface", owner: "Dušan", status: "active",
+        name: "Interface", owner: "Sara Vidmar", status: "active",
         titles: ["Board column drag", "Roadmap lanes", "Empty state pass", "Dialog focus trap", "Heatmap tooltip", "Task filters", "Weekly report dialog", "Narrow window layout"],
       },
       {
-        name: "Release", owner: "Ana", status: "planned",
+        name: "Release", owner: "Tim Berger", status: "planned",
         titles: ["Tauri debug build", "Signing config", "Release checklist", "Changelog draft", "Smoke test on a clean vault", "Deploy to GitHub Pages"],
       },
     ],
@@ -47,29 +50,52 @@ const PLANS = {
       { title: "Release candidate", day: 30, status: "planned", ws: 2 },
     ],
     decisions: [
-      { title: "Notes stay as markdown files", day: -40, by: "Dušan", ws: 0, detail: "The vault is the source of truth; localStorage is only the web fallback." },
-      { title: "Embed workstreams on the project", day: -18, by: "Dušan", ws: 0, detail: "No second store, so backup and delete cascade stay simple." },
-      { title: "Board uses dnd-kit", day: -3, by: "Dušan", ws: 1, detail: "Already a dependency, and it ships a keyboard sensor." },
+      { title: "Notes stay as markdown files", day: -58, by: "Lea Horvat", ws: 0, detail: "The vault is the source of truth; localStorage is only the web fallback." },
+      { title: "Ship desktop first, web second", day: -49, by: "Marko Novak", ws: 2, detail: "Tauri is the primary target; the PWA gets the same code with a storage fallback." },
+      { title: "Embed workstreams on the project", day: -40, by: "Lea Horvat", ws: 0, detail: "No second store, so backup and delete cascade stay simple." },
+      { title: "Adopt the Arc design system", day: -31, by: "Sara Vidmar", ws: 1, detail: "One set of tokens and components instead of a growing pile of one-offs." },
+      { title: "Drop Three.js from the graph", day: -22, by: "Sara Vidmar", ws: 1, detail: "D3 in SVG is enough for the node counts we see." },
+      { title: "Weekly report covers Monday to Sunday", day: -12, by: "Ana Kovac", ws: 1, detail: "Matches how the team reads the Friday summary." },
+      { title: "Board uses dnd-kit", day: -3, by: "Tim Berger", ws: 1, detail: "Already a dependency, and it ships a keyboard sensor." },
     ],
     questions: [
-      { question: "Can the activity log live in localStorage long term?", ws: 0, owner: "Dušan", blocking: true },
-      { question: "Which week does the report cover on Mondays?", ws: 1, owner: "Dušan", blocking: false },
-      { question: "Do we sign the macOS build?", ws: 2, owner: "Ana", blocking: false, answeredDay: -2, answer: "Yes, ad hoc signing for now." },
+      { question: "Can the activity log live in localStorage long term?", ws: 0, owner: "Lea Horvat", blocking: true },
+      { question: "Which week does the report cover on Mondays?", ws: 1, owner: "Sara Vidmar", blocking: false },
+      { question: "Who owns the release checklist?", ws: 2, owner: "Tim Berger", blocking: true },
+      { question: "Do we sign the macOS build?", ws: 2, owner: "Ana Kovac", blocking: false, answeredDay: -2, answer: "Yes, ad hoc signing for now." },
+      { question: "Is the vault format stable enough to freeze?", ws: 0, owner: "Marko Novak", blocking: false, answeredDay: -20, answer: "Yes, frontmatter keys are additive from here on." },
+    ],
+    docs: [
+      { title: "Opus hub plan", kind: "plan", status: "current", day: -30, updatedDay: -4, ws: 1, owner: "Sara Vidmar", content: "# Opus hub plan\n\nOverview, board, tasks, roadmap, decisions, questions, documents, notes and the weekly report." },
+      { title: "Vault format spec", kind: "spec", status: "current", day: -55, updatedDay: -15, ws: 0, owner: "Lea Horvat", content: "# Vault format spec\n\nOne markdown file per note, frontmatter for metadata." },
+      { title: "Release checklist", kind: "plan", status: "notStarted", day: -9, updatedDay: -9, ws: 2, owner: "Tim Berger", content: "# Release checklist\n\nSigning, changelog, smoke test." },
+      { title: "Competitor teardown", kind: "research", status: "draft", day: -26, updatedDay: -11, ws: null, owner: "Marko Novak", content: "# Competitor teardown\n\nWhat other local-first tools get right." },
+      { title: "Launch brief", kind: "brief", status: "draft", day: -6, updatedDay: -2, ws: 2, owner: "Ana Kovac", content: "# Launch brief\n\nAudience, message and timing." },
+      { title: "Old backup format", kind: "spec", status: "superseded", day: -70, updatedDay: -35, ws: 0, owner: "Lea Horvat", content: "# Old backup format\n\nReplaced by format v2." },
+    ],
+    notes: [
+      { title: "Standup 6 Oct", day: -3, content: "Backup v2 is at risk. Lea checks the restore path first." },
+      { title: "Idea: share a vault read-only", day: -8, content: "Maybe a static export that opens in the web build." },
+      { title: "Retro, September", day: -21, content: "Good: fewer regressions. Bad: too many half-migrated screens." },
+      { title: "Questions for the pilot users", day: -34, content: "How do they organise notes today? What makes them leave a tool?" },
     ],
   },
   "Project Solaris": {
     phase: "Discovery",
+    headline: "A planning tool for freelancers who juggle several clients at once.",
+    focus: "Finish the prototype review and decide whether a free tier is viable.",
+    people: ["Marko Novak", "Ana Kovac"],
     startDay: -60,
     targetDay: 50,
     nextMeetingDay: 6,
     taskCount: 26,
     workstreams: [
       {
-        name: "Research", owner: "Marko", status: "active",
+        name: "Research", owner: "Marko Novak", status: "active",
         titles: ["Interview notes pass", "Competitor teardown", "Pricing sketch", "Jobs to be done map", "Survey draft"],
       },
       {
-        name: "Prototype", owner: "Ana", status: "active",
+        name: "Prototype", owner: "Ana Kovac", status: "active",
         titles: ["Wireframe flow", "Clickable prototype", "Usability session", "Copy review", "Handoff spec", "Token audit"],
       },
     ],
@@ -78,10 +104,19 @@ const PLANS = {
       { title: "Prototype review", day: 14, status: "active", ws: 1 },
     ],
     decisions: [
-      { title: "Target freelancers first", day: -30, by: "Marko", ws: 0, detail: "Smaller teams decide faster and give sharper feedback." },
+      { title: "Target freelancers first", day: -30, by: "Marko Novak", ws: 0, detail: "Smaller teams decide faster and give sharper feedback." },
     ],
     questions: [
-      { question: "Is a free tier viable?", ws: 0, owner: "Marko", blocking: true },
+      { question: "Is a free tier viable?", ws: 0, owner: "Marko Novak", blocking: true },
+      { question: "Which tool do freelancers use for invoices today?", ws: 0, owner: "Ana Kovac", blocking: false, answeredDay: -9, answer: "Mostly spreadsheets and one popular invoicing app." },
+    ],
+    docs: [
+      { title: "Interview synthesis", kind: "research", status: "current", day: -25, updatedDay: -8, ws: 0, owner: "Marko Novak", content: "# Interview synthesis\n\nFive themes from twelve interviews." },
+      { title: "Prototype brief", kind: "brief", status: "draft", day: -14, updatedDay: -5, ws: 1, owner: "Ana Kovac", content: "# Prototype brief\n\nScope of the clickable prototype." },
+    ],
+    notes: [
+      { title: "Call with a freelancer", day: -12, content: "Wants one calendar for all clients." },
+      { title: "Naming ideas", day: -20, content: "Solaris is a working name only." },
     ],
   },
   "Personal Growth": {
@@ -97,6 +132,15 @@ const PLANS = {
     questions: [],
   },
 };
+
+const TASK_DESCRIPTIONS = [
+  "Scope it first, then write the smallest version that works.",
+  "",
+  "Check the edge cases on a narrow window.",
+  "Needs a review before it merges.",
+  "",
+  "Follow up with the owner if it slips past Friday.",
+];
 
 // Small, fast, seedable PRNG (mulberry32).
 const createRandom = (seed) => {
@@ -163,10 +207,14 @@ export const buildOpusSample = ({ projects, today = new Date(), seed = 20261009 
     const createdAt = stamp(createdDay, 8);
     const startedAt = status === "todo" || (status === "blocked" && random() < 0.5) ? null : stamp(startedDay, 9);
     const doneAt = status === "done" ? stamp(doneDay, 16) : null;
+    const people = plan.people ?? [];
+    // Deterministic on purpose: owners must not shift the seeded random sequence.
+    const owner = people.length && index % 9 !== 4 ? people[(index + Math.floor(index / 3)) % people.length] : null;
     const task = applyTaskPatch(null, {
       id: uid(),
       title,
-      desc: "",
+      desc: TASK_DESCRIPTIONS[index % TASK_DESCRIPTIONS.length],
+      owner,
       projectId: project.id,
       workstreamId: group === null ? null : workstreams[group].id,
       milestoneId: milestone ? milestone.id : null,
@@ -198,7 +246,7 @@ export const buildOpusSample = ({ projects, today = new Date(), seed = 20261009 
 
   const buildProject = (project) => {
     const plan = PLANS[project.name];
-    if (!plan) return { project, tasks: [] };
+    if (!plan) return { project, tasks: [], notes: [] };
 
     const workstreams = [];
     plan.workstreams.forEach((spec) => {
@@ -242,6 +290,26 @@ export const buildOpusSample = ({ projects, today = new Date(), seed = 20261009 
       return question;
     });
 
+    const noteBase = (spec, createdDay) => ({
+      id: uid(),
+      title: spec.title,
+      content: spec.content,
+      tags: [],
+      links: [],
+      createdAt: stamp(createdDay, 10),
+      project: null,
+      projectIds: [project.id],
+    });
+    const docs = (plan.docs ?? []).map((spec) => ({
+      ...noteBase(spec, spec.day),
+      updatedAt: stamp(spec.updatedDay, 15),
+      kind: spec.kind,
+      status: spec.status,
+      owner: spec.owner,
+      ...(spec.ws === null ? {} : { workstreamId: workstreams[spec.ws].id }),
+    }));
+    const projectNotes = (plan.notes ?? []).map((spec) => noteBase(spec, spec.day));
+
     const tasks = Array.from({ length: plan.taskCount }, (_, i) => buildTask(project, plan, workstreams, milestones, i));
     // One next action per project: the oldest open task that is not blocked.
     const next = tasks.findIndex((t) => t.status === "todo" || t.status === "doing");
@@ -249,9 +317,12 @@ export const buildOpusSample = ({ projects, today = new Date(), seed = 20261009 
 
     return {
       tasks,
+      notes: [...docs, ...projectNotes],
       project: normalizeProject({
         ...project,
         phase: plan.phase,
+        headline: plan.headline ?? "",
+        focus: plan.focus ?? "",
         startDate: dayString(plan.startDay),
         targetDate: plan.targetDay === null ? null : dayString(plan.targetDay),
         nextMeeting: plan.nextMeetingDay === null ? null : dayString(plan.nextMeetingDay),
@@ -267,6 +338,7 @@ export const buildOpusSample = ({ projects, today = new Date(), seed = 20261009 
   return {
     projects: built.map((b) => b.project),
     tasks: built.flatMap((b) => b.tasks),
+    notes: built.flatMap((b) => b.notes),
     activity: activity.sort((a, b) => a.at.localeCompare(b.at)),
   };
 };

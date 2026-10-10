@@ -70,3 +70,20 @@ describe("slugifyTitle / noteFilename", () => {
     expect(noteFilename({ id: "z", title: "Plan" }, taken)).toBe("plan-3.md");
   });
 });
+
+describe("document fields", () => {
+  it("round-trips kind, status, workstreamId and owner", () => {
+    const doc = { ...sampleNote, kind: "spec", status: "notStarted", workstreamId: "ws1", owner: "Lea Horvat" };
+    const back = markdownToNote(noteToMarkdown(doc));
+    expect(back).toEqual(doc);
+  });
+
+  it("leaves them undefined on a plain note", () => {
+    const back = markdownToNote(noteToMarkdown(sampleNote));
+    expect(back.kind).toBeUndefined();
+    expect(back.status).toBeUndefined();
+    expect(back.workstreamId).toBeUndefined();
+    expect(back.owner).toBeUndefined();
+    expect(noteToMarkdown(sampleNote)).not.toContain("kind:");
+  });
+});

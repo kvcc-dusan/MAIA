@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateDummyData } from "./dummyData.js";
+import { projectPeople, showOwners, priorityLabel } from "../features/Opus/lib/people.js";
+import { projectDocuments, projectNotes } from "../features/Opus/lib/docModel.js";
 import { cycleTime, heatmap, throughput, burnup, toDayString } from "../features/Opus/lib/metrics.js";
 
 const TODAY = new Date(2026, 9, 9); // Fri 9 Oct 2026, local
@@ -13,7 +15,7 @@ describe("generateDummyData", () => {
   it("keeps the existing project and note output", () => {
     expect(data.projects.map((p) => p.name)).toEqual(["Maia Core", "Project Solaris", "Personal Growth", "Archive 2023"]);
     expect(data.projects.map((p) => p.status)).toEqual(["Active", "High Tempo", "Active", "Dormant"]);
-    expect(data.notes).toHaveLength(1000);
+    expect(data.notes.length).toBeGreaterThanOrEqual(1000);
     const ids = new Set(data.projects.map((p) => p.id));
     data.notes.forEach((n) => {
       expect(n).toEqual(expect.objectContaining({ id: expect.any(String), title: expect.any(String), tags: [], links: [] }));
@@ -105,5 +107,36 @@ describe("generateDummyData", () => {
     expect(points[points.length - 1].done).toBeGreaterThan(20);
     const cells = heatmap(data.activity, { weeks: 26, today: TODAY_STRING });
     expect(cells.filter((c) => c.count > 0).length).toBeGreaterThan(30);
+  });
+
+  it("gives Maia Core a team, owners, priorities, descriptions and hub text", () => {
+    const core = data.projects.find((p) => p.name === "Maia Core");
+    const coreTasks = data.tasks.filter((t) => t.projectId === core.id);
+    expect(core.headline.length).toBeGreaterThan(10);
+    expect(core.focus.length).toBeGreaterThan(10);
+    expect(projectPeople(core, coreTasks)).toEqual(["Ana Kovac", "Lea Horvat", "Marko Novak", "Sara Vidmar", "Tim Berger"]);
+    expect(showOwners(core, coreTasks)).toBe(true);
+    expect(coreTasks.some((t) => t.owner === null)).toBe(true);
+    expect(new Set(coreTasks.map(priorityLabel))).toEqual(new Set(["High", "Medium", null]));
+    expect(coreTasks.some((t) => t.desc)).toBe(true);
+    core.workstreams.forEach((w) => expect(w.owner).not.toBe(""));
+    const span = Date.parse(core.decisions.at(-1).date) - Date.parse(core.decisions[0].date);
+    expect(core.decisions.length).toBeGreaterThanOrEqual(6);
+    expect(span / DAY_MS).toBeGreaterThan(45);
+    expect(core.questions.filter((q) => q.status === "open" && q.blocking).length).toBeGreaterThan(0);
+    expect(core.questions.filter((q) => q.status === "answered").length).toBeGreaterThan(0);
+  });
+
+  it("links documents and plain notes to the sample projects", () => {
+    const core = data.projects.find((p) => p.name === "Maia Core");
+    const docs = projectDocuments(data.notes, core.id);
+    expect(docs.length).toBeGreaterThanOrEqual(5);
+    expect(new Set(docs.map((d) => d.kind)).size).toBeGreaterThan(2);
+    expect(new Set(docs.map((d) => d.status))).toEqual(new Set(["current", "notStarted", "draft", "superseded"]));
+    const wsIds = new Set(core.workstreams.map((w) => w.id));
+    docs.forEach((d) => { if (d.workstreamId) expect(wsIds.has(d.workstreamId)).toBe(true); });
+    expect(docs.some((d) => d.owner && d.workstreamId)).toBe(true);
+    const notes = projectNotes(data.notes, core.id).filter((n) => n.content.length < 100);
+    expect(notes.length).toBeGreaterThanOrEqual(3);
   });
 });
