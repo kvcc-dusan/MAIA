@@ -3,7 +3,8 @@ import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { useNotesStore } from "../hooks/useNotesStore.js";
 import { useOpusStore } from "../hooks/useOpusStore.js";
 import { uid, isoNow } from "../lib/ids.js";
-import { generateDummyData } from "../utils/dummyData.js";
+import { generateDummyData, generateSampleProject } from "../utils/dummyData.js";
+import { ACTIVITY_CAP } from "../features/Opus/lib/activityLog.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
 import { normalizeTasks } from "../features/Opus/lib/taskModel.js";
 import { normalizeProject, normalizeProjects } from "../features/Opus/lib/projectModel.js";
@@ -236,6 +237,15 @@ export function DataProvider({ children }) {
         setActivity(newActivity);
     }, [isFileMode, setProjects, setNotes, setTasks, setActivity]);
 
+    // Additive, so it is safe in file mode too: it writes one new project folder and touches nothing else.
+    const addSampleProject = useCallback(() => {
+        const { project, tasks: sampleTasks, activity: sampleActivity } = generateSampleProject();
+        setProjects((prev) => [project, ...prev]);
+        setTasks((prev) => [...sampleTasks, ...prev]);
+        setActivity((prev) => [...prev, ...sampleActivity].slice(-ACTIVITY_CAP));
+        return project;
+    }, [setProjects, setTasks, setActivity]);
+
     // Tasks: status rules live in taskModel, activity logging in the hook
     const { addTask, updateTask, deleteTask, toggleTask, setNextAction } =
         useTaskActions({ tasks, setTasks, logActivity });
@@ -301,7 +311,7 @@ export function DataProvider({ children }) {
         addMilestone, updateMilestone, deleteMilestone,
         // Decision Actions (Ledger)
         createDecision, reviewDecision, deleteDecision,
-        generateSamples
+        generateSamples, addSampleProject
     }), [
         notes, setNotes, notesMeta, opusMeta, projectsLoading, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         activity, setActivity,
@@ -312,7 +322,7 @@ export function DataProvider({ children }) {
         createNote, updateNote, deleteNote, deleteAllNotes, renameNote, moveNoteToProject, addProjectToNote, removeProjectFromNote,
         updateProject, deleteProject, createProject, addTask, updateTask, deleteTask, toggleTask, setNextAction, addReminder,
         createDecision, reviewDecision, deleteDecision,
-        generateSamples
+        generateSamples, addSampleProject
     ]);
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

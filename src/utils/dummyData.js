@@ -60,21 +60,33 @@ function randomItem(arr) {
     return arr[randomInt(0, arr.length - 1)];
 }
 
+const SAMPLE_PROJECT_NAME = "Sample project";
+
+const baseProject = (p) => ({
+    id: uid(),
+    name: p.name,
+    emoji: "📁",
+    status: p.status,
+    createdAt: isoNow(),
+    description: "Generated project.",
+    objective: "",
+    successCriteria: [],
+    pinnedNoteIds: [],
+    links: [],
+    milestones: [],
+});
+
+/** One fully populated project (tasks, workstreams, decisions, questions, activity) to add next to real data. */
+export function generateSampleProject({ today = new Date() } = {}) {
+    const { projects, tasks, activity } = buildOpusSample({ projects: [baseProject(SAMPLE_PROJECTS[0])], today });
+    // The plan is keyed by the "Maia Core" name; the user-facing name says what it is.
+    const project = { ...projects[0], name: SAMPLE_PROJECT_NAME };
+    return { project, tasks, activity };
+}
+
 export function generateDummyData({ today = new Date() } = {}) {
     // 1. Generate Projects
-    const baseProjects = SAMPLE_PROJECTS.map(p => ({
-        id: uid(),
-        name: p.name,
-        emoji: "📁",
-        status: p.status,
-        createdAt: isoNow(),
-        description: "Generated project.",
-        objective: "",
-        successCriteria: [],
-        pinnedNoteIds: [],
-        links: [],
-        milestones: [],
-    }));
+    const baseProjects = SAMPLE_PROJECTS.map(baseProject);
 
     // Opus layer: workstreams, decisions, questions, milestones, tasks, activity.
     // Project ids are kept, so the notes below still link to the right project.

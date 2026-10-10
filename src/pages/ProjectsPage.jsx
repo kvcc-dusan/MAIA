@@ -44,7 +44,7 @@ export default function Projects({
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
-  const { updateProject, deleteProject: deleteProjectCascade, projectsLoading } = useData();
+  const { updateProject, deleteProject: deleteProjectCascade, projectsLoading, addSampleProject } = useData();
   // The selection lives in App so back/forward and the palette can drive it.
   const activeId = activeProjectId;
   const setActiveId = onSelectProject;
@@ -133,7 +133,7 @@ export default function Projects({
   return (
     <div className={styles.page}>
       <ShellSidebar>
-        <ProjectSidebar onCreate={openCreateModal} {...listProps} />
+        <ProjectSidebar onCreate={openCreateModal} onAddSample={() => setActiveId(addSampleProject().id)} {...listProps} />
       </ShellSidebar>
 
       <div className={styles.scroll}>
