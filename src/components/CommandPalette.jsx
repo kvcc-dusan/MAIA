@@ -10,7 +10,6 @@ import {
   FolderKanban,
   BookOpen,
   Network,
-  Wallet,
 } from "lucide-react";
 import { CommandPalette as ArcPalette } from "@/components/arc/command-palette/command-palette";
 import styles from "./CommandPalette.module.css";
@@ -33,7 +32,6 @@ const PAGES = [
   { label: "Go to Opus", icon: FolderKanban, to: "projects" },
   { label: "Go to Codex", icon: BookOpen, to: "codex" },
   { label: "Go to Conexa", icon: Network, to: "graph" },
-  { label: "Go to Ledger", icon: Wallet, to: "ledgerPage" },
 ];
 
 function PaletteBody({

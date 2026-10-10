@@ -12,7 +12,6 @@ import {
   PanelLeftOpen,
   Search,
   Sun,
-  Wallet,
 } from "lucide-react";
 import { IconButton } from "@/components/composed/IconButton";
 import { getTheme, resolveTheme, setTheme, subscribe } from "@/lib/theme";
@@ -48,14 +47,12 @@ const PAGES = [
   { id: "projects", label: "Opus", icon: FolderKanban },
   { id: "codex", label: "Codex", icon: BookOpen },
   { id: "graph", label: "Conexa", icon: Network },
-  { id: "ledgerPage", label: "Ledger", icon: Wallet },
 ];
 
 const PAGE_TITLES = {
   projects: "Opus",
   codex: "Codex",
   graph: "Conexa",
-  ledgerPage: "Ledger",
 };
 
 const THEME_ICONS = { system: Monitor, light: Sun, dark: Moon };

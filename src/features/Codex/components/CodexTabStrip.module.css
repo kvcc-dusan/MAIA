@@ -29,7 +29,8 @@
   min-width: 6.5rem;
   max-width: 12rem;
   height: var(--control-height-sm);
-  padding-inline: var(--space-3) var(--space-1);
+  /* Bottom padding lifts the label's centre onto the centre line of the top bar's icons. */
+  padding: 0 var(--space-1) calc(var(--space-2) + 1px) var(--space-3);
   border: 1px solid transparent;
   border-bottom: 0;
   border-radius: var(--radius-control) var(--radius-control) 0 0;
@@ -86,7 +87,7 @@
 .drag { flex: 1 1 0; align-self: stretch; min-width: var(--space-2); }
 
 @media (pointer: coarse) {
-  .tab { height: var(--control-height-md); }
+  .tab { height: var(--control-height-md); padding-bottom: calc(var(--space-2) + 1px); }
   .close.close.close { width: var(--control-height-md); min-height: var(--control-height-md); height: var(--control-height-md); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

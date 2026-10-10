@@ -119,11 +119,13 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
 
       <IconButton icon={Plus} size="icon-sm" label="New tab" side="bottom" className={styles.add} onClick={onNewTab} />
 
+      <div className={styles.drag} data-tauri-drag-region />
+
       <Menu.Root>
         <Menu.Trigger
           render={<IconButton icon={ChevronDown} size="icon-sm" label="All tabs" tooltip={false} className={styles.add} />}
         />
-        <Menu.Content align="start">
+        <Menu.Content align="end">
           {tabs.map((tab) => (
             <Menu.Item key={tab.id} onClick={() => onActivate(tab.id)} aria-current={tab.id === activeId || undefined}>
               {tabTitle(tab, notes)}
@@ -131,8 +133,6 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
           ))}
         </Menu.Content>
       </Menu.Root>
-
-      <div className={styles.drag} data-tauri-drag-region />
     </div>
   );
 }

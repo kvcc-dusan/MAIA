@@ -299,7 +299,7 @@ export default function NotesOverview({
                       onClick={() => {
                         setConfirm({
                           title: "Replace all data?",
-                          description: "This replaces your current notes, projects, tasks and project activity with sample data. Your Ledger decisions are kept.",
+                          description: "This replaces your current notes, projects, tasks and project activity with sample data.",
                           confirmLabel: "Replace",
                           onConfirm: generateSamples,
                         });

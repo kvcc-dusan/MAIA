@@ -26,12 +26,11 @@ import { MotionConfig } from "framer-motion";
 // Pages
 import ProjectsPage from "./pages/ProjectsPage.jsx";
 
-import LedgerPage from "./pages/LedgerPage.jsx";
 
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
 
-const PAGES = ["codex", "projects", "graph", "ledgerPage"];
+const PAGES = ["codex", "projects", "graph"];
 // Codex used to be two pages; old stored values land on the merged one.
 const LEGACY_PAGES = { overview: "codex", editor: "codex" };
 // A fresh install, or a stored page that no longer exists, opens on Opus.
@@ -314,12 +313,6 @@ function AppContent() {
               />
             )}
 
-            {currentPage === "ledgerPage" && (
-              <LedgerPage
-                ledger={ledger}
-                setLedger={setLedger}
-              />
-            )}
           </React.Suspense>
         </GlassErrorBoundary>
       </MaiaShell>
