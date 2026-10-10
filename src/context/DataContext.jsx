@@ -102,13 +102,16 @@ export function DataProvider({ children }) {
             createdAt: isoNow(),
             project: null,
             projectIds: [],
+            folder: "", // "" = vault root; the vault store writes the file into this folder
             ...overrides,
         };
         setNotes((prev) => [n, ...prev]);
         return n.id;
     }, [setNotes]);
 
-    const updateNote = useCallback((updated) => {
+    // updateNote({ id, ...patch }) or updateNote(id, patch); { folder } moves the file.
+    const updateNote = useCallback((updatedOrId, maybePatch) => {
+        const updated = typeof updatedOrId === "string" ? { ...maybePatch, id: updatedOrId } : updatedOrId;
         setNotes((prev) =>
             prev.map((n) => (n.id === updated.id ? { ...n, ...updated } : n))
         );

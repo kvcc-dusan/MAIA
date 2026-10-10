@@ -5,18 +5,36 @@
 // risk in the repo). It dynamically imports @tauri-apps/plugin-fs /
 // plugin-dialog, so we mock a tiny in-memory filesystem behind those
 // module specifiers rather than touching real disk.
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { noteToMarkdown } from "./noteFile.js";
 
 let fsState;
 
 vi.mock("@tauri-apps/plugin-fs", () => ({
   readDir: vi.fn((dir) => {
-    const names = Object.keys(fsState.files).filter((p) => p.startsWith(dir + "/"));
+    const prefix = dir + "/";
+    const children = new Map();
+    for (const p of Object.keys(fsState.files)) {
+      if (!p.startsWith(prefix)) continue;
+      const rest = p.slice(prefix.length);
+      const [first, ...tail] = rest.split("/");
+      children.set(first, tail.length > 0);
+    }
+    for (const d of fsState.dirs ?? []) {
+      if (!d.startsWith(prefix)) continue;
+      const [first, ...tail] = d.slice(prefix.length).split("/");
+      children.set(first, true);
+      if (tail.length === 0) continue;
+    }
     return Promise.resolve(
-      names.map((p) => ({ name: p.slice(dir.length + 1), isFile: true }))
+      [...children].map(([name, isDir]) => ({ name, isFile: !isDir, isDirectory: isDir }))
     );
   }),
+  mkdir: vi.fn((path) => {
+    (fsState.dirs ??= new Set()).add(path);
+    return Promise.resolve();
+  }),
+  stat: vi.fn(() => Promise.resolve({ mtime: new Date("2025-05-05T00:00:00.000Z") })),
   readTextFile: vi.fn((path) => {
     if (!(path in fsState.files)) return Promise.reject(new Error(`ENOENT: ${path}`));
     return Promise.resolve(fsState.files[path]);
@@ -29,7 +47,7 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     delete fsState.files[path];
     return Promise.resolve();
   }),
-  exists: vi.fn((path) => Promise.resolve(path in fsState.files)),
+  exists: vi.fn((path) => Promise.resolve(path in fsState.files || (fsState.dirs?.has(path) ?? false))),
   watchImmediate: vi.fn(() => Promise.resolve(() => {})),
 }));
 
@@ -50,7 +68,7 @@ const importVault = () => import("./vault.js");
 
 describe("vault.js", () => {
   beforeEach(() => {
-    fsState = { files: {} };
+    fsState = { files: {}, dirs: new Set() };
     vi.resetModules();
     vi.clearAllMocks();
   });
@@ -217,6 +235,218 @@ describe("vault.js", () => {
 
     await deleteNoteFile(VAULT, "n1");
     expect(Object.keys(fsState.files)).toHaveLength(0);
+  });
+});
+
+const md = (over = {}) => noteToMarkdown({
+  id: "n1", title: "Note", content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", ...over,
+});
+
+describe("vault.js nested folders", () => {
+  beforeEach(() => {
+    fsState = { files: {}, dirs: new Set() };
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it("loads notes recursively with folder, skipping dot, node_modules, root Opus and _backups", async () => {
+    const { loadVault } = await importVault();
+    fsState.files[`${VAULT}/root.md`] = md({ id: "r" });
+    fsState.files[`${VAULT}/Omnis/PROJECTS/x.md`] = md({ id: "x" });
+    fsState.files[`${VAULT}/Omnis/Opus/keep.md`] = md({ id: "k" }); // Opus is only reserved at the root
+    fsState.files[`${VAULT}/Opus/Atlas/project.md`] = "---\nid: p\n---\n";
+    fsState.files[`${VAULT}/_backups/b.md`] = md({ id: "b" });
+    fsState.files[`${VAULT}/.obsidian/c.md`] = md({ id: "o" });
+    fsState.files[`${VAULT}/A/.trash/t.md`] = md({ id: "t" });
+    fsState.files[`${VAULT}/node_modules/m/n.md`] = md({ id: "m" });
+    fsState.files[`${VAULT}/Omnis/data.json`] = "{}";
+    fsState.dirs.add(`${VAULT}/Empty/Deeper`);
+
+    const { notes, folders } = await loadVault(VAULT);
+
+    expect(Object.fromEntries(notes.map((n) => [n.id, n.folder]))).toEqual({ r: "", x: "Omnis/PROJECTS", k: "Omnis/Opus" });
+    expect(folders).toEqual(["A", "Empty", "Empty/Deeper", "Omnis", "Omnis/Opus", "Omnis/PROJECTS"]);
+  });
+
+  it("never writes while loading and gives id-less files the same id on every load", async () => {
+    const { writeTextFile, remove, mkdir } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes } = await importVault();
+    fsState.files[`${VAULT}/Areas/Foreign.md`] = "# just obsidian\nno frontmatter";
+    fsState.files[`${VAULT}/Other/Foreign.md`] = "same name, other folder";
+
+    const first = await loadNotes(VAULT);
+    const second = await loadNotes(VAULT);
+
+    expect(writeTextFile).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+    expect(mkdir).not.toHaveBeenCalled();
+    expect(first.map((n) => n.id).sort()).toEqual(second.map((n) => n.id).sort());
+    expect(new Set(first.map((n) => n.id)).size).toBe(2);
+    // file time, not "now", so the order is stable too
+    expect(first[0].createdAt).toBe("2025-05-05T00:00:00.000Z");
+  });
+
+  it("saving an id-less note writes its id and keeps unknown keys and the file name", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/Areas/Design System.md`] = "---\naliases: [ds]\n---\nbody";
+    const [note] = await loadNotes(VAULT);
+
+    await saveNote(VAULT, { ...note, content: "edited" });
+
+    const text = fsState.files[`${VAULT}/Areas/Design System.md`];
+    expect(text).toContain(`id: ${note.id}`);
+    expect(text).toContain("aliases: [ds]");
+    expect(text).toContain("edited");
+    expect(text).not.toContain("folder");
+    expect(Object.keys(fsState.files)).toHaveLength(1);
+  });
+
+  it("creates a note in a folder, making the folder first", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    await saveNote(VAULT, { id: "n1", title: "Plan", content: "x", folder: "Omnis/PROJECTS", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/Omnis/PROJECTS/plan.md`]);
+    expect(fsState.dirs.has(`${VAULT}/Omnis/PROJECTS`)).toBe(true);
+  });
+
+  it("moves a note: writes the new path first, then removes the old file", async () => {
+    const { writeTextFile, remove } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan" });
+    const [note] = await loadNotes(VAULT);
+
+    await saveNote(VAULT, { ...note, folder: "b/c" });
+
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/b/c/Plan.md`]);
+    expect(writeTextFile.mock.invocationCallOrder[0]).toBeLessThan(remove.mock.invocationCallOrder[0]);
+  });
+
+  it("a failed write at the new path leaves the old file alone", async () => {
+    const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan" });
+    const [note] = await loadNotes(VAULT);
+    writeTextFile.mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(saveNote(VAULT, { ...note, folder: "b" })).rejects.toThrow("disk full");
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/Plan.md`]);
+  });
+
+  it("moving into a folder that has the same filename gets a unique name", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan" });
+    fsState.files[`${VAULT}/b/Plan.md`] = md({ id: "n2", title: "Plan" });
+    const notes = await loadNotes(VAULT);
+    const n1 = notes.find((n) => n.id === "n1");
+
+    await saveNote(VAULT, { ...n1, folder: "b" });
+
+    expect(Object.keys(fsState.files).sort()).toEqual([`${VAULT}/b/Plan-2.md`, `${VAULT}/b/Plan.md`]);
+    expect(fsState.files[`${VAULT}/b/Plan.md`]).toContain("id: n2");
+  });
+
+  it("allows the same filename in different folders", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    const base = { content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", title: "Idea" };
+    await saveNote(VAULT, { ...base, id: "a", folder: "One" });
+    await saveNote(VAULT, { ...base, id: "b", folder: "Two" });
+    expect(Object.keys(fsState.files).sort()).toEqual([`${VAULT}/One/idea.md`, `${VAULT}/Two/idea.md`]);
+  });
+
+  it("renames within the folder when the title changes", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/Old.md`] = md({ id: "n1", title: "Old" });
+    const [note] = await loadNotes(VAULT);
+    await saveNote(VAULT, { ...note, title: "New Title" });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/new-title.md`]);
+  });
+
+  it("does not overwrite a file that appeared on disk after the last load", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    fsState.files[`${VAULT}/idea.md`] = "someone else's note";
+    await saveNote(VAULT, { id: "n1", title: "Idea", content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" });
+    expect(fsState.files[`${VAULT}/idea.md`]).toBe("someone else's note");
+    expect(fsState.files[`${VAULT}/idea-2.md`]).toContain("id: n1");
+  });
+
+  it("conflict check and delete work on nested paths", async () => {
+    const { loadNotes, saveNote, deleteNoteFile, VaultConflictError } = await importVault();
+    fsState.files[`${VAULT}/a/b/n.md`] = md({ id: "n1", title: "n" });
+    const [note] = await loadNotes(VAULT);
+    fsState.files[`${VAULT}/a/b/n.md`] = md({ id: "n1", title: "n", content: "external" });
+    await expect(saveNote(VAULT, { ...note, content: "mine" })).rejects.toBeInstanceOf(VaultConflictError);
+    fsState.files[`${VAULT}/a/b/n.md`] = md({ id: "n1", title: "n" });
+    await deleteNoteFile(VAULT, "n1");
+    expect(Object.keys(fsState.files)).toHaveLength(0);
+  });
+
+  it("createFolder makes the folder and rejects unsafe paths", async () => {
+    const { createFolder } = await importVault();
+    await expect(createFolder(VAULT, "Omnis/New")).resolves.toBe("Omnis/New");
+    expect(fsState.dirs.has(`${VAULT}/Omnis/New`)).toBe(true);
+    for (const bad of ["", "..", "a/../b", "/abs", "a//b", "a/", ".hidden", "a/.git", "a/b:c", "a\\b", "Opus", "opus/x", "_backups", "node_modules/x", "a/ b"]) {
+      await expect(createFolder(VAULT, bad), bad).rejects.toThrow();
+    }
+    expect(fsState.dirs.size).toBe(1);
+  });
+
+  it("saveNote refuses a folder that escapes the vault", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    await expect(saveNote(VAULT, { id: "n1", title: "x", content: "", folder: "../out" })).rejects.toThrow();
+    expect(Object.keys(fsState.files)).toHaveLength(0);
+  });
+});
+
+describe("vault.js watcher", () => {
+  beforeEach(() => {
+    fsState = { files: {}, dirs: new Set() };
+    vi.resetModules();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const start = async () => {
+    const { watchImmediate } = await import("@tauri-apps/plugin-fs");
+    const vault = await importVault();
+    const onChange = vi.fn();
+    await vault.watchVault(VAULT, onChange, { debounceMs: 10 });
+    const [, handler, options] = watchImmediate.mock.calls[0];
+    const fire = async (...paths) => {
+      handler({ paths });
+      await vi.advanceTimersByTimeAsync(50);
+    };
+    return { vault, onChange, fire, options };
+  };
+
+  it("watches recursively and reloads on an outside edit in a subfolder", async () => {
+    const { vault, onChange, fire, options } = await start();
+    fsState.files[`${VAULT}/a/n.md`] = md({ id: "n1" });
+    await vault.loadNotes(VAULT);
+    expect(options).toEqual({ recursive: true });
+    fsState.files[`${VAULT}/a/n.md`] = md({ id: "n1", content: "external" });
+    await fire(`${VAULT}/a/n.md`);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Opus/, dot folders, node_modules and non-markdown files", async () => {
+    const { onChange, fire } = await start();
+    await fire(`${VAULT}/Opus/P/tasks/t.md`, `${VAULT}/.obsidian/workspace.md`, `${VAULT}/node_modules/x/y.md`, `${VAULT}/a/n.md.tmp`);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("ignores the echo of its own save and its own delete", async () => {
+    const { vault, onChange, fire } = await start();
+    await vault.loadNotes(VAULT);
+    await vault.saveNote(VAULT, { id: "n1", title: "Mine", content: "x", folder: "a", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" });
+    await fire(`${VAULT}/a/mine.md`);
+    expect(onChange).not.toHaveBeenCalled();
+    await vault.deleteNoteFile(VAULT, "n1");
+    await fire(`${VAULT}/a/mine.md`);
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
 

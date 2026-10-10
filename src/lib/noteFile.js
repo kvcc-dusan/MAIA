@@ -105,7 +105,7 @@ const parseFrontmatter = (block) => {
 const asArray = (value) =>
   Array.isArray(value) ? value : value ? [value] : [];
 
-export const markdownToNote = (text, { fallbackId, fallbackTitle } = {}) => {
+export const markdownToNote = (text, { fallbackId, fallbackTitle, fallbackCreatedAt } = {}) => {
   const source = String(text ?? "");
   let data = {};
   let extra = {};
@@ -124,7 +124,7 @@ export const markdownToNote = (text, { fallbackId, fallbackTitle } = {}) => {
     tags: asArray(data.tags),
     links: asArray(data.links),
     projectIds: asArray(data.projectIds),
-    createdAt: data.createdAt || isoNow(),
+    createdAt: data.createdAt || fallbackCreatedAt || isoNow(),
     kind: data.kind || undefined,
     status: data.status || undefined,
     workstreamId: data.workstreamId || undefined,

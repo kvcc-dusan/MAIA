@@ -4,13 +4,15 @@ import { useLocalStorage } from "./useLocalStorage.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
 import { markdownToNote } from "../lib/noteFile.js";
 import { uid } from "../lib/ids.js";
+import { normalizeFolderList } from "../lib/vaultFolders.js";
 import { hasPendingCloseFlush, runCloseFlush } from "../lib/closeFlush.js";
 import {
   isTauri,
   getVaultPath,
   setVaultPath,
   probeVault,
-  loadNotes,
+  loadVault,
+  createFolder as createVaultFolder,
   saveNote,
   deleteNoteFile,
   watchVault,
@@ -24,7 +26,9 @@ const WRITE_DEBOUNCE_MS = 1000;
  * - Web/PWA: plain localStorage (unchanged behavior).
  * - Tauri: markdown files in the user's vault folder.
  *
- * meta: { status: 'loading'|'needs-vault'|'ready'|'error', error, reload }
+ * meta: { status: 'loading'|'needs-vault'|'ready'|'error', error, reload,
+ *   folders, createFolder } — `folders` is every vault folder path ([] on web).
+ * Each note carries `folder` ("" = vault root), derived from where its file is.
  */
 const IS_TAURI = isTauri();
 
@@ -35,14 +39,23 @@ export function useNotesStore() {
 
 function useLocalNotes() {
   const [notes, setNotes] = useLocalStorage(STORAGE_KEYS.NOTES, []);
-  const meta = useMemo(() => ({ status: "ready", error: null, reload: () => {}, switchVault: async () => {} }), []);
-  return [notes, setNotes, meta];
+  const meta = useMemo(() => ({
+    status: "ready", error: null, reload: () => {}, switchVault: async () => {},
+    folders: [],
+    createFolder: async () => {
+      throw new Error("Folders need the desktop app with a vault.");
+    },
+  }), []);
+  // Older web notes were saved without `folder`; consumers can rely on it.
+  const withFolder = useMemo(() => notes.map((n) => (n.folder === undefined ? { ...n, folder: "" } : n)), [notes]);
+  return [withFolder, setNotes, meta];
 }
 
 function useVaultNotes() {
   const [notes, setNotes] = useState([]);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState(null);
+  const [diskFolders, setDiskFolders] = useState([]);
 
   const prevNotesRef = useRef(null);
   const pendingRef = useRef(new Map()); // id → note (debounce buffer)
@@ -57,7 +70,8 @@ function useVaultNotes() {
       return;
     }
     try {
-      const loaded = await loadNotes(vaultPath);
+      const { notes: loaded, folders: loadedFolders } = await loadVault(vaultPath);
+      setDiskFolders(loadedFolders);
       setNotes((prev) => {
         const loadedIds = new Set(loaded.map((n) => n.id));
         // A clean (already-saved) note whose file is no longer in the vault
@@ -207,6 +221,7 @@ function useVaultNotes() {
     dirtyRef.current.clear();
     prevNotesRef.current = null;
     setNotes([]);
+    setDiskFolders([]);
     setStatus("loading");
     setError(null);
     const isLoaded = await load();
@@ -292,6 +307,24 @@ function useVaultNotes() {
     };
   }, [flush]);
 
-  const meta = useMemo(() => ({ status, error, reload: load, switchVault }), [status, error, load, switchVault]);
+  // Folders on disk plus any a note already points at (a move or create into
+  // a folder that the next load has not listed yet).
+  const folders = useMemo(
+    () => normalizeFolderList([...diskFolders, ...notes.map((n) => n.folder).filter(Boolean)]),
+    [diskFolders, notes]
+  );
+
+  const createFolder = useCallback(async (path) => {
+    const vaultPath = getVaultPath();
+    if (!vaultPath) throw new Error("No vault is open.");
+    const created = await createVaultFolder(vaultPath, path);
+    setDiskFolders((prev) => normalizeFolderList([...prev, created]));
+    return created;
+  }, []);
+
+  const meta = useMemo(
+    () => ({ status, error, reload: load, switchVault, folders, createFolder }),
+    [status, error, load, switchVault, folders, createFolder]
+  );
   return [notes, setNotes, meta];
 }

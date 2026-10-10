@@ -13,6 +13,9 @@ const vaultMocks = vi.hoisted(() => ({
   setVaultPath: vi.fn(),
   probeVault: vi.fn(() => Promise.resolve()),
   loadNotes: vi.fn(),
+  loadVault: vi.fn((p) => vaultMocks.loadNotes(p).then((notes) => ({ notes, folders: vaultMocks.folders ?? [] }))),
+  createFolder: vi.fn((p, path) => Promise.resolve(path)),
+  folders: [],
   saveNote: vi.fn(),
   deleteNoteFile: vi.fn(),
   watchVault: vi.fn(() => Promise.resolve(() => {})),
@@ -62,6 +65,7 @@ describe("useNotesStore (vault branch)", () => {
     vaultMocks.getVaultPath.mockReturnValue("/mock/vault");
     vaultMocks.loadNotes.mockResolvedValue([]);
     vaultMocks.watchVault.mockResolvedValue(() => {});
+    vaultMocks.folders = [];
   });
 
   it("loads notes from the vault on mount", async () => {
@@ -154,6 +158,38 @@ describe("useNotesStore (vault branch)", () => {
     expect(conflictCopy.content).toBe("local edit");
     expect(conflictCopy.title).toBe("Shared (conflict copy)");
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("conflict copy"));
+  });
+
+  it("exposes folders (disk, empty ones, ancestors of note folders) and never saves on load", async () => {
+    const note = { id: "fold1", title: "Plan", content: "x", folder: "Omnis/PROJECTS", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
+    vaultMocks.loadNotes.mockResolvedValue([note]);
+    vaultMocks.folders = ["Empty"];
+    const { useNotesStore } = await importStore();
+    const { result } = renderHook(() => useNotesStore());
+    await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+    expect(result.current[2].folders).toEqual(["Empty", "Omnis", "Omnis/PROJECTS"]);
+    await new Promise((r) => setTimeout(r, 1200));
+    // other tests' timers can still land saves; only this note matters
+    expect(vaultMocks.saveNote.mock.calls.filter(([, n]) => n.id === "fold1")).toHaveLength(0);
+  });
+
+  it("createFolder adds the folder to the list; a folder change on a note is saved", async () => {
+    const note = { id: "fold1", title: "Plan", content: "x", folder: "", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
+    vaultMocks.loadNotes.mockResolvedValue([note]);
+    vaultMocks.saveNote.mockResolvedValue(undefined);
+    const { useNotesStore } = await importStore();
+    const { result } = renderHook(() => useNotesStore());
+    await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+    await act(async () => {
+      await result.current[2].createFolder("A/B");
+    });
+    expect(vaultMocks.createFolder).toHaveBeenCalledWith("/mock/vault", "A/B");
+    expect(result.current[2].folders).toEqual(["A", "A/B"]);
+
+    act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, folder: "A/B" }))));
+    await waitFor(() => expect(vaultMocks.saveNote).toHaveBeenCalledWith("/mock/vault", expect.objectContaining({ id: "fold1", folder: "A/B" })), { timeout: 3000 });
   });
 
   describe("switchVault", () => {

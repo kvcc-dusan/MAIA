@@ -185,6 +185,35 @@ describe("notes", () => {
   });
 });
 
+describe("nested notes", () => {
+  it("lists notes in subfolders, skips Opus/dot/node_modules, creates inside a folder", async () => {
+    await seedProject();
+    const put = async (rel, text) => {
+      await fs.mkdir(path.dirname(path.join(vault, rel)), { recursive: true });
+      await fs.writeFile(path.join(vault, rel), text);
+    };
+    await put("Areas/Design/System.md", "---\ntitle: System\n---\nbody a");
+    await put("Omnis/PROJECTS/Plan.md", "plan body");
+    await put(".obsidian/hidden.md", "no");
+    await put("node_modules/pkg/readme.md", "no");
+    await put("Areas/.trash/gone.md", "no");
+
+    const listed = await call("list_notes", {});
+    expect(listed.data.notes.map((n) => n.file).sort()).toEqual(["Areas/Design/System.md", "Omnis/PROJECTS/Plan.md"]);
+    expect(listed.data.notes.find((n) => n.title === "Plan").folder).toBe("Omnis/PROJECTS");
+    expect((await call("list_notes", { folder: "Areas" })).data.total).toBe(1);
+
+    const a = await call("create_note", { title: "Plan", content: "x", folder: "Omnis/PROJECTS" });
+    expect(a.data).toMatchObject({ file: "Omnis/PROJECTS/plan-2.md", folder: "Omnis/PROJECTS" });
+    const b = await call("create_note", { title: "Plan", content: "y", folder: "Omnis/PROJECTS" });
+    expect(b.data.file).toBe("Omnis/PROJECTS/plan-3.md");
+    expect((await call("create_note", { title: "Bad", content: "x", folder: "../out" })).isError).toBe(true);
+    expect((await call("create_note", { title: "Bad", content: "x", folder: "Opus/x" })).isError).toBe(true);
+    const read1 = await call("read_note", { id: a.data.id });
+    expect(read1.data.folder).toBe("Omnis/PROJECTS");
+  });
+});
+
 describe("activity", () => {
   it("appends per project and to the inbox", async () => {
     await seedProject();
