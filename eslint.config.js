@@ -30,6 +30,11 @@ export default defineConfig([
     },
   },
   {
+    // MCP server runs under Node, not the browser.
+    files: ['mcp/**/*.js'],
+    languageOptions: { globals: globals.node },
+  },
+  {
     // Vendored shadcn registry components. They follow the registry's own
     // conventions (exporting cva variant maps alongside the component), and
     // hand-editing them means the next `shadcn add` silently reverts the fix.
