@@ -15,6 +15,8 @@ About 200 inputs were run through a headless editor with the same extension list
 
 `EditorRich` only calls `onChange` from `onUpdate`, which fires on a real user edit. External content is loaded with `setContent(value, false)`, which emits no update. So opening a note does not rewrite it.
 
+**Correction (stage 1):** the claim above was wrong for the component as it stood. `EditorRich` called `editor.setEditable(!!editable)` in an effect on mount, and TipTap 2.26 emits `update` from `setEditable` by default, so merely opening a note (or flipping read/edit) ran `onChange` and saved the re-serialized body. Fixed with `setEditable(editable, false)`, covered by `src/components/EditorRich.test.jsx`.
+
 **The first keystroke in a note re-serializes the whole body.** Every unsupported construct anywhere in the file is mangled at that moment, not only the part being edited. There is no unescape step anywhere in `src/` (grepped), and the save path is `EditorPage.handleContentChange` straight into `local.content`.
 
 ### Re-run
@@ -110,6 +112,33 @@ Legend:
 | Empty or whitespace-only doc | P | = (whitespace becomes empty) | yes | n/a | OK |
 
 Counts are approximate: roughly 20 rows DANGEROUS, 25 degraded-safe, the rest OK.
+
+### After stage 1
+
+Measured with the same harness, now built from `src/editor/extensions.js` (the list the app runs). Run on the 159 inputs of `CASES` (including CRLF and the frontmatter body): 102 come back byte-identical, 57 are rewritten, 21 are routed to source mode by the guard (`checkRoundTrip` in `src/editor/roundTripSafe.js`). The 36 rewritten and not routed are the harmless rewrites listed in the table above (bullet marker, `__x__`, `***`, `1)`, setext, bare URL, link titles, blank lines, tabs, hard break spaces, `~~~`, indented code, literal `*` and `[`).
+
+| Feature | Before | After stage 1 | Where |
+|---|---|---|---|
+| Wikilinks `[[Note]]`, `\|alias`, `#Heading`, `#^id`, `[[#H]]` | X escaped | = (inline atom, click opens the note by target) | `wikiLink.js` |
+| Embeds `![[f.png\|300]]`, `![[f.pdf#page=3]]`, `![[Note]]` | X escaped | = (placeholder chip with the file name) | `wikiLink.js` |
+| Images `![alt](url)`, `\|300`, `\|300x200`, in lists, in links, with title | X deleted | = (img for http, data, blob; chip otherwise) | `image.js` |
+| Inline HTML (`<kbd> <br> <sub> <sup> <u> <mark> <name>`), HTML comments | X entity-escaped | = (raw atom) | `htmlRaw.js` |
+| HTML blocks (`<div>`, `<details>`, `<img>`) | X escaped, collapsed | = (raw block atom) | `htmlRaw.js` |
+| Plain `a < b`, `>` | X `&lt;` | = | `plainText.js` |
+| Comments `%%x%%` inline and block, with lists or wikilinks inside | ~ / X | = (line structure kept) | `obsidianComment.js` |
+| Footnotes `[^1]`, `[^name]`, definitions (multi-line), `^[inline]` | X escaped or eaten | = | `footnotes.js` |
+| Math `$..$`, `$$..$$` with backslashes | X `\\` doubled, collapsed | = (shown raw, not rendered) | `math.js` |
+| Soft line break | X joined with a space | = | `softBreak.js` |
+| Heading 5-6 | X hashes stripped | = | `extensions.js` (levels 1-6) |
+| Frontmatter after a BOM or blank line | X leaked into the body | read as frontmatter | `src/lib/noteFile.js` |
+| Block ids `^id`, tags, mermaid/dataview code | = | = | unchanged |
+| Tables | X flattened | still lossy: note opens in source mode | `DANGEROUS_PATTERNS` |
+| Callouts (all types, folds, nested) | X | still lossy: source mode | `DANGEROUS_PATTERNS` |
+| Task custom status `[/] [>] [-]`, task inside a numbered list | X | still lossy: source mode | `DANGEROUS_PATTERNS` |
+| Reference links `[t][ref]` + `[ref]: url` | ~ inlined | source mode (kept conservative) | `DANGEROUS_PATTERNS` |
+| HTML entities (`&amp;`, `&copy;`) | ~ decoded | source mode (decoded on save) | fingerprint |
+
+Still open for the next stage: tables, callouts, task statuses (remove their entries from `DANGEROUS_PATTERNS` and add the fixture to the feature's tests), rendering math, resolving embeds and images against the vault, tight task lists, `[[` autocomplete, `***x***` and `---`/`***` live typing, `- [x] ` typing giving an unchecked item. A wikilink atom cannot be edited in place: delete it and type `[[` again.
 
 ## 2. Top 10 dangerous round-trip failures
 

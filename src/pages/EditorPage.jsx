@@ -1,27 +1,25 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import EditorRich from "../components/EditorRich.jsx";
+import SourceEditor from "../components/SourceEditor.jsx";
 import { WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { EmptyState } from "../components/composed/EmptyState.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 import NoteHeader from "../features/Codex/NoteHeader.jsx";
 import NoteCounters from "../features/Codex/NoteCounters.jsx";
+import SyntaxNotice from "../features/Codex/SyntaxNotice.jsx";
+import { checkRoundTrip } from "../editor/roundTripSafe.js";
+import { isTypingElsewhere } from "../editor/isTypingElsewhere.js";
 import { countBacklinks } from "../features/Codex/backlinks.js";
 import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
+const viewKey = (id) => `maia:note-view:${id}`;
 
 // The title createNote() gives every new note; it is a value, not a placeholder.
 const DEFAULT_TITLE = "Untitled";
 
 // Only an empty body gets the caret on open; a note with content is left alone.
 // An empty note with the default title starts in the title field, otherwise in the body.
-// Same rule as EditorRich's body focus; kept local because a component file
-// can't export a helper without breaking fast refresh.
-const isTypingElsewhere = () => {
-  const el = document.activeElement;
-  return !!el && el !== document.body && el.matches('input, textarea, select, [contenteditable="true"]');
-};
-
 const getAutoFocusTarget = (note) => {
   if (!note || note.content?.trim()) return null;
   const hasRealTitle = !!note.title?.trim() && note.title !== DEFAULT_TITLE;
@@ -51,6 +49,16 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
   const [mode, setMode] = useState(() => {
     if (note?.id) return readStored(modeKey(note.id)) === "read" ? "read" : "edit";
     return "edit";
+  });
+  // Checked once per mount against the note as it was loaded, not on every keystroke.
+  const [roundTrip] = useState(() => (
+    note ? checkRoundTrip(note.content || "", { id: note.id }) : { safe: true, reasons: [] }
+  ));
+  // "source" edits the raw markdown. A note the rich editor would change on save always opens there,
+  // whatever was remembered, so the first keystroke can never rewrite it by surprise.
+  const [view, setView] = useState(() => {
+    if (!note?.id || !roundTrip.safe) return "source";
+    return readStored(viewKey(note.id)) === "source" ? "source" : "rich";
   });
   // Decided once per mount: CodexPage remounts this when the note id changes.
   const [autoFocusTarget] = useState(() => getAutoFocusTarget(note));
@@ -144,6 +152,14 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
     if (local?.id) writeStored(modeKey(local.id), next);
   };
 
+  const isSource = view === "source";
+  const setViewMode = (next) => {
+    setView(next);
+    // Rich view on an unsafe note is a one-off choice: remembering it would reopen the note there.
+    if (local?.id && (next === "source" || roundTrip.safe)) writeStored(viewKey(local.id), next);
+  };
+  const toggleView = () => setViewMode(isSource ? "rich" : "source");
+
   const handleDelete = () => {
     isDeletedRef.current = true;
     onDelete?.(note.id);
@@ -157,6 +173,8 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
         content={local.content}
         isEditing={editable}
         onToggleMode={toggleMode}
+        isSource={isSource}
+        onToggleView={toggleView}
         onDelete={handleDelete}
       />
 
@@ -176,14 +194,31 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
                 {local.tags.map((t) => <span key={t}>#{t}</span>)}
               </p>
             )}
-            <EditorRich
-              value={local.content || ""}
-              editable={editable}
-              autoFocus={autoFocusTarget === "body"}
-              onChange={handleContentChange}
-              onMetaChange={handleMetaChange}
-              onOpenInternalLink={onOpenInternalLink}
-            />
+            {!roundTrip.safe && (
+              <SyntaxNotice
+                reasons={roundTrip.reasons}
+                isSource={isSource}
+                onSwitchView={toggleView}
+              />
+            )}
+            {isSource ? (
+              <SourceEditor
+                value={local.content || ""}
+                editable={editable}
+                autoFocus={autoFocusTarget === "body"}
+                onChange={handleContentChange}
+                onMetaChange={handleMetaChange}
+              />
+            ) : (
+              <EditorRich
+                value={local.content || ""}
+                editable={editable}
+                autoFocus={autoFocusTarget === "body"}
+                onChange={handleContentChange}
+                onMetaChange={handleMetaChange}
+                onOpenInternalLink={onOpenInternalLink}
+              />
+            )}
           </div>
         </div>
 

@@ -111,7 +111,8 @@ export const markdownToNote = (text, { fallbackId, fallbackTitle, fallbackCreate
   let extra = {};
   let content = source;
 
-  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  // A BOM or blank lines before the opening `---` must not push the frontmatter into the body
+  const match = source.match(/^\uFEFF?(?:[ \t]*\r?\n)*---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
   if (match) {
     ({ data, extra } = parseFrontmatter(match[1]));
     content = source.slice(match[0].length).replace(/^\r?\n/, "");

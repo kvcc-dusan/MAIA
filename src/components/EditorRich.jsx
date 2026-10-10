@@ -1,30 +1,12 @@
 import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import HorizontalRule from "@tiptap/extension-horizontal-rule";
-import Highlight from "@tiptap/extension-highlight";
-import Link from "@tiptap/extension-link";
-import { Markdown } from "tiptap-markdown";
-import markdownItMark from "markdown-it-mark";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import { Extension } from "@tiptap/core";
 import { parseContentMeta } from "../lib/parseContentMeta.js";
 import { cn, countWords } from "@/lib/utils";
-import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { createExtensions } from "../editor/extensions.js";
+import { isTypingElsewhere } from "../editor/isTypingElsewhere.js";
 import styles from "./EditorRich.module.css";
 
 const PLACEHOLDER_TEXT = 'Start writing…';
-
-/**
- * True when the user is typing in another field. Auto-focus must never take the
- * caret from a search box or the palette while a note is switching in.
- */
-const isTypingElsewhere = () => {
-  const el = document.activeElement;
-  return !!el && el !== document.body && el.matches('input, textarea, select, [contenteditable="true"]');
-};
 
 /** Toggle placeholder classes/attributes on the editor DOM based on content */
 function updatePlaceholder(editor) {
@@ -45,179 +27,6 @@ function updatePlaceholder(editor) {
   }
 }
 
-/** Auto Markdown Shortcuts on SPACE at line start */
-const AutoMarkdownShortcuts = Extension.create({
-  name: "autoMarkdownShortcuts",
-  addKeyboardShortcuts() {
-    return {
-      Space: ({ editor }) => {
-        const { state } = editor;
-        const { $from } = state.selection;
-
-        const inParagraph = $from.parent?.type?.name === "paragraph";
-        if (!inParagraph) return false;
-
-        const beforeText = $from.parent.textBetween(0, $from.parentOffset);
-        const head = beforeText.replace(/\s+$/, "").trim();
-
-        // bullets
-        if (head === "-" || head === "*" || head === "+") {
-          return editor
-            .chain()
-            .command(({ tr }) => {
-              const pos = $from.start();
-              tr.delete(pos, pos + beforeText.length);
-              return true;
-            })
-            .toggleBulletList()
-            .run();
-        }
-
-        // ordered 1.
-        if (/^\d+\.$/.test(head)) {
-          return editor
-            .chain()
-            .command(({ tr }) => {
-              const pos = $from.start();
-              tr.delete(pos, pos + beforeText.length);
-              return true;
-            })
-            .toggleOrderedList()
-            .run();
-        }
-
-        // task list: [ ] or [x]
-        if (/^\[(?:\s|x|X)\]$/.test(head)) {
-          const checked = /\[([xX])\]/.test(head);
-          return editor
-            .chain()
-            .command(({ tr }) => {
-              const pos = $from.start();
-              tr.delete(pos, pos + beforeText.length);
-              return true;
-            })
-            .toggleTaskList()
-            .command(() => {
-              const node = editor.state.selection.$from.parent;
-              if (node?.type?.name === "taskItem" && checked) {
-                editor.commands.updateAttributes("taskItem", { checked: true });
-              }
-              return true;
-            })
-            .run();
-        }
-
-        return false;
-      },
-    };
-  },
-});
-
-/**
- * Highlight, wired to round-trip through markdown as `==text==`.
- * The stock @tiptap/extension-highlight has no markdown serializer at all
- * (tiptap-markdown only knows how to serialize marks that declare
- * `storage.markdown`), so a highlighted selection was silently written to
- * disk as plain unmarked text on every save.
- */
-const MarkdownHighlight = Highlight.extend({
-  addStorage() {
-    return {
-      markdown: {
-        serialize: { open: "==", close: "==", expelEnclosingWhitespace: true },
-        parse: {
-          setup(markdownit) {
-            markdownit.use(markdownItMark);
-          },
-        },
-      },
-    };
-  },
-});
-
-/** Finds the [[Title]] or [[Title|Alias]] span (if any) covering `pos`. */
-function wikiLinkAt(doc, pos) {
-  let match = null;
-  doc.descendants((node, nodePos) => {
-    if (match || !node.isText) return;
-    const regex = /\[\[([\s\S]+?)\]\]/g;
-    let m;
-    while ((m = regex.exec(node.text)) !== null) {
-      const from = nodePos + m.index;
-      const to = from + m[0].length;
-      if (pos >= from && pos <= to) {
-        match = m[1];
-        return;
-      }
-    }
-  });
-  return match;
-}
-
-/**
- * WikiLink Highlighting + navigation: [[Title]] or [[Title|Alias]].
- *
- * Previously decoration-only (styling with no click handler) — `App.jsx`
- * passed an `onOpenInternalLink` all the way down to `EditorPage`, which
- * never wired it anywhere, so clicking a wikilink did nothing. `onOpenLink`
- * closes that gap.
- */
-const WikiLinkExtension = Extension.create({
-  name: "wikiLink",
-
-  addOptions() {
-    return { onOpenLink: undefined };
-  },
-
-  addProseMirrorPlugins() {
-    const onOpenLink = this.options.onOpenLink;
-    return [
-      new Plugin({
-        key: new PluginKey('wiki-link-highlight'),
-        props: {
-          decorations: (state) => {
-            const { doc } = state;
-            const decorations = [];
-
-            doc.descendants((node, pos) => {
-              if (node.isText) {
-                const text = node.text;
-                // Regex for [[...]]
-                const regex = /\[\[([\s\S]+?)\]\]/g;
-                let match;
-
-                while ((match = regex.exec(text)) !== null) {
-                  const from = pos + match.index;
-                  const to = from + match[0].length;
-
-                  decorations.push(
-                    // Styled by .maia-wikilink in EditorRich.module.css
-                    Decoration.inline(from, to, { class: 'maia-wikilink' })
-                  );
-                }
-              }
-            });
-
-            return DecorationSet.create(doc, decorations);
-          },
-          handleClick: (view, pos) => {
-            const raw = wikiLinkAt(view.state.doc, pos);
-            if (!raw) return false;
-            // [[Title|Alias]] — navigate by Title, not the displayed alias.
-            const title = raw.split('|')[0].trim();
-            if (!title) return false;
-            onOpenLink?.(title);
-            return true;
-          },
-        }
-      })
-    ];
-  }
-});
-
-
-
-
 export default function EditorRich({
   value = "",
   onChange,
@@ -230,7 +39,7 @@ export default function EditorRich({
   // Read via a ref inside the extension so [[wikilink]] clicks always call
   // the latest callback without forcing the whole TipTap editor (and its
   // ProseMirror plugins) to be recreated whenever the parent's callback
-  // identity changes — see WikiLinkExtension below.
+  // identity changes.
   const onOpenInternalLinkRef = useRef(onOpenInternalLink);
   useEffect(() => {
     onOpenInternalLinkRef.current = onOpenInternalLink;
@@ -245,27 +54,9 @@ export default function EditorRich({
     onMetaChange?.({ ...meta, wordCount, charCount });
   }, []);
 
-  const extensions = useMemo(() => [
-    StarterKit.configure({
-      heading: { levels: [1, 2, 3, 4] },
-      horizontalRule: false,
-    }),
-    TaskList,
-    TaskItem.configure({ nested: true }),
-    MarkdownHighlight,
-    Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
-    HorizontalRule,
-    Markdown.configure({
-      html: false,
-      tightLists: true,
-      bulletListMarker: "-",
-      linkify: true,
-      breaks: false,
-      transformPastedText: true,
-      transformCopiedText: true,
-    }),
-    AutoMarkdownShortcuts,
-  ], []);
+  const extensions = useMemo(() => createExtensions({
+    onOpenLink: (title) => onOpenInternalLinkRef.current?.(title),
+  }), []);
 
   const editor = useEditor({
     editable,
@@ -279,12 +70,7 @@ export default function EditorRich({
           "outline:none; -webkit-tap-highlight-color: transparent; caret-color: currentColor;",
       },
     },
-    extensions: [
-      ...extensions,
-      WikiLinkExtension.configure({
-        onOpenLink: (title) => onOpenInternalLinkRef.current?.(title),
-      }),
-    ],
+    extensions,
     onCreate: ({ editor }) => {
       emitMeta(editor, onMetaChange);
       updatePlaceholder(editor);
@@ -300,9 +86,10 @@ export default function EditorRich({
     },
   }, [extensions]);
 
-  // Sync editable flag
+  // Sync editable flag. emitUpdate=false: by default setEditable fires "update", which made
+  // opening a note (and flipping read/edit) re-serialize and save it with no edit at all.
   useEffect(() => {
-    if (editor) editor.setEditable(!!editable);
+    if (editor) editor.setEditable(!!editable, false);
   }, [editable, editor]);
 
   // Runs once the editor exists: TipTap's own autofocus fires on a timer and

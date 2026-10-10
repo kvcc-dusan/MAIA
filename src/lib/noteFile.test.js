@@ -184,3 +184,32 @@ describe("document fields", () => {
     expect(noteToMarkdown(sampleNote)).not.toContain("kind:");
   });
 });
+
+describe("frontmatter that does not start at byte 0", () => {
+  const body = "Body **b**";
+
+  it("reads frontmatter after a BOM", () => {
+    const note = markdownToNote(`\uFEFF---\nid: a\ntitle: T\n---\n${body}`);
+    expect(note.id).toBe("a");
+    expect(note.title).toBe("T");
+    expect(note.content).toBe(body);
+  });
+
+  it("reads frontmatter after leading blank lines", () => {
+    const note = markdownToNote(`\n\n---\nid: a\ntitle: T\n---\n${body}`);
+    expect(note.title).toBe("T");
+    expect(note.content).toBe(body);
+  });
+
+  it("reads frontmatter after a BOM and CRLF blank lines", () => {
+    const note = markdownToNote(`\uFEFF\r\n---\r\nid: a\r\n---\r\n${body}`);
+    expect(note.id).toBe("a");
+    expect(note.content).toBe(body);
+  });
+
+  it("does not treat a rule after real text as frontmatter", () => {
+    const note = markdownToNote(`intro\n---\nid: a\n---\n${body}`);
+    expect(note.id).not.toBe("a");
+    expect(note.content).toBe(`intro\n---\nid: a\n---\n${body}`);
+  });
+});

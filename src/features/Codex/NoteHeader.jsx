@@ -29,7 +29,7 @@ const formatCreated = (createdAt) => {
 };
 
 /** Slim bar above a note: breadcrumb on the left, read/edit toggle and More menu on the right. */
-export default function NoteHeader({ title, createdAt, content, isEditing, onToggleMode, onDelete }) {
+export default function NoteHeader({ title, createdAt, content, isEditing, onToggleMode, isSource = false, onToggleView, onDelete }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const displayTitle = title?.trim() || "Untitled";
   const created = formatCreated(createdAt);
@@ -71,6 +71,7 @@ export default function NoteHeader({ title, createdAt, content, isEditing, onTog
                 <Menu.Separator />
               </>
             )}
+            <Menu.Item onClick={onToggleView}>{isSource ? "Rich view" : "Source mode"}</Menu.Item>
             <Menu.Item onClick={copyMarkdown}>Copy as markdown</Menu.Item>
             <MenuDangerItem onClick={() => setIsConfirmOpen(true)}>Delete note</MenuDangerItem>
           </Menu.Content>

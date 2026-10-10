@@ -2,72 +2,19 @@
 // Obsidian parity audit harness for EditorRich (see docs/obsidian-parity.md).
 // Always passes. It only does work when OBS_PARITY_OUT is set:
 //   OBS_PARITY_OUT=/tmp/parity.json npx vitest run scripts/obsidian-parity.test.js
-// The extension list below is a COPY of EditorRich.jsx's list (the component is not
-// reusable headlessly: extensions are built inside the component). Keep in sync.
+// The extension list is src/editor/extensions.js, shared with EditorRich.
 import { it } from 'vitest';
 import fs from 'node:fs';
-import { Editor, Extension } from '@tiptap/core';
-import StarterKit from '@tiptap/starter-kit';
-import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import Highlight from '@tiptap/extension-highlight';
-import Link from '@tiptap/extension-link';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import { Markdown } from 'tiptap-markdown';
-import markdownItMark from 'markdown-it-mark';
+import { Editor } from '@tiptap/core';
+import { createExtensions } from '../src/editor/extensions.js';
+import { checkRoundTrip } from '../src/editor/roundTripSafe.js';
 import { markdownToNote } from '../src/lib/noteFile.js';
 
-const MarkdownHighlight = Highlight.extend({
-  addStorage() {
-    return {
-      markdown: {
-        serialize: { open: '==', close: '==', expelEnclosingWhitespace: true },
-        parse: { setup(mdi) { mdi.use(markdownItMark); } },
-      },
-    };
-  },
-});
-
-// Copy of AutoMarkdownShortcuts (Space handler) from EditorRich.jsx
-const AutoMarkdownShortcuts = Extension.create({
-  name: 'autoMarkdownShortcuts',
-  addKeyboardShortcuts() {
-    return {
-      Space: ({ editor }) => {
-        const { $from } = editor.state.selection;
-        if ($from.parent?.type?.name !== 'paragraph') return false;
-        const beforeText = $from.parent.textBetween(0, $from.parentOffset);
-        const head = beforeText.replace(/\s+$/, '').trim();
-        const strip = ({ tr }) => { const pos = $from.start(); tr.delete(pos, pos + beforeText.length); return true; };
-        if (head === '-' || head === '*' || head === '+') return editor.chain().command(strip).toggleBulletList().run();
-        if (/^\d+\.$/.test(head)) return editor.chain().command(strip).toggleOrderedList().run();
-        if (/^\[(?:\s|x|X)\]$/.test(head)) {
-          const checked = /\[([xX])\]/.test(head);
-          return editor.chain().command(strip).toggleTaskList().command(() => {
-            const node = editor.state.selection.$from.parent;
-            if (node?.type?.name === 'taskItem' && checked) editor.commands.updateAttributes('taskItem', { checked: true });
-            return true;
-          }).run();
-        }
-        return false;
-      },
-    };
-  },
-});
-
+// Same list the app runs (src/editor/extensions.js), so this measures the real editor.
 const makeEditor = (content = '') => new Editor({
   element: document.createElement('div'),
   content,
-  extensions: [
-    StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, horizontalRule: false }),
-    TaskList,
-    TaskItem.configure({ nested: true }),
-    MarkdownHighlight,
-    Link.configure({ autolink: true, openOnClick: false, linkOnPaste: true }),
-    HorizontalRule,
-    Markdown.configure({ html: false, tightLists: true, bulletListMarker: '-', linkify: true, breaks: false, transformPastedText: true, transformCopiedText: true }),
-    AutoMarkdownShortcuts,
-  ],
+  extensions: createExtensions(),
 });
 
 const kinds = (json, set = new Set()) => {
@@ -167,7 +114,8 @@ it('obsidian parity harness (never fails; set OBS_PARITY_OUT to run)', () => {
     const json = editor.getJSON();
     const output = editor.storage.markdown.getMarkdown();
     const html = editor.getHTML();
-    results[name] = { input, output, kinds: [...kinds(json)], identical: input === output, trimEq: input.trim() === output.trim(), html };
+    const guard = checkRoundTrip(input, { id: name });
+    results[name] = { input, output, kinds: [...kinds(json)], identical: input === output, trimEq: input.trim() === output.trim(), html, guardSafe: guard.safe, guardReasons: guard.reasons.map((r) => r.id) };
     editor.destroy();
   };
   Object.entries(CASES).forEach(([k, v]) => run(k, v));
