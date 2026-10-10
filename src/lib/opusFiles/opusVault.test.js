@@ -301,4 +301,30 @@ describe("opus vault adapter", () => {
     expect(fs.watchImmediate).not.toHaveBeenCalled();
     expect(() => unwatch()).not.toThrow();
   });
+
+  it("keeps project folders and tracked files visible while a reload is running", async () => {
+    seed();
+    const { loadOpus, getOpusMeta } = await load();
+    const { state } = await import("./opusFs.js");
+    await loadOpus(VAULT);
+    expect(getOpusMeta("task", "t1")).toBeTruthy();
+
+    // Slow the second read down so we can look at the adapter in the middle of it.
+    const fs = await import("@tauri-apps/plugin-fs");
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const realRead = fs.readTextFile.getMockImplementation();
+    let reading = false;
+    fs.readTextFile.mockImplementation(async (p) => { reading = true; await gate; return realRead(p); });
+
+    const reload = loadOpus(VAULT);
+    await vi.waitFor(() => expect(reading).toBe(true));
+    // Before the fix the adapter was emptied here, so these threw "no folder yet".
+    expect(getOpusMeta("task", "t1")).toBeTruthy();
+    expect(state.projectDirs.get("p1")).toBe("Atlas");
+
+    release();
+    await reload;
+    expect(getOpusMeta("task", "t1")).toBeTruthy();
+  });
 });

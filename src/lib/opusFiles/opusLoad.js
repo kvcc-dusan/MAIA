@@ -9,14 +9,14 @@ import { contextOf } from "./projectFile.js";
 import { EMPTY_CONTEXT } from "./fileCodec.js";
 import {
   INBOX_DIR, BACKUPS_DIR, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
-  stableId, state, track, resetOpusState,
+  stableId, state, trackInto,
 } from "./opusFs.js";
 
 export const CODECS = { project: projectFile, task: taskFile, decision: decisionFile, question: questionFile };
 
 const byCreatedDesc = (a, b) => String(b.createdAt ?? "").localeCompare(String(a.createdAt ?? "")) || String(a.id).localeCompare(String(b.id));
 
-const readOne = async (fs, { path, name, kind, projectId, ctx, seenIds, warnings }) => {
+const readOne = async (fs, { path, name, kind, projectId, ctx, seenIds, warnings, fresh }) => {
   let text;
   try {
     text = await fs.readTextFile(path);
@@ -38,7 +38,7 @@ const readOne = async (fs, { path, name, kind, projectId, ctx, seenIds, warnings
     item = { ...item, id: fallbackId };
   }
   seenIds.add(`${kind}:${item.id}`);
-  track(kind, item.id, projectId, { path, text, mtimeMs: await statMtime(fs, path) });
+  trackInto(fresh, kind, item.id, projectId, { path, text, mtimeMs: await statMtime(fs, path) });
   return item;
 };
 
@@ -54,7 +54,7 @@ const readFolder = async (fs, dir, args) => {
 };
 
 const loadProject = async (fs, root, folder, shared) => {
-  const { warnings, seenIds } = shared;
+  const { warnings, seenIds, fresh } = shared;
   const dir = joinPath(root, folder);
   const projectPath = joinPath(dir, PROJECT_FILE);
   if (!(await fs.exists(projectPath))) {
@@ -75,12 +75,12 @@ const loadProject = async (fs, root, folder, shared) => {
   }
   seenIds.add(`project:${project.id}`);
   const ctx = contextOf(project);
-  track("project", project.id, project.id, { path: projectPath, text, mtimeMs: await statMtime(fs, projectPath) });
-  state.projectDirs.set(project.id, folder);
-  state.contexts.set(project.id, ctx);
+  trackInto(fresh, "project", project.id, project.id, { path: projectPath, text, mtimeMs: await statMtime(fs, projectPath) });
+  fresh.projectDirs.set(project.id, folder);
+  fresh.contexts.set(project.id, ctx);
 
   // Only tasks/, decisions/ and questions/ are read; assets/ is never scanned for items.
-  const args = { projectId: project.id, ctx, seenIds, warnings };
+  const args = { projectId: project.id, ctx, seenIds, warnings, fresh };
   const tasks = await readFolder(fs, joinPath(dir, KIND_DIRS.task), { ...args, kind: "task" });
   const decisions = await readFolder(fs, joinPath(dir, KIND_DIRS.decision), { ...args, kind: "decision" });
   const questions = await readFolder(fs, joinPath(dir, KIND_DIRS.question), { ...args, kind: "question" });
@@ -101,10 +101,16 @@ const loadProject = async (fs, root, folder, shared) => {
 export const loadOpus = async (vaultPath) => {
   const fs = await loadFs();
   const root = opusRoot(vaultPath);
-  resetOpusState();
-  if (!(await fs.exists(root))) return { exists: false, projects: [], tasks: [], warnings: [] };
+  // Built privately and swapped in at the end. Clearing the live state first left a window
+  // (long on a synced drive, and every window focus starts a reload) where saves and asset
+  // uploads found no tracked files or project folders.
+  const fresh = { tracked: new Map(), projectDirs: new Map(), contexts: new Map() };
+  if (!(await fs.exists(root))) {
+    Object.assign(state, fresh);
+    return { exists: false, projects: [], tasks: [], warnings: [] };
+  }
 
-  const shared = { warnings: [], seenIds: new Set() };
+  const shared = { warnings: [], seenIds: new Set(), fresh };
   const projects = [];
   const tasks = [];
   const folders = (await listDir(fs, root)).filter((e) => e.isDirectory).map((e) => e.name).sort();
@@ -120,5 +126,6 @@ export const loadOpus = async (vaultPath) => {
   });
   tasks.push(...inbox.map((t) => ({ ...t, projectId: null })));
 
+  Object.assign(state, fresh);
   return { exists: true, projects: projects.sort(byCreatedDesc), tasks: tasks.sort(byCreatedDesc), warnings: shared.warnings };
 };

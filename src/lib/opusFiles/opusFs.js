@@ -96,6 +96,9 @@ export const guardedWrite = async (fs, { entry, path, text, kind, id }) => {
   return { path: target, text, mtimeMs: await statMtime(fs, target), kind };
 };
 
-export const track = (kind, id, projectId, written) => {
-  state.tracked.set(keyOf(kind, id), { kind, id, projectId, path: written.path, text: written.text, mtimeMs: written.mtimeMs });
+/** Record a file in `target` (the live state, or the private copy a load is building). */
+export const trackInto = (target, kind, id, projectId, written) => {
+  target.tracked.set(keyOf(kind, id), { kind, id, projectId, path: written.path, text: written.text, mtimeMs: written.mtimeMs });
 };
+
+export const track = (kind, id, projectId, written) => trackInto(state, kind, id, projectId, written);
