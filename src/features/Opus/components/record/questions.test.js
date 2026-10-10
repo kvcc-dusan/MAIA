@@ -7,7 +7,6 @@ import {
   countQuestions,
   filterQuestions,
   sortQuestions,
-  formatBlockingLine,
   questionStatusLabel,
 } from "./questions.js";
 
@@ -89,13 +88,6 @@ describe("sortQuestions", () => {
 });
 
 describe("labels", () => {
-  it("formats the blocking line", () => {
-    expect(formatBlockingLine(0)).toBeNull();
-    expect(formatBlockingLine(undefined)).toBeNull();
-    expect(formatBlockingLine(1)).toBe("1 blocking question");
-    expect(formatBlockingLine(2)).toBe("2 blocking questions");
-  });
-
   it("labels the status in words", () => {
     expect(questionStatusLabel(q("a"))).toBe("Open");
     expect(questionStatusLabel(q("a", { status: "answered" }))).toBe("Answered");

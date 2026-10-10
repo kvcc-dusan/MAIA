@@ -1,7 +1,6 @@
 // Pure helpers for the Record tab's decisions: order, month groups, date text.
 // Decision dates are "YYYY-MM-DD" strings (an ISO timestamp is read by its first ten characters).
 
-export const MONTH_GROUP_THRESHOLD = 8;
 
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_LONG = [
@@ -36,9 +35,6 @@ export const sortDecisions = (decisions) =>
       return b.index - a.index;
     })
     .map(({ d }) => d);
-
-/** Month headers only earn their space once the list is long. */
-export const shouldGroupByMonth = (count) => count > MONTH_GROUP_THRESHOLD;
 
 export const monthKey = (value) => dayOf(value).slice(0, 7);
 

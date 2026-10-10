@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  MONTH_GROUP_THRESHOLD,
   dayOf,
   sortDecisions,
-  shouldGroupByMonth,
   monthKey,
   monthLabel,
   groupDecisionsByMonth,
@@ -46,12 +44,6 @@ describe("sortDecisions", () => {
 });
 
 describe("month grouping", () => {
-  it("groups only when there are more than the threshold", () => {
-    expect(MONTH_GROUP_THRESHOLD).toBe(8);
-    expect(shouldGroupByMonth(8)).toBe(false);
-    expect(shouldGroupByMonth(9)).toBe(true);
-  });
-
   it("builds sentence-case month labels", () => {
     expect(monthKey("2026-10-14")).toBe("2026-10");
     expect(monthLabel("2026-10")).toBe("October 2026");

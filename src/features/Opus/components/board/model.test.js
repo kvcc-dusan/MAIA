@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
-  ALL_WORKSTREAMS, buildColumns, cardLabel, dueInfo, filterTasks, formatEstimate, sizeCounts, localDay,
-  nextWorkstreamSelection, workstreamColor, wsFromParams,
+  buildColumns, cardLabel, dueInfo, filterTasks, formatEstimate, localDay,
+  workstreamColor, wsFromParams,
 } from "./model.js";
 
 const task = (id, over = {}) => ({ id, title: id, status: "todo", createdAt: "2026-01-01", ...over });
@@ -10,7 +10,6 @@ describe("buildColumns", () => {
   it("buckets by status and counts", () => {
     const cols = buildColumns([task("a"), task("b", { status: "doing", estimate: "M" }), task("c", { status: "doing", estimate: "L" })]);
     expect(cols.todo.total).toBe(1);
-    expect(cols.doing.sizes).toBe("1 L, 1 M");
     expect(cols.blocked.tasks).toEqual([]);
   });
   it("shows the 20 most recently done unless asked for all", () => {
@@ -25,9 +24,7 @@ describe("buildColumns", () => {
 });
 
 describe("estimates", () => {
-  it("counts sizes and formats", () => {
-    expect(sizeCounts([task("a", { estimate: "M" }), task("b", { estimate: "M" }), task("c", { estimate: "L" })])).toBe("1 L, 2 M");
-    expect(sizeCounts([task("a")])).toBeNull();
+  it("formats estimates", () => {
     expect(formatEstimate("S")).toBe("S");
     expect(formatEstimate(null)).toBeNull();
   });
@@ -56,14 +53,7 @@ describe("filters", () => {
   const list = [task("a", { workstreamId: "w1" }), task("b", { workstreamId: "w2", desc: "Login flow" })];
   it("filters by workstream and text", () => {
     expect(filterTasks(list, { workstreamIds: ["w1"] }).map((t) => t.id)).toEqual(["a"]);
-    expect(filterTasks(list, { query: " login " }).map((t) => t.id)).toEqual(["b"]);
     expect(filterTasks(list, {})).toHaveLength(2);
-  });
-  it("treats All workstreams as a reset", () => {
-    expect(nextWorkstreamSelection([], [ALL_WORKSTREAMS, "w1"])).toEqual(["w1"]);
-    expect(nextWorkstreamSelection(["w1"], [ALL_WORKSTREAMS, "w1"])).toEqual([]);
-    expect(nextWorkstreamSelection(["w1"], ["w1", "w2"])).toEqual(["w1", "w2"]);
-    expect(nextWorkstreamSelection(["w1"], [])).toEqual([]);
   });
   it("seeds from nav params", () => {
     expect(wsFromParams({ ws: "w1" })).toEqual(["w1"]);

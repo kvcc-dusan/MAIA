@@ -56,10 +56,4 @@ export const sortQuestions = (questions) =>
     .sort((a, b) => groupRank(a.q) - groupRank(b.q) || recency(b.q).localeCompare(recency(a.q)) || a.index - b.index)
     .map(({ q }) => q);
 
-/** "2 blocking questions", or null when nothing blocks (the line is then not shown). */
-export const formatBlockingLine = (count) => {
-  if (!count || count < 1) return null;
-  return count === 1 ? "1 blocking question" : `${count} blocking questions`;
-};
-
 export const questionStatusLabel = (question) => (isAnswered(question) ? "Answered" : "Open");

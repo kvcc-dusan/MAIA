@@ -1,9 +1,0 @@
-/* The container makes rows, composer and groups reflow with the tab's width, not the window's. */
-.panel { container: tasks / inline-size; display: grid; gap: var(--space-6); min-width: 0; }
-.head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-4); }
-.title { margin: 0; font-family: var(--font-body); font-size: var(--text-xl); font-weight: 500; }
-.summary { margin: 0; color: var(--text-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
-.next { padding: var(--space-3) var(--space-4); border: 1px solid var(--border-strong); border-radius: var(--radius-panel); min-width: 0; }
-.nextTitle { margin: 0; padding-inline: var(--space-2); color: var(--text-secondary); font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; }
-.hint { margin: 0; color: var(--text-muted); font-size: var(--text-sm); }
-.groups { display: grid; gap: var(--space-6); min-width: 0; }
