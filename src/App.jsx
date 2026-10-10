@@ -21,7 +21,6 @@ import { TooltipProvider } from "./components/ui/tooltip.jsx";
 import { MotionConfig } from "framer-motion";
 
 // Pages
-import HomePage from "./pages/HomePage.jsx";
 import NotesPage from "./pages/NotesPage.jsx";
 import EditorPage from "./pages/EditorPage.jsx";
 import ProjectsPage from "./pages/ProjectsPage.jsx";
@@ -31,13 +30,15 @@ import LedgerPage from "./pages/LedgerPage.jsx";
 // Lazy loaded heavy pages
 const GraphPage = React.lazy(() => import("./features/Graph/pages/GraphPage.jsx"));
 
-const PAGES = ["home", "overview", "projects", "editor", "graph", "ledgerPage"];
+const PAGES = ["overview", "projects", "editor", "graph", "ledgerPage"];
+// A fresh install, or a stored page that no longer exists, opens on Opus.
+const DEFAULT_PAGE = "projects";
 
 function AppContent() {
   // Pages
   const [currentPage, setCurrentPage] = useState(() => {
     const stored = localStorage.getItem("maia_current_view");
-    return PAGES.includes(stored) ? stored : "home";
+    return PAGES.includes(stored) ? stored : DEFAULT_PAGE;
   });
 
   useEffect(() => {
@@ -213,8 +214,6 @@ function AppContent() {
     setTimeout(() => setProjectModalOpen(true), 10);
   }, []);
 
-  const handleGoHome = useCallback(() => setCurrentPage("home"), []);
-
   /* -----------------------------------------
      Keyboard Listener
   ----------------------------------------- */
@@ -270,20 +269,6 @@ function AppContent() {
           <React.Suspense fallback={<GlassSkeleton />}>
 
 
-            {currentPage === "home" && (
-              <HomePage
-                tasks={tasks}
-                notes={notes}
-                projects={projects}
-                sessions={sessions}
-                reminders={reminders}
-                createNote={createNote}
-                toggleTask={toggleTask}
-                onOpenPulse={handleOpenPulse}
-                onOpenNote={selectItem}
-              />
-            )}
-
             {currentPage === "overview" && (
               <NotesPage
                 notes={filteredNotes}
@@ -295,7 +280,6 @@ function AppContent() {
                 projects={projects}
                 onCreateNote={handleCreateNote}
                 onCreateJournal={handleCreateJournal}
-                onBack={handleGoHome}
               />
             )}
 

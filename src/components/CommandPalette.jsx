@@ -11,7 +11,6 @@ import {
   BookOpen,
   Network,
   Wallet,
-  House,
 } from "lucide-react";
 import { CommandPalette as ArcPalette } from "@/components/arc/command-palette/command-palette";
 import styles from "./CommandPalette.module.css";
@@ -31,7 +30,6 @@ const RECENT_NOTE_ITEMS = 5;
 const icon = (Icon) => React.createElement(Icon, { size: 16, strokeWidth: 1.75, "aria-hidden": "true" });
 
 const PAGES = [
-  { label: "Go to Today", icon: House, to: "home" },
   { label: "Go to Opus", icon: FolderKanban, to: "projects" },
   { label: "Go to Codex", icon: BookOpen, to: "overview" },
   { label: "Go to Conexa", icon: Network, to: "graph" },

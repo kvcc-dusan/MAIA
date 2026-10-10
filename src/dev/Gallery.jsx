@@ -13,7 +13,6 @@ import { ErrorState } from "@/components/composed/ErrorState";
 import { StatusDot, PriorityChip } from "@/components/composed/StatusDot";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { SectionLabel, CountPill } from "@/components/composed/SectionBits";
-import { Widget } from "@/components/composed/Widget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -191,25 +190,6 @@ export default function Gallery() {
               <span className="text-xs text-muted-foreground">
                 The eyebrow and the count pill — the two smallest atoms of the vocabulary.
               </span>
-            </div>
-          </Section>
-
-          <Section title="Widget shell" note="The one dashboard widget chrome — title, trailing actions, footer; edit-mode controls live inside the shell.">
-            <div className="w-full grid gap-4 md:grid-cols-2">
-              <Widget
-                title="Momentum"
-                className="min-h-36"
-                footer={<span className="text-xs uppercase tracking-widest text-subtle-foreground">Entries 12</span>}
-              >
-                <p className="text-sm text-muted-foreground">Body content, inside the error boundary.</p>
-              </Widget>
-              <Widget
-                title="Capture"
-                className="min-h-36"
-                trailing={<IconButton label="Add entry" icon={Plus} size="icon-xs" />}
-              >
-                <p className="text-sm text-muted-foreground">Trailing actions render when not editing.</p>
-              </Widget>
             </div>
           </Section>
 

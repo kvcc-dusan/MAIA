@@ -35,14 +35,7 @@ export const STORAGE_KEYS = {
   SESSIONS: 'maia.sessions',
   // Append-only, capped log behind the Opus heatmap and weekly report.
   ACTIVITY: 'maia.activity',
-  TODAY_LAYOUT: 'maia.today.layout',
-  // Last-good geolocation fix, so a denied/absent location provider doesn't
-  // strand the Today weather widget on "Locating…" forever.
-  WEATHER_COORDS: 'maia.weather.coords',
 };
-
-/** Single source for the greeting name; it was hardcoded inside HomePage. */
-export const USER_NAME = 'Dušan';
 
 /**
  * @deprecated Use <Field> + <Input> / <Textarea> instead. Retained only until

@@ -3,7 +3,6 @@ import {
   BookOpen,
   Clock,
   FolderKanban,
-  House,
   Network,
   Search,
   Wallet,
@@ -37,7 +36,6 @@ const GROUPS = [
   {
     id: "pages",
     items: [
-      { id: "home", label: "Today", icon: House },
       { id: "projects", label: "Opus", icon: FolderKanban },
       { id: "overview", label: "Codex", icon: BookOpen },
       { id: "graph", label: "Conexa", icon: Network },
@@ -54,7 +52,6 @@ const GROUPS = [
 ];
 
 const PAGE_TITLES = {
-  home: "Today",
   projects: "Opus",
   overview: "Codex",
   graph: "Conexa",
