@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 // useOpusStore's file mode, with the S1 adapter replaced by an in-memory fake
 // so diffing, reload, migration and conflicts run deterministically.
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { renderHook, act, waitFor, cleanup } from "@testing-library/react";
 
 class MockVaultConflictError extends Error {
   constructor(id, { diskText, attemptedText, filename }) {
@@ -86,6 +86,13 @@ const mount = async () => {
 const flush = (hook) => act(() => hook.result.current[2].flush());
 const state = (hook) => hook.result.current[0];
 const setters = (hook) => hook.result.current[1];
+
+// Vitest runs without globals, so Testing Library does not unmount between tests.
+// A hook left mounted keeps its 1s localStorage write-back and overwrites the
+// seeded legacy data during a later test.
+afterEach(() => {
+  cleanup();
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -269,11 +276,13 @@ describe("migration from localStorage", () => {
   it("does not set the flag when a write fails, and finishes on the next launch", async () => {
     seed();
     h.api.saveTask.mockRejectedValueOnce(new Error("disk full"));
-    await mount();
+    const first = await mount();
     expect(localStorage.getItem("maia.opusMigrated")).toBeNull();
     expect(toast.error).toHaveBeenCalled();
     expect(h.disk.tasks.map((t) => t.id)).toEqual(["t2"]);
 
+    // Relaunch: the first app session is gone before the second one reads localStorage.
+    first.unmount();
     vi.clearAllMocks();
     installFakeApi();
     await mount();
