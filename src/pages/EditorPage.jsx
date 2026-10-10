@@ -10,6 +10,24 @@ import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
 
+// The title createNote() gives every new note; it is a value, not a placeholder.
+const DEFAULT_TITLE = "Untitled";
+
+// Only an empty body gets the caret on open; a note with content is left alone.
+// An empty note with the default title starts in the title field, otherwise in the body.
+// Same rule as EditorRich's body focus; kept local because a component file
+// can't export a helper without breaking fast refresh.
+const isTypingElsewhere = () => {
+  const el = document.activeElement;
+  return !!el && el !== document.body && el.matches('input, textarea, select, [contenteditable="true"]');
+};
+
+const getAutoFocusTarget = (note) => {
+  if (!note || note.content?.trim()) return null;
+  const hasRealTitle = !!note.title?.trim() && note.title !== DEFAULT_TITLE;
+  return hasRealTitle ? "body" : "title";
+};
+
 // Storage can throw (private windows, blocked site data); these are only
 // per-viewer conveniences, so a failure falls back to the default.
 const readStored = (key) => {
@@ -34,6 +52,15 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
     if (note?.id) return readStored(modeKey(note.id)) === "read" ? "read" : "edit";
     return "edit";
   });
+  // Decided once per mount: CodexPage remounts this when the note id changes.
+  const [autoFocusTarget] = useState(() => getAutoFocusTarget(note));
+  const titleRef = useRef(null);
+
+  useEffect(() => {
+    if (autoFocusTarget !== "title" || isTypingElsewhere()) return;
+    titleRef.current?.focus();
+    titleRef.current?.select();
+  }, [autoFocusTarget]);
 
   // Persist
   const savedRef = useRef(note);
@@ -137,6 +164,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
         <div className={`${styles.body} custom-scrollbar`}>
           <div className={styles.content}>
             <input
+              ref={titleRef}
               value={local.title}
               onChange={(e) => setLocal((v) => ({ ...v, title: e.target.value }))}
               placeholder="Untitled"
@@ -151,6 +179,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
             <EditorRich
               value={local.content || ""}
               editable={editable}
+              autoFocus={autoFocusTarget === "body"}
               onChange={handleContentChange}
               onMetaChange={handleMetaChange}
               onOpenInternalLink={onOpenInternalLink}

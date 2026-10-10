@@ -17,6 +17,15 @@ import styles from "./EditorRich.module.css";
 
 const PLACEHOLDER_TEXT = 'Start writing…';
 
+/**
+ * True when the user is typing in another field. Auto-focus must never take the
+ * caret from a search box or the palette while a note is switching in.
+ */
+const isTypingElsewhere = () => {
+  const el = document.activeElement;
+  return !!el && el !== document.body && el.matches('input, textarea, select, [contenteditable="true"]');
+};
+
 /** Toggle placeholder classes/attributes on the editor DOM based on content */
 function updatePlaceholder(editor) {
   if (!editor?.view?.dom) return;
@@ -215,6 +224,7 @@ export default function EditorRich({
   onMetaChange,            // { tags, links, wordCount, charCount }
   onOpenInternalLink,      // (title: string) => void — click a [[wikilink]]
   editable = true,
+  autoFocus = false,        // put the caret at the start of the body on mount
   className = "",
 }) {
   // Read via a ref inside the extension so [[wikilink]] clicks always call
@@ -260,7 +270,6 @@ export default function EditorRich({
   const editor = useEditor({
     editable,
     content: value || "",
-    autofocus: 'start', // Focus at start of document
     editorProps: {
       attributes: {
         class:
@@ -295,6 +304,13 @@ export default function EditorRich({
   useEffect(() => {
     if (editor) editor.setEditable(!!editable);
   }, [editable, editor]);
+
+  // Runs once the editor exists: TipTap's own autofocus fires on a timer and
+  // ignores whether the user is already typing somewhere else.
+  useEffect(() => {
+    if (!autoFocus || !editor || !editor.isEditable || isTypingElsewhere()) return;
+    editor.commands.focus("start");
+  }, [autoFocus, editor]);
 
   // Sync external markdown (switching notes)
   useEffect(() => {
