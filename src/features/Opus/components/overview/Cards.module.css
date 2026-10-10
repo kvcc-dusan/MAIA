@@ -1,0 +1,53 @@
+.body { min-width: 0; padding: var(--space-5); }
+.listBody { min-width: 0; padding: var(--space-2) 0; }
+@container overview (max-width: 380px) { .body { padding: var(--space-4); } }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: var(--radius-pill); }
+
+/* burn-up */
+.forecast { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); color: var(--foreground); font-size: var(--text-sm); line-height: var(--leading-body); }
+.flag { flex: none; }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin: 0 0 var(--space-3); padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--text-sm); }
+.legendItem { display: inline-flex; align-items: center; gap: var(--space-2); }
+.legendValue { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
+.swatch { width: 16px; height: 0; border-top: 2px solid var(--swatch); }
+.dashed { border-top-style: dashed; }
+.tableToggle { margin-top: var(--space-2); }
+.tableWrap { max-height: 240px; margin-top: var(--space-2); overflow: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.table th, .table td { padding: var(--space-2) var(--space-3); text-align: right; font-weight: 400; border-bottom: 1px solid var(--border-subtle); }
+.table thead th { position: sticky; top: 0; background: var(--surface); color: var(--text-secondary); font-weight: 500; }
+.table th:first-child { text-align: left; }
+.table tbody th { color: var(--foreground); }
+
+/* status mix */
+.mixList { display: grid; gap: var(--space-1); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.mixRow { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-md); font-size: var(--text-sm); }
+.mixName { flex: 1 1 auto; color: var(--foreground); }
+.mixCount { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
+.mixPct { min-width: 3.5ch; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* workstreams */
+.wsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.wsCard { position: relative; display: grid; gap: var(--space-2); min-width: 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); transition: background-color var(--duration-fast) var(--ease-standard); }
+@media (hover: hover) and (pointer: fine) { .wsCard:hover { background: var(--surface-muted); } }
+.wsHead { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.wsHead .dot { width: 10px; height: 10px; }
+.wsName { flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; border: 0; background: none; color: var(--foreground); font: inherit; font-size: var(--text-base); font-weight: 500; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.wsName::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.wsPct { color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.wsBar { pointer-events: none; }
+.wsMeta, .wsFlags { margin: 0; font-size: var(--text-sm); }
+.wsMeta { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.wsFlags { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); color: var(--foreground); }
+.flagItem { display: inline-flex; align-items: center; gap: var(--space-2); font-variant-numeric: tabular-nums; }
+.quiet { color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .wsCard { transition: none; } }
+
+/* needs attention and activity */
+.rows, .feed { margin: 0; padding: 0; list-style: none; }
+.rows > li + li, .feed > li + li { border-top: 1px solid var(--border-subtle); }
+.reason { display: inline-flex; align-items: center; gap: var(--space-2); }
+.due, .ago { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary { margin: 0 0 var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.feed { margin-top: var(--space-4); margin-inline: calc(var(--space-5) * -1); }

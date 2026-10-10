@@ -12,6 +12,8 @@ const toItem = (task, today, isOverdue, isBlocked) => ({
   daysLate: isOverdue ? diffDays(today, task.due) : 0,
   isOverdue,
   isBlocked,
+  workstreamId: task.workstreamId ?? null,
+  owner: task.owner ?? "",
 });
 
 /** @returns {{ items: object[], total: number }} `total` counts every match, `items` the first `limit`. */
