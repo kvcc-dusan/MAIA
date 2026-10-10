@@ -18,6 +18,7 @@ import { TaskListWithStatus, TaskItemWithStatus } from './taskStatus.js';
 import { Callout, CalloutTitle } from './callout.js';
 import { RefDefinition, RefLink } from './refLinks.js';
 import { HtmlEntity } from './entities.js';
+import { StrictLinkify } from './strictLinkify.js';
 import { InlineShortcuts } from './inlineShortcuts.js';
 import { LinkSuggest } from './linkSuggest.js';
 import { MarkdownTable, MarkdownTableRow, MarkdownTableHeader, MarkdownTableCell } from './table.js';
@@ -65,6 +66,7 @@ export const createExtensions = ({ onOpenLink, embeds = null, linkSuggest = null
   RefDefinition,
   RefLink,
   HtmlEntity,
+  StrictLinkify,
   InlineShortcuts,
   Markdown.configure({
     // html: markdown-it must see tags to hand them to the raw HTML atoms (htmlRaw.js)

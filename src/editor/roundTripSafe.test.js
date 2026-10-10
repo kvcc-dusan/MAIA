@@ -93,6 +93,14 @@ describe('roundTripSafe', () => {
     expect(roundTripSafe(md)).toBe(true);
   });
 
+  it('treats empty numbered items as safe (a fill-in template)', () => {
+    expect(roundTripSafe('### Next week\n\n1.\n2.\n3.\n\nAnything beyond 3 is noise.')).toBe(true);
+  });
+
+  it('treats a long bare URL saved as a link to itself as safe', () => {
+    expect(roundTripSafe('Source: https://www.figma.com/design/abc/WEB2.0%7Cx?node-id=1-2&t=q')).toBe(true);
+  });
+
   it('explains what it found', () => {
     const { reasons } = checkRoundTrip('[[Note|![[x.png]]]]');
     expect(reasons.map((r) => r.label)).toEqual(['syntax that would change on save']);

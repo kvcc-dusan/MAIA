@@ -41,7 +41,9 @@ export const findDangerousSyntax = (markdown) => {
 const ESCAPE_TELLS = ['\\[\\[', '\\[^', '\\[!', '&lt;', '&gt;', '&amp;', '\\\\'];
 
 const LINK_TITLE = /\]\(([^)\s]+)\s+(?:"[^"]*"|'[^']*'|\([^)]*\))\)/g;
-const ORDERED_MARKER = /^[ \t>]*\d+[.)][ \t]+/gm;
+// An empty item (`1.` alone on its line) is saved as `1. `, so the marker may end the line.
+const BARE_URL_LINK = /\[(https?:\/\/[^\]\s]+)\]\(<?https?:\/\/[^)\s]*>?\)/g;
+const ORDERED_MARKER = /^[ \t>]*\d+[.)](?:[ \t]+|$)/gm;
 // Characters the editor rewrites without changing meaning: list and emphasis markers (- + * _),
 // heading and quote marks (# >), code and rule marks (` ~ =), autolink brackets (<>), escapes (\),
 // all whitespace. What is left is the text, links, brackets and punctuation of the note.
@@ -54,6 +56,8 @@ const SAFE_REWRITE_CHARS = /[\s\\*_\-+#>`~=<]/g;
  */
 export const contentFingerprint = (markdown) => markdown
   .replace(/\r\n/g, '\n')
+  // A bare URL may be saved as `[url](url)`: the same link and the same visible text.
+  .replace(BARE_URL_LINK, '$1')
   .replace(LINK_TITLE, ']($1)')
   .replace(/%20/g, '')
   .replace(ORDERED_MARKER, '')
