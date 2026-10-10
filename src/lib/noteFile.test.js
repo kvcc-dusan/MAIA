@@ -91,7 +91,7 @@ describe("unknown frontmatter keys", () => {
     expect(note.id).toBe("abc1234");
     expect(note.tags).toEqual(["a", "b"]);
     expect(Object.keys(note.frontmatterExtra)).toEqual([
-      "aliases", "created", "status", "cssclasses", "quote", "single", "nested", "summary", "list",
+      "aliases", "created", "cssclasses", "quote", "single", "nested", "summary", "list",
     ]);
     expect(note.frontmatterExtra.aliases).toBe('aliases:\n  - Standup\n  - "Daily: sync"');
     expect(note.frontmatterExtra.created).toBe("created: 2026-07-13 10:00");
