@@ -3,6 +3,7 @@ import { Button } from "@/components/arc/button/button";
 import { vaultName } from "@/lib/vault";
 import { SettingGroup, SettingRow } from "../SettingRow";
 import { useVault } from "../useVault";
+import { OpusFolderGroup } from "./OpusFolderGroup";
 import styles from "./Sections.module.css";
 
 const WebVault = () => (
@@ -50,6 +51,7 @@ const DesktopVault = () => {
           description="The vault is the folder you work in. Every note is a markdown file in it, so other apps can read them. Switching vaults never copies notes between folders."
         />
       </SettingGroup>
+      <OpusFolderGroup vaultPath={path} />
       <SettingGroup title="Recent vaults">
         {recents.length === 0 ? (
           <p className={styles.empty}>No other vaults yet. Folders you open will be listed here.</p>

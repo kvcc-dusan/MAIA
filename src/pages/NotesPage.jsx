@@ -43,7 +43,9 @@ export default function NotesOverview({
   onCreateJournal,
   projects = [],
 }) {
-  const { generateSamples } = useData();
+  const { generateSamples, opusMeta } = useData();
+  // Sample data replaces projects and tasks, which would delete real files in file mode.
+  const canLoadSamples = opusMeta?.mode !== "files";
 
   // sort + filter UI state
   const [sort, setSort] = useState("recent"); // 'recent' | 'az'
@@ -295,19 +297,21 @@ export default function NotesOverview({
                 <Menu.Content align="end">
                   <Menu.Group>
                     <Menu.Label>Actions</Menu.Label>
-                    <Menu.Item
-                      onClick={() => {
-                        setConfirm({
-                          title: "Replace all data?",
-                          description: "This replaces your current notes, projects, tasks and project activity with sample data.",
-                          confirmLabel: "Replace",
-                          onConfirm: generateSamples,
-                        });
-                      }}
-                    >
-                      <Sparkles size={16} />
-                      Load sample data
-                    </Menu.Item>
+                    {canLoadSamples && (
+                      <Menu.Item
+                        onClick={() => {
+                          setConfirm({
+                            title: "Replace all data?",
+                            description: "This replaces your current notes, projects, tasks and project activity with sample data.",
+                            confirmLabel: "Replace",
+                            onConfirm: generateSamples,
+                          });
+                        }}
+                      >
+                        <Sparkles size={16} />
+                        Load sample data
+                      </Menu.Item>
+                    )}
 
                     {hasNotes && (
                       <>

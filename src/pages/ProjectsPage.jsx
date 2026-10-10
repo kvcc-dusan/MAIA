@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
 import { ShellSidebar } from "@/components/shell/ShellContext";
 import { uid } from "../lib/ids.js";
+import GlassSkeleton from "../components/GlassSkeleton";
 import CreateProjectModal from "../components/CreateProjectModal";
 import IconPicker from "../components/projectIcon/IconPicker";
 import OpusLayout from "../features/Opus/OpusLayout.jsx";
@@ -43,7 +44,7 @@ export default function Projects({
   isCreateModalOpen,
   setCreateModalOpen,
 }) {
-  const { updateProject, deleteProject: deleteProjectCascade } = useData();
+  const { updateProject, deleteProject: deleteProjectCascade, projectsLoading } = useData();
   // The selection lives in App so back/forward and the palette can drive it.
   const activeId = activeProjectId;
   const setActiveId = onSelectProject;
@@ -142,6 +143,8 @@ export default function Projects({
             projectId={activeProject.id}
             selectNote={selectNote}
           />
+        ) : projectsLoading ? (
+          <GlassSkeleton />
         ) : (
           <div className={styles.empty}>
             <EmptyState

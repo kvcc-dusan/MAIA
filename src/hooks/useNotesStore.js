@@ -4,6 +4,7 @@ import { useLocalStorage } from "./useLocalStorage.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
 import { markdownToNote } from "../lib/noteFile.js";
 import { uid } from "../lib/ids.js";
+import { hasPendingCloseFlush, runCloseFlush } from "../lib/closeFlush.js";
 import {
   isTauri,
   getVaultPath,
@@ -266,11 +267,12 @@ function useVaultNotes() {
         .then(({ getCurrentWindow }) => {
           if (cancelled) return;
           return getCurrentWindow().onCloseRequested(async (event) => {
-            if (pendingRef.current.size === 0) return; // nothing to hold up
+            // Other stores (Opus) share this one close handler, see closeFlush.js.
+            if (pendingRef.current.size === 0 && !hasPendingCloseFlush()) return; // nothing to hold up
             event.preventDefault();
             if (timerRef.current) clearTimeout(timerRef.current);
             try {
-              await flush();
+              await Promise.all([flush(), runCloseFlush()]);
             } finally {
               await getCurrentWindow().destroy();
             }

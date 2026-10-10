@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useCallback, useEffect } from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage.js";
 import { useNotesStore } from "../hooks/useNotesStore.js";
+import { useOpusStore } from "../hooks/useOpusStore.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { generateDummyData } from "../utils/dummyData.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
@@ -14,8 +15,42 @@ const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
     // Notes & Projects
-    const [notes, setNotes, notesMeta] = useNotesStore();
-    const [rawProjects, setProjects] = useLocalStorage(STORAGE_KEYS.PROJECTS, []);
+    const [notes, setNotes, baseNotesMeta] = useNotesStore();
+    // Projects and tasks: localStorage in the browser, Markdown files under
+    // <vault>/Opus in the desktop app. Same setters either way.
+    const [opusState, opusSetters, opusStore] = useOpusStore();
+    const { projects: rawProjects, tasks: rawTasks } = opusState;
+    const { setProjects, setTasks } = opusSetters;
+    const { flush: flushOpus, hasPending: hasPendingOpus } = opusStore;
+    const isFileMode = opusStore.mode === "files";
+
+    // Switching vaults must write pending Opus edits to the OLD vault first;
+    // Opus then reloads itself from the new path (useOpusFiles).
+    const notesMeta = useMemo(() => ({
+        ...baseNotesMeta,
+        switchVault: async (nextPath) => {
+            if (isFileMode) {
+                await flushOpus();
+                if (hasPendingOpus()) {
+                    throw new Error("Some projects or tasks could not be saved to the current vault yet, so nothing was switched. Try again in a moment.");
+                }
+            }
+            return baseNotesMeta.switchVault(nextPath);
+        },
+    }), [baseNotesMeta, isFileMode, flushOpus, hasPendingOpus]);
+
+    const opusMeta = useMemo(() => ({
+        mode: opusStore.mode,
+        status: opusStore.status,
+        error: opusStore.error,
+        warnings: opusStore.warnings,
+        reload: opusStore.reload,
+        flush: opusStore.flush,
+        projectCount: rawProjects.length,
+        taskCount: rawTasks.length,
+    }), [opusStore, rawProjects.length, rawTasks.length]);
+    // Keeps the Opus page from flashing "No projects yet" while files are read.
+    const projectsLoading = isFileMode && opusStore.status === "loading";
     // Consumers read the normalized view; storage keeps whatever shape was
     // written, so legacy projects are never rewritten just by being read.
     const projects = useMemo(() => normalizeProjects(rawProjects), [rawProjects]);
@@ -49,7 +84,6 @@ export function DataProvider({ children }) {
     const [ledger, setLedger] = useLocalStorage(STORAGE_KEYS.LEDGER, []);
 
     // Tasks & Reminders
-    const [rawTasks, setTasks] = useLocalStorage(STORAGE_KEYS.TASKS, []);
     const tasks = useMemo(() => normalizeTasks(rawTasks), [rawTasks]);
     const [reminders, setReminders] = useLocalStorage(STORAGE_KEYS.REMINDERS, []);
     const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.SESSIONS, []);
@@ -193,12 +227,14 @@ export function DataProvider({ children }) {
     }, [setProjects]);
 
     const generateSamples = useCallback(() => {
+        // Replacing projects and tasks would delete real files from the vault.
+        if (isFileMode) return false;
         const { projects: newProjects, notes: newNotes, tasks: newTasks, activity: newActivity } = generateDummyData();
         setProjects(newProjects);
         setNotes(newNotes);
         setTasks(newTasks);
         setActivity(newActivity);
-    }, [setProjects, setNotes, setTasks, setActivity]);
+    }, [isFileMode, setProjects, setNotes, setTasks, setActivity]);
 
     // Tasks: status rules live in taskModel, activity logging in the hook
     const { addTask, updateTask, deleteTask, toggleTask, setNextAction } =
@@ -244,6 +280,7 @@ export function DataProvider({ children }) {
 
     const value = useMemo(() => ({
         notes, setNotes, notesMeta,
+        opusMeta, projectsLoading,
         projects, setProjects,
         ledger, setLedger,
         tasks, setTasks,
@@ -266,7 +303,7 @@ export function DataProvider({ children }) {
         createDecision, reviewDecision, deleteDecision,
         generateSamples
     }), [
-        notes, setNotes, notesMeta, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
+        notes, setNotes, notesMeta, opusMeta, projectsLoading, projects, setProjects, ledger, setLedger, tasks, setTasks, reminders, setReminders, sessions, setSessions,
         activity, setActivity,
         addWorkstream, updateWorkstream, deleteWorkstream,
         addDecision, updateDecision, deleteProjectDecision,

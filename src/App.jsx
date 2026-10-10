@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { DataProvider, useData } from "./context/DataContext.jsx";
 import { rescheduleAll } from "./utils/notify.js";
 import { downloadBackup, readBackupFile } from "./lib/backup.js";
-import { isTauri as isTauriRuntime } from "./lib/vault.js";
+import { isTauri as isTauriRuntime, getVaultPath } from "./lib/vault.js";
+import { writeOpusSafetyBackup } from "./lib/opusSafetyBackup.js";
 
 // Components
 import { MaiaShell } from "./components/shell/MaiaShell.jsx";
@@ -51,7 +52,7 @@ function AppContent() {
 
   // Data from Context
   const {
-    notes, setNotes, notesMeta,
+    notes, setNotes, notesMeta, opusMeta,
     projects, setProjects,
     ledger, setLedger,
     tasks, setTasks,
@@ -95,7 +96,23 @@ function AppContent() {
     }
   }, [notes, projects, tasks, reminders, sessions, ledger, activity]);
 
-  const applyImport = useCallback((backup) => {
+  const isFileMode = opusMeta.mode === "files";
+
+  const applyImport = useCallback(async (backup) => {
+    if (isFileMode) {
+      // Replacing state deletes project, task, decision and question files that
+      // are not in the backup, so keep a copy of what is there now.
+      try {
+        const vaultPath = getVaultPath();
+        if (!vaultPath) throw new Error("No vault folder is set.");
+        await writeOpusSafetyBackup(vaultPath, { notes, projects, tasks, reminders, sessions, ledger, activity });
+      } catch (e) {
+        console.error("[MAIA] Safety backup before import failed", e);
+        toast.error(`Import cancelled: couldn't save a safety backup of your current data first (${e.message || e}).`);
+        setPendingImport(null);
+        return;
+      }
+    }
     setNotes(backup.data.notes);
     setProjects(backup.data.projects);
     setTasks(backup.data.tasks);
@@ -106,8 +123,8 @@ function AppContent() {
     // keeps log entries that point at items the restored data no longer has.
     setActivity(backup.data.activity);
     setPendingImport(null);
-    toast.success("Data restored from backup.");
-  }, [setNotes, setProjects, setTasks, setReminders, setSessions, setLedger, setActivity]);
+    toast.success(isFileMode ? "Data restored from backup. A safety backup of the previous data is in the vault's Opus folder." : "Data restored from backup.");
+  }, [isFileMode, notes, projects, tasks, reminders, sessions, ledger, activity, setNotes, setProjects, setTasks, setReminders, setSessions, setLedger, setActivity]);
 
   const handleImportBackup = useCallback(async () => {
     try {
@@ -398,7 +415,7 @@ function AppContent() {
         title="Replace all data with this backup?"
         description={
           pendingImport
-            ? `This backup has ${importCounts}${pendingImport.exportedAt ? `, exported ${new Date(pendingImport.exportedAt).toLocaleString()}` : ""}. Everything currently in MAIA will be replaced — this can't be undone.`
+            ? `This backup has ${importCounts}${pendingImport.exportedAt ? `, exported ${new Date(pendingImport.exportedAt).toLocaleString()}` : ""}. Everything currently in MAIA will be replaced${isFileMode ? ". Project, task, decision and question files that are not in the backup will be deleted from the vault. A safety backup of the current data is saved in the vault's Opus folder first." : " — this can't be undone."}`
             : ""
         }
         confirmLabel="Replace data"
