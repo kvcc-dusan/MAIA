@@ -1,3 +1,0 @@
-/* Home / Today styles moved into CSS modules next to their components
-   (pages/HomePage.module.css, features/Today/*.module.css). This file is kept
-   only because src/index.css imports it. */

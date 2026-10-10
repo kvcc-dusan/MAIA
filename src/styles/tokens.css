@@ -98,8 +98,6 @@
   --radius: var(--radius-control);
 
   --vh: 1dvh;
-  --dock-h: 56px;
-  --dock-h-desktop: 68px;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -293,8 +291,6 @@
 
   /* --- spacing ----------------------------------------------------------- */
   --spacing-page: clamp(1rem, 4vw, 4rem);
-  --spacing-dock: var(--dock-h);
-  --spacing-dock-desktop: var(--dock-h-desktop);
 
   /* --- motion ------------------------------------------------------------ */
   --ease-maia: var(--ease-out);

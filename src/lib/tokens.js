@@ -18,9 +18,9 @@
  *     output is frequently still an oklch string, not `rgb()`. That is fine
  *     for every consumer today — SVG, D3 and CSS all parse oklch natively —
  *     but it means this module does NOT currently guarantee a THREE.Color-safe
- *     value. `ColorBends.jsx` is the only THREE surface and it does not use
- *     these helpers; if that changes, convert explicitly at that call site
- *     rather than assuming rgb comes out of here.
+ *     value. There is no THREE surface in the app any more; if one comes
+ *     back, convert explicitly at that call site rather than assuming rgb
+ *     comes out of here.
  *
  * Values are cached per property name. The cache is dropped whenever the theme
  * changes (lib/theme.js), but a canvas surface still has to re-read and redraw

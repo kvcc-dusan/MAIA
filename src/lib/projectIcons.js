@@ -36,20 +36,9 @@ export const PICKER_ICONS = [
     "study_lamp", "telescope", "tree_palm", "yoga",
 ];
 
-export const ICON_PRESETS = PICKER_ICONS;
-
 /** colorId (persisted) → a CSS color string usable in inline styles. */
 export function resolveColor(colorId) {
     if (!colorId || colorId === 'white') return 'var(--foreground)';
     const found = ICON_COLORS.find(c => c.id === colorId);
     return found ? found.value : 'var(--foreground)';
-}
-
-/**
- * Fade any CSS color (including `var(--…)` strings) to an alpha — the inline
- * styles here used to do `${accent}18` hex-alpha suffixing, which only works
- * on 6-digit hex and broke the moment accents became tokens.
- */
-export function fade(cssColor, pct) {
-    return `color-mix(in srgb, ${cssColor} ${pct}%, transparent)`;
 }
