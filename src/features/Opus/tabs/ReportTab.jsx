@@ -9,6 +9,8 @@ import { label as shortDate, toDayString } from "../lib/metrics";
 import { buildReportSummary, reportMarkdown, reportNoteTitle } from "../lib/report";
 import ReportCard from "../components/report/ReportCard";
 import ReportTiles from "../components/report/ReportTiles";
+import ReportHistoryCard from "../components/report/ReportHistoryCard";
+import { savedReports } from "../components/report/reportHistory";
 import {
   OLDER_PLACEHOLDER, chipValue, olderWeekOptions, rangeLabel, weekRanges,
 } from "../components/report/reportWeeks";
@@ -22,7 +24,7 @@ const WEEK_CHIPS = [
 const weekTitle = (range) => `Week of ${shortDate(range.from)}`;
 
 export default function ReportTab({ project, selectNote }) {
-  const { tasks, createNote } = useData();
+  const { tasks, notes, createNote } = useData();
   // Read once so a page left open overnight does not shift its own week.
   const [today] = useState(() => toDayString(new Date()));
   const [weeksBack, setWeeksBack] = useState(0);
@@ -32,6 +34,7 @@ export default function ReportTab({ project, selectNote }) {
   const ranges = useMemo(() => weekRanges(today), [today]);
   const range = ranges[weeksBack];
   const projectTasks = useMemo(() => tasks.filter((t) => t.projectId === project.id), [tasks, project.id]);
+  const history = useMemo(() => savedReports(notes, project.id), [notes, project.id]);
 
   const report = useMemo(() => {
     try {
@@ -103,6 +106,7 @@ export default function ReportTab({ project, selectNote }) {
           />
         </>
       )}
+      {history.length > 0 ? <ReportHistoryCard reports={history} onOpen={selectNote} /> : null}
     </div>
   );
 }
