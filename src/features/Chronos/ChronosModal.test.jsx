@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, within, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import ChronosModal from './ChronosModal';
 import React from 'react';
+import { clearScheduled } from '../../utils/notify.js';
 
 // Mock utils — the path is relative to this file, so after the move from
 // src/components/ it points two levels up.
@@ -175,6 +176,84 @@ describe('ChronosModal', () => {
 
     expect(mockSetTasks).toHaveBeenCalled();
     expect(screen.queryByText('New task')).not.toBeInTheDocument();
+  });
+
+  it('asks before deleting a task, and only deletes on confirm', async () => {
+    const user = userEvent.setup();
+    const tasks = [
+      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
+    ];
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
+
+    await user.click(screen.getByLabelText('Delete task'));
+    expect(mockSetTasks).not.toHaveBeenCalled();
+
+    const dialog = await screen.findByRole('dialog', { name: "Delete task 'Test Task'?" });
+    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Delete task' }));
+    expect(mockSetTasks).toHaveBeenCalledTimes(1);
+    const remove = mockSetTasks.mock.calls[0][0];
+    expect(remove(tasks)).toEqual([]);
+  });
+
+  it('keeps a task when the delete confirm is cancelled', async () => {
+    const user = userEvent.setup();
+    const tasks = [
+      { id: '1', title: 'Test Task', done: false, priority: 'p1', due: new Date().toISOString() }
+    ];
+    render(<ChronosModal {...baseProps} tasks={tasks} />);
+
+    await user.click(screen.getByLabelText('Delete task'));
+    const dialog = await screen.findByRole('dialog', { name: "Delete task 'Test Task'?" });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    expect(mockSetTasks).not.toHaveBeenCalled();
+    // The dialog plays its exit animation before unmounting.
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: "Delete task 'Test Task'?" })).not.toBeInTheDocument()
+    );
+    expect(screen.getByRole('dialog', { name: 'Chronos' })).toBeInTheDocument();
+  });
+
+  it('asks before cancelling a signal, and only cancels on confirm', async () => {
+    const user = userEvent.setup();
+    const reminders = [
+      { id: 'r1', title: 'Stretch', scheduledAt: new Date(Date.now() + 3600000).toISOString(), delivered: false, priority: 'p3' }
+    ];
+    render(<ChronosModal {...baseProps} reminders={reminders} />);
+
+    await user.click(screen.getByLabelText('Cancel signal'));
+    expect(mockSetReminders).not.toHaveBeenCalled();
+    expect(clearScheduled).not.toHaveBeenCalled();
+
+    const dialog = await screen.findByRole('dialog', { name: "Cancel signal 'Stretch'?" });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel signal' }));
+
+    expect(clearScheduled).toHaveBeenCalledWith('r1');
+    expect(mockSetReminders).toHaveBeenCalledTimes(1);
+    expect(mockSetReminders.mock.calls[0][0](reminders)).toEqual([]);
+  });
+
+  it('asks before deleting a session, and only deletes on confirm', async () => {
+    const user = userEvent.setup();
+    const start = new Date();
+    start.setHours(10, 0, 0, 0);
+    const end = new Date(start.getTime() + 60 * 60000);
+    const sessions = [
+      { id: 's1', title: 'Deep work', start: start.toISOString(), end: end.toISOString(), color: 'neutral' }
+    ];
+    render(<ChronosModal {...baseProps} sessions={sessions} />);
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: /^Deep work,/ }));
+    // Base UI's menu sits at pointer-events: none while it opens, so click it directly.
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete session' }));
+    expect(mockSetSessions).not.toHaveBeenCalled();
+
+    const dialog = await screen.findByRole('dialog', { name: "Delete session 'Deep work'?" });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete session' }));
+    expect(mockSetSessions).toHaveBeenCalledTimes(1);
+    expect(mockSetSessions.mock.calls[0][0](sessions)).toEqual([]);
   });
 
   it('cancels the signal form back to the calendar', async () => {

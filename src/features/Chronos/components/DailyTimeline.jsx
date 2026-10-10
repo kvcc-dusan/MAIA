@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { isPastTime, hasOverlap, sameDay, formatTime, formatHourLabel } from "../../../lib/time";
+import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { SessionColorSwatches } from "./SessionColorSwatches";
 import { SESSION_COLOR_VARS } from "./sessionColorVars";
 import { Menu } from "@/components/composed/Menu";
@@ -142,6 +143,9 @@ function DailyTimeline({
   const [dragSession, setDragSession] = useState(null);
 
   const [gridDraft, setGridDraft] = useState(null);
+  // The session the delete confirm is asking about. Closing sets open: false
+  // and keeps the content so the exit animation doesn't swap the text.
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const scrollContainerRef = useRef(null);
 
@@ -299,7 +303,14 @@ function DailyTimeline({
   }, [openForm]);
 
   const onSessionEdit = useCallback((s) => onSessionDouble(s), [onSessionDouble]);
-  const onSessionDelete = useCallback((id) => setSessions(prev => prev.filter(s => s.id !== id)), [setSessions]);
+  const onSessionDelete = useCallback((id) => {
+    const session = sessions.find(s => s.id === id);
+    if (session) setPendingDelete({ open: true, id, title: session.title });
+  }, [sessions]);
+  const confirmSessionDelete = useCallback(() => {
+    if (!pendingDelete) return;
+    setSessions(prev => prev.filter(s => s.id !== pendingDelete.id));
+  }, [pendingDelete, setSessions]);
   const onSessionColorChange = useCallback((id, color) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, color } : s));
   }, [setSessions]);
@@ -482,6 +493,16 @@ function DailyTimeline({
           )
         })()}
       </div>
+
+      {/* Portalled by the dialog shell, so placing it inside the scroller is fine. */}
+      <ConfirmDialog
+        open={!!pendingDelete?.open}
+        onClose={() => setPendingDelete((prev) => prev && { ...prev, open: false })}
+        onConfirm={confirmSessionDelete}
+        title={pendingDelete && `Delete session '${pendingDelete.title}'?`}
+        description="This can't be undone."
+        confirmLabel="Delete session"
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { uid, isoNow } from "../../lib/ids.js";
 // timers on every Chronos open.
 import { ensurePermission, scheduleLocalNotification, clearScheduled } from "../../utils/notify.js";
 import { AppDialog } from "@/components/composed/AppDialog";
+import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { IconButton } from "@/components/composed/IconButton";
 import { Button } from "@/components/arc/button/button";
@@ -41,6 +42,10 @@ export default function ChronosModal({
   const [rightView, setRightView] = useState("calendar");
   const [formError, setFormError] = useState(null);
   const [rightRegion, setRightRegion] = useState(null);
+  // One confirm for every task and signal removal in this modal. Rows only
+  // request a delete; the removal runs from the dialog's danger button. Closing
+  // keeps the content (open: false) so the exit animation doesn't swap the text.
+  const [pendingDelete, setPendingDelete] = useState(null);
   useRevealPicker(rightRegion);
 
   const [signalDraft, setSignalDraft] = useState({
@@ -313,6 +318,29 @@ export default function ChronosModal({
 
   const deleteTask = (id) => setTasks((prev) => prev.filter((x) => x.id !== id));
 
+  const requestTaskDelete = (task) =>
+    setPendingDelete({
+      open: true,
+      title: `Delete task '${task.title}'?`,
+      description: "This can't be undone.",
+      confirmLabel: "Delete task",
+      onConfirm: () => deleteTask(task.id),
+    });
+
+  const requestSignalCancel = (signal) =>
+    setPendingDelete({
+      open: true,
+      title: `Cancel signal '${signal.title}'?`,
+      description: "The signal won't be delivered. This can't be undone.",
+      confirmLabel: "Cancel signal",
+      // "Cancel" here would read as cancelling the dialog, not the signal.
+      cancelLabel: "Keep signal",
+      onConfirm: () => {
+        clearScheduled(signal.id);
+        setReminders((p) => p.filter((x) => x.id !== signal.id));
+      },
+    });
+
   const upcomingSignals = useMemo(
     () => reminders.filter((r) => !r.delivered).sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
     [reminders]
@@ -378,7 +406,7 @@ export default function ChronosModal({
                       <TaskRow
                         task={t}
                         onToggle={() => toggleTask(t.id)}
-                        onDelete={() => deleteTask(t.id)}
+                        onDelete={() => requestTaskDelete(t)}
                         onEdit={() => openTaskForm(null, t)}
                         onAssign={(projectId) => assignTask(t.id, projectId)}
                         projects={projects}
@@ -410,10 +438,7 @@ export default function ChronosModal({
                     <li key={s.id}>
                       <SignalRow
                         signal={s}
-                        onDelete={() => {
-                          clearScheduled(s.id);
-                          setReminders((p) => p.filter((x) => x.id !== s.id));
-                        }}
+                        onDelete={() => requestSignalCancel(s)}
                         onEdit={() => openSignalForm(s)}
                       />
                     </li>
@@ -480,6 +505,16 @@ export default function ChronosModal({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete?.open}
+        onClose={() => setPendingDelete((prev) => prev && { ...prev, open: false })}
+        onConfirm={() => pendingDelete?.onConfirm()}
+        title={pendingDelete?.title}
+        description={pendingDelete?.description}
+        confirmLabel={pendingDelete?.confirmLabel}
+        cancelLabel={pendingDelete?.cancelLabel}
+      />
     </AppDialog>
   );
 }
