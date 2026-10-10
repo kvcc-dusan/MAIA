@@ -1,0 +1,28 @@
+.group { min-width: 0; }
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); }
+.heading { margin: 0; font-size: var(--text-base); font-weight: 500; font-family: var(--font-body); }
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  cursor: pointer;
+}
+.toggle > svg { color: var(--text-muted); flex: none; }
+.name { min-width: 0; overflow-wrap: anywhere; text-align: left; }
+.dot { width: var(--space-2); height: var(--space-2); flex: none; border-radius: var(--radius-pill); }
+.date { color: var(--text-muted); font-size: var(--text-xs); }
+.progress { width: 11rem; margin-left: auto; padding-block: var(--space-2); }
+.rows { margin: 0; padding: 0; list-style: none; }
+.rows > li { border-bottom: 1px solid var(--border-subtle); padding-block: var(--space-1); }
+.rows > li:last-child { border-bottom: 0; }
+
+@container tasks (max-width: 640px) {
+  .progress { width: 100%; margin-left: 0; }
+}

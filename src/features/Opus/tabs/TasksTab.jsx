@@ -1,8 +1,7 @@
 import React from "react";
 import ExecutionPanel from "../components/ExecutionPanel";
 
-// Temporary: the existing task list until the Tasks tab extends it.
-// Receives { project, selectNote }.
+// Receives { project, selectNote }. The panel owns filters, grouping and rows.
 export default function TasksTab({ project }) {
   return <ExecutionPanel project={project} />;
 }
