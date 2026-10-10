@@ -22,22 +22,6 @@ export const statusLabel = (status) =>
 
 export const PRIORITY_LABEL = { p1: "High priority", p2: "Medium priority", p3: "Normal priority" };
 
-// T-shirt sizes, as the sample data and the Board cards use them.
-export const ESTIMATE_OPTIONS = [
-  { value: "S", label: "Small" },
-  { value: "M", label: "Medium" },
-  { value: "L", label: "Large" },
-];
-
-/** A stored estimate outside S/M/L (a number from an import) stays selectable instead of vanishing. */
-export const estimateOptionsFor = (estimate) => {
-  if (estimate == null || estimate === "") return ESTIMATE_OPTIONS;
-  const known = ESTIMATE_OPTIONS.some((o) => o.value === String(estimate));
-  return known ? ESTIMATE_OPTIONS : [...ESTIMATE_OPTIONS, { value: String(estimate), label: String(estimate) }];
-};
-
-const SERIES = /^[1-4]$/;
-
-/** Workstream colors are stored as "1" to "4", meaning var(--series-N). */
-export const workstreamColor = (workstream) =>
-  workstream && SERIES.test(String(workstream.color)) ? `var(--series-${workstream.color})` : "var(--text-muted)";
+// Estimates and workstream colours live in kit/ (one copy); re-exported so existing imports keep working.
+export { ESTIMATE_OPTIONS, estimateOptionsFor } from "../../kit/estimates.js";
+export { workstreamColor } from "../../kit/format.js";

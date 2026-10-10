@@ -67,5 +67,8 @@ describe("labels", () => {
     expect(workstreamColor({ color: 3 })).toBe("var(--series-3)");
     expect(workstreamColor({})).toBe("var(--text-muted)");
     expect(workstreamColor(null)).toBe("var(--text-muted)");
+    expect(workstreamColor(undefined)).toBe("var(--text-muted)");
+    expect(workstreamColor({ color: "9" })).toBe("var(--text-muted)");
+    expect(workstreamColor({ color: "not-a-token" })).toBe("var(--text-muted)");
   });
 });

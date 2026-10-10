@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildColumns, cardLabel, dueInfo, filterTasks, formatEstimate, localDay,
-  workstreamColor, wsFromParams,
+  buildColumns, cardLabel, dueInfo, filterTasks, localDay, wsFromParams,
 } from "./model.js";
 
 const task = (id, over = {}) => ({ id, title: id, status: "todo", createdAt: "2026-01-01", ...over });
@@ -20,13 +19,6 @@ describe("buildColumns", () => {
     expect(cols.done.total).toBe(25);
     expect(cols.done.tasks.map((t) => t.id)).not.toContain("d0");
     expect(buildColumns(done, { showAllDone: true }).done.tasks).toHaveLength(25);
-  });
-});
-
-describe("estimates", () => {
-  it("formats estimates", () => {
-    expect(formatEstimate("S")).toBe("S");
-    expect(formatEstimate(null)).toBeNull();
   });
 });
 
@@ -58,14 +50,6 @@ describe("filters", () => {
   it("seeds from nav params", () => {
     expect(wsFromParams({ ws: "w1" })).toEqual(["w1"]);
     expect(wsFromParams({})).toEqual([]);
-  });
-});
-
-describe("workstreamColor", () => {
-  it("maps series colors", () => {
-    expect(workstreamColor({ color: "2" })).toBe("var(--series-2)");
-    expect(workstreamColor({ color: "not-a-token" })).toBe("var(--text-muted)");
-    expect(workstreamColor(null)).toBe("var(--text-muted)");
   });
 });
 

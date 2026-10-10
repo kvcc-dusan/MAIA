@@ -1,5 +1,9 @@
 // Pure board logic: columns, filters, due dates, labels. No React.
 import { sortColumn } from "./order.js";
+import { formatEstimate } from "../../kit/estimates.js";
+
+export { workstreamColor } from "../../kit/format.js";
+export { ESTIMATE_OPTIONS, estimateOptionsFor, formatEstimate } from "../../kit/estimates.js";
 
 export const STATUS_ORDER = ["todo", "doing", "blocked", "done"];
 export const STATUS_LABELS = { todo: "To do", doing: "In progress", blocked: "Blocked", done: "Done" };
@@ -13,9 +17,6 @@ export const SCHEDULE_OPTIONS = [
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const pad = (n) => String(n).padStart(2, "0");
-
-/** Workstream color '1' to '4' is a chart series token; anything else is muted. */
-export const workstreamColor = (ws) => (/^[1-4]$/.test(String(ws?.color)) ? `var(--series-${ws.color})` : "var(--text-muted)");
 
 export const filterTasks = (tasks, { workstreamIds = [], owner = "" } = {}) =>
   tasks.filter((t) => (workstreamIds.length === 0 || workstreamIds.includes(t.workstreamId)) && (!owner || t.owner === owner));
@@ -38,22 +39,6 @@ export const buildColumns = (tasks, { showAllDone = false, doneLimit = DONE_LIMI
     const shown = limited ? [...all].sort(byRecentlyDone).slice(0, doneLimit) : all;
     return [status, { tasks: sortColumn(shown), total: all.length, hidden: all.length - shown.length }];
   }));
-
-export const ESTIMATE_OPTIONS = [
-  { value: "S", label: "Small" },
-  { value: "M", label: "Medium" },
-  { value: "L", label: "Large" },
-];
-
-/** A stored estimate outside S/M/L stays selectable instead of vanishing. */
-export const estimateOptionsFor = (estimate) => {
-  if (estimate == null || estimate === "") return ESTIMATE_OPTIONS;
-  return ESTIMATE_OPTIONS.some((o) => o.value === String(estimate))
-    ? ESTIMATE_OPTIONS
-    : [...ESTIMATE_OPTIONS, { value: String(estimate), label: String(estimate) }];
-};
-
-export const formatEstimate = (e) => (e == null || e === "" ? null : String(e));
 
 /** Local calendar day of any due value. A bare YYYY-MM-DD is read as local, not UTC. */
 export const localDay = (value) => {

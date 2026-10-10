@@ -15,7 +15,8 @@
  *   SizeMark       S/M/L circle on Board cards
  *
  * Pure helpers (format.js): initials, humanDate, daysBetween, dueState,
- * statusLabel, priorityLabel, workstreamColor.
+ * statusLabel, priorityLabel, workstreamColor (format.js); ESTIMATE_OPTIONS,
+ * estimateOptionsFor, formatEstimate (estimates.js).
  */
 export { default as PageBar } from "./PageBar";
 export { default as FilterChips } from "./FilterChips";
@@ -30,3 +31,4 @@ export { default as WorkstreamTag } from "./WorkstreamTag";
 export { default as PriorityBadge } from "./PriorityBadge";
 export { default as SizeMark } from "./SizeMark";
 export * from "./format";
+export * from "./estimates";
