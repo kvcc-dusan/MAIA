@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import EditorRich from "../components/EditorRich.jsx";
-import { CollapseIcon, ExpandIcon, ReadIcon, WriteIcon } from "../components/ui/CustomIcon.jsx";
-import { IconButton } from "../components/composed/IconButton.jsx";
+import { WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { EmptyState } from "../components/composed/EmptyState.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
+import NoteHeader from "../features/Codex/NoteHeader.jsx";
+import NoteCounters from "../features/Codex/NoteCounters.jsx";
+import { countBacklinks } from "../features/Codex/backlinks.js";
 import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
-const widthKey = () => `maia:editor-wide`;
 
 // Storage can throw (private windows, blocked site data); these are only
 // per-viewer conveniences, so a failure falls back to the default.
@@ -27,21 +28,12 @@ const writeStored = (key, value) => {
   }
 };
 
-export default function Editor({ note, updateNote, projects = [], onOpenInternalLink }) {
+export default function Editor({ note, notes = [], updateNote, onDelete, projects = [], onOpenInternalLink }) {
   const [local, setLocal] = useState(note);
   const [mode, setMode] = useState(() => {
     if (note?.id) return readStored(modeKey(note.id)) === "read" ? "read" : "edit";
     return "edit";
   });
-  const [wide, setWide] = useState(() => readStored(widthKey()) === "true");
-
-  const toggleWide = () => {
-    setWide(prev => {
-      const next = !prev;
-      writeStored(widthKey(), String(next));
-      return next;
-    });
-  };
 
   // Persist
   const savedRef = useRef(note);
@@ -58,13 +50,15 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
   localRef.current = local;
   const updateNoteRef = useRef(updateNote);
   updateNoteRef.current = updateNote;
+  // A deleted note must not be written back by that same flush.
+  const isDeletedRef = useRef(false);
   useEffect(() => () => {
     const pending = localRef.current;
-    if (pending && pending !== savedRef.current) updateNoteRef.current(pending);
+    if (!isDeletedRef.current && pending && pending !== savedRef.current) updateNoteRef.current(pending);
   }, []);
 
   // These were previously created inline inside JSX props below the early
-  // return — a real Rules-of-Hooks violation (hook order changes whenever
+  // return: a real Rules-of-Hooks violation (hook order changes whenever
   // `note` flips between null and set). Hooks must run unconditionally on
   // every render, so they're defined here instead.
   const handleContentChange = useCallback(
@@ -80,7 +74,7 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
     // A [[Project Name]] in the body ADDS that project. It must never be the
     // whole story: this handler used to return the wikilink-derived list
     // outright, so opening any note whose body had no wikilink silently
-    // cleared the links made from Opus — reading a note removed it from its
+    // cleared the links made from Opus: reading a note removed it from its
     // project. Links are unlinked explicitly from the Nodes panel instead.
     const existingIds = v.projectIds || [];
     let newProjectName = null;
@@ -123,69 +117,52 @@ export default function Editor({ note, updateNote, projects = [], onOpenInternal
     if (local?.id) writeStored(modeKey(local.id), next);
   };
 
-  const createdLabel = new Date(local.createdAt).toLocaleDateString(undefined, {
-    weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
-  });
+  const handleDelete = () => {
+    isDeletedRef.current = true;
+    onDelete?.(note.id);
+  };
 
   return (
     <div className={styles.page}>
-      <div className={styles.column} data-wide={wide}>
-        <div className={styles.panel}>
-          <div className={styles.header}>
-            <div className={styles.heading}>
-              <input
-                value={local.title}
-                onChange={(e) => setLocal({ ...local, title: e.target.value })}
-                placeholder="Untitled note"
-                aria-label="Note title"
-                className={styles.titleInput}
-              />
-              <div className={styles.meta}>
-                <span>{createdLabel}</span>
-                {local.project && <span>@{local.project}</span>}
-              </div>
-            </div>
+      <NoteHeader
+        title={local.title}
+        createdAt={local.createdAt}
+        content={local.content}
+        isEditing={editable}
+        onToggleMode={toggleMode}
+        onDelete={handleDelete}
+      />
 
-            <div className={styles.actions}>
-              <IconButton
-                label={wide ? "Narrow view" : "Wide view"}
-                icon={wide ? CollapseIcon : ExpandIcon}
-                size="icon-sm"
-                variant="outline"
-                onClick={toggleWide}
-              />
-              <IconButton
-                label={editable ? "Switch to reading mode" : "Switch to editing mode"}
-                icon={editable ? ReadIcon : WriteIcon}
-                size="icon-sm"
-                variant="outline"
-                onClick={toggleMode}
-              />
-            </div>
-          </div>
-
-          <div className={`${styles.body} custom-scrollbar`}>
-            <div className={styles.content}>
-              <EditorRich
-                value={local.content || ""}
-                editable={editable}
-                onChange={handleContentChange}
-                onMetaChange={handleMetaChange}
-                onOpenInternalLink={onOpenInternalLink}
-              />
-            </div>
-          </div>
-
-          <div className={styles.status}>
-            <span>{(local?.wordCount ?? 0).toLocaleString()} words</span>
-            <span>{(local?.charCount ?? 0).toLocaleString()} characters</span>
-            <span className={styles.tags}>
-              {local.tags && local.tags.length > 0
-                ? local.tags.map(t => <span key={t}>#{t}</span>)
-                : <span>No tags</span>}
-            </span>
+      <div className={styles.stage}>
+        <div className={`${styles.body} custom-scrollbar`}>
+          <div className={styles.content}>
+            <input
+              value={local.title}
+              onChange={(e) => setLocal((v) => ({ ...v, title: e.target.value }))}
+              placeholder="Untitled"
+              aria-label="Note title"
+              className={styles.titleInput}
+            />
+            {local.tags?.length > 0 && (
+              <p className={styles.tags}>
+                {local.tags.map((t) => <span key={t}>#{t}</span>)}
+              </p>
+            )}
+            <EditorRich
+              value={local.content || ""}
+              editable={editable}
+              onChange={handleContentChange}
+              onMetaChange={handleMetaChange}
+              onOpenInternalLink={onOpenInternalLink}
+            />
           </div>
         </div>
+
+        <NoteCounters
+          backlinks={countBacklinks(notes, local)}
+          words={local.wordCount ?? 0}
+          characters={local.charCount ?? 0}
+        />
       </div>
     </div>
   );

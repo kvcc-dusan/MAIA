@@ -55,7 +55,9 @@ export default function CodexPage({
         <EditorPage
           key={`${activeTab.noteId}:${note ? "loaded" : "pending"}`}
           note={note}
+          notes={notes}
           updateNote={updateNote}
+          onDelete={onDelete}
           onOpenInternalLink={onOpenInternalLink}
           projects={projects}
         />
