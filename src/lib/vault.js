@@ -1,11 +1,11 @@
 // @maia:vault — markdown vault adapter (Tauri only; web falls back to localStorage)
 // All Tauri imports are dynamic so the web/PWA bundle never touches them.
-import { markdownToNote, noteToMarkdown, noteFilename, slugifyTitle } from "./noteFile.js";
-import { stableId } from "./stableId.js";
+import { noteToMarkdown, slugifyTitle } from "./noteFile.js";
 import {
-  isSkippedDir, isNoteFile, isNotePath, relDir, relBase, joinRel, mapLimit,
-  normalizeFolderList, toRelPath, validateFolderPath,
+  isNotePath, relDir, relBase, joinRel,
+  toRelPath, validateFolderPath,
 } from "./vaultFolders.js";
+import { snapshotVault, joinPath } from "./vaultLoad.js";
 
 const VAULT_PATH_KEY = "maia.vaultPath";
 export const NOTES_MIGRATED_KEY = "maia.notesMigrated";
@@ -100,114 +100,68 @@ let contentMap = new Map();
 // fileMap, so their names must still count as taken or a save could overwrite them.
 let unreadable = new Set();
 
-const joinPath = (dir, name) => `${dir.replace(/\/+$/, "")}/${name}`;
-const READ_CONCURRENCY = 8;
-const EPOCH_ISO = "1970-01-01T00:00:00.000Z";
+const MAX_LOAD_ATTEMPTS = 3;
 
-// Vault is on a cloud drive: list folders level by level, a few at a time.
-const walkVault = async (vaultPath, readDir) => {
-  const files = [];
-  const folders = [];
-  let level = [""];
-  while (level.length > 0) {
-    const listings = await mapLimit(level, READ_CONCURRENCY, async (dir) => {
-      try {
-        return { dir, entries: await readDir(dir ? joinPath(vaultPath, dir) : vaultPath) };
-      } catch (e) {
-        if (dir === "") throw e; // the vault itself unreadable = a failed load, not an empty vault
-        console.error(`[MAIA] Failed to list vault folder "${dir}"`, e);
-        return { dir, entries: [] };
-      }
-    });
-    level = [];
-    for (const { dir, entries } of listings) {
-      for (const entry of entries) {
-        const rel = joinRel(dir, entry.name);
-        if (entry.isDirectory) {
-          if (isSkippedDir(entry.name, dir === "")) continue;
-          folders.push(rel);
-          level.push(rel);
-        } else if (entry.isFile && isNoteFile(entry.name)) {
-          files.push(rel);
-        }
-      }
-    }
-  }
-  return { files: files.sort(), folders };
-};
+// Last read of every note file (see vaultLoad.js), tied to one vault so a switch starts cold.
+let fileCache = new Map();
+let cacheVault = null;
+// A load that overlaps a save/delete can see half of a rename (old and new file both
+// present, or neither). These counters let the loader notice and take a fresh snapshot.
+let mutationSeq = 0;
+let activeMutations = 0;
+let loadToken = 0;
 
-// Obsidian notes usually have no createdAt; the file time keeps their order
-// stable instead of stamping "now" on every load.
-const fileTime = async (vaultPath, rel) => {
+const trackMutation = async (fn) => {
+  mutationSeq += 1;
+  activeMutations += 1;
   try {
-    const fs = await import("@tauri-apps/plugin-fs");
-    const info = await fs.stat(joinPath(vaultPath, rel));
-    const t = info?.mtime ?? info?.birthtime;
-    return t ? new Date(t).toISOString() : EPOCH_ISO;
-  } catch {
-    return EPOCH_ISO;
-  }
-};
-
-const readOne = async (vaultPath, rel, readTextFile) => {
-  try {
-    const text = await readTextFile(joinPath(vaultPath, rel));
-    const hasCreated = /^createdAt:/m.test(text.slice(0, 4000));
-    return { rel, text, fileCreatedAt: hasCreated ? undefined : await fileTime(vaultPath, rel) };
-  } catch (e) {
-    console.error(`[MAIA] Failed to read vault file "${rel}"`, e);
-    return { rel, error: true };
+    return await fn();
+  } finally {
+    activeMutations -= 1;
+    mutationSeq += 1;
   }
 };
 
 /**
- * Reads every note under the vault, recursively. Never writes. Returns
- * { notes, folders }: each note carries `folder` (derived from its location,
- * never stored in the file); `folders` lists every folder including empty ones.
+ * Reads every note under the vault, recursively; only files whose mtime or size changed
+ * since the previous load are read again. Never writes. Returns { notes, folders, stats }:
+ * each note carries `folder` (derived from its location, never stored in the file);
+ * `folders` lists every folder including empty ones; `stats.reads` is how many files
+ * were really read. `keepBaselines` (a Set of note ids, read at commit time) are notes with
+ * unsaved edits: their conflict baseline stays what MAIA last read, so an outside edit that
+ * lands before the save is still reported as a conflict instead of being adopted silently.
  */
-export const loadVault = async (vaultPath) => {
-  const { readDir, readTextFile } = await import("@tauri-apps/plugin-fs");
-  const { files, folders } = await walkVault(vaultPath, readDir);
-  const results = await mapLimit(files, READ_CONCURRENCY, (rel) => readOne(vaultPath, rel, readTextFile));
-
-  const notes = [];
-  const nextMap = new Map();
-  const nextContentMap = new Map();
-  const nextUnreadable = new Set();
-
-  for (const { rel, text, error, fileCreatedAt } of results) {
-    if (error) {
-      nextUnreadable.add(rel);
-      continue;
-    }
-    try {
-      const note = markdownToNote(text, {
-        fallbackId: stableId(rel),
-        fallbackTitle: relBase(rel).replace(/\.md$/i, ""),
-        fallbackCreatedAt: fileCreatedAt,
-      });
-      if (nextMap.has(note.id)) {
-        // Don't just drop the loser — a silently vanished note is a data-loss
-        // bug in its own right. Give it a fresh id so both survive as
-        // separate notes; the user can tell them apart and delete the dupe.
-        // Derived from the path so it is the same on every load.
-        console.warn(`[MAIA] Duplicate note id "${note.id}" in vault ("${rel}") — reassigning a new id so both are kept`);
-        note.id = stableId(`${rel}#dup`);
-      }
-      nextMap.set(note.id, rel);
-      nextContentMap.set(note.id, text);
-      notes.push({ ...note, folder: relDir(rel) });
-    } catch (e) {
-      console.error(`[MAIA] Failed to parse vault file "${rel}"`, e);
-      nextUnreadable.add(rel);
-    }
+export const loadVault = async (vaultPath, { keepBaselines } = {}) => {
+  const fs = await import("@tauri-apps/plugin-fs");
+  if (cacheVault !== vaultPath) {
+    fileCache = new Map();
+    cacheVault = vaultPath;
   }
-
-  fileMap = nextMap;
-  contentMap = nextContentMap;
-  unreadable = nextUnreadable;
-  notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt) || a.folder.localeCompare(b.folder) || a.title.localeCompare(b.title));
-  return { notes, folders: normalizeFolderList([...folders, ...notes.map((n) => n.folder)]) };
+  const token = (loadToken += 1);
+  let snap;
+  let totalReads = 0;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt += 1) {
+    const seq = mutationSeq;
+    const wasQuiet = activeMutations === 0;
+    snap = await snapshotVault(vaultPath, fs, fileCache);
+    totalReads += snap.stats.reads;
+    const stable = wasQuiet && activeMutations === 0 && seq === mutationSeq;
+    // A save that finished mid-load is not in this snapshot: keep the read files (cheap
+    // next time) and look again. After the last attempt, accept what we have.
+    if (token === loadToken) fileCache = snap.nextCache;
+    if (stable) break;
+  }
+  // A newer load started meanwhile (or the vault changed): only the latest may set the
+  // baselines, or an older snapshot could roll back what a save just recorded.
+  if (token === loadToken) {
+    for (const id of keepBaselines ?? []) {
+      if (contentMap.has(id) && snap.nextMap.has(id)) snap.nextContentMap.set(id, contentMap.get(id));
+    }
+    fileMap = snap.nextMap;
+    contentMap = snap.nextContentMap;
+    unreadable = snap.nextUnreadable;
+  }
+  return { notes: snap.notes, folders: snap.folders, stats: { ...snap.stats, reads: totalReads } };
 };
 
 /** Notes only; see loadVault for folders. */
@@ -234,10 +188,13 @@ const pickName = (note, current, taken) => {
   const currentBase = current ? relBase(current).replace(/\.md$/i, "") : null;
   const slug = slugifyTitle(note.title);
   if (currentBase && slug && slugifyTitle(currentBase) === slug) return uniqueMd(currentBase, taken);
-  return noteFilename(note, taken);
+  // The loader skips dot files, so a title like ".env notes" must not produce one: the
+  // note would be saved and then vanish from the list on the next load.
+  const base = slugifyTitle(note.title).replace(/^\.+/, "") || `untitled-${String(note.id).slice(0, 5)}`;
+  return uniqueMd(base, taken);
 };
 
-export const saveNote = async (vaultPath, note) => {
+const saveNoteNow = async (vaultPath, note) => {
   const { writeTextFile, remove, exists, readTextFile, mkdir } = await import("@tauri-apps/plugin-fs");
   const current = fileMap.get(note.id);
   const folder = note.folder == null
@@ -278,9 +235,16 @@ export const saveNote = async (vaultPath, note) => {
   }
 
   if (folder) await mkdir(joinPath(vaultPath, folder), { recursive: true });
+  // The cache holds the pre-write stat of these paths; never let a reload trust it.
+  fileCache.delete(desired);
+  if (current) fileCache.delete(current);
   await writeTextFile(joinPath(vaultPath, desired), nextText);
 
-  if (current && current !== desired) {
+  // On a case-insensitive disk (macOS) "Omnis/projects" and "Omnis/PROJECTS" are the same
+  // folder: the write above already replaced the file, so removing "the old one" would
+  // delete the note we just saved.
+  const isSameFile = current?.toLowerCase() === desired.toLowerCase();
+  if (current && current !== desired && !isSameFile) {
     try {
       if (await exists(joinPath(vaultPath, current))) {
         await remove(joinPath(vaultPath, current));
@@ -293,10 +257,13 @@ export const saveNote = async (vaultPath, note) => {
   contentMap.set(note.id, nextText);
 };
 
-export const deleteNoteFile = async (vaultPath, id) => {
+export const saveNote = (vaultPath, note) => trackMutation(() => saveNoteNow(vaultPath, note));
+
+const deleteNoteNow = async (vaultPath, id) => {
   const name = fileMap.get(id);
   if (!name) return;
   const { remove, exists } = await import("@tauri-apps/plugin-fs");
+  fileCache.delete(name);
   try {
     if (await exists(joinPath(vaultPath, name))) {
       await remove(joinPath(vaultPath, name));
@@ -306,6 +273,8 @@ export const deleteNoteFile = async (vaultPath, id) => {
     contentMap.delete(id);
   }
 };
+
+export const deleteNoteFile = (vaultPath, id) => trackMutation(() => deleteNoteNow(vaultPath, id));
 
 /** mkdir -p inside the vault. Returns the validated path. */
 export const createFolder = async (vaultPath, path) => {

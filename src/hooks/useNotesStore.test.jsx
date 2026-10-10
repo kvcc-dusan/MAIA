@@ -4,8 +4,8 @@
 // top of vault.js — untested before (STATE_OF_MAIA.md). These tests mock
 // vault.js entirely so the conflict-handling and deleted-file-detection
 // logic can be exercised deterministically, independent of real fs timing.
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { renderHook, act, waitFor, cleanup } from "@testing-library/react";
 
 const vaultMocks = vi.hoisted(() => ({
   isTauri: vi.fn(() => true),
@@ -59,6 +59,10 @@ async function importStore() {
 }
 
 describe("useNotesStore (vault branch)", () => {
+  // Vitest globals are off, so RTL does not unmount for us: a leaked hook keeps its write
+  // timer and would consume the next test's mocked saveNote.
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     vi.clearAllMocks();
     vaultMocks.isTauri.mockReturnValue(true);
@@ -190,6 +194,86 @@ describe("useNotesStore (vault branch)", () => {
 
     act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, folder: "A/B" }))));
     await waitFor(() => expect(vaultMocks.saveNote).toHaveBeenCalledWith("/mock/vault", expect.objectContaining({ id: "fold1", folder: "A/B" })), { timeout: 3000 });
+  });
+
+  describe("incremental reloads", () => {
+    const mk = (id, extra = {}) => ({ id, title: id, content: "x", folder: "", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", ...extra });
+
+    it("runs one load at a time and queues a single follow-up for any number of calls", async () => {
+      const gate = { release: null };
+      vaultMocks.loadNotes.mockResolvedValue([]);
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+      vaultMocks.loadVault.mockClear();
+
+      let running = 0;
+      let maxRunning = 0;
+      vaultMocks.loadNotes.mockImplementation(() => {
+        running += 1;
+        maxRunning = Math.max(maxRunning, running);
+        return new Promise((resolve) => {
+          const prevRelease = gate.release;
+          gate.release = () => { running -= 1; resolve([]); prevRelease?.(); };
+        });
+      });
+      let all;
+      act(() => {
+        all = Promise.all([result.current[2].reload(), result.current[2].reload(), result.current[2].reload(), result.current[2].reload()]);
+      });
+      await waitFor(() => expect(vaultMocks.loadVault).toHaveBeenCalledTimes(1));
+      await act(async () => { gate.release(); });
+      await waitFor(() => expect(vaultMocks.loadVault).toHaveBeenCalledTimes(2));
+      await act(async () => { gate.release(); await all; });
+
+      expect(vaultMocks.loadVault).toHaveBeenCalledTimes(2); // 4 calls = the running load + one follow-up
+      expect(maxRunning).toBe(1);
+    });
+
+    it("an unchanged reload keeps the same state, and the next edit is still saved", async () => {
+      const a = mk("a");
+      vaultMocks.loadNotes.mockImplementation(() => Promise.resolve([a]));
+      vaultMocks.saveNote.mockResolvedValue(undefined);
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+      const before = result.current[0];
+
+      await act(async () => { await result.current[2].reload(); });
+      expect(result.current[0]).toBe(before);
+
+      act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "edited" }))));
+      await waitFor(() => expect(vaultMocks.saveNote).toHaveBeenCalledWith("/mock/vault", expect.objectContaining({ id: "a", content: "edited" })), { timeout: 3000 });
+    });
+
+    it("a reload during the write debounce keeps the local edit and still saves it", async () => {
+      const a = mk("a");
+      vaultMocks.loadNotes.mockImplementation(() => Promise.resolve([a]));
+      vaultMocks.saveNote.mockResolvedValue(undefined);
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+      act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "typing" }))));
+      await act(async () => { await result.current[2].reload(); }); // disk still has the old text
+      expect(result.current[0][0].content).toBe("typing");
+
+      await waitFor(() => expect(vaultMocks.saveNote).toHaveBeenCalledWith("/mock/vault", expect.objectContaining({ id: "a", content: "typing" })), { timeout: 3000 });
+    });
+
+    it("tells the loader which notes have unsaved edits so their conflict baseline is kept", async () => {
+      vaultMocks.loadNotes.mockResolvedValue([mk("a")]);
+      vaultMocks.saveNote.mockResolvedValue(undefined);
+      const { useNotesStore } = await importStore();
+      const { result } = renderHook(() => useNotesStore());
+      await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+      act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "typing" }))));
+      await act(async () => { await result.current[2].reload(); });
+
+      const { keepBaselines } = vaultMocks.loadVault.mock.calls.at(-1)[1];
+      expect(keepBaselines.has("a")).toBe(true);
+    });
   });
 
   describe("switchVault", () => {

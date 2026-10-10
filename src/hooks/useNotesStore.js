@@ -22,6 +22,10 @@ import {
 
 const WRITE_DEBOUNCE_MS = 1000;
 
+// Same elements in the same order. Unchanged files come back as the same objects, so a
+// focus reload with no outside edits leaves state untouched and re-renders nothing.
+const sameList = (a, b) => a.length === b.length && a.every((item, i) => item === b[i]);
+
 /**
  * Notes storage seam. Same [notes, setNotes, meta] contract everywhere:
  * - Web/PWA: plain localStorage (unchanged behavior).
@@ -63,17 +67,24 @@ function useVaultNotes() {
   const timerRef = useRef(null);
   const dirtyRef = useRef(new Set()); // ids with unflushed changes
   const inflightRef = useRef(new Set()); // running flushes, so a vault switch can wait for them
+  const loadRunRef = useRef(null); // the running load, if any
+  const loadQueuedRef = useRef(false);
+  const lastLoadCountRef = useRef(-1);
 
-  const load = useCallback(async () => {
+  const loadOnce = useCallback(async () => {
     const vaultPath = getVaultPath();
     if (!vaultPath) {
       setStatus("needs-vault");
       return;
     }
     try {
-      const { notes: loaded, folders: loadedFolders } = await loadVault(vaultPath);
-      invalidateVaultFileIndex(); // attachments may have changed along with the notes
-      setDiskFolders(loadedFolders);
+      const { notes: loaded, folders: loadedFolders, stats } = await loadVault(vaultPath, { keepBaselines: dirtyRef.current });
+      // The vault was switched while this load was running: its notes belong to the old one.
+      if (getVaultPath() !== vaultPath) return false;
+      // No file was read, so no note changed. (A missing stats object means "assume changed".)
+      if (!stats || stats.reads > 0 || loaded.length !== lastLoadCountRef.current) invalidateVaultFileIndex(); // attachments may have changed along with the notes
+      lastLoadCountRef.current = loaded.length;
+      setDiskFolders((prev) => (sameList(prev, loadedFolders) ? prev : loadedFolders));
       setNotes((prev) => {
         const loadedIds = new Set(loaded.map((n) => n.id));
         // A clean (already-saved) note whose file is no longer in the vault
@@ -85,7 +96,14 @@ function useVaultNotes() {
           toast.error(`"${n.title || "Untitled"}" is gone — its file was removed or moved outside MAIA.`);
         });
 
-        if (dirtyRef.current.size === 0) return loaded;
+        // The diff baseline is only reset when the state really changes: with nothing new
+        // no render follows, and the diff effect would never consume the reset.
+        if (dirtyRef.current.size === 0) {
+          if (sameList(prev, loaded)) return prev;
+          prevNotesRef.current = null;
+          return loaded;
+        }
+        prevNotesRef.current = null;
 
         // Don't clobber notes that have edits waiting to hit disk. A dirty
         // note that hasn't been written yet at all (brand new, still inside
@@ -97,7 +115,6 @@ function useVaultNotes() {
         const extras = prev.filter((n) => dirtyRef.current.has(n.id) && !loadedIds.has(n.id));
         return [...extras, ...merged];
       });
-      prevNotesRef.current = null; // reset diff baseline after external reload
       setStatus("ready");
       setError(null);
       return true;
@@ -108,6 +125,30 @@ function useVaultNotes() {
       return false;
     }
   }, []);
+
+  // Focus, watcher and mount all call this. One load runs at a time; calls that arrive
+  // meanwhile share a single follow-up run (a change can land after the running load listed
+  // the folders, so the follow-up is not optional).
+  const load = useCallback(() => {
+    if (loadRunRef.current) {
+      loadQueuedRef.current = true;
+      return loadRunRef.current;
+    }
+    const run = (async () => {
+      try {
+        let result;
+        do {
+          loadQueuedRef.current = false;
+          result = await loadOnce();
+        } while (loadQueuedRef.current && result !== false);
+        return result;
+      } finally {
+        loadRunRef.current = null;
+      }
+    })();
+    loadRunRef.current = run;
+    return run;
+  }, [loadOnce]);
 
   useEffect(() => {
     load();
@@ -226,34 +267,38 @@ function useVaultNotes() {
     setDiskFolders([]);
     setStatus("loading");
     setError(null);
-    const isLoaded = await load();
+    // loadOnce, not load: a running load for the old vault must not be shared with this one.
+    const isLoaded = await loadOnce();
     if (isLoaded) return;
 
     if (prevPath) setVaultPath(prevPath);
-    await load();
+    await loadOnce();
     throw new Error("The new vault could not be read, so MAIA went back to the previous one.");
-  }, [flush, load]);
+  }, [flush, loadOnce]);
 
   // Diff notes state → schedule per-note writes
   useEffect(() => {
     if (status !== "ready") return;
     const prev = prevNotesRef.current;
     prevNotesRef.current = notes;
-    if (prev === null) return; // first ready render — nothing to persist
+    // prev === null: first ready render or a reload, nothing to diff. A reload still has to
+    // re-arm the write timer, because this effect's cleanup just cleared it for edits
+    // that were already waiting.
+    if (prev !== null) {
+      const prevById = new Map(prev.map((n) => [n.id, n]));
+      const nextById = new Map(notes.map((n) => [n.id, n]));
 
-    const prevById = new Map(prev.map((n) => [n.id, n]));
-    const nextById = new Map(notes.map((n) => [n.id, n]));
-
-    for (const note of notes) {
-      if (prevById.get(note.id) !== note) {
-        pendingRef.current.set(note.id, { id: note.id, note });
-        dirtyRef.current.add(note.id);
+      for (const note of notes) {
+        if (prevById.get(note.id) !== note) {
+          pendingRef.current.set(note.id, { id: note.id, note });
+          dirtyRef.current.add(note.id);
+        }
       }
-    }
-    for (const old of prev) {
-      if (!nextById.has(old.id)) {
-        pendingRef.current.set(old.id, { id: old.id, deleted: true });
-        dirtyRef.current.add(old.id);
+      for (const old of prev) {
+        if (!nextById.has(old.id)) {
+          pendingRef.current.set(old.id, { id: old.id, deleted: true });
+          dirtyRef.current.add(old.id);
+        }
       }
     }
 
