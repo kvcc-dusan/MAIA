@@ -82,7 +82,7 @@ describe("opus vault adapter", () => {
 
   it("reports an absent Opus folder without creating anything", async () => {
     const { loadOpus } = await load();
-    expect(await loadOpus(VAULT)).toEqual({ exists: false, projects: [], tasks: [], warnings: [] });
+    expect(await loadOpus(VAULT)).toEqual({ exists: false, projects: [], tasks: [], warnings: [], activityFiles: [] });
     expect(dirs.has(OPUS)).toBe(false);
   });
 

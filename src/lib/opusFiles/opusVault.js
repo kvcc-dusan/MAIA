@@ -68,7 +68,7 @@ const rewriteReferences = async (fs, projectId, prevCtx, nextCtx) => {
     || !sameNames(prevCtx.milestones, nextCtx.milestones, "title");
   if (!renamed) return warnings;
   for (const entry of [...state.tracked.values()]) {
-    if (entry.projectId !== projectId || entry.kind === "project") continue;
+    if (entry.projectId !== projectId || entry.kind === "project" || entry.kind === "activity") continue;
     const codec = CODECS[entry.kind];
     const parsed = codec.fromFile(entry.text, { fallbackId: entry.id, projectContext: prevCtx });
     if (!parsed.ok) continue;

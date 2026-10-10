@@ -11,6 +11,7 @@ import {
   INBOX_DIR, BACKUPS_DIR, KIND_DIRS, PROJECT_FILE, joinPath, opusRoot, loadFs, listDir, statMtime,
   stableId, state, trackInto,
 } from "./opusFs.js";
+import { readActivity } from "./activityVault.js";
 
 export const CODECS = { project: projectFile, task: taskFile, decision: decisionFile, question: questionFile };
 
@@ -84,7 +85,9 @@ const loadProject = async (fs, root, folder, shared) => {
   const tasks = await readFolder(fs, joinPath(dir, KIND_DIRS.task), { ...args, kind: "task" });
   const decisions = await readFolder(fs, joinPath(dir, KIND_DIRS.decision), { ...args, kind: "decision" });
   const questions = await readFolder(fs, joinPath(dir, KIND_DIRS.question), { ...args, kind: "question" });
+  const activity = await readActivity(fs, dir, project.id, shared);
   return {
+    activity,
     project: {
       ...project,
       assets: [], // assets stay in the asset store, S2 reattaches them
@@ -96,7 +99,8 @@ const loadProject = async (fs, root, folder, shared) => {
 };
 
 /**
- * @returns {Promise<{ exists: boolean, projects: object[], tasks: object[], warnings: {path:string,message:string}[] }>}
+ * activityFiles: [{ projectId (null = _inbox), entries }], one per activity.jsonl found.
+ * @returns {Promise<{ exists: boolean, projects: object[], tasks: object[], warnings: {path:string,message:string}[], activityFiles: object[] }>}
  */
 export const loadOpus = async (vaultPath) => {
   const fs = await loadFs();
@@ -107,12 +111,13 @@ export const loadOpus = async (vaultPath) => {
   const fresh = { tracked: new Map(), projectDirs: new Map(), contexts: new Map() };
   if (!(await fs.exists(root))) {
     Object.assign(state, fresh);
-    return { exists: false, projects: [], tasks: [], warnings: [] };
+    return { exists: false, projects: [], tasks: [], warnings: [], activityFiles: [] };
   }
 
   const shared = { warnings: [], seenIds: new Set(), fresh };
   const projects = [];
   const tasks = [];
+  const activityFiles = [];
   const folders = (await listDir(fs, root)).filter((e) => e.isDirectory).map((e) => e.name).sort();
 
   for (const folder of folders.filter((f) => f !== INBOX_DIR && f !== BACKUPS_DIR)) {
@@ -120,12 +125,16 @@ export const loadOpus = async (vaultPath) => {
     if (!loaded) continue;
     projects.push(loaded.project);
     tasks.push(...loaded.tasks);
+    if (loaded.activity) activityFiles.push(loaded.activity);
   }
   const inbox = await readFolder(fs, joinPath(root, INBOX_DIR, KIND_DIRS.task), {
     kind: "task", projectId: null, ctx: EMPTY_CONTEXT, ...shared,
   });
   tasks.push(...inbox.map((t) => ({ ...t, projectId: null })));
 
+  const inboxActivity = await readActivity(fs, joinPath(root, INBOX_DIR), null, shared);
+  if (inboxActivity) activityFiles.push(inboxActivity);
+
   Object.assign(state, fresh);
-  return { exists: true, projects: projects.sort(byCreatedDesc), tasks: tasks.sort(byCreatedDesc), warnings: shared.warnings };
+  return { exists: true, projects: projects.sort(byCreatedDesc), tasks: tasks.sort(byCreatedDesc), warnings: shared.warnings, activityFiles };
 };

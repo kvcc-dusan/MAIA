@@ -4,7 +4,6 @@ import { useNotesStore } from "../hooks/useNotesStore.js";
 import { useOpusStore } from "../hooks/useOpusStore.js";
 import { uid, isoNow } from "../lib/ids.js";
 import { generateDummyData, generateSampleProject } from "../utils/dummyData.js";
-import { ACTIVITY_CAP } from "../features/Opus/lib/activityLog.js";
 import { STORAGE_KEYS } from "../lib/constants.js";
 import { normalizeTasks } from "../features/Opus/lib/taskModel.js";
 import { normalizeProject, normalizeProjects } from "../features/Opus/lib/projectModel.js";
@@ -19,7 +18,7 @@ export function DataProvider({ children }) {
     const [notes, setNotes, baseNotesMeta] = useNotesStore();
     // Projects and tasks: localStorage in the browser, Markdown files under
     // <vault>/Opus in the desktop app. Same setters either way.
-    const [opusState, opusSetters, opusStore] = useOpusStore();
+    const [opusState, opusSetters, opusStore, fileActivity] = useOpusStore();
     const { projects: rawProjects, tasks: rawTasks } = opusState;
     const { setProjects, setTasks } = opusSetters;
     const { flush: flushOpus, hasPending: hasPendingOpus } = opusStore;
@@ -88,7 +87,7 @@ export function DataProvider({ children }) {
     const tasks = useMemo(() => normalizeTasks(rawTasks), [rawTasks]);
     const [reminders, setReminders] = useLocalStorage(STORAGE_KEYS.REMINDERS, []);
     const [sessions, setSessions] = useLocalStorage(STORAGE_KEYS.SESSIONS, []);
-    const { activity, setActivity, logActivity } = useActivityLog();
+    const { activity, setActivity, logActivity, addActivity } = useActivityLog(fileActivity);
 
     // --- Actions ---
 
@@ -242,9 +241,9 @@ export function DataProvider({ children }) {
         const { project, tasks: sampleTasks, activity: sampleActivity } = generateSampleProject();
         setProjects((prev) => [project, ...prev]);
         setTasks((prev) => [...sampleTasks, ...prev]);
-        setActivity((prev) => [...prev, ...sampleActivity].slice(-ACTIVITY_CAP));
+        addActivity(sampleActivity);
         return project;
-    }, [setProjects, setTasks, setActivity]);
+    }, [setProjects, setTasks, addActivity]);
 
     // Tasks: status rules live in taskModel, activity logging in the hook
     const { addTask, updateTask, deleteTask, toggleTask, setNextAction } =

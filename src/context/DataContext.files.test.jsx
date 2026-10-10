@@ -52,6 +52,7 @@ describe("DataContext in file mode", () => {
       saveProject: vi.fn(async () => ({ path: "x", warnings: [] })),
       saveDecision: vi.fn(),
       saveQuestion: vi.fn(),
+      saveActivity: vi.fn(async () => ({ skipped: false })),
       deleteItem: vi.fn(async () => ({ skipped: [] })),
       watchOpus: vi.fn(async () => () => {}),
     });
@@ -97,5 +98,16 @@ describe("DataContext in file mode", () => {
     act(() => { ctx.updateTask("t1", { title: "Unsaved" }); });
     await expect(act(() => ctx.notesMeta.switchVault("/other"))).rejects.toThrow(/nothing was switched/);
     expect(h.switchVault).not.toHaveBeenCalled();
+  });
+
+  it("addSampleProject writes the sample's activity to the sample project's file, not the cap-trimmed global list", async () => {
+    await mount();
+    let sample;
+    act(() => { sample = ctx.addSampleProject(); });
+    expect(ctx.activity.length).toBeGreaterThan(0);
+    await act(async () => { await ctx.opusMeta.flush(); });
+    const call = h.api.saveActivity.mock.calls.find(([, projectId]) => projectId === sample.id);
+    expect(call).toBeDefined();
+    expect(call[2].length).toBeGreaterThan(0);
   });
 });

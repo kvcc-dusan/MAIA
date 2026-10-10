@@ -1,5 +1,5 @@
 // @maia:opusFiles - recursive watcher for the Opus/ tree, modelled on watchVault.
-import { loadFs, opusRoot, state, isHidden, ASSETS_DIR } from "./opusFs.js";
+import { loadFs, opusRoot, state, isHidden, ASSETS_DIR, ACTIVITY_FILE } from "./opusFs.js";
 
 const isRelevant = (path) => {
   const segments = path.split("/");
@@ -12,6 +12,12 @@ const isRelevant = (path) => {
 const isAssetPath = (root, path) => {
   const segments = path.startsWith(`${root}/`) ? path.slice(root.length + 1).split("/") : [];
   return segments.length >= 2 && segments[1] === ASSETS_DIR && !segments.some(isHidden);
+};
+
+// <Project>/activity.jsonl or _inbox/activity.jsonl: reported on its own, never as a project/task change.
+const isActivityPath = (root, path) => {
+  const segments = path.startsWith(`${root}/`) ? path.slice(root.length + 1).split("/") : [];
+  return segments.length === 2 && segments[1] === ACTIVITY_FILE && !isHidden(segments[0]);
 };
 
 // Our own writes echo back as events; drop paths whose disk text equals what we remember.
@@ -28,10 +34,11 @@ const isOwnEcho = async (fs, path, byPath) => {
 /**
  * Calls onChange({ paths }) (debounced, own writes filtered out) when files
  * under Opus/ change outside MAIA. Changes inside a project's assets/ go to
- * onAssetsChange({ paths }) instead, so they never cause a project/task reload. Returns an unwatch function. If Opus/ does
+ * onAssetsChange({ paths }), and activity.jsonl files to onActivityChange({ paths }),
+ * so neither causes a project/task write. Returns an unwatch function. If Opus/ does
  * not exist yet it resolves to a no-op: call it again after the folder exists.
  */
-export const watchOpus = async (vaultPath, onChange, { debounceMs = 400, onAssetsChange } = {}) => {
+export const watchOpus = async (vaultPath, onChange, { debounceMs = 400, onAssetsChange, onActivityChange } = {}) => {
   const fs = await loadFs();
   const root = opusRoot(vaultPath);
   if (!(await fs.exists(root))) return () => {};
@@ -42,11 +49,15 @@ export const watchOpus = async (vaultPath, onChange, { debounceMs = 400, onAsset
     const all = [...pending];
     pending = new Set();
     const assetPaths = all.filter((p) => isAssetPath(root, p));
-    const paths = all.filter((p) => !isAssetPath(root, p) && isRelevant(p));
+    const activityAll = all.filter((p) => isActivityPath(root, p));
+    const paths = all.filter((p) => !isAssetPath(root, p) && !isActivityPath(root, p) && isRelevant(p));
     const byPath = new Map([...state.tracked.values()].map((e) => [e.path, e]));
     const changed = [];
     for (const path of paths) if (!(await isOwnEcho(fs, path, byPath))) changed.push(path);
+    const activityChanged = [];
+    for (const path of activityAll) if (!(await isOwnEcho(fs, path, byPath))) activityChanged.push(path);
     if (changed.length > 0) onChange({ paths: changed });
+    if (activityChanged.length > 0) onActivityChange?.({ paths: activityChanged });
     if (assetPaths.length > 0) onAssetsChange?.({ paths: assetPaths });
   };
   const unwatch = await fs.watchImmediate(

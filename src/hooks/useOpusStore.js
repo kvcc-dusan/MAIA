@@ -20,7 +20,8 @@ const never = () => false;
 
 /**
  * Projects and tasks storage seam, same shape in both modes:
- *   [{ projects, tasks }, { setProjects, setTasks }, meta]
+ *   [{ projects, tasks }, { setProjects, setTasks }, meta, fileActivity]
+ * fileActivity is { activity, setActivity } in files mode (activity.jsonl files), null in the browser.
  * - browser (web, or Tauri without a vault): localStorage, exactly as before.
  * - files (Tauri with a vault): Markdown files under <vault>/Opus/.
  *
@@ -52,5 +53,9 @@ export function useOpusStore() {
       : { setProjects: setLocalProjects, setTasks: setLocalTasks }),
     [isFiles, files.setProjects, files.setTasks, setLocalProjects, setLocalTasks],
   );
-  return [state, setters, meta];
+  const fileActivity = useMemo(
+    () => (isFiles ? { activity: files.activity, setActivity: files.setActivity } : null),
+    [isFiles, files.activity, files.setActivity],
+  );
+  return [state, setters, meta, fileActivity];
 }

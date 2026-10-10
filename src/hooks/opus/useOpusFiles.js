@@ -10,6 +10,8 @@ import { runMigration } from "./opusMigration.js";
 import { migrateLegacyAssets } from "./assetMigration.js";
 import { emitAssetsChanged } from "./assetEvents.js";
 import { getOpusApi, runOp } from "./opusOps.js";
+import { useActivityFiles } from "./useActivityFiles.js";
+import { runActivityMigration } from "./activityMigration.js";
 
 const WRITE_DEBOUNCE_MS = 1000;
 const EMPTY_STATE = { projects: [], tasks: [] };
@@ -31,15 +33,23 @@ export function useOpusFiles(vaultPath) {
   const [error, setError] = useState(null);
   const [warnings, setWarnings] = useState(EMPTY_LIST);
   const [rootExists, setRootExists] = useState(false);
+  const {
+    activity, setActivity: setActivityState, reset: resetActivity, applyLoaded: applyActivity,
+    isDirty: isActivityDirty, write: writeActivity,
+  } = useActivityFiles();
 
   const statusRef = useRef(status);
   statusRef.current = status;
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const knownIds = () => new Set(dataRef.current.projects.map((p) => p.id));
   const vaultRef = useRef(vaultPath); // the vault the in-memory state belongs to
   const generationRef = useRef(0); // bumped per vault so a stale load is dropped
   const baselineRef = useRef(null); // state as last read from / written to disk
   const pendingRef = useRef(new Map()); // op key -> op, waiting for the debounce
   const timerRef = useRef(null);
   const queueRef = useRef(Promise.resolve());
+  const scheduleRef = useRef(() => {}); // set once flush exists; writePending needs it for retries
 
   // Loads and flushes never overlap: a reload resets the adapter's remembered files.
   const exclusive = useCallback((fn) => {
@@ -57,8 +67,12 @@ export function useOpusFiles(vaultPath) {
       if (generation !== generationRef.current) return false;
       // Copies legacy browser-side assets into assets/ folders once; files only, no project or task write.
       if (migration !== "failed") await migrateLegacyAssets(api, path, loaded.projects);
+      // Not after a failed project move: entries would land in _inbox for projects that have no folder yet.
+      const withActivity = migration === "failed" ? { loaded, status: "skipped" } : await runActivityMigration(api, path, loaded);
+      if (generation !== generationRef.current) return false;
+      const final = withActivity.loaded;
 
-      const disk = { projects: attachAssets(loaded.projects), tasks: loaded.tasks };
+      const disk = { projects: attachAssets(final.projects), tasks: final.tasks };
       revertKeys?.forEach((key) => pendingRef.current.delete(key));
       const baselineBefore = baselineRef.current;
       const queued = pendingRef.current;
@@ -69,8 +83,9 @@ export function useOpusFiles(vaultPath) {
         const merged = addExtras(mergeDirty(disk, prev, dirty, revertKeys), extras ?? []);
         return deepEqual(merged, prev) ? prev : merged;
       });
-      setWarnings((prev) => (deepEqual(prev, loaded.warnings) ? prev : loaded.warnings));
-      setRootExists(loaded.exists);
+      applyActivity(final.activityFiles);
+      setWarnings((prev) => (deepEqual(prev, final.warnings) ? prev : final.warnings));
+      setRootExists(final.exists);
       setError(null);
       statusRef.current = "ready";
       setStatus("ready");
@@ -86,7 +101,7 @@ export function useOpusFiles(vaultPath) {
       }
       return false;
     }
-  }, []);
+  }, [applyActivity]);
 
   const reload = useCallback(() => {
     const generation = generationRef.current;
@@ -95,7 +110,8 @@ export function useOpusFiles(vaultPath) {
 
   const writePending = useCallback(async () => {
     const path = vaultRef.current;
-    if (!path || statusRef.current !== "ready" || pendingRef.current.size === 0) return;
+    if (!path || statusRef.current !== "ready") return;
+    if (pendingRef.current.size === 0 && !isActivityDirty(knownIds())) return;
     const generation = generationRef.current;
     const batch = sortOps([...pendingRef.current.values()]);
     pendingRef.current = new Map();
@@ -117,15 +133,32 @@ export function useOpusFiles(vaultPath) {
         }
       }
     }
+    // Activity goes last so a new project's folder exists. A file changed outside MAIA is
+    // merged by a reload, never copied aside: appended lines from Claude are not a conflict.
+    const activityResult = await writeActivity(api, path, knownIds());
+    failed += activityResult.failed;
     if (failed > 0) toast.error(`Couldn't save ${failed} change${failed === 1 ? "" : "s"} to the vault. MAIA will retry.`);
-    if (conflicts.length === 0 || generation !== generationRef.current) return;
+    if (generation !== generationRef.current) return;
+    if (conflicts.length === 0 && activityResult.needsReload) {
+      await loadInner(generation);
+      scheduleRef.current();
+      return;
+    }
+    if (conflicts.length === 0) return;
     const { extras, revertKeys, messages } = planConflicts(conflicts);
     await loadInner(generation, { revertKeys, extras });
     messages.forEach((message) => toast.error(message));
-  }, [loadInner]);
+  }, [loadInner, writeActivity, isActivityDirty]);
 
   const flush = useCallback(() => exclusive(writePending), [exclusive, writePending]);
-  const hasPending = useCallback(() => pendingRef.current.size > 0, []);
+  const hasPending = useCallback(
+    () => pendingRef.current.size > 0 || isActivityDirty(knownIds()),
+    [isActivityDirty],
+  );
+  scheduleRef.current = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(flush, WRITE_DEBOUNCE_MS);
+  };
 
   // New vault (or none): drop everything tied to the old one, then load.
   // Pending edits were already flushed by the caller (DataContext switchVault).
@@ -136,6 +169,7 @@ export function useOpusFiles(vaultPath) {
     if (pendingRef.current.size > 0) console.warn("[MAIA] Dropping unsaved Opus changes: the vault changed");
     pendingRef.current = new Map();
     baselineRef.current = null;
+    resetActivity();
     if (!vaultPath) return;
     statusRef.current = "loading";
     setData(EMPTY_STATE);
@@ -144,7 +178,7 @@ export function useOpusFiles(vaultPath) {
     setRootExists(false);
     setStatus("loading");
     reload();
-  }, [vaultPath, reload]);
+  }, [vaultPath, reload, resetActivity]);
 
   // Diff state against the baseline and queue per-item writes.
   useEffect(() => {
@@ -165,6 +199,12 @@ export function useOpusFiles(vaultPath) {
     timerRef.current = setTimeout(flush, WRITE_DEBOUNCE_MS);
   }, [data, status, vaultPath, flush]);
 
+  // Activity edits write on the same debounce as everything else.
+  useEffect(() => {
+    if (!vaultPath || status !== "ready" || !isActivityDirty(knownIds())) return;
+    scheduleRef.current();
+  }, [vaultPath, status, activity, data.projects, isActivityDirty]);
+
   // Watch Opus/ for edits from Claude, Obsidian or scripts. Own writes are
   // filtered inside watchOpus; the watcher is re-armed once Opus/ exists.
   useEffect(() => {
@@ -172,7 +212,7 @@ export function useOpusFiles(vaultPath) {
     let cancelled = false;
     let unwatch = null;
     getOpusApi()
-      .then((api) => api.watchOpus(vaultPath, () => reload(), { onAssetsChange: emitAssetsChanged }))
+      .then((api) => api.watchOpus(vaultPath, () => reload(), { onAssetsChange: emitAssetsChanged, onActivityChange: () => reload() }))
       .then((fn) => {
         if (cancelled) fn();
         else unwatch = fn;
@@ -229,5 +269,13 @@ export function useOpusFiles(vaultPath) {
   const setProjects = useCallback((updater) => setCollection("projects", updater), [setCollection]);
   const setTasks = useCallback((updater) => setCollection("tasks", updater), [setCollection]);
 
-  return { data, setProjects, setTasks, status, error, warnings, reload, flush, hasPending };
+  const setActivity = useCallback((updater) => {
+    if (statusRef.current === "loading") {
+      console.warn("[MAIA] Ignored an activity change: the Opus files are still loading");
+      return;
+    }
+    setActivityState(updater);
+  }, [setActivityState]);
+
+  return { data, setProjects, setTasks, activity: activity, setActivity, status, error, warnings, reload, flush, hasPending };
 }

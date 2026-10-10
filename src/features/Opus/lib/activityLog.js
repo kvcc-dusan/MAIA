@@ -30,9 +30,15 @@ const dropCollapsible = (log, entry) => {
   return log;
 };
 
-export const appendActivity = (log, entry) => {
+// File mode passes Infinity: the cap there is per activity.jsonl file, applied when writing.
+export const appendActivity = (log, entry, cap = ACTIVITY_CAP) => {
   const list = Array.isArray(log) ? log : [];
   const base = entry.kind === "updated" ? dropCollapsible(list, entry) : list;
   const next = [...base, entry];
-  return next.length > ACTIVITY_CAP ? next.slice(next.length - ACTIVITY_CAP) : next;
+  return next.length > cap ? next.slice(next.length - cap) : next;
+};
+
+export const appendActivityBatch = (log, entries, cap = ACTIVITY_CAP) => {
+  const next = [...(Array.isArray(log) ? log : []), ...entries];
+  return next.length > cap ? next.slice(next.length - cap) : next;
 };

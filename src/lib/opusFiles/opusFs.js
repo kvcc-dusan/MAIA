@@ -10,6 +10,7 @@ export const INBOX_DIR = "_inbox";
 export const BACKUPS_DIR = "_backups";
 export const ASSETS_DIR = "assets";
 export const PROJECT_FILE = "project.md";
+export const ACTIVITY_FILE = "activity.jsonl";
 export const KIND_DIRS = { task: "tasks", decision: "decisions", question: "questions" };
 
 export const joinPath = (...parts) =>
