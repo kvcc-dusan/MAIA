@@ -1,8 +1,8 @@
 import React from "react";
-import { STATUS_LABELS, ariaLabelFor, rangeText, statsText } from "./roadmapModel";
+import { ariaLabelFor, rangeText, statsText } from "./roadmapModel";
 import styles from "./RoadmapGantt.module.css";
 
-/** One bar, or a pill for a milestone with only a due date. The status is always text; its colour is a second cue. */
+/** One bar, or a pill for a milestone with only a due date. The status word lives in the legend and the aria-label; the bar keeps only its dot. */
 export default function GanttItem({ item, isActive, referenceYear, onOpen, onFocusItem, onKeyDown }) {
   const label = ariaLabelFor(item, referenceYear);
   const style = {
@@ -32,10 +32,7 @@ export default function GanttItem({ item, isActive, referenceYear, onOpen, onFoc
       </span>
       <span className={styles.label} aria-hidden="true">
         <span className={styles.title}>{item.title}</span>
-        <span className={styles.tag}>
-          <span className={styles.dot} />
-          {STATUS_LABELS[item.status]}
-        </span>
+        <span className={styles.dot} />
       </span>
     </button>
   );

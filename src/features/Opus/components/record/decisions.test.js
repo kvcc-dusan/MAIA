@@ -5,7 +5,6 @@ import {
   monthKey,
   monthLabel,
   groupDecisionsByMonth,
-  formatDecisionDate,
 } from "./decisions.js";
 
 const d = (id, date) => ({ id, title: `Decision ${id}`, date });
@@ -65,25 +64,5 @@ describe("month grouping", () => {
 
   it("returns no groups for an empty list", () => {
     expect(groupDecisionsByMonth([])).toEqual([]);
-  });
-});
-
-describe("formatDecisionDate", () => {
-  it("is month and day within the current year", () => {
-    expect(formatDecisionDate("2026-10-14", "2026-10-20")).toBe("Oct 14");
-    expect(formatDecisionDate("2026-01-05", "2026-10-20")).toBe("Jan 5");
-  });
-
-  it("adds the year for other years", () => {
-    expect(formatDecisionDate("2025-12-31", "2026-10-20")).toBe("Dec 31, 2025");
-  });
-
-  it("says so when there is no date", () => {
-    expect(formatDecisionDate("", "2026-10-20")).toBe("No date");
-    expect(formatDecisionDate(undefined, "2026-10-20")).toBe("No date");
-  });
-
-  it("omits the year when today is unknown", () => {
-    expect(formatDecisionDate("2025-03-09")).toBe("Mar 9");
   });
 });

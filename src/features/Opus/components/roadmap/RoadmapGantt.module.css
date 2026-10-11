@@ -106,8 +106,7 @@
 
 .label { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding-inline: var(--space-2); white-space: nowrap; }
 .title { min-width: 0; overflow: hidden; font-size: var(--text-sm); font-weight: 500; text-overflow: ellipsis; }
-.tag { display: inline-flex; flex: none; align-items: center; gap: var(--space-1); color: var(--text-secondary); font-size: var(--text-xs); }
-.dot { width: var(--space-2); height: var(--space-2); border-radius: var(--radius-pill); background: var(--tone); }
+.dot { flex: none; width: var(--space-2); height: var(--space-2); border-radius: var(--radius-pill); background: var(--tone); }
 
 .item[data-kind="bar"] { left: calc(var(--l) * 1%); }
 .item[data-placement="inside"] { width: calc(var(--w) * 1%); }

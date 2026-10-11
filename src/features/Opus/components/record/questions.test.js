@@ -4,7 +4,6 @@ import {
   DEFAULT_QUESTION_FILTER,
   parseQuestionFilter,
   isBlockingOpen,
-  countQuestions,
   filterQuestions,
   sortQuestions,
   questionStatusLabel,
@@ -54,15 +53,6 @@ describe("filters", () => {
 });
 
 describe("counts", () => {
-  it("counts open, answered, all and blocking (open only)", () => {
-    expect(countQuestions(sample)).toEqual({ open: 2, answered: 2, all: 4, blocking: 1 });
-  });
-
-  it("is zero for no questions", () => {
-    expect(countQuestions([])).toEqual({ open: 0, answered: 0, all: 0, blocking: 0 });
-    expect(countQuestions(null)).toEqual({ open: 0, answered: 0, all: 0, blocking: 0 });
-  });
-
   it("an answered blocking question no longer blocks", () => {
     expect(isBlockingOpen(sample[2])).toBe(false);
     expect(isBlockingOpen(sample[0])).toBe(true);

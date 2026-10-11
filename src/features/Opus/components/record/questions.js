@@ -26,17 +26,6 @@ export const isAnswered = (question) => question?.status === "answered";
 /** Only an open question blocks anything; an answered one has stopped. */
 export const isBlockingOpen = (question) => Boolean(question?.blocking) && !isAnswered(question);
 
-export const countQuestions = (questions) => {
-  const list = asList(questions);
-  const answered = list.filter(isAnswered).length;
-  return {
-    open: list.length - answered,
-    answered,
-    all: list.length,
-    blocking: list.filter(isBlockingOpen).length,
-  };
-};
-
 export const filterQuestions = (questions, filter) => {
   const list = asList(questions);
   if (filter === "answered") return list.filter(isAnswered);

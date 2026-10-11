@@ -54,13 +54,3 @@ export const groupDecisionsByMonth = (sorted) =>
     }
     return [...groups, { key, label: monthLabel(key), items: [decision] }];
   }, []);
-
-/** "Oct 14", with the year once it is not the current one ("Oct 14, 2025"). `today` is "YYYY-MM-DD". */
-export const formatDecisionDate = (value, today) => {
-  const day = dayOf(value);
-  if (!day) return "No date";
-  const [year, month, date] = day.split("-").map(Number);
-  const label = `${MONTHS_SHORT[month - 1]} ${date}`;
-  const currentYear = Number(String(today ?? "").slice(0, 4));
-  return currentYear && year !== currentYear ? `${label}, ${year}` : label;
-};
