@@ -35,7 +35,7 @@ Severity: high = blocks a task for keyboard or screen reader users, medium = wor
 | 25 | Shell | Sidebar toggle had a flipping name plus `aria-expanded` | low | 4.1.2 | Fixed: removed `aria-expanded`, name says the action |
 | 26 | Shell | Landmarks | n/a | 1.3.1 | Verified: banner, nav "Primary", complementary "Sidebar", main, h1 per page |
 | 27 | Tab strip | Tabs had no tabpanel | medium | 4.1.2 | Fixed: content wrapped in `role=tabpanel` labelled by the active tab; tabs get ids and `aria-controls` |
-| 28 | Tab strip | Close buttons are out of the tab order (`tabIndex=-1`) and the Delete/Backspace route was undeclared | medium | 2.1.1 | Delete/Backspace now declared with `aria-keyshortcuts`; close buttons are named "Close <title>" |
+| 28 | Tab strip | Close buttons are out of the tab order (`tabIndex=-1`) and the Delete route was undeclared | medium | 2.1.1 | Delete declared with `aria-keyshortcuts` (Backspace no longer closes a tab, 2026-10-11); close buttons are named "Close <title>" |
 | 29 | Tab strip | Close buttons live inside `role=tablist` through a `presentation` wrapper, which strict validators flag | low | 1.3.1 | Not fixed: restructuring the strip changes its layout |
 | 30 | Tree | Rows rely on Arc's global focus ring; the ring is switched off for `tabindex=-1` elements, which is correct for roving tabindex only because the focused row is always `tabindex=0` after focus | low | 2.4.7 | Verified by test (one tab stop that follows focus); not verified visually |
 

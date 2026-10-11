@@ -7,6 +7,7 @@ import CodexTabStrip from "./components/CodexTabStrip.jsx";
 import { CODEX_PANEL_ID, codexTabId } from "./components/tabIds.js";
 import NewTabPage from "./components/NewTabPage.jsx";
 import NotesSidebar from "./components/NotesSidebar.jsx";
+import { normalizeFolder } from "./folderTree.js";
 
 // Shortcuts are not text-editing commands, so they work from the editor too.
 // A dialog (including the palette) owns the keyboard while it is open.
@@ -48,7 +49,7 @@ export default function CodexPage({
 }) {
   const { tabs, activeTab, activeNoteId, openNote, activate, close, newTab, openNotesView } = codex;
   const { createNote, notesMeta } = useData();
-  const activeFolder = notes.find((n) => n.id === activeNoteId)?.folder ?? "";
+  const activeFolder = normalizeFolder(notes.find((n) => n.id === activeNoteId)?.folder);
 
   // The shared onCreateNote takes no arguments; folder-aware creation lives here.
   const createNoteInFolder = useCallback(

@@ -171,7 +171,8 @@ export default function NotesSidebar({
     : (rows.find((r) => r.key === `n:${currentNoteId}`) ?? rows[0])?.key;
 
   const isEmpty = notes.length === 0 && folderPaths.length === 0;
-  const menuFolder = menuTarget?.kind === "folder" ? menuTarget.path : targetFolder;
+  // Blank space means the vault root, not the selected or active folder.
+  const menuFolder = menuTarget?.kind === "folder" ? menuTarget.path : "";
 
   return (
     <nav className={styles.sidebar} aria-label="Notes">

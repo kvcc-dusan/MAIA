@@ -87,6 +87,14 @@ describe("CodexPage folder-aware note creation", () => {
     expect(mockData.createNote).toHaveBeenCalledWith({});
   });
 
+  it("normalises the active note's folder before creating in it", () => {
+    const messy = [{ id: "m", title: "Messy", folder: " Omnis / PROJECTS/ " }];
+    const { codex } = setup({ activeTab: noteTab("m"), props: { notes: messy } });
+    fireEvent.keyDown(window, { key: "n", metaKey: true });
+    expect(mockData.createNote).toHaveBeenCalledWith({ folder: "Omnis/PROJECTS" });
+    expect(codex.openNote).toHaveBeenCalledWith("new-id");
+  });
+
   it("Cmd+N creates in the active note's folder", () => {
     const { codex } = setup({ activeTab: noteTab("a") });
     fireEvent.keyDown(window, { key: "n", metaKey: true });
@@ -116,6 +124,8 @@ describe("CodexPage folder-aware note creation", () => {
     const pill = screen.getAllByRole("button").find((b) => !sidebar().contains(b) && b.textContent.includes("New note"));
     fireEvent.click(pill);
     expect(onCreateNote).toHaveBeenCalledTimes(1);
+    // The click event must not reach the handler; it would be read as a folder path.
+    expect(onCreateNote).toHaveBeenCalledWith();
     expect(mockData.createNote).not.toHaveBeenCalled();
   });
 

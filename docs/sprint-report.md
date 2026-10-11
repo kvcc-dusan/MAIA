@@ -16,12 +16,12 @@ Final state: 136 test files, 1766 tests pass; `npm run build` passes; eslint 0 e
 
 ## Needs your yes or your taste (full list: `docs/sprint-questions.md`)
 
-1. Blank-space "New note here" in the tree: create at the vault root (Obsidian convention) or in the selected folder (current)?
-2. Block `.html/.htm/.xhtml` in "open in default app"? (recommended; svg stays)
-3. Atomic writes in the Tauri adapter (temp file + rename): recommended, but only after trying it in a real `tauri dev` window.
-4. Fix muted-text and border contrast in kvcc-arc (`--neutral-7`, `--border`), then MAIA can go back to `--text-muted`.
-5. Drop Backspace as a tab-close key, keep Delete.
-6. Delete orphans: `src/components/ColorBends.css`, fontsource `manrope` and `roboto`.
+1. Blank-space "New note here": vault root (decided 2026-10-11, done).
+2. `.html/.htm/.xhtml` blocked in "open in default app", svg kept (decided and done).
+3. Atomic writes (temp file + rename): built and ON (`ATOMIC_WRITES` in `src/lib/atomicWrite.js`); the user tests it in the real window before it is trusted.
+4. Muted-text and border contrast: the user fixes kvcc-arc later (`--neutral-7` to about oklch(54% 0 0), plus a stronger input border token), then MAIA can go back to `--text-muted`.
+5. Backspace as a tab-close key: dropped, Delete kept (decided 2026-10-11).
+6. Orphans (`ColorBends.css`, manrope/roboto packages): deleted (decided 2026-10-11).
 
 ## Not verified (needs a real window or a terminal with Drive access)
 

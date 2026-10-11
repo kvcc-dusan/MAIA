@@ -144,7 +144,7 @@ describe("move dialog focus", () => {
   beforeEach(() => localStorage.clear());
   afterEach(cleanup);
 
-  it("is labelled, starts on the current folder, and hands focus back to the row", async () => {
+  it("is labelled, starts on the first available folder, and hands focus back to the row", async () => {
     const { user } = setup();
     await user.click(screen.getByText("Omnis"));
     item("AGENTS").focus();
@@ -152,7 +152,8 @@ describe("move dialog focus", () => {
     await user.click(await screen.findByRole("menuitem", { name: "Move to folder" }));
     const dialog = await screen.findByRole("dialog", { name: "Move to folder" });
     expect(dialog.getAttribute("aria-describedby")).toBeTruthy();
-    await waitFor(() => expect(document.activeElement?.getAttribute("aria-label")).toBe("Omnis, current folder"));
+    // The current folder is disabled, so focus starts on the first place the note can go.
+    await waitFor(() => expect(document.activeElement?.getAttribute("aria-label")).toBe("Vault root"));
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     await waitFor(() => expect(document.activeElement).toBe(item("AGENTS")));

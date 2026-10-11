@@ -81,14 +81,23 @@ describe("NotesSidebar context menu", () => {
     expect(menuItem("Move to folder")).toBeNull();
   });
 
-  // Blank space uses the selected/active folder, not the vault root. Pinned as
-  // current behaviour while the intent is an open question (see docs/sprint-questions.md).
-  it("blank space creates in the selected folder (current behaviour)", async () => {
+  it("blank space creates at the vault root even when a folder is selected", async () => {
     const { onCreateNote } = setup();
     fireEvent.click(screen.getByText("Omnis"));
     contextMenuOn(screen.getByRole("tree"));
     fireEvent.click(await screen.findByRole("menuitem", { name: "New note here" }));
-    expect(onCreateNote).toHaveBeenCalledWith("Omnis");
+    expect(onCreateNote).toHaveBeenCalledWith("");
+  });
+
+  it("blank space opens the new folder dialog at the vault root even when a folder is selected", async () => {
+    const { onCreateFolder } = setup();
+    fireEvent.click(screen.getByText("Omnis"));
+    contextMenuOn(screen.getByRole("tree"));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "New folder here" }));
+    expect(screen.getByText("Created in Vault root.")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Folder name"), { target: { value: "Ideas" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create folder" }));
+    expect(onCreateFolder).toHaveBeenCalledWith("Ideas");
   });
 
   it("blank space creates at the root when nothing is selected", async () => {

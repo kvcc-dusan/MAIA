@@ -23,7 +23,7 @@ Pages (`PAGES` in `src/App.jsx`): `codex`, `projects` (Opus), `graph` (Conexa). 
 - Primitives: `@base-ui/react` 1.6 (`Menu`), Radix packages (dialog, popover, select, tabs, tooltip, dropdown-menu, context-menu and more), `cmdk` (command palette via `ui/command.jsx`), `@dnd-kit` (Opus board only), `sonner` (toasts).
 - Data and MCP: `yaml` 2.9 (frontmatter), `zod` 4 and `@modelcontextprotocol/sdk` 1.x (the `mcp/` server).
 - Desktop: `@tauri-apps/api`, `plugin-dialog`, `plugin-fs` (2.x), `src-tauri/`. Icons: `lucide-react` (see Conventions). Tests: Vitest 4, jsdom 27, Testing Library.
-- Gone: Recharts (Ledger charts are Arc charts), the Today dnd grid, the dock, ColorBends. Fontsource `manrope` and `roboto` are still in `package.json`, unimported.
+- Gone: Recharts (Ledger charts are Arc charts), the Today dnd grid, the dock, ColorBends. The unused Manrope and Roboto fontsource packages were removed.
 
 ## Feature map
 
@@ -194,8 +194,7 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
   - Arc calendar is Sunday-first (no week-start prop). Chronos's calendar is hand-built.
   - `IconButton` is still on `ui/tooltip`.
   - The Gallery Menus section crashes (`Menu.Label` outside `Menu.Group`, pre-existing).
-- **Orphans, deletion needs Dušan's yes:** `src/components/ColorBends.css` (no importers), `@fontsource-variable/manrope` and `@fontsource-variable/roboto` (no imports).
-- **Deleted (approved):** `GlassCard`, `GlassSurface`, `ColorBends`, `ui/dock`, `styles/home.css`, `dottedBg`, session colour class maps, `--dock-h*` tokens, Recharts, the old Opus record and task-band pieces, `LedgerPage`. Legacy names still in use: `GlassSkeleton.jsx`, `GlassErrorBoundary.jsx`.
+- **Deleted (approved):** `GlassCard`, `GlassSurface`, `ColorBends` (and its CSS), the manrope/roboto fontsource packages, `ui/dock`, `styles/home.css`, `dottedBg`, session colour class maps, `--dock-h*` tokens, Recharts, the old Opus record and task-band pieces, `LedgerPage`. Legacy names still in use: `GlassSkeleton.jsx`, `GlassErrorBoundary.jsx`.
 
 ## Components
 

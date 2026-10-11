@@ -8,8 +8,8 @@ const MOD = isMac ? "⌘" : "Ctrl+";
 /** The empty tab's landing page: four ways to start. */
 export default function NewTabPage({ onCreateNote, onCreateJournal, onOpenNotesView, onGoToFile }) {
   const actions = [
-    { label: "New note", icon: SquarePen, hint: `${MOD}N`, run: onCreateNote },
-    { label: "New journal", icon: NotebookPen, run: onCreateJournal },
+    { label: "New note", icon: SquarePen, hint: `${MOD}N`, run: () => onCreateNote() },
+    { label: "New journal", icon: NotebookPen, run: () => onCreateJournal() },
     { label: "Codex", icon: BookOpen, run: onOpenNotesView },
     { label: "Go to file", icon: FileSearch, hint: `${MOD}O`, run: onGoToFile },
   ];

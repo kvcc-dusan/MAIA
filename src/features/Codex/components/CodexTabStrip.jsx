@@ -58,7 +58,7 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
     } else if (event.key === "End") {
       event.preventDefault();
       moveFocus(tabs[tabs.length - 1].id);
-    } else if (event.key === "Delete" || event.key === "Backspace") {
+    } else if (event.key === "Delete") {
       event.preventDefault();
       refocusRef.current = true;
       onClose(tab.id);
@@ -92,7 +92,7 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
                 data-tab-id={tab.id}
                 aria-selected={isActive}
                 aria-controls={isActive ? CODEX_PANEL_ID : undefined}
-                aria-keyshortcuts="Delete Backspace"
+                aria-keyshortcuts="Delete"
                 tabIndex={tab.id === rovingId ? 0 : -1}
                 title={title}
                 onClick={() => onActivate(tab.id)}

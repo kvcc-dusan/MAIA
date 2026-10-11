@@ -15,11 +15,17 @@ Append-only. Each entry: agent, bug or question, repro, suggested fix.
 - **Repro:** Select folder "Omnis" in the tree, right-click empty space, choose "New note here". The note is created in "Omnis". Pinned by a test in `NotesSidebar.contextMenu.test.jsx` as current behaviour.
 - **Question:** Is "blank space" meant to mean the vault root (the Obsidian convention) or the current selection? If root, `menuFolder` in `NotesSidebar.jsx` should be `""` for `kind: "root"`, and the test should change with it.
 
+**Resolved 2026-10-11:** blank space creates at the vault root. See Decisions (2026-10-11).
+
+
 ## Codex tests agent: NewTabPage passes the click event into onCreateNote (minor)
 
 - **Repro:** `NewTabPage.jsx` wires `onClick={action.run}`, so `onCreateNote` receives a `MouseEvent`. `App.jsx` `handleCreateNote` takes no arguments, so the note lands at the root today.
 - **Risk:** If the handler ever takes an optional folder argument, it will receive the event.
 - **Suggested fix:** `run: () => onCreateNote()` in `NewTabPage.jsx`.
+
+**Resolved 2026-10-11:** `NewTabPage.jsx` now calls `onCreateNote()` with no arguments, pinned by a test in `CodexPage.test.jsx`.
+
 
 ## Codex tests agent: CodexPage reads the active note's folder without normalising it (minor)
 
@@ -27,10 +33,16 @@ Append-only. Each entry: agent, bug or question, repro, suggested fix.
 - **Repro (likely):** A note whose folder is `" Omnis/"` (hand-edited frontmatter) makes ⌘N and the new-tab path pass `" Omnis/"` to `createNote`, while the sidebar treats it as `"Omnis"`.
 - **Suggested fix:** Use `normalizeFolder(...)` in `CodexPage.jsx` too.
 
+**Resolved 2026-10-11:** `CodexPage.jsx` runs the active note's folder through `normalizeFolder`, pinned by a test in `CodexPage.test.jsx`.
+
+
 ## Codex tests agent: MoveNoteDialog marks the current folder but does not disable it (question)
 
 - **Behaviour:** The current folder gets `aria-current` and a check icon, but stays clickable. Clicking it closes the dialog and does nothing, because `moveTo` returns early.
 - **Question:** Is that enough, or should the row be `disabled` so screen readers announce it as unavailable?
+
+**Resolved 2026-10-11:** the current folder is `disabled`. It keeps the check icon and `aria-current`, and it is skipped by Tab.
+
 
 ## a11y agent: muted text is below 4.5:1 in the light theme (taste)
 - **Finding:** Arc's `--text-muted` (`--neutral-7`, oklch 59%) measures 4.11:1 on `--background` and 3.86:1 on `--surface-muted` in the light theme (dark theme passes: 5.49 and 4.62). It fails WCAG 1.4.3 for text. Numbers come from `src/lib/contrast.test.js`.
@@ -44,9 +56,23 @@ Append-only. Each entry: agent, bug or question, repro, suggested fix.
 ## a11y agent: Delete and Backspace close a Codex tab (behaviour)
 - Keeping it, now declared with `aria-keyshortcuts`. The per-tab close buttons stay out of the tab order (`tabIndex=-1`), so Delete is the keyboard route. Backspace as a close key is easy to hit by accident; recommendation: drop Backspace, keep Delete.
 
+**Resolved 2026-10-11:** Backspace is dropped as a close key; Delete stays. `aria-keyshortcuts` is now `Delete`.
+
+
 ## Resolved by the a11y agent
 - "focus lost after cancelling Move to folder from the tree context menu" (Codex tests agent): `NotesSidebar` now hands focus back to the row the menu was opened on, through `onCloseAutoFocus` on `MoveNoteDialog` and the new-folder dialog. The `it.fails` test is now a normal `it`.
 
 ## data-safety reviewer (mcp, opusFiles, lib.rs)
 - Q: Should `open_in_default_app` also refuse .html/.htm/.xhtml/.svg? They open in the browser from file:// and can run script; a project asset could be one. Blocking changes what the Library "Open" does for those files. Recommendation: block html/htm/xhtml, keep svg (images preview anyway), show "Open it from Finder if you trust it".
 - Q: The Tauri adapter writes existing files in place (`writeTextFile` truncates then writes), so a crash or power loss mid-write leaves a partial file (the MCP server already writes temp + rename). Fix is temp file next to the target + `rename`, but the temp name must not start with a dot (fs scope) so Obsidian/Drive would briefly see `<name>.md.tmp`, and the watcher must ignore it. Recommendation: do it, but only after trying it in a real `tauri dev` window; I could not verify it there.
+
+## Decisions (2026-10-11)
+
+- **Blank space in the Codex tree creates at the vault root**, not the selected or active folder. Right-clicking a folder still creates inside that folder.
+- **html/htm/xhtml are blocked in open-in-default-app; svg is kept.** Being implemented by another agent.
+- **Atomic saves** (temp file + rename) are approved to build. Dušan tests first in a real `tauri dev` window before it ships.
+- **Contrast:** Dušan will fix kvcc-arc later. The values are logged above (muted text and `--border`).
+- **Tab close:** Backspace is dropped as a close key; Delete is kept.
+- **Move dialog:** the note's current folder is disabled.
+- **Orphans deleted:** `src/components/ColorBends.css`, `@fontsource-variable/manrope`, `@fontsource-variable/roboto`.
+- **Minor items resolved:** `NewTabPage` no longer passes the click event into `onCreateNote`; `CodexPage` normalises the active note's folder.

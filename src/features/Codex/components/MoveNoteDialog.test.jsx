@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import MoveNoteDialog from "./MoveNoteDialog.jsx";
 
 const folders = ["Areas", "Omnis", "Omnis/PROJECTS"];
@@ -29,6 +30,27 @@ describe("MoveNoteDialog", () => {
     expect(pickRow("Omnis").getAttribute("aria-current")).toBe("true");
     expect(pickRow("Omnis").getAttribute("aria-label")).toBe("Omnis, current folder");
     expect(pickRow("Vault root").getAttribute("aria-current")).toBeNull();
+  });
+
+  it("disables the current folder so it cannot be picked", async () => {
+    const user = userEvent.setup();
+    const { onMove, onClose } = renderDialog();
+    const current = pickRow("Omnis");
+    expect(current.disabled).toBe(true);
+    await user.click(current);
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(document.activeElement).not.toBe(current);
+  });
+
+  it("keeps the disabled current folder out of the tab order", async () => {
+    const user = userEvent.setup();
+    renderDialog();
+    const current = pickRow("Omnis");
+    pickRow("Vault root").focus();
+    await user.tab();
+    expect(document.activeElement).not.toBe(current);
+    expect(document.activeElement).toBe(pickRow("Areas"));
   });
 
   it("marks Vault root as current for a note at the root", () => {

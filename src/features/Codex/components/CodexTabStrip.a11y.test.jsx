@@ -58,10 +58,19 @@ describe("CodexTabStrip accessibility", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
     const [first] = screen.getAllByRole("tab");
-    expect(first).toHaveAttribute("aria-keyshortcuts", "Delete Backspace");
+    expect(first).toHaveAttribute("aria-keyshortcuts", "Delete");
     first.focus();
     await user.keyboard("{Delete}");
     expect(onClose).toHaveBeenCalledWith("t1");
+  });
+
+  it("does not close a tab on Backspace", async () => {
+    const user = userEvent.setup();
+    const { onClose } = setup();
+    const [first] = screen.getAllByRole("tab");
+    first.focus();
+    await user.keyboard("{Backspace}");
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("names each close button after its tab and still lets a pointer or switch user close it", async () => {
