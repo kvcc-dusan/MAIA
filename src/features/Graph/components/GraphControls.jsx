@@ -21,12 +21,7 @@ const VIEW_OPTIONS = [
     { value: "3d", label: "3D" },
 ];
 
-const COLOR_BY_OPTIONS = [
-    { value: "folder", label: "Folder" },
-    { value: "tag", label: "Tag" },
-];
 
-const LEGEND_LIMIT = 10;
 
 const SLIDERS = {
     display: [
@@ -163,27 +158,6 @@ export default function GraphControls({
                             value={view.mode}
                             onValueChange={view.setMode}
                         />
-                        {view.mode === "3d" && (
-                            <>
-                                <SegmentedControl
-                                    label="Color by"
-                                    options={COLOR_BY_OPTIONS}
-                                    value={view.colorBy}
-                                    onValueChange={view.setColorBy}
-                                />
-                                <ul className={styles.clusters} aria-label={`Colors by ${view.colorBy}`}>
-                                    {view.legend.slice(0, LEGEND_LIMIT).map(g => (
-                                        <li key={g.key} className={styles.legendRow}>
-                                            <span className={styles.rowMain}>
-                                                <span className={styles.dot} style={{ background: g.color }} aria-hidden="true" />
-                                                <span className={styles.truncate}>{g.label}</span>
-                                            </span>
-                                            <span className={styles.count}>{g.count}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        )}
                     </div>
 
                     <div className={styles.section}>

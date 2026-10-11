@@ -64,14 +64,15 @@ describe("GraphControls accessibility", () => {
     expect(document.activeElement).toBe(toggle);
   });
 
-  it("exposes the dimension and colour choices as named groups of pressed buttons", async () => {
+  it("exposes the dimension choice as a named group of pressed buttons and has no colour picker", async () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.click(screen.getByRole("button", { name: "Graph controls" }));
     const group = screen.getByRole("group", { name: "Graph dimensions" });
     expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
     expect(group).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Color by" })).toBeInTheDocument();
+    // The graph is monochrome now, so there is nothing to colour by.
+    expect(screen.queryByRole("group", { name: "Color by" })).toBeNull();
   });
 
   it("exposes every slider with a name and a value text", async () => {

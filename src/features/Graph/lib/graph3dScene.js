@@ -9,15 +9,18 @@ import {
 } from "./graphData3d.js";
 import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
 import {
-  createNodeParts, createSharedAssets, disposeParts, ensureLabel, pulseRing, resizeLabel, stylePart,
+  LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, pulseRing, resizeLabel, stylePart,
 } from "./nodeObjects3d.js";
 
-const LINK_CURVATURE = 0.2;
+const LINK_CURVATURE = 0; // straight links
 const LINK_ALPHA = { base: 0.5, bright: 0.95, lit: 0.5, dim: 0.04 };
-const GLOW_OPACITY = 0.85;
 const HOVER_SCALE = 1.3;
-const LABEL_NEAR = 80;
-const LABEL_FAR = 280;
+// Labels stay readable from far away: the fade distances are large, and each label is resized with the
+// camera distance so it keeps roughly the same size on screen instead of shrinking to nothing.
+const LABEL_NEAR = 450;
+const LABEL_FAR = 1800;
+const LABEL_SCREEN_RATIO = 0.011;
+const LABEL_MAX_RATIO = 0.022;
 const LABEL_INTERVAL_MS = 120;
 const DOUBLE_CLICK_MS = 350;
 const FLY_MS = 900;
@@ -70,24 +73,21 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     widthKey: null,
   };
 
-  const colorOf = (node) => {
-    const { colors, groupOf, neutral } = s.style;
-    return colors.get(groupOf.get(node.id)) ?? neutral;
-  };
+  // Monochrome on purpose: hubs shade toward the foreground colour, everything else stays neutral grey.
+  const colorOf = (node) => mixInts(s.style.neutral, s.style.fgInt, clamp01((node.degree ?? 0) / 10) * 0.7);
 
   // --- node styling -------------------------------------------------------
 
   const styleOne = (parts) => {
-    const { style, focus, tier } = s;
+    const { style, focus } = s;
     const lit = isLit(focus, parts.node.id);
     const hovered = focus.hoverId === parts.node.id;
     stylePart(parts, {
       radius: nodeRadius(parts.node, parts.node.degree, style.nodeSize) * (hovered ? HOVER_SCALE : 1),
       color: colorOf(parts.node),
       opacity: lit ? 1 : DIM_OPACITY,
-      // Additive glow vanishes on a light background, so it is dark theme only.
-      glow: tier.glow && style.isDark,
-      glowOpacity: GLOW_OPACITY,
+      glow: false,
+      glowOpacity: 0,
     });
     resizeLabel(parts, style.fontSize);
   };
@@ -150,6 +150,10 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       }
       parts.label.visible = true;
       parts.label.material.opacity = opacity;
+      const dist = Math.hypot(cam.x - n.x, cam.y - n.y, cam.z - n.z);
+      const baseHeight = LABEL_TEXT_HEIGHT * style.fontSize;
+      const height = Math.min(Math.max(baseHeight, dist * LABEL_SCREEN_RATIO * style.fontSize), dist * LABEL_MAX_RATIO * style.fontSize + baseHeight);
+      resizeLabel(parts, height / LABEL_TEXT_HEIGHT);
     });
   }
 
