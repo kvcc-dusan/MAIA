@@ -38,5 +38,9 @@ export const createGravityForce = (strength = 0) => {
   return force;
 };
 
-/** Link width in world units from the Link thickness control (px). */
-export const linkWidthFor = (thickness, thin) => (thin ? 0 : thickness * 0.14);
+// Up to this slider value a cylinder is under a pixel wide at normal viewing distance anyway, so plain
+// lines look the same and cost less (no tube geometry, no lighting, cheaper raycasts).
+const LINE_MAX_THICKNESS = 1.5;
+
+/** Link width in world units from the Link thickness control (px); 0 means a plain line. */
+export const linkWidthFor = (thickness, thin) => (thin || thickness <= LINE_MAX_THICKNESS ? 0 : thickness * 0.14);

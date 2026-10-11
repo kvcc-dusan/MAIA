@@ -3,25 +3,38 @@
 // never recreates the WebGL context. Everything three.js owns is released in
 // destroy().
 import ForceGraph3D from "3d-force-graph";
-import { intToHex, intToHexAlpha, mixInts } from "./colorConvert.js";
+import { Vector3 } from "three";
+import { intToHex, mixInts } from "./colorConvert.js";
 import {
-  DIM_OPACITY, boundingSphere, buildAdjacency, computeFocus, fitDistance, flyTarget, isLit, linkRotation, nodeRadius, qualityTier,
+  DIM_OPACITY, boundingSphere, buildAdjacency, computeFocus, diffFocus, fitDistance, flyTarget, isLit, linkRotation, linkState,
+  nodeRadius, qualityTier,
 } from "./graphData3d.js";
 import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
+import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
+import { createLinkMaterials } from "./linkMaterials3d.js";
 import {
-  LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, pulseRing, resizeLabel, stylePart,
+  LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, labelOffset, pulseRing, releaseLabel,
+  repositionLabel, resizeLabel, setLabelColor, stylePart,
 } from "./nodeObjects3d.js";
 
 const LINK_CURVATURE = 0; // straight links
 const LINK_ALPHA = { base: 0.5, bright: 0.95, lit: 0.5, dim: 0.04 };
+const LINK_BRIGHT_MIX = 0.4;
 const HOVER_SCALE = 1.3;
-// Labels stay readable from far away: the fade distances are large, and each label is resized with the
-// camera distance so it keeps roughly the same size on screen instead of shrinking to nothing.
-const LABEL_NEAR = 450;
-const LABEL_FAR = 1800;
+// Labels stay readable from far away: each one is sized from the camera distance so it keeps roughly the
+// same size on screen, and a screen-space pass (labelLayout.js) decides which of them fit without overlapping.
 const LABEL_SCREEN_RATIO = 0.011;
 const LABEL_MAX_RATIO = 0.022;
 const LABEL_INTERVAL_MS = 120;
+const LABEL_OPACITY = 0.85;
+const LABEL_FADE_MS = 160;
+const LABEL_RESIZE_TOLERANCE = 0.05;
+const LABEL_MAX_NEW_PER_PASS = 8; // building a SpriteText canvas is the expensive part
+const LABEL_POOL_FACTOR = 2; // labels kept alive, relative to the visible cap
+const LABEL_RELEASE_PER_PASS = 12;
+const MAX_FRAME_DT_MS = 50;
+const RETIRE_DELAY_MS = 1500;
+const ALPHA_MIN = 0.002; // d3 stops the simulation here instead of ticking until cooldownTime
 const DOUBLE_CLICK_MS = 350;
 const FLY_MS = 900;
 const FIT_MS = 700;
@@ -60,7 +73,21 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     hoverId: null,
     matchIds: null,
     clusterIds: null,
+    links: [],
+    linksOf: new Map(),
+    linkMats: createLinkMaterials(),
+    retired: [],
+    retireTimer: 0,
+    hot: new Set(),
+    fading: new Set(),
+    focusDirty: false,
     labelCount: 0,
+    labelsCreated: 0,
+    labelPass: 0,
+    forceResize: false,
+    width: 0,
+    height: 0,
+    lastFrameT: 0,
     paused: false,
     destroyed: false,
     interacted: false,
@@ -86,10 +113,8 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       radius: nodeRadius(parts.node, parts.node.degree, style.nodeSize) * (hovered ? HOVER_SCALE : 1),
       color: colorOf(parts.node),
       opacity: lit ? 1 : DIM_OPACITY,
-      glow: false,
-      glowOpacity: 0,
     });
-    resizeLabel(parts, style.fontSize);
+    repositionLabel(parts);
   };
 
   const styleAll = () => {
@@ -97,79 +122,218 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     s.parts.forEach(styleOne);
   };
 
-  const linkColor = (link) => {
+  // --- links ---------------------------------------------------------------
+
+  // Hands out shared materials; a hover swaps pointers instead of asking the library to rebuild every link.
+  const materialForLink = (link) => {
+    if (!s.style) return undefined;
     const a = endId(link.source);
     const b = endId(link.target);
     const node = s.nodeById.get(a);
     const base = node ? colorOf(node) : s.style.neutral;
-    const { focus } = s;
-    if (focus.lit === null) return intToHexAlpha(base, LINK_ALPHA.base);
-    const touches = focus.kind === "hover" ? a === focus.hoverId || b === focus.hoverId : focus.lit.has(a) && focus.lit.has(b);
-    if (!touches) return intToHexAlpha(base, LINK_ALPHA.dim);
-    if (focus.kind === "hover") return intToHexAlpha(mixInts(base, s.style.fgInt, 0.4), LINK_ALPHA.bright);
-    return intToHexAlpha(base, LINK_ALPHA.lit);
+    const state = linkState(s.focus, a, b);
+    const color = state === "bright" ? mixInts(base, s.style.fgInt, LINK_BRIGHT_MIX) : base;
+    return s.linkMats.get(color, LINK_ALPHA[state]);
   };
 
-  // A fresh function each time: the library only re-reads the accessor on change.
-  const refreshLinks = () => graph.linkColor((link) => linkColor(link));
+  const swapLinkMaterial = (link) => {
+    const object = link.__lineObj; // set by three-forcegraph once the link has a three.js object
+    const material = object ? materialForLink(link) : undefined;
+    if (material) object.material = material;
+  };
 
+  /** @param {string[]|null} changedIds node ids whose state changed; null restyles every link */
+  const restyleLinks = (changedIds) => {
+    if (!s.style) return;
+    if (changedIds === null || changedIds.length * 2 > s.nodes.length) {
+      s.links.forEach(swapLinkMaterial);
+      return;
+    }
+    const done = new Set();
+    changedIds.forEach((id) => {
+      (s.linksOf.get(id) || []).forEach((link) => {
+        if (done.has(link)) return;
+        done.add(link);
+        swapLinkMaterial(link);
+      });
+    });
+  };
+
+  // Disposed late: the library swaps its link objects over on its next update, and until then they may still draw with these.
+  const retireMaterials = (materials) => {
+    if (materials.length === 0) return;
+    s.retired.push(...materials);
+    if (s.retireTimer) return;
+    s.retireTimer = window.setTimeout(() => {
+      s.retired.forEach((m) => m.dispose());
+      s.retired = [];
+      s.retireTimer = 0;
+    }, RETIRE_DELAY_MS);
+  };
+
+  // Only the nodes whose lit/hover state changed are restyled, and only links touching them.
   const applyFocus = () => {
+    const prev = s.focus;
     s.focus = computeFocus({
       hoverId: s.hoverId, adjacency: s.adjacency, matchIds: s.matchIds, clusterIds: s.clusterIds,
     });
-    styleAll();
-    if (s.style) refreshLinks();
+    if (!s.style) return;
+    const changed = diffFocus(prev, s.focus, s.parts.keys());
+    changed.forEach((id) => styleOne(s.parts.get(id)));
+    restyleLinks(changed);
     updateLabels(true);
   };
 
-  // --- labels and pulse (own loop, runs only while visible) ----------------
+  // --- labels ---------------------------------------------------------------
 
-  function updateLabels(force = false) {
-    if (!s.style) return;
-    const now = performance.now();
-    if (!force && now - s.lastLabelPass < LABEL_INTERVAL_MS) return;
-    s.lastLabelPass = now;
-    const cam = graph.camera().position;
+  const projected = new Vector3();
+
+  // Screen-constant size: world height grows with camera distance, within a clamp.
+  const labelWorldHeight = (dist, fontSize) => {
+    const base = LABEL_TEXT_HEIGHT * fontSize;
+    return Math.min(Math.max(base, dist * LABEL_SCREEN_RATIO * fontSize), dist * LABEL_MAX_RATIO * fontSize + base);
+  };
+
+  const setLabelTarget = (parts, target) => {
+    if (!parts.label) return;
+    parts.labelTarget = target;
+    if (target > 0) parts.label.visible = true;
+    if (parts.labelOpacity !== target) s.fading.add(parts);
+  };
+
+  const stepFades = (dt) => {
+    if (s.fading.size === 0) return;
+    const step = reducedMotion ? 1 : dt / LABEL_FADE_MS;
+    s.fading.forEach((parts) => {
+      if (!parts.label) {
+        s.fading.delete(parts);
+        return;
+      }
+      parts.labelOpacity = stepToward(parts.labelOpacity, parts.labelTarget, step);
+      parts.label.material.opacity = parts.labelOpacity;
+      if (parts.labelOpacity === parts.labelTarget) {
+        parts.label.visible = parts.labelTarget > 0;
+        s.fading.delete(parts);
+      }
+    });
+  };
+
+  // Frees the canvas textures of labels that have been hidden the longest.
+  const trimLabelPool = () => {
+    const max = s.tier.labelCap * LABEL_POOL_FACTOR;
+    if (s.labelCount <= max) return;
+    const idle = [];
+    s.parts.forEach((parts) => {
+      if (parts.label && parts.labelTarget === 0 && parts.labelOpacity === 0) idle.push(parts);
+    });
+    idle.sort((a, b) => (a.labelSeen ?? 0) - (b.labelSeen ?? 0));
+    idle.slice(0, Math.min(s.labelCount - max, LABEL_RELEASE_PER_PASS)).forEach((parts) => {
+      releaseLabel(parts);
+      s.fading.delete(parts);
+      s.labelCount -= 1;
+    });
+  };
+
+  const collectCandidates = (camera) => {
     const { focus, style } = s;
+    const pxPerUnit = s.height / (2 * Math.tan((camera.fov * Math.PI) / 360));
+    const candidates = [];
     s.parts.forEach((parts) => {
       const n = parts.node;
       if (n.x === undefined) return;
-      const emphasised = (focus.kind === "hover" || focus.kind === "search") && focus.lit.has(n.id);
-      const hiddenByFocus = focus.lit !== null && !emphasised;
-      // Hubs read from further away, so the overview still names the big nodes.
-      const d = Math.hypot(cam.x - n.x, cam.y - n.y, cam.z - n.z) / (1 + n.degree * 0.06);
-      const opacity = emphasised ? 1 : hiddenByFocus ? 0 : clamp01((LABEL_FAR - d) / (LABEL_FAR - LABEL_NEAR)) * 0.85;
-      if (opacity < 0.04) {
-        if (parts.label) parts.label.visible = false;
-        return;
-      }
-      if (!parts.label) {
-        if (s.labelCount >= s.tier.maxLabels) return;
-        ensureLabel(parts, n.title, intToHex(style.textInt), style.fontFace, style.fontSize);
-        s.labelCount += 1;
-      }
-      parts.label.visible = true;
-      parts.label.material.opacity = opacity;
-      const dist = Math.hypot(cam.x - n.x, cam.y - n.y, cam.z - n.z);
-      const baseHeight = LABEL_TEXT_HEIGHT * style.fontSize;
-      const height = Math.min(Math.max(baseHeight, dist * LABEL_SCREEN_RATIO * style.fontSize), dist * LABEL_MAX_RATIO * style.fontSize + baseHeight);
-      resizeLabel(parts, height / LABEL_TEXT_HEIGHT);
+      if (focus.lit !== null && !focus.lit.has(n.id)) return;
+      projected.set(n.x, n.y, n.z).project(camera);
+      if (projected.z < -1 || projected.z > 1) return; // behind the camera or past the far plane
+      const dist = Math.max(1e-3, Math.hypot(camera.position.x - n.x, camera.position.y - n.y, camera.position.z - n.z));
+      const worldHeight = labelWorldHeight(dist, style.fontSize);
+      const pxPerWorld = pxPerUnit / dist;
+      const { width, height } = estimateLabelSize(n.title, worldHeight * pxPerWorld);
+      const hovered = focus.hoverId === n.id;
+      const emphasised = focus.kind === "hover" || focus.kind === "search";
+      const scale = worldHeight / LABEL_TEXT_HEIGHT;
+      candidates.push({
+        id: n.id,
+        title: n.title,
+        degree: n.degree,
+        priority: hovered ? LABEL_PRIORITY.hovered : emphasised ? LABEL_PRIORITY.emphasised : LABEL_PRIORITY.normal,
+        x: ((projected.x + 1) / 2) * s.width,
+        y: ((1 - projected.y) / 2) * s.height - labelOffset(parts, scale) * pxPerWorld,
+        width,
+        height,
+        scale,
+      });
     });
+    return candidates;
+  };
+
+  function updateLabels(force = false) {
+    if (!s.style || s.width <= 0 || s.height <= 0) return;
+    const now = performance.now();
+    if (!force && now - s.lastLabelPass < LABEL_INTERVAL_MS) return;
+    s.lastLabelPass = now;
+    s.labelPass += 1;
+    const camera = graph.camera();
+    camera.updateMatrixWorld();
+    const candidates = collectCandidates(camera);
+    const byId = new Map(candidates.map((c) => [c.id, c]));
+    const accepted = layoutLabels({ candidates, viewport: { width: s.width, height: s.height }, cap: s.tier.labelCap });
+    const keep = new Set(accepted);
+
+    let created = 0;
+    accepted.forEach((id) => {
+      const parts = s.parts.get(id);
+      const c = byId.get(id);
+      if (!parts.label) {
+        if (created >= LABEL_MAX_NEW_PER_PASS) return;
+        ensureLabel(parts, parts.node.title, intToHex(s.style.textInt), s.style.fontFace, c.scale);
+        s.labelCount += 1;
+        s.labelsCreated += 1;
+        created += 1;
+      } else if (s.forceResize || changedBeyond(parts.labelScale, c.scale, LABEL_RESIZE_TOLERANCE)) {
+        resizeLabel(parts, c.scale);
+      }
+      parts.labelSeen = s.labelPass;
+      setLabelTarget(parts, c.priority > LABEL_PRIORITY.normal ? 1 : LABEL_OPACITY);
+    });
+    s.forceResize = false;
+    s.parts.forEach((parts, id) => {
+      if (parts.label && !keep.has(id)) setLabelTarget(parts, 0);
+    });
+    trimLabelPool();
   }
+
+  const dropParts = (parts) => {
+    if (parts.label) s.labelCount -= 1;
+    s.fading.delete(parts);
+    s.hot.delete(parts);
+    disposeParts(parts);
+  };
+
+  // --- frame loop (own raf, runs only while visible) -------------------------
 
   const frame = (t) => {
     s.raf = 0;
     if (s.destroyed || s.paused) return;
-    const pulse = reducedMotion ? 0.5 : (Math.sin(t / 450) + 1) / 2;
-    s.parts.forEach((parts) => {
-      if (parts.ring) pulseRing(parts, pulse);
-    });
+    const dt = s.lastFrameT ? Math.min(MAX_FRAME_DT_MS, t - s.lastFrameT) : 16;
+    s.lastFrameT = t;
+    if (s.focusDirty) {
+      s.focusDirty = false;
+      applyFocus();
+    }
+    if (!reducedMotion && s.hot.size > 0) {
+      const pulse = (Math.sin(t / 450) + 1) / 2;
+      s.hot.forEach((parts) => pulseRing(parts, pulse));
+    }
+    stepFades(dt);
     updateLabels();
     s.raf = requestAnimationFrame(frame);
   };
 
   const startLoop = () => {
-    if (!s.raf && !s.destroyed && !s.paused) s.raf = requestAnimationFrame(frame);
+    if (!s.raf && !s.destroyed && !s.paused) {
+      s.lastFrameT = 0;
+      s.raf = requestAnimationFrame(frame);
+    }
   };
 
   // --- camera -------------------------------------------------------------
@@ -213,19 +377,25 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     .linkCurveRotation(linkRotation)
     .linkDirectionalParticles(0)
     .nodeThreeObjectExtend(false)
+    .linkMaterial(materialForLink)
     .warmupTicks(40)
+    .d3AlphaMin(ALPHA_MIN)
     .cooldownTime(9000)
     .nodeThreeObject((node) => {
       const old = s.parts.get(node.id);
-      if (old) disposeParts(old);
+      if (old) dropParts(old);
       const parts = createNodeParts(node, s.assets);
       s.parts.set(node.id, parts);
+      if (parts.ring) s.hot.add(parts);
       if (s.style) styleOne(parts);
       return parts.group;
     })
     .onNodeHover((node) => {
-      s.hoverId = node ? node.id : null;
-      applyFocus();
+      const id = node ? node.id : null;
+      if (id !== s.hoverId) {
+        s.hoverId = id;
+        s.focusDirty = true; // restyled once per animation frame, however many hover events arrive
+      }
       onHover(node || null);
     })
     .onNodeClick((node) => {
@@ -261,6 +431,26 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   canvas.addEventListener("webglcontextlost", handleContextLost);
   startLoop();
 
+  // Dev-only probe for measuring the scene from the console or a test harness; tree-shaken from production builds.
+  const readStats = () => {
+    const { render, memory } = graph.renderer().info ?? {};
+    let labelsVisible = 0;
+    s.parts.forEach((parts) => {
+      if (parts.label?.visible) labelsVisible += 1;
+    });
+    return {
+      calls: render?.calls ?? 0,
+      triangles: render?.triangles ?? 0,
+      geometries: memory?.geometries ?? 0,
+      textures: memory?.textures ?? 0,
+      labelsVisible,
+      labelsCreated: s.labelsCreated,
+      nodes: s.nodes.length,
+      links: s.links.length,
+    };
+  };
+  if (import.meta.env.DEV) window.__maiaGraphStats = readStats;
+
   // --- public API ---------------------------------------------------------
 
   const applyForces = () => {
@@ -279,25 +469,25 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   const applyWidth = () => {
     const width = linkWidthFor(s.style.linkThickness, s.tier.thinLinks);
     if (width === s.widthKey) return;
+    if (s.widthKey === null || s.widthKey > 0 !== width > 0) retireMaterials(s.linkMats.reset(width > 0));
     s.widthKey = width;
     graph.linkWidth(width);
   };
 
   return {
     setStyle(style) {
-      const themeChanged = !s.style || s.style.bgInt !== style.bgInt || s.style.textInt !== style.textInt;
+      const prev = s.style;
+      const themeChanged = !prev || prev.bgInt !== style.bgInt || prev.textInt !== style.textInt;
+      const linkColorsChanged = !prev || prev.neutral !== style.neutral || prev.fgInt !== style.fgInt;
+      if (!prev || prev.fontSize !== style.fontSize) s.forceResize = true;
       s.style = style;
       graph.backgroundColor(intToHex(style.bgInt));
       applyForces();
       applyWidth();
       styleAll();
-      refreshLinks();
-      if (themeChanged) {
-        s.parts.forEach((parts) => {
-          if (parts.label) parts.label.color = intToHex(style.textInt);
-        });
-      }
-      s.parts.forEach((parts) => resizeLabel(parts, style.fontSize));
+      if (linkColorsChanged) restyleLinks(null);
+      if (themeChanged) s.parts.forEach((parts) => setLabelColor(parts, intToHex(style.textInt)));
+      updateLabels(true);
     },
 
     setData({ nodes, links }) {
@@ -307,10 +497,17 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       s.nodes = nodes;
       s.nodeById = new Map(nodes.map((n) => [n.id, n]));
       s.adjacency = buildAdjacency(links);
+      s.links = links;
+      s.linksOf = new Map();
+      links.forEach((link) => {
+        [endId(link.source), endId(link.target)].forEach((id) => {
+          if (!s.linksOf.has(id)) s.linksOf.set(id, []);
+          s.linksOf.get(id).push(link);
+        });
+      });
       s.parts.forEach((parts, id) => {
         if (s.nodeById.get(id) === parts.node) return;
-        if (parts.label) s.labelCount -= 1;
-        disposeParts(parts);
+        dropParts(parts);
         s.parts.delete(id);
       });
       if (s.hoverId && !s.nodeById.has(s.hoverId)) s.hoverId = null;
@@ -319,7 +516,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       if (s.style) applyWidth();
       graph.graphData({ nodes, links });
       if (tierChanged) graph.refresh();
-      s.focus = computeFocus({ hoverId: s.hoverId, adjacency: s.adjacency, matchIds: s.matchIds, clusterIds: s.clusterIds });
+      s.focusDirty = true; // the frame loop diffs the new focus against what is drawn
       if (!s.fitted && nodes.length > 0) {
         window.clearTimeout(s.fitTimer);
         s.fitTimer = window.setTimeout(() => {
@@ -331,11 +528,13 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     setHighlight({ matchIds, clusterIds }) {
       s.matchIds = matchIds;
       s.clusterIds = clusterIds;
-      applyFocus();
+      s.focusDirty = true;
     },
 
     setSize(width, height) {
       if (width <= 0 || height <= 0) return;
+      s.width = width;
+      s.height = height;
       graph.width(width).height(height);
     },
 
@@ -366,9 +565,16 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       controls.removeEventListener("start", stopAutoRotate);
       controls.stopListenToKeyEvents?.();
+      window.clearTimeout(s.retireTimer);
+      s.retired.forEach((m) => m.dispose());
+      s.retired = [];
+      s.linkMats.dispose();
       s.parts.forEach(disposeParts);
       s.parts.clear();
+      s.fading.clear();
+      s.hot.clear();
       s.assets.dispose();
+      if (import.meta.env.DEV && window.__maiaGraphStats === readStats) delete window.__maiaGraphStats;
       graph.renderer().forceContextLoss?.();
       graph._destructor();
       container.replaceChildren();

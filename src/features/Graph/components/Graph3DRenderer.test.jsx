@@ -3,6 +3,7 @@ import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
+import { PerspectiveCamera } from "three";
 
 const h = vi.hoisted(() => ({ instances: [], fail: false }));
 
@@ -11,12 +12,19 @@ vi.mock("3d-force-graph", () => ({
   default: function ForceGraph3D() {
     if (h.fail) throw new Error("Error creating WebGL context.");
     const controls = { addEventListener: vi.fn(), removeEventListener: vi.fn() };
-    const renderer = { domElement: document.createElement("canvas"), setPixelRatio: vi.fn(), forceContextLoss: vi.fn() };
+    const renderer = {
+      domElement: document.createElement("canvas"),
+      setPixelRatio: vi.fn(),
+      forceContextLoss: vi.fn(),
+      info: { render: { calls: 7, triangles: 100 }, memory: { geometries: 3, textures: 2 } },
+    };
+    const camera = new PerspectiveCamera(50, 1, 0.1, 5000);
+    camera.position.set(0, 0, 200);
     const fns = new Map();
     const special = {
       controls: () => controls,
       renderer: () => renderer,
-      camera: () => ({ position: { x: 0, y: 0, z: 200 } }),
+      camera: () => camera,
     };
     fns.set("d3Force", vi.fn(() => ({ strength: vi.fn(), distance: vi.fn() })));
     const graph = new Proxy({}, {
@@ -133,6 +141,13 @@ describe("Graph3DRenderer", () => {
     expect(graph.calls.get("_destructor")).toHaveBeenCalledTimes(1);
     expect(graph.rendererMock.forceContextLoss).toHaveBeenCalled();
     expect(graph.controlsMock.removeEventListener).toHaveBeenCalledWith("start", expect.any(Function));
+  });
+
+  it("exposes dev-only stats while mounted and removes them on unmount", () => {
+    const { unmount } = render(<Graph3DRenderer {...baseProps} />);
+    expect(window.__maiaGraphStats()).toMatchObject({ calls: 7, triangles: 100, geometries: 3, textures: 2, labelsVisible: 0, nodes: 2, links: 1 });
+    unmount();
+    expect(window.__maiaGraphStats).toBeUndefined();
   });
 
   it("reports WebGL failure instead of throwing", () => {

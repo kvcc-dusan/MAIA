@@ -111,6 +111,29 @@ export const computeFocus = ({ hoverId, adjacency, matchIds, clusterIds }) => {
 
 export const isLit = (focus, id) => focus.lit === null || focus.lit.has(id);
 
+/**
+ * Ids whose lit or hovered state differs between two focus states, so a
+ * hover only restyles the nodes that actually change.
+ * @param {Iterable<string>} ids every node id currently in the scene
+ */
+export const diffFocus = (prev, next, ids) => {
+  if (prev.lit === next.lit && prev.hoverId === next.hoverId) return [];
+  const changed = [];
+  for (const id of ids) {
+    if (isLit(prev, id) !== isLit(next, id) || (prev.hoverId === id) !== (next.hoverId === id)) changed.push(id);
+  }
+  return changed;
+};
+
+/** How a link between nodes a and b is drawn under the current focus: base, dim, bright (touches the hovered node) or lit. */
+export const linkState = (focus, a, b) => {
+  if (focus.lit === null) return "base";
+  const hover = focus.kind === "hover";
+  const touches = hover ? a === focus.hoverId || b === focus.hoverId : focus.lit.has(a) && focus.lit.has(b);
+  if (!touches) return "dim";
+  return hover ? "bright" : "lit";
+};
+
 /** Ids of the nodes in the given findClusters index, or null for no cluster filter. */
 export const clusterMembers = (nodes, activeCluster) => {
   if (activeCluster === null || activeCluster === undefined) return null;
@@ -127,16 +150,21 @@ export const flyTarget = (node, distance) => {
 };
 
 const HEAVY_NODE_COUNT = 2000;
+const DENSE_NODE_COUNT = 150;
+const MAX_PIXEL_RATIO = 2;
+const DENSE_PIXEL_RATIO = 1.5; // fewer pixels to fill once there are many nodes; text stays sharp enough
+const LABEL_CAP = 60;
+const HEAVY_LABEL_CAP = 30;
 
-/** Cost tiers: above 2000 nodes the glow goes and everything gets cheaper. */
+/** Cost tiers: bigger graphs get a lower pixel ratio, fewer labels and, above 2000 nodes, simpler spheres. */
 export const qualityTier = (nodeCount, devicePixelRatio = 1) => {
   const heavy = nodeCount > HEAVY_NODE_COUNT;
+  const pixelCap = heavy ? 1 : nodeCount > DENSE_NODE_COUNT ? DENSE_PIXEL_RATIO : MAX_PIXEL_RATIO;
   return {
     heavy,
-    glow: !heavy,
     sphereSegments: heavy ? 6 : 14,
-    pixelRatio: heavy ? 1 : Math.min(2, Math.max(1, devicePixelRatio)),
-    maxLabels: heavy ? 150 : 400,
+    pixelRatio: Math.min(pixelCap, Math.max(1, devicePixelRatio)),
+    labelCap: heavy ? HEAVY_LABEL_CAP : LABEL_CAP,
     thinLinks: heavy,
   };
 };

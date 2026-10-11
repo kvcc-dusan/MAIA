@@ -1,28 +1,27 @@
-// three.js objects for one node: a flat-shaded sphere, an additive glow sprite,
-// a pulse ring for hot nodes and (created lazily) a text label. Geometry and
-// textures are shared; materials are per node because opacity is per node.
+// three.js objects for one node: a flat-shaded sphere, a pulse ring for hot
+// nodes only and (created lazily) a text label. Geometry and the ring texture
+// are shared; materials are per node because opacity is per node.
 import {
-  AdditiveBlending, DataTexture, Group, LinearFilter, Mesh, MeshBasicMaterial, NormalBlending,
-  RGBAFormat, SphereGeometry, Sprite, SpriteMaterial, SRGBColorSpace, UnsignedByteType,
+  DataTexture, Group, LinearFilter, Mesh, MeshBasicMaterial, RGBAFormat, SphereGeometry, Sprite, SpriteMaterial,
+  SRGBColorSpace, UnsignedByteType,
 } from "three";
 import SpriteText from "three-spritetext";
 
 const TEXTURE_SIZE = 64;
-const GLOW_SCALE = 6.5;
 const RING_SCALE = 3.1;
 const LABEL_GAP = 1.3;
 export const LABEL_TEXT_HEIGHT = 3.2;
 const noRaycast = () => {};
 
-// Builds the sprite textures from numbers rather than a canvas gradient: no
+// Builds the ring texture from numbers rather than a canvas gradient: no
 // colour strings, works without a 2D context, and the falloff is exact.
-const makeTexture = (alphaAt) => {
+const makeRingTexture = () => {
   const data = new Uint8Array(TEXTURE_SIZE * TEXTURE_SIZE * 4);
   for (let y = 0; y < TEXTURE_SIZE; y += 1) {
     for (let x = 0; x < TEXTURE_SIZE; x += 1) {
       const dx = ((x + 0.5) / TEXTURE_SIZE) * 2 - 1;
       const dy = ((y + 0.5) / TEXTURE_SIZE) * 2 - 1;
-      const a = Math.max(0, Math.min(1, alphaAt(Math.hypot(dx, dy))));
+      const a = Math.max(0, Math.min(1, 1 - Math.abs(Math.hypot(dx, dy) - 0.82) / 0.1));
       const i = (y * TEXTURE_SIZE + x) * 4;
       data[i] = 255;
       data[i + 1] = 255;
@@ -38,87 +37,118 @@ const makeTexture = (alphaAt) => {
   return texture;
 };
 
-/** Shared resources for one scene. Call `dispose()` on teardown. */
+/** Shared resources for one scene. Call `dispose()` on teardown. The ring texture is only built when a hot node asks for it. */
 export const createSharedAssets = (segments) => {
-  const glowTexture = makeTexture((r) => (1 - r) ** 2.2);
-  const ringTexture = makeTexture((r) => 1 - Math.abs(r - 0.82) / 0.1);
+  let ringTexture = null;
   let geometry = new SphereGeometry(1, segments, segments);
   return {
-    glowTexture,
-    ringTexture,
+    get ringTexture() {
+      if (!ringTexture) ringTexture = makeRingTexture();
+      return ringTexture;
+    },
     get geometry() { return geometry; },
     setSegments(next) {
       geometry.dispose();
       geometry = new SphereGeometry(1, next, next);
     },
     dispose() {
-      glowTexture.dispose();
-      ringTexture.dispose();
+      ringTexture?.dispose();
       geometry.dispose();
     },
   };
 };
 
-const makeSprite = (texture, additive) => {
-  const sprite = new Sprite(new SpriteMaterial({
-    map: texture,
-    transparent: true,
-    depthWrite: false,
-    blending: additive ? AdditiveBlending : NormalBlending,
-  }));
-  sprite.raycast = noRaycast; // glow must not widen the hover target
+const makeRing = (texture) => {
+  const sprite = new Sprite(new SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
+  sprite.raycast = noRaycast; // the ring must not widen the hover target
   sprite.renderOrder = 2;
   return sprite;
 };
 
-/** @returns {object} parts: { group, mesh, glow, ring, label, node, radius, opacity } */
+/** @returns {object} parts: { group, mesh, ring, label, node, radius, opacity, labelScale, labelOpacity, labelTarget } */
 export const createNodeParts = (node, assets) => {
   const group = new Group();
-  const mesh = new Mesh(assets.geometry, new MeshBasicMaterial({ transparent: true }));
-  const glow = makeSprite(assets.glowTexture, true);
-  group.add(glow, mesh);
+  const mesh = new Mesh(assets.geometry, new MeshBasicMaterial());
+  group.add(mesh);
   let ring = null;
   if (node.isHot) {
-    ring = makeSprite(assets.ringTexture, false);
+    ring = makeRing(assets.ringTexture);
     group.add(ring);
   }
-  return { group, mesh, glow, ring, label: null, node, radius: 1, opacity: 1 };
+  return {
+    group, mesh, ring, label: null, node, radius: 1, opacity: 1, labelScale: 1, labelOpacity: 0, labelTarget: 0, labelBase: null,
+  };
 };
 
 export const labelOffset = (parts, scale) => parts.radius + LABEL_TEXT_HEIGHT * scale * LABEL_GAP;
 
+// SpriteText regenerates its canvas and texture on every textHeight/color/font
+// change, so a label is built once at a fixed text height and resized through
+// the sprite scale, which is free.
+const applyLabelScale = (parts, scale) => {
+  const { label, labelBase } = parts;
+  parts.labelScale = scale;
+  label.scale.set(labelBase.x * scale, labelBase.y * scale, 0);
+  label.position.y = labelOffset(parts, scale);
+};
+
 export const ensureLabel = (parts, text, color, fontFace, scale) => {
   if (parts.label) return parts.label;
-  const label = new SpriteText(text, LABEL_TEXT_HEIGHT * scale, color);
+  const label = new SpriteText(text, LABEL_TEXT_HEIGHT, color);
   label.fontFace = fontFace;
   label.fontWeight = "400";
   label.material.depthWrite = false;
   label.material.depthTest = false;
+  label.material.opacity = 0;
   label.renderOrder = 30;
   label.raycast = noRaycast;
-  label.position.y = labelOffset(parts, scale);
-  parts.group.add(label);
   parts.label = label;
+  parts.labelBase = { x: label.scale.x, y: label.scale.y };
+  parts.labelOpacity = 0;
+  parts.labelTarget = 0;
+  applyLabelScale(parts, scale);
+  parts.group.add(label);
   return label;
 };
 
+/** `scale` is the label height in world units divided by LABEL_TEXT_HEIGHT. */
 export const resizeLabel = (parts, scale) => {
-  if (!parts.label) return;
-  parts.label.textHeight = LABEL_TEXT_HEIGHT * scale;
-  parts.label.position.y = labelOffset(parts, scale);
+  if (parts.label) applyLabelScale(parts, scale);
 };
 
-/** Radius, colour, glow and opacity in one pass; cheap enough to run for every node. */
-export const stylePart = (parts, { radius, color, opacity, glow, glowOpacity }) => {
+/** Keeps the label above the sphere after the radius changed. */
+export const repositionLabel = (parts) => {
+  if (parts.label) parts.label.position.y = labelOffset(parts, parts.labelScale);
+};
+
+export const setLabelColor = (parts, color) => {
+  if (!parts.label) return;
+  parts.label.color = color; // regenerates the canvas, which resets the scale
+  applyLabelScale(parts, parts.labelScale);
+};
+
+/** Removes the label from the node and frees its canvas texture. */
+export const releaseLabel = (parts) => {
+  const { label } = parts;
+  if (!label) return;
+  parts.group.remove(label);
+  label.material.map?.dispose();
+  label.material.dispose();
+  parts.label = null;
+  parts.labelBase = null;
+  parts.labelOpacity = 0;
+  parts.labelTarget = 0;
+};
+
+/** Radius, colour and opacity in one pass; cheap enough to run for the nodes whose state changed. */
+export const stylePart = (parts, { radius, color, opacity }) => {
   parts.radius = radius;
   parts.opacity = opacity;
   parts.mesh.scale.setScalar(radius);
   parts.mesh.material.color.setHex(color);
   parts.mesh.material.opacity = opacity;
-  parts.glow.visible = glow;
-  parts.glow.scale.setScalar(radius * GLOW_SCALE);
-  parts.glow.material.color.setHex(color);
-  parts.glow.material.opacity = glowOpacity * opacity;
+  // Opaque spheres skip the transparent sort and keep early depth rejection.
+  parts.mesh.material.transparent = opacity < 1;
   if (parts.ring) {
     parts.ring.material.color.setHex(color);
     pulseRing(parts, 0.5);
@@ -134,10 +164,6 @@ export const pulseRing = (parts, pulse) => {
 
 export const disposeParts = (parts) => {
   parts.mesh.material.dispose();
-  parts.glow.material.dispose();
   parts.ring?.material.dispose();
-  if (parts.label) {
-    parts.label.material.map?.dispose();
-    parts.label.material.dispose();
-  }
+  releaseLabel(parts);
 };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DIM_OPACITY, buildAdjacency, buildGraphData, clusterMembers, computeFocus, flyTarget, isLit, linkRotation,
-  boundingSphere, fitDistance, matchNodes, nodeRadius, qualityTier,
+  boundingSphere, diffFocus, fitDistance, linkState, matchNodes, nodeRadius, qualityTier,
 } from "./graphData3d.js";
 import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
 
@@ -92,10 +92,13 @@ describe("camera, quality and links", () => {
     expect(flyTarget({ x: 10, y: 0, z: 0 }, 10)).toEqual({ x: 20, y: 0, z: 0 });
     expect(flyTarget({ x: 0, y: 0, z: 0 }, 30)).toEqual({ x: 0, y: 0, z: 30 });
   });
-  it("drops glow and resolution above 2000 nodes", () => {
-    expect(qualityTier(300, 3)).toMatchObject({ glow: true, pixelRatio: 2, thinLinks: false });
-    expect(qualityTier(2001, 3)).toMatchObject({ glow: false, pixelRatio: 1, thinLinks: true });
+  it("lowers resolution and label count as the graph grows", () => {
+    expect(qualityTier(100, 3)).toMatchObject({ pixelRatio: 2, thinLinks: false, labelCap: 60 });
+    expect(qualityTier(258, 3)).toMatchObject({ pixelRatio: 1.5, thinLinks: false });
+    expect(qualityTier(258, 1)).toMatchObject({ pixelRatio: 1 });
+    expect(qualityTier(2001, 3)).toMatchObject({ pixelRatio: 1, thinLinks: true, labelCap: 30 });
     expect(qualityTier(2001).sphereSegments).toBeLessThan(qualityTier(10).sphereSegments);
+    expect(qualityTier(10)).not.toHaveProperty("glow");
   });
   it("gives each link a stable angle", () => {
     const l = { source: "a", target: "b" };
@@ -110,6 +113,11 @@ describe("force mapping", () => {
     expect(gravityFor(10)).toBeGreaterThan(gravityFor(800));
     expect(linkWidthFor(2, true)).toBe(0);
     expect(linkWidthFor(2, false)).toBeGreaterThan(0);
+  });
+  it("draws low thickness values as plain lines", () => {
+    expect(linkWidthFor(1.5, false)).toBe(0);
+    expect(linkWidthFor(0.5, false)).toBe(0);
+    expect(linkWidthFor(3, false)).toBeGreaterThan(linkWidthFor(2, false));
   });
   it("gravity force pulls toward the origin in 3D", () => {
     const node = { x: 10, y: -10, z: 4, vx: 0, vy: 0, vz: 0 };
@@ -135,5 +143,46 @@ describe("camera fit", () => {
   it("moves further away for bigger graphs and narrower viewports", () => {
     expect(fitDistance(200, 50, 1.5)).toBeGreaterThan(fitDistance(100, 50, 1.5));
     expect(fitDistance(100, 50, 0.5)).toBeGreaterThan(fitDistance(100, 50, 1.5));
+  });
+});
+
+describe("diffFocus", () => {
+  const adjacency = buildAdjacency([{ source: "a", target: "b" }, { source: "b", target: "c" }, { source: "d", target: "e" }]);
+  const none = computeFocus({ hoverId: null, adjacency, matchIds: null, clusterIds: null });
+  const hover = (hoverId) => computeFocus({ hoverId, adjacency, matchIds: null, clusterIds: null });
+  const ids = ["a", "b", "c", "d", "e"];
+
+  it("reports nothing when the focus did not change", () => {
+    expect(diffFocus(none, none, ids)).toEqual([]);
+  });
+  it("reports every node that gets dimmed plus the hovered one when a hover starts", () => {
+    expect(diffFocus(none, hover("a"), ids).sort()).toEqual(["a", "c", "d", "e"]);
+  });
+  it("reports only the symmetric difference when the hover moves", () => {
+    // b stays lit and not hovered, so it is untouched
+    expect(diffFocus(hover("a"), hover("c"), ids).sort()).toEqual(["a", "c"]);
+  });
+  it("reports the hover flag even when the lit set stays the same", () => {
+    expect(diffFocus(hover("a"), hover("b"), ids).sort()).toEqual(["a", "b", "c"]);
+  });
+  it("restores everything when the hover ends", () => {
+    expect(diffFocus(hover("d"), none, ids).sort()).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("linkState", () => {
+  const adjacency = buildAdjacency([{ source: "a", target: "b" }, { source: "c", target: "d" }]);
+  it("is base without focus", () => {
+    expect(linkState(computeFocus({ hoverId: null, adjacency, matchIds: null, clusterIds: null }), "a", "b")).toBe("base");
+  });
+  it("brightens links touching the hovered node and dims the rest", () => {
+    const focus = computeFocus({ hoverId: "a", adjacency, matchIds: null, clusterIds: null });
+    expect(linkState(focus, "a", "b")).toBe("bright");
+    expect(linkState(focus, "c", "d")).toBe("dim");
+  });
+  it("keeps links between two lit nodes for search and cluster focus", () => {
+    const focus = computeFocus({ hoverId: null, adjacency, matchIds: new Set(["a", "b"]), clusterIds: null });
+    expect(linkState(focus, "a", "b")).toBe("lit");
+    expect(linkState(focus, "a", "c")).toBe("dim");
   });
 });
