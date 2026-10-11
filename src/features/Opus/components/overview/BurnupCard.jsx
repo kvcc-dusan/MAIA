@@ -74,6 +74,7 @@ export default function BurnupCard({ overview }) {
         height={CHART_HEIGHT}
         formatValue={fmt}
         legend={false}
+        className={styles.chart}
         emptyLabel="No tasks to chart yet"
       />
       <div className={styles.tableToggle}>

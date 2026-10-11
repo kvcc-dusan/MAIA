@@ -58,3 +58,6 @@
 /* Arc's empty heatmap cell is 6.5% foreground, which vanishes on the dark surfaces. The doubled class beats the component's own .root rule. */
 :global(:root[data-theme="dark"]) .heat.heat { --level-0: color-mix(in oklab, var(--foreground) 12%, var(--surface)); }
 :global(:root[data-variant="black"]) .heat.heat { --level-0: color-mix(in oklab, var(--foreground) 17%, var(--surface)); }
+
+/* Arc puts the value axis on the right, which leaves the plot short of the card's right padding. Pulling the chart into that padding evens the margins. */
+.chart { margin-inline-end: calc(var(--space-4) * -1); }
