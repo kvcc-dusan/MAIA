@@ -101,6 +101,7 @@ Data model:
 - Metrics group by UTC day. Known limit: 00:00 to 02:00 local lands on the previous day.
 - Ledger: there is no Ledger page (project decisions live in Opus). `maia.ledger` and the `ledger` state stay in DataContext and in backups.
 - Shared kit `features/Opus/kit/` (PageBar, FilterChips, ListRow, MetricTile, GroupCard, marks, format, estimates). Use it before adding a primitive.
+- Overview layout rules: one gap (`--space-4`) between cards in every Opus tab; rows stretch their cards to equal height (`SectionCard` body is `flex: 1`). Status mix is a hand-built stacked bar (Arc `usage-meter` is a quota meter and warns near full, so it does not fit). The Activity card is the Arc heatmap over `HEAT_WEEKS = 52` (the heatmap's cell size assumes a full year of columns) plus a one-line summary; the change feed was removed because Claude reads it over MCP (`list_activity`). The heatmap's empty cells are lifted in `Cards.module.css` for dark and Black (Arc's 6.5% vanishes there). Burn-up axis labels keep one slot of room around Today and Target (`pickAxisIndexes`).
 - Known duplication: `workstreamColor` is in `kit/format.js` and `tabs/TasksTab.jsx`. Estimate options and due-date helpers are also in `components/board/model.js` and `components/tasks/taskDisplay.js`. Fold them into the kit.
 
 ### Storage as files (Tauri with a vault)
@@ -179,7 +180,7 @@ Rules of thumb (binding):
 ### Token ratchet
 
 - `npm run lint:tokens` (`scripts/lint-tokens.mjs`) counts legacy patterns: zinc utilities, white/black alpha, hex, `rgba()`, legacy fluid type, arbitrary z-index, arbitrary radius and font size, `font-mono`. The count must only go down (baseline 1: a `font-mono` in `EditorRich.module.css`). It only counts git-tracked files, so run it again after committing new files. Colour-conversion code and its tests (`lib/tokens.js`, `lib/contrast.test.js`, the Graph `colorConvert` files) are exempt in `ALLOW`.
-- Current count: 7 hits in 3 files (measured 2026-10-10: `src/lib/contrast.test.js` 4, `src/features/Graph/components/GraphControls.a11y.test.jsx` 2, `src/components/EditorRich.module.css` 1). The earlier note said 1; that was stale.
+- Current count: 1 (measured 2026-10-11, the `font-mono` in `EditorRich.module.css`). The contrast and Graph test files are exempt in `ALLOW`.
 - Exempt (the script's ALLOW list): `src/components/ui/CustomIcon.jsx`, `src/styles/tokens.css`, `src/lib/tokens.js` and its test, the Graph colour converter (`colorConvert.js` and its test, `Graph3DRenderer.test.jsx`), `src/components/arc/`, and the vendored shadcn files in `src/components/ui/`. MAIA's own files in `ui/` are not exempt.
 
 ## Migration status (kvcc-arc)
