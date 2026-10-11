@@ -16,7 +16,7 @@ export const nodeRadius = (node, degree, nodeSize = 1) => {
 };
 
 const nodeSignature = (node, degree) =>
-  [node.title, node.type, node.group ?? "", node.isHot ? 1 : 0, node.realId ?? "", degree, (node.tags || []).join("\u0001")].join("\u0000");
+  [node.title, node.type, node.group ?? "", node.folder ?? "", node.isHot ? 1 : 0, node.realId ?? "", degree, (node.tags || []).join("\u0001")].join("\u0000");
 
 /**
  * Maps GraphPage nodes/links to 3d-force-graph data.

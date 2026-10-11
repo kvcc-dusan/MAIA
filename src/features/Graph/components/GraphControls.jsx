@@ -158,6 +158,13 @@ export default function GraphControls({
                             value={view.mode}
                             onValueChange={view.setMode}
                         />
+                        {view.mode === "3d" && (
+                            <Switch
+                                label="Group by folder"
+                                checked={view.groupByFolder}
+                                onCheckedChange={view.setGroupByFolder}
+                            />
+                        )}
                     </div>
 
                     <div className={styles.section}>

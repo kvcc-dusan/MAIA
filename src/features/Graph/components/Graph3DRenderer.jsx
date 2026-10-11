@@ -29,6 +29,7 @@ function Graph3DRenderer({
   fontSize,
   repelForce,
   linkDistance,
+  groupByFolder = true,
   query = "",
   setHoveredNode,
   controllerRef,
@@ -109,9 +110,10 @@ function Graph3DRenderer({
       fontSize,
       repelForce,
       linkDistance,
+      groupByFolder,
       fontFace: cssVar("--font-body") || "sans-serif",
     }),
-    [groupColors, groupOf, nodeSize, linkThickness, fontSize, repelForce, linkDistance],
+    [groupColors, groupOf, nodeSize, linkThickness, fontSize, repelForce, linkDistance, groupByFolder],
   );
 
   useEffect(() => {

@@ -9,7 +9,9 @@ import {
   DIM_OPACITY, boundingSphere, buildAdjacency, computeFocus, diffFocus, fitDistance, flyTarget, isLit, linkRotation, linkState,
   nodeRadius, qualityTier,
 } from "./graphData3d.js";
-import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
+import { createFolderLabels, FOLDER_LABEL_SIZE } from "./folderLabels3d.js";
+import { labelGroups } from "./folderGroups.js";
+import { chargeFor, createFolderForce, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
 import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
 import { createLinkMaterials } from "./linkMaterials3d.js";
 import {
@@ -88,6 +90,9 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     tier: qualityTier(0),
     assets: createSharedAssets(qualityTier(0).sphereLevels),
     gravity: createGravityForce(0),
+    folderForce: createFolderForce(),
+    folderLabels: createFolderLabels(graph.scene()),
+    folderOn: null,
     focus: computeFocus({ hoverId: null, adjacency: new Map(), matchIds: null, clusterIds: null }),
     hoverId: null,
     matchIds: null,
@@ -353,6 +358,23 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     trimLabelPool();
   }
 
+  // Folder names follow their group's centroid every frame; depth fading reuses the node-label rule.
+  function updateFolderLabels(dt) {
+    if (!s.style || !s.folderOn || s.width <= 0 || s.height <= 0) return;
+    const camera = graph.camera();
+    const { radius, center } = boundingSphere(s.nodes);
+    const target = graph.controls().target ?? center;
+    const centerDist = Math.hypot(camera.position.x - target.x, camera.position.y - target.y, camera.position.z - target.z);
+    s.folderLabels.update({
+      byId: s.nodeById,
+      camera,
+      dimmed: s.focus.kind === "hover" || s.focus.kind === "search",
+      dt,
+      frontOf: (dist) => frontWeight(dist, centerDist, radius),
+      worldHeightFor: (dist) => labelWorldHeight(dist, s.style.fontSize * FOLDER_LABEL_SIZE),
+    });
+  }
+
   const dropParts = (parts) => {
     if (parts.label) s.labelCount -= 1;
     s.fading.delete(parts);
@@ -377,6 +399,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     }
     stepFades(dt);
     updateLabels();
+    updateFolderLabels(dt);
     s.raf = requestAnimationFrame(frame);
   };
 
@@ -589,6 +612,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       textures: memory?.textures ?? 0,
       labelsVisible,
       labelsCreated: s.labelsCreated,
+      folderLabels: s.folderLabels.count(),
       nodes: s.nodes.length,
       links: s.links.length,
       spin: { dragging: spin.dragging, vTheta: +spin.vTheta.toFixed(3), vPhi: +spin.vPhi.toFixed(3), running: spin.raf !== 0 },
@@ -612,6 +636,17 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     if (!first) graph.d3ReheatSimulation();
   };
 
+  // The folder pull and its labels switch together; flipping it later re-heats so the layout animates.
+  const applyFolders = () => {
+    const on = s.style.groupByFolder !== false;
+    if (on === s.folderOn) return;
+    const first = s.folderOn === null;
+    s.folderOn = on;
+    graph.d3Force("folder", on ? s.folderForce : null);
+    s.folderLabels.setEnabled(on);
+    if (!first) graph.d3ReheatSimulation();
+  };
+
   const applyWidth = () => {
     const width = linkWidthFor(s.style.linkThickness, s.tier.thinLinks);
     if (width === s.widthKey) return;
@@ -629,6 +664,8 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       s.style = style;
       graph.backgroundColor(intToHex(style.bgInt));
       applyForces();
+      applyFolders();
+      s.folderLabels.setLook(intToHex(style.textInt), style.fontFace);
       applyWidth();
       styleAll();
       if (linkColorsChanged) restyleLinks(null);
@@ -644,6 +681,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       s.nodeById = new Map(nodes.map((n) => [n.id, n]));
       s.adjacency = buildAdjacency(links);
       s.links = links;
+      s.folderLabels.setGroups(labelGroups(nodes));
       s.linksOf = new Map();
       links.forEach((link) => {
         [endId(link.source), endId(link.target)].forEach((id) => {
@@ -724,6 +762,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       s.retired.forEach((m) => m.dispose());
       s.retired = [];
       s.linkMats.dispose();
+      s.folderLabels.dispose();
       s.parts.forEach(disposeParts);
       s.parts.clear();
       s.fading.clear();

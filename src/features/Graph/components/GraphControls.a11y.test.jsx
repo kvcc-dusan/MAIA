@@ -13,7 +13,7 @@ const nodes = [
   { id: "p", title: "Alpine project", type: "project", realId: "proj-1" },
 ];
 
-function Harness({ onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSubmit = vi.fn() }) {
+function Harness({ mode = "3d", setGroupByFolder = () => {}, onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSubmit = vi.fn() }) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const results = searchQuery ? nodes.filter((n) => n.title.toLowerCase().includes(searchQuery.toLowerCase())) : [];
@@ -35,7 +35,7 @@ function Harness({ onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSub
       clusters={[]}
       colors={["black"]}
       nodeDotColor={() => "black"}
-      view={{ mode: "3d", setMode: () => {}, colorBy: "folder", setColorBy: () => {}, legend: [] }}
+      view={{ mode, setMode: () => {}, colorBy: "folder", setColorBy: () => {}, groupByFolder: true, setGroupByFolder, legend: [] }}
     />
   );
 }
@@ -111,5 +111,20 @@ describe("GraphControls accessibility", () => {
     await user.click(screen.getByRole("button", { name: "Graph controls" }));
     await user.type(screen.getByRole("searchbox", { name: "Find node" }), "alp{Enter}");
     expect(onSearchSubmit).toHaveBeenCalled();
+  });
+
+  it("offers Group by folder in 3D only and reports the change", async () => {
+    const user = userEvent.setup();
+    const setGroupByFolder = vi.fn();
+    const { unmount } = render(<Harness setGroupByFolder={setGroupByFolder} />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    const toggle = screen.getByRole("switch", { name: "Group by folder" });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    expect(setGroupByFolder).toHaveBeenCalledWith(false);
+    unmount();
+    render(<Harness mode="2d" />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    expect(screen.queryByRole("switch", { name: "Group by folder" })).toBeNull();
   });
 });

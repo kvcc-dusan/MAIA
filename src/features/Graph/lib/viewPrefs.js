@@ -3,6 +3,7 @@
 
 export const VIEW_KEY = "maia_graph_view";
 export const COLOR_BY_KEY = "maia_graph_colorBy";
+export const GROUP_BY_FOLDER_KEY = "maia_graph_groupByFolder";
 
 const read = (key) => {
   try {
@@ -37,3 +38,8 @@ export const readViewMode = (webgl = hasWebGL()) => {
 };
 
 export const readColorBy = () => (read(COLOR_BY_KEY) === "tag" ? "tag" : "folder");
+
+/** 3D "Group by folder": on unless the user turned it off. */
+export const readGroupByFolder = () => read(GROUP_BY_FOLDER_KEY) !== "off";
+
+export const writeGroupByFolder = (on) => writePref(GROUP_BY_FOLDER_KEY, on ? "on" : "off");

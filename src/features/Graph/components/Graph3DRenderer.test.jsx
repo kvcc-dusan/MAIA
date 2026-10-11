@@ -3,7 +3,7 @@ import React from "react";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
-import { PerspectiveCamera } from "three";
+import { Group, PerspectiveCamera } from "three";
 
 const h = vi.hoisted(() => ({ instances: [], fail: false }));
 
@@ -20,11 +20,13 @@ vi.mock("3d-force-graph", () => ({
     };
     const camera = new PerspectiveCamera(50, 1, 0.1, 5000);
     camera.position.set(0, 0, 200);
+    const threeScene = new Group();
     const fns = new Map();
     const special = {
       controls: () => controls,
       renderer: () => renderer,
       camera: () => camera,
+      scene: () => threeScene,
     };
     fns.set("d3Force", vi.fn(() => ({ strength: vi.fn(), distance: vi.fn() })));
     const graph = new Proxy({}, {
@@ -32,6 +34,7 @@ vi.mock("3d-force-graph", () => ({
         if (prop === "calls") return fns;
         if (prop === "controlsMock") return controls;
         if (prop === "rendererMock") return renderer;
+        if (prop === "threeScene") return threeScene;
         if (special[prop]) return special[prop];
         if (!fns.has(prop)) fns.set(prop, vi.fn(() => graph));
         return fns.get(prop);
@@ -143,6 +146,67 @@ describe("Graph3DRenderer", () => {
     render(<Graph3DRenderer {...baseProps} />);
     const names = h.instances[0].calls.get("d3Force").mock.calls.map((c) => c[0]);
     expect(names).toEqual(expect.arrayContaining(["charge", "link", "center"]));
+  });
+
+  describe("group by folder", () => {
+    const folderCalls = (graph) => graph.calls.get("d3Force").mock.calls.filter((c) => c[0] === "folder");
+    const specs = ["a", "b", "c", "d", "e"].map((id) => ({ id, title: id, type: "note", tags: [], folder: "Specs/Wave 1" }));
+
+    it("registers the folder force when on and removes it when off, re-heating on the toggle", () => {
+      const { rerender } = render(<Graph3DRenderer {...baseProps} />);
+      const graph = h.instances[0];
+      expect(folderCalls(graph).at(-1)[1]).toEqual(expect.any(Function));
+      expect(graph.calls.get("d3ReheatSimulation")).toBeUndefined();
+
+      rerender(<Graph3DRenderer {...baseProps} groupByFolder={false} />);
+      expect(folderCalls(graph).at(-1)[1]).toBeNull();
+      expect(graph.calls.get("d3ReheatSimulation")).toHaveBeenCalledTimes(1);
+
+      rerender(<Graph3DRenderer {...baseProps} groupByFolder />);
+      expect(folderCalls(graph).at(-1)[1]).toEqual(expect.any(Function));
+      expect(graph.calls.get("d3ReheatSimulation")).toHaveBeenCalledTimes(2);
+    });
+
+    it("starts without the force when the saved choice is off", () => {
+      render(<Graph3DRenderer {...baseProps} groupByFolder={false} />);
+      const graph = h.instances[0];
+      expect(folderCalls(graph).every((c) => c[1] === null)).toBe(true);
+      expect(graph.calls.get("d3ReheatSimulation")).toBeUndefined();
+    });
+
+    it("floats a label per big folder, hides them when off, and frees them on unmount", () => {
+      const frames = [];
+      const raf = vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => frames.push(cb));
+      const width = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(800);
+      const height = vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(600);
+      const canvas = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+        measureText: () => ({ width: 40 }), fillText() {}, translate() {}, fillRect() {}, clearRect() {},
+      });
+      try {
+        const { rerender, unmount } = render(<Graph3DRenderer {...baseProps} nodes={specs} links={[]} />);
+        const graph = h.instances[0];
+        graph.calls.get("graphData").mock.calls.at(-1)[0].nodes.forEach((n, i) => Object.assign(n, { x: i * 5, y: 0, z: 0 }));
+        const tick = () => frames.splice(0).forEach((cb) => cb(performance.now() + 16));
+        tick();
+        tick();
+        expect(window.__maiaGraphStats().folderLabels).toBe(1); // Specs holds exactly Specs/Wave 1's notes, so only the deeper one is labelled
+        expect(graph.threeScene.children).toHaveLength(1);
+
+        rerender(<Graph3DRenderer {...baseProps} nodes={specs} links={[]} groupByFolder={false} />);
+        expect(graph.threeScene.children).toHaveLength(0);
+
+        rerender(<Graph3DRenderer {...baseProps} nodes={specs} links={[]} groupByFolder />);
+        tick();
+        expect(graph.threeScene.children).toHaveLength(1);
+        unmount();
+        expect(graph.threeScene.children).toHaveLength(0);
+      } finally {
+        raf.mockRestore();
+        width.mockRestore();
+        height.mockRestore();
+        canvas.mockRestore();
+      }
+    });
   });
 
   it("disposes the renderer and listeners on unmount", () => {
