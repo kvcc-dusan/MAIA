@@ -4,22 +4,14 @@ import { Alert } from "@/components/arc/alert/alert";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Select } from "@/components/composed/Select";
 import { useData } from "@/context/DataContext";
-import { FilterChips, PageBar } from "../kit";
+import { PageBar } from "../kit";
 import { label as shortDate, toDayString } from "../lib/metrics";
 import { buildReportSummary, reportMarkdown, reportNoteTitle } from "../lib/report";
 import ReportCard from "../components/report/ReportCard";
-import ReportTiles from "../components/report/ReportTiles";
 import ReportHistoryCard from "../components/report/ReportHistoryCard";
 import { savedReports } from "../components/report/reportHistory";
-import {
-  OLDER_PLACEHOLDER, chipValue, olderWeekOptions, rangeLabel, weekRanges,
-} from "../components/report/reportWeeks";
+import { rangeLabel, weekOptions, weekRanges } from "../components/report/reportWeeks";
 import styles from "./ReportTab.module.css";
-
-const WEEK_CHIPS = [
-  { value: "0", label: "This week" },
-  { value: "1", label: "Last week" },
-];
 
 const weekTitle = (range) => `Week of ${shortDate(range.from)}`;
 
@@ -58,25 +50,16 @@ export default function ReportTab({ project, selectNote }) {
   };
 
   const savedNoteId = saved[range.from] ?? null;
-  const olderValue = weeksBack >= 2 ? String(weeksBack) : null;
 
   return (
     <div className={styles.page}>
       <PageBar>
-        <FilterChips
-          label="Report week"
-          options={WEEK_CHIPS}
-          value={chipValue(weeksBack)}
-          onValueChange={(next) => setWeeksBack(Number(next))}
-        />
-        <div className={styles.older}>
+        <div className={styles.week}>
           <Select
-            label={OLDER_PLACEHOLDER}
-            labelClassName="sr-only"
-            value={olderValue}
-            options={olderWeekOptions(ranges)}
+            label="Week"
+            value={String(weeksBack)}
+            options={weekOptions(ranges)}
             onChange={(next) => next != null && setWeeksBack(Number(next))}
-            placeholder={OLDER_PLACEHOLDER}
           />
         </div>
         <span className={styles.range}>{rangeLabel(range)}</span>
@@ -94,7 +77,6 @@ export default function ReportTab({ project, selectNote }) {
         />
       ) : (
         <>
-          <ReportTiles summary={report.summary} />
           <ReportCard
             title={weekTitle(range)}
             markdown={report.markdown}
