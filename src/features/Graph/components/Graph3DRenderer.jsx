@@ -3,6 +3,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { cssVar } from "@/lib/tokens";
 import { buildGraphData, clusterMembers, matchNodes } from "../lib/graphData3d.js";
 import { createGraphScene } from "../lib/graph3dScene.js";
+import { GROUP_PULL_DEFAULT } from "../lib/graphForces.js";
 import styles from "./Graph3DRenderer.module.css";
 
 const GRAPH_NAME = "3D knowledge graph";
@@ -30,6 +31,7 @@ function Graph3DRenderer({
   repelForce,
   linkDistance,
   groupByFolder = true,
+  groupPull = GROUP_PULL_DEFAULT,
   query = "",
   setHoveredNode,
   controllerRef,
@@ -111,9 +113,10 @@ function Graph3DRenderer({
       repelForce,
       linkDistance,
       groupByFolder,
+      groupPull,
       fontFace: cssVar("--font-body") || "sans-serif",
     }),
-    [groupColors, groupOf, nodeSize, linkThickness, fontSize, repelForce, linkDistance, groupByFolder],
+    [groupColors, groupOf, nodeSize, linkThickness, fontSize, repelForce, linkDistance, groupByFolder, groupPull],
   );
 
   useEffect(() => {

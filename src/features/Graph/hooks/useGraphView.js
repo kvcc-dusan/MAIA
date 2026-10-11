@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { COLOR_BY_KEY, VIEW_KEY, readColorBy, readGroupByFolder, readViewMode, writeGroupByFolder, writePref } from "../lib/viewPrefs.js";
+import { COLOR_BY_KEY, VIEW_KEY, readColorBy, readGroupByFolder, readGroupPull, readViewMode, writeGroupByFolder, writeGroupPull, writePref } from "../lib/viewPrefs.js";
 
 /**
  * 2D/3D choice and colour grouping. The saved choice is never overwritten by a
@@ -9,6 +9,7 @@ export function useGraphView() {
   const [viewMode, setViewModeState] = useState(() => readViewMode());
   const [colorBy, setColorByState] = useState(() => readColorBy());
   const [groupByFolder, setGroupByFolderState] = useState(() => readGroupByFolder());
+  const [groupPull, setGroupPullState] = useState(() => readGroupPull());
   const [webglFailed, setWebglFailed] = useState(false);
 
   const setViewMode = useCallback((mode) => {
@@ -27,6 +28,11 @@ export function useGraphView() {
     setGroupByFolderState(on);
   }, []);
 
+  const setGroupPull = useCallback((value) => {
+    writeGroupPull(value);
+    setGroupPullState(value);
+  }, []);
+
   const markWebglUnavailable = useCallback(() => setWebglFailed(true), []);
 
   return {
@@ -37,6 +43,8 @@ export function useGraphView() {
     setColorBy,
     groupByFolder,
     setGroupByFolder,
+    groupPull,
+    setGroupPull,
     webglFailed,
     markWebglUnavailable,
   };

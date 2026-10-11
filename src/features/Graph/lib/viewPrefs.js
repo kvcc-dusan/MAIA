@@ -1,9 +1,12 @@
+import { GROUP_PULL_DEFAULT, GROUP_PULL_MAX, GROUP_PULL_MIN } from "./graphForces.js";
+
 // View mode and colour grouping choices, persisted in localStorage. Storage
 // can be blocked (private mode, quota), so every access is guarded.
 
 export const VIEW_KEY = "maia_graph_view";
 export const COLOR_BY_KEY = "maia_graph_colorBy";
 export const GROUP_BY_FOLDER_KEY = "maia_graph_groupByFolder";
+export const GROUP_PULL_KEY = "maia_graph_groupPull";
 
 const read = (key) => {
   try {
@@ -43,3 +46,14 @@ export const readColorBy = () => (read(COLOR_BY_KEY) === "tag" ? "tag" : "folder
 export const readGroupByFolder = () => read(GROUP_BY_FOLDER_KEY) !== "off";
 
 export const writeGroupByFolder = (on) => writePref(GROUP_BY_FOLDER_KEY, on ? "on" : "off");
+
+/** 3D "Group pull" slider, 0 to 100. Missing, corrupt or out-of-range values fall back to the default. */
+export const readGroupPull = () => {
+  const raw = read(GROUP_PULL_KEY);
+  if (raw === null || raw.trim() === "") return GROUP_PULL_DEFAULT;
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return GROUP_PULL_DEFAULT;
+  return Math.min(GROUP_PULL_MAX, Math.max(GROUP_PULL_MIN, Math.round(value)));
+};
+
+export const writeGroupPull = (value) => writePref(GROUP_PULL_KEY, String(value));

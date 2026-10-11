@@ -70,6 +70,7 @@ const baseProps = {
   fontSize: 1,
   repelForce: 150,
   linkDistance: 100,
+  groupPull: 20,
   query: "",
   setHoveredNode: vi.fn(),
   controllerRef: { current: null },
@@ -165,6 +166,31 @@ describe("Graph3DRenderer", () => {
       rerender(<Graph3DRenderer {...baseProps} groupByFolder />);
       expect(folderCalls(graph).at(-1)[1]).toEqual(expect.any(Function));
       expect(graph.calls.get("d3ReheatSimulation")).toHaveBeenCalledTimes(2);
+    });
+
+    it("re-heats at most once per interval while Group pull moves, then settles on the last value", () => {
+      vi.useFakeTimers();
+      try {
+        const { rerender, unmount } = render(<Graph3DRenderer {...baseProps} />);
+        const reheats = () => h.instances[0].calls.get("d3ReheatSimulation")?.mock.calls.length ?? 0;
+        expect(reheats()).toBe(0);
+        rerender(<Graph3DRenderer {...baseProps} groupPull={40} />);
+        expect(reheats()).toBe(1);
+        rerender(<Graph3DRenderer {...baseProps} groupPull={50} />);
+        rerender(<Graph3DRenderer {...baseProps} groupPull={60} />);
+        expect(reheats()).toBe(1);
+        vi.advanceTimersByTime(300);
+        expect(reheats()).toBe(2);
+        unmount();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("does not re-heat on a Group pull change while grouping is off", () => {
+      const { rerender } = render(<Graph3DRenderer {...baseProps} groupByFolder={false} />);
+      rerender(<Graph3DRenderer {...baseProps} groupByFolder={false} groupPull={70} />);
+      expect(h.instances[0].calls.get("d3ReheatSimulation")).toBeUndefined();
     });
 
     it("starts without the force when the saved choice is off", () => {

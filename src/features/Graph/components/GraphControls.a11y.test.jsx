@@ -13,7 +13,7 @@ const nodes = [
   { id: "p", title: "Alpine project", type: "project", realId: "proj-1" },
 ];
 
-function Harness({ mode = "3d", setGroupByFolder = () => {}, onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSubmit = vi.fn() }) {
+function Harness({ mode = "3d", groupByFolder = true, setMode = () => {}, setGroupPull = () => {}, setGroupByFolder = () => {}, onOpenNode = vi.fn(), handleZoomToNode = vi.fn(), onSearchSubmit = vi.fn() }) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const results = searchQuery ? nodes.filter((n) => n.title.toLowerCase().includes(searchQuery.toLowerCase())) : [];
@@ -35,7 +35,7 @@ function Harness({ mode = "3d", setGroupByFolder = () => {}, onOpenNode = vi.fn(
       clusters={[]}
       colors={["black"]}
       nodeDotColor={() => "black"}
-      view={{ mode, setMode: () => {}, colorBy: "folder", setColorBy: () => {}, groupByFolder: true, setGroupByFolder, legend: [] }}
+      view={{ mode, setMode, colorBy: "folder", setColorBy: () => {}, groupByFolder, setGroupByFolder, groupPull: 20, setGroupPull, legend: [] }}
     />
   );
 }
@@ -64,22 +64,33 @@ describe("GraphControls accessibility", () => {
     expect(document.activeElement).toBe(toggle);
   });
 
-  it("exposes the dimension choice as a named group of pressed buttons and has no colour picker", async () => {
+  it("exposes the dimension choice as a named tablist and has no colour picker", async () => {
+    const user = userEvent.setup();
+    const setMode = vi.fn();
+    render(<Harness setMode={setMode} />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    expect(screen.getByRole("tablist", { name: "Graph dimensions" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "3D" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "2D" })).toHaveAttribute("aria-selected", "false");
+    await user.click(screen.getByRole("tab", { name: "2D" }));
+    expect(setMode).toHaveBeenCalledWith("2d");
+    // The graph is monochrome now, so there is nothing to colour by.
+    expect(screen.queryByRole("group", { name: "Color by" })).toBeNull();
+  });
+
+  it("orders the sections Filters, Display, Forces, View, Groups", async () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.click(screen.getByRole("button", { name: "Graph controls" }));
-    const group = screen.getByRole("group", { name: "Graph dimensions" });
-    expect(screen.getByRole("button", { name: "3D" })).toHaveAttribute("aria-pressed", "true");
-    expect(group).toBeInTheDocument();
-    // The graph is monochrome now, so there is nothing to colour by.
-    expect(screen.queryByRole("group", { name: "Color by" })).toBeNull();
+    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(headings.slice(0, 5)).toEqual(["Filters", "Display", "Forces", "View", "Groups"]);
   });
 
   it("exposes every slider with a name and a value text", async () => {
     const user = userEvent.setup();
     render(<Harness />);
     await user.click(screen.getByRole("button", { name: "Graph controls" }));
-    for (const name of ["Node size", "Link thickness", "Text size", "Entropy", "Entanglement"]) {
+    for (const name of ["Node size", "Link thickness", "Text size", "Entropy", "Entanglement", "Group pull"]) {
       const slider = screen.getByRole("slider", { name });
       expect(slider).toHaveAttribute("aria-valuetext");
     }
@@ -126,5 +137,20 @@ describe("GraphControls accessibility", () => {
     render(<Harness mode="2d" />);
     await user.click(screen.getByRole("button", { name: "Graph controls" }));
     expect(screen.queryByRole("switch", { name: "Group by folder" })).toBeNull();
+  });
+
+  it("shows Group pull in 3D only and mutes it while Group by folder is off", async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Harness />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    expect(screen.getByRole("slider", { name: "Group pull" })).not.toHaveAttribute("aria-disabled");
+    unmount();
+    const off = render(<Harness groupByFolder={false} />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    expect(screen.getByRole("slider", { name: "Group pull" })).toHaveAttribute("aria-disabled", "true");
+    off.unmount();
+    render(<Harness mode="2d" />);
+    await user.click(screen.getByRole("button", { name: "Graph controls" }));
+    expect(screen.queryByRole("slider", { name: "Group pull" })).toBeNull();
   });
 });

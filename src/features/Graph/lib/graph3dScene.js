@@ -11,7 +11,7 @@ import {
 } from "./graphData3d.js";
 import { createFolderLabels, FOLDER_LABEL_SIZE } from "./folderLabels3d.js";
 import { labelGroups } from "./folderGroups.js";
-import { chargeFor, createFolderForce, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
+import { chargeFor, createFolderForce, createGravityForce, folderStrengthFor, GROUP_PULL_DEFAULT, gravityFor, linkDistanceFor3d, linkWidthFor } from "./graphForces.js";
 import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
 import { createLinkMaterials } from "./linkMaterials3d.js";
 import {
@@ -36,6 +36,7 @@ const LABEL_POOL_FACTOR = 2; // labels kept alive, relative to the visible cap
 const LABEL_RELEASE_PER_PASS = 12;
 const MAX_FRAME_DT_MS = 50;
 const RETIRE_DELAY_MS = 1500;
+const PULL_REHEAT_MS = 250; // minimum gap between re-heats while the Group pull slider moves
 const ALPHA_MIN = 0.002; // d3 stops the simulation here instead of ticking until cooldownTime
 const DOUBLE_CLICK_MS = 350;
 const FLY_MS = 900;
@@ -90,7 +91,10 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     tier: qualityTier(0),
     assets: createSharedAssets(qualityTier(0).sphereLevels),
     gravity: createGravityForce(0),
-    folderForce: createFolderForce(),
+    folderForce: createFolderForce(folderStrengthFor(GROUP_PULL_DEFAULT)),
+    pullKey: null,
+    reheatAt: -Infinity,
+    reheatTimer: 0,
     folderLabels: createFolderLabels(graph.scene()),
     folderOn: null,
     focus: computeFocus({ hoverId: null, adjacency: new Map(), matchIds: null, clusterIds: null }),
@@ -630,7 +634,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     const first = s.forceKey === "";
     s.forceKey = key;
     graph.d3Force("charge")?.strength(chargeFor(repelForce));
-    graph.d3Force("link")?.distance(linkDistanceFor(linkDistance));
+    graph.d3Force("link")?.distance(linkDistanceFor3d(linkDistance));
     s.gravity.strength(gravityFor(repelForce));
     graph.d3Force("center", s.gravity);
     if (!first) graph.d3ReheatSimulation();
@@ -645,6 +649,33 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     graph.d3Force("folder", on ? s.folderForce : null);
     s.folderLabels.setEnabled(on);
     if (!first) graph.d3ReheatSimulation();
+  };
+
+  // Dragging the Group pull slider fires many changes: re-heat at most once per interval, plus one trailing
+  // call so the final value always settles.
+  const reheatThrottled = () => {
+    const wait = PULL_REHEAT_MS - (performance.now() - s.reheatAt);
+    if (wait <= 0) {
+      s.reheatAt = performance.now();
+      graph.d3ReheatSimulation();
+      return;
+    }
+    if (s.reheatTimer) return;
+    s.reheatTimer = window.setTimeout(() => {
+      s.reheatTimer = 0;
+      s.reheatAt = performance.now();
+      graph.d3ReheatSimulation();
+    }, wait);
+  };
+
+  const applyPull = () => {
+    const pull = s.style.groupPull ?? GROUP_PULL_DEFAULT;
+    if (pull === s.pullKey) return;
+    const first = s.pullKey === null;
+    s.pullKey = pull;
+    s.folderForce.strength(folderStrengthFor(pull));
+    // A pull change only matters (and only needs motion) while the force is registered.
+    if (!first && s.folderOn) reheatThrottled();
   };
 
   const applyWidth = () => {
@@ -665,6 +696,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       graph.backgroundColor(intToHex(style.bgInt));
       applyForces();
       applyFolders();
+      applyPull();
       s.folderLabels.setLook(intToHex(style.textInt), style.fontFace);
       applyWidth();
       styleAll();
@@ -751,6 +783,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       s.destroyed = true;
       cancelAnimationFrame(s.raf);
       window.clearTimeout(s.fitTimer);
+      window.clearTimeout(s.reheatTimer);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       controls.removeEventListener("start", stopAutoRotate);
       container.removeEventListener("keydown", handleOrbitKey);

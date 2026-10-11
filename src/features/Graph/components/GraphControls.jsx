@@ -5,9 +5,10 @@ import { IconButton } from "@/components/composed/IconButton";
 import { SectionLabel } from "@/components/composed/SectionBits";
 import { Badge } from "@/components/arc/badge/badge";
 import { SearchField } from "@/components/arc/search-field/search-field";
-import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
 import { Slider } from "@/components/arc/slider/slider";
 import { Switch } from "@/components/arc/switch/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
+import { GROUP_PULL_MAX, GROUP_PULL_MIN } from "../lib/graphForces.js";
 import styles from "./GraphControls.module.css";
 
 const FILTERS = [
@@ -151,23 +152,6 @@ export default function GraphControls({
                     </div>
 
                     <div className={styles.section}>
-                        <SectionLabel as="h3" className={styles.sectionTitle}>View</SectionLabel>
-                        <SegmentedControl
-                            label="Graph dimensions"
-                            options={VIEW_OPTIONS}
-                            value={view.mode}
-                            onValueChange={view.setMode}
-                        />
-                        {view.mode === "3d" && (
-                            <Switch
-                                label="Group by folder"
-                                checked={view.groupByFolder}
-                                onCheckedChange={view.setGroupByFolder}
-                            />
-                        )}
-                    </div>
-
-                    <div className={styles.section}>
                         <SectionLabel as="h3" className={styles.sectionTitle}>Filters</SectionLabel>
                         {FILTERS.map(f => (
                             <Switch
@@ -194,7 +178,7 @@ export default function GraphControls({
                     </div>
 
                     <div className={styles.section}>
-                        <SectionLabel as="h3" className={styles.sectionTitle}>Physics</SectionLabel>
+                        <SectionLabel as="h3" className={styles.sectionTitle}>Forces</SectionLabel>
                         {SLIDERS.physics.map(s => (
                             <Slider
                                 key={s.key}
@@ -206,6 +190,36 @@ export default function GraphControls({
                             />
                         ))}
                     </div>
+
+                    <div className={styles.section}>
+                        <SectionLabel as="h3" className={styles.sectionTitle}>View</SectionLabel>
+                        <Tabs value={view.mode} onValueChange={view.setMode}>
+                            <TabsList aria-label="Graph dimensions">
+                                {VIEW_OPTIONS.map(o => (
+                                    <TabsTrigger key={o.value} value={o.value} className={styles.tab}>{o.label}</TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    </div>
+
+                    {view.mode === "3d" && (
+                        <div className={styles.section}>
+                            <SectionLabel as="h3" className={styles.sectionTitle}>Groups</SectionLabel>
+                            <Switch
+                                label="Group by folder"
+                                checked={view.groupByFolder}
+                                onCheckedChange={view.setGroupByFolder}
+                            />
+                            <Slider
+                                label="Group pull"
+                                min={GROUP_PULL_MIN} max={GROUP_PULL_MAX} step={1}
+                                value={view.groupPull}
+                                onValueChange={view.setGroupPull}
+                                format={(v) => String(v)}
+                                disabled={!view.groupByFolder}
+                            />
+                        </div>
+                    )}
 
                     <div className={styles.section}>
                         <SectionLabel as="h3" className={styles.sectionTitle}>Trending tags</SectionLabel>

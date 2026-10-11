@@ -11,6 +11,25 @@ const GRAVITY_SCALE = 0.08;
 /** "Entanglement": a higher value pulls linked nodes closer, as in 2D. */
 export const linkDistanceFor = (linkDistance) => Math.max(MIN_DISTANCE, (500 - linkDistance) * DISTANCE_SCALE);
 
+// 3D only. The shared slider (10 to 500) barely moved the 3D layout with the 2D mapping: repulsion keeps
+// links near 42 world units however short the target is. Stretching the target distance on a log scale gives
+// about 12x between the slider ends (measured: mean link 488 at 10, 62 at 100, 42 at 500). The default
+// (100) keeps its old 40 so the layout people have now does not move.
+const LINK_VALUE_MIN = 10;
+const LINK_VALUE_DEFAULT = 100;
+const LINK_VALUE_MAX = 500;
+const LINK_DISTANCE_3D = { loosest: 500, atDefault: 40, tightest: 1 };
+
+/** "Entanglement" in 3D: same direction as 2D (higher pulls closer) on a much wider, log-shaped scale. */
+export const linkDistanceFor3d = (linkDistance) => {
+  const value = Math.min(LINK_VALUE_MAX, Math.max(LINK_VALUE_MIN, linkDistance));
+  const { loosest, atDefault, tightest } = LINK_DISTANCE_3D;
+  const [from, to, t] = value <= LINK_VALUE_DEFAULT
+    ? [loosest, atDefault, (value - LINK_VALUE_MIN) / (LINK_VALUE_DEFAULT - LINK_VALUE_MIN)]
+    : [atDefault, tightest, (value - LINK_VALUE_DEFAULT) / (LINK_VALUE_MAX - LINK_VALUE_DEFAULT)];
+  return Math.exp(Math.log(from) + (Math.log(to) - Math.log(from)) * t);
+};
+
 /** "Entropy": how hard nodes push each other away. */
 export const chargeFor = (repelForce) => -repelForce * CHARGE_SCALE;
 
@@ -49,15 +68,24 @@ export const linkWidthFor = (thickness, thin) => (thin || thickness <= LINE_MAX_
 
 // Each level up the folder tree pulls half as hard, so sub-folders clump inside their parent.
 const FOLDER_LEVEL_FALLOFF = 0.5;
-// Base pull toward the own folder's centroid. Chosen by simulation (see the report): a 64-note folder
-// clumps visibly while link and repel forces still spread it.
-export const FOLDER_STRENGTH = 0.4;
+// "Group pull" slider (0 to 100) -> pull toward the own folder's centroid. Linear, 0 is exactly no pull.
+// Measured on a 270-note sample with a 64-note folder (group diameter / graph radius): 0 gives 1.44,
+// 20 (0.12) gives 0.95, 100 (0.6) gives 0.64, tighter than the old fixed 0.4 (0.72).
+export const GROUP_PULL_MIN = 0;
+export const GROUP_PULL_MAX = 100;
+export const GROUP_PULL_DEFAULT = 20;
+const FOLDER_STRENGTH_MAX = 0.6;
+
+export const folderStrengthFor = (pull) => {
+  const clamped = Math.min(GROUP_PULL_MAX, Math.max(GROUP_PULL_MIN, Number.isFinite(pull) ? pull : GROUP_PULL_DEFAULT));
+  return (clamped / GROUP_PULL_MAX) * FOLDER_STRENGTH_MAX;
+};
 
 /**
  * d3 force pulling each note toward the live centroid of its folder, then (weaker) of each ancestor folder.
  * Centroids are rebuilt once per tick: O(n * depth). Root notes and groups of one are left alone.
  */
-export const createFolderForce = (strength = FOLDER_STRENGTH) => {
+export const createFolderForce = (strength = folderStrengthFor(GROUP_PULL_DEFAULT)) => {
   let nodes = [];
   let k = strength;
   let chains = []; // per node: group indices, own folder first

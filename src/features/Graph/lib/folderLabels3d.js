@@ -24,7 +24,7 @@ export const createFolderLabels = (parent) => {
   let groups = []; // { path, name, ids }
   let enabled = true;
   let dim = 0;
-  let color = "#ffffff";
+  let color = "white";
   let fontFace = "sans-serif";
   const sprites = new Map(); // path -> { sprite, base: {x, y} }
   const centroid = { x: 0, y: 0, z: 0 };

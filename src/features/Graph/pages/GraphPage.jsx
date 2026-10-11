@@ -283,6 +283,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
             repelForce={repelForce}
             linkDistance={linkDistance}
             groupByFolder={view.groupByFolder}
+            groupPull={view.groupPull}
             query={searchQuery}
             setHoveredNode={setHoveredNode}
             controllerRef={graph3dRef}
@@ -349,6 +350,8 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
           setColorBy: view.setColorBy,
           groupByFolder: view.groupByFolder,
           setGroupByFolder: view.setGroupByFolder,
+          groupPull: view.groupPull,
+          setGroupPull: view.setGroupPull,
           legend,
         }}
         onSearchSubmit={openFirstResult}
