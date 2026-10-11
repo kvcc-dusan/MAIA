@@ -89,7 +89,7 @@ TipTap layer. `extensions.js` assembles the list, `src/components/EditorRich.jsx
 
 ## Opus (projects and tasks)
 
-`ProjectsPage.jsx` renders `OpusLayout.jsx`. Ten tabs in `tabs/`: Overview, Board, Tasks, Roadmap, Decisions, Questions, Documents, Notes, Weekly report, Core (Core composes `LibraryTab`). Tab-to-tab links with filters go through `OpusNavContext` (`useOpusNav().navigate('tasks', { status })`). Spec: `~/.claude/plans/opus-hub-spec.md`. Hub reference: `/Users/dusankvcc/Desktop/Atrium/Claude Code/projecthub/out-test`.
+`ProjectsPage.jsx` renders `OpusLayout.jsx`. Ten tabs in `tabs/`: Overview, Board, Tasks, Roadmap, Decisions, Questions, Documents, Notes, Weekly report, Resources (Links and Assets; the old Core id still resolves to it). Tab-to-tab links with filters go through `OpusNavContext` (`useOpusNav().navigate('tasks', { status })`). Spec: `~/.claude/plans/opus-hub-spec.md`. Hub reference: `/Users/dusankvcc/Desktop/Atrium/Claude Code/projecthub/out-test`.
 
 Data model:
 - `src/features/Opus/lib/taskModel.js` is the ONE status-transition rule (`applyTaskPatch`). Write status with `updateTask(id, { status })`. Never set `done` or `doneAt` by hand: `done` mirrors `status === 'done'`, and `completedAt` is read-only legacy.
@@ -101,6 +101,7 @@ Data model:
 - Metrics group by UTC day. Known limit: 00:00 to 02:00 local lands on the previous day.
 - Ledger: there is no Ledger page (project decisions live in Opus). `maia.ledger` and the `ledger` state stay in DataContext and in backups.
 - Shared kit `features/Opus/kit/` (PageBar, FilterChips, ListRow, MetricTile, GroupCard, marks, format, estimates). Use it before adding a primitive.
+- One fact, one place (audit 2026-10-11): no Brief card or Project details card (Edit project is the only editor for name, phase, headline, focus and dates; milestones replace success criteria; the data fields stay in files), no Notes card on Resources (the Notes tab owns notes, including "Link existing note"), no progress line under the title, no report tiles (the report body is the content; one Week select), one shared `TaskEditor`/`TaskForm` for Board and Tasks (Schedule and next action are no longer edited in the UI; the fields stay in the data), workstreams are added on the Roadmap only, and pace is shown once, in the Forecast card. Saved `#report` notes show only in the Report History card.
 - Overview layout rules: one gap (`--space-4`) between cards in every Opus tab; rows stretch their cards to equal height (`SectionCard` body is `flex: 1`). Status mix is a hand-built stacked bar (Arc `usage-meter` is a quota meter and warns near full, so it does not fit). The Activity card is the Arc heatmap over `HEAT_WEEKS = 52` (the heatmap's cell size assumes a full year of columns) plus a one-line summary; the change feed was removed because Claude reads it over MCP (`list_activity`). The heatmap's empty cells are lifted in `Cards.module.css` for dark and Black (Arc's 6.5% vanishes there). Burn-up axis labels keep one slot of room around Today and Target (`pickAxisIndexes`).
 - Known duplication: `workstreamColor` is in `kit/format.js` and `tabs/TasksTab.jsx`. Estimate options and due-date helpers are also in `components/board/model.js` and `components/tasks/taskDisplay.js`. Fold them into the kit.
 
