@@ -1,6 +1,6 @@
 // @maia:graph-controls
 import React, { useEffect, useId, useRef } from "react";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { SectionLabel } from "@/components/composed/SectionBits";
 import { Badge } from "@/components/arc/badge/badge";

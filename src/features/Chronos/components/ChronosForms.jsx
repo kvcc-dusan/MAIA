@@ -5,7 +5,7 @@ import { DateTimeField } from "@/components/composed/DateTimeField";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
-import { Folder01 as FolderIcon } from "@/components/ui/CustomIcon.jsx";
+import { Folder as FolderIcon } from "@/components/icons";
 import { TASK_PRIORITIES, SIGNAL_PRIORITIES, IN_PRESETS } from "../../../lib/constants";
 import { toLocalInputValue } from "../../../lib/time";
 import { SessionColorSwatches } from "./SessionColorSwatches";

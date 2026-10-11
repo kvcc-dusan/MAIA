@@ -6,7 +6,7 @@ import styles from "./EmptyState.module.css";
 /**
  * Empty state: says why it is empty and offers one next step (`action`).
  *
- * `icon` is a component (lucide style), not an element. `size="inline"` is a
+ * `icon` is a component (a Solar icon from components/icons), not an element. `size="inline"` is a
  * compact variant for in-panel cases; `size="page"` keeps Arc's roomy default.
  * Arc's empty state forwards only className and aria-label, so other DOM props
  * are not passed through.

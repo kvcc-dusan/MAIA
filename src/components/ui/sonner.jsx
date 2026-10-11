@@ -1,5 +1,5 @@
 import { Toaster as Sonner } from "sonner";
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "@/components/icons"
 
 // The registry version reads the theme from next-themes, which is a Next.js
 // package this app has no other use for. MAIA is dark-only, so the theme is

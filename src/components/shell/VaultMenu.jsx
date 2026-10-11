@@ -1,4 +1,4 @@
-import { Check, FolderOpen, FolderSearch, Settings2 } from "lucide-react";
+import { Check, FolderOpen, FolderSearch, Settings2 } from "@/components/icons";
 import { toast } from "sonner";
 import { Menu } from "@/components/composed/Menu";
 import { Tooltip } from "@/components/arc/tooltip/tooltip";

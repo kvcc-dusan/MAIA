@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Plus, X } from "lucide-react";
+import { ChevronDown, Plus, X } from "@/components/icons";
 import {
   DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors,
 } from "@dnd-kit/core";

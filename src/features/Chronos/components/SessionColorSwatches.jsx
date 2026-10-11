@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons";
 import { SESSION_COLORS } from "@/lib/sessionColors";
 import { SESSION_COLOR_VARS } from "./sessionColorVars";
 import styles from "./SessionColors.module.css";

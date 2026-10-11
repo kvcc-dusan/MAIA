@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import ProjectList from "./ProjectList";
 import styles from "./ProjectSidebar.module.css";

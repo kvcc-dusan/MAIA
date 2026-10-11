@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion } from "motion/react";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./toast.module.css";
 const subscribeHydration = () => () => {

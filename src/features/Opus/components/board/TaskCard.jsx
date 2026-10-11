@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useReducedMotion } from "motion/react";
-import { ArrowRightLeft, Check } from "lucide-react";
+import { ArrowRightLeft, Check } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { Menu } from "@/components/composed/Menu";
 import { DueLabel, OwnerAvatar, PriorityBadge, SizeMark, WorkstreamTag } from "../../kit";

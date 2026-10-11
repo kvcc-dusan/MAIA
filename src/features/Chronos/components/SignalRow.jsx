@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/arc/popover/popover";
 import { Menu, ContextDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";

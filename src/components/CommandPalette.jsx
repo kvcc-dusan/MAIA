@@ -11,7 +11,7 @@ import {
   BookOpen,
   Network,
   Settings,
-} from "lucide-react";
+} from "@/components/icons";
 import { CommandPalette as ArcPalette } from "@/components/arc/command-palette/command-palette";
 import styles from "./CommandPalette.module.css";
 

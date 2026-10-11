@@ -1,4 +1,4 @@
-import { Database, Info, Palette, FolderOpen } from "lucide-react";
+import { Database, Info, Palette, FolderOpen } from "@/components/icons";
 import { AboutSection } from "./sections/AboutSection";
 import { AppearanceSection } from "./sections/AppearanceSection";
 import { DataSection } from "./sections/DataSection";

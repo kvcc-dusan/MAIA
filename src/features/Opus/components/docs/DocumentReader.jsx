@@ -2,7 +2,7 @@ import React from "react";
 import { SidePanel } from "@/components/composed/SidePanel";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
-import { FileText } from "lucide-react";
+import { FileText } from "@/components/icons";
 import { StatusBadge } from "../../kit";
 import MarkdownView from "./MarkdownView";
 import { docSubtitle, docTitle } from "./docDisplay";

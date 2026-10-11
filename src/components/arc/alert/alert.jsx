@@ -8,7 +8,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "motion/react";
-import { Check, Info as InfoCircle, TriangleAlert as WarningTriangle, CircleX as XmarkCircle, X } from "lucide-react";
+import { Check, Info as InfoCircle, TriangleAlert as WarningTriangle, CircleX as XmarkCircle, X } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./alert.module.css";
 

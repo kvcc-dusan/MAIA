@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { SectionLabel } from "@/components/composed/SectionBits";
 import { Button } from "@/components/arc/button/button";

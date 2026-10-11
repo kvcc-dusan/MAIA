@@ -26,7 +26,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
-import { Trash2, Pencil, Plus, Settings, Folder } from "lucide-react";
+import { Trash2, Pencil, Plus, Settings, Folder } from "@/components/icons";
 import {
   PageBar, FilterChips, SearchBox, MetricTile, GroupCard, ListRow, StatusBadge,
   OwnerAvatar, DueLabel, WorkstreamTag, PriorityBadge, SizeMark,

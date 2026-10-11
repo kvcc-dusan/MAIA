@@ -1,6 +1,6 @@
 "use client";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ChevronDown, Clock3 } from "lucide-react";
+import { ChevronDown, Clock3 } from "@/components/icons";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./time-picker.module.css";

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { GitBranch } from "lucide-react";
+import { GitBranch } from "@/components/icons";
 import { useData } from "@/context/DataContext";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";

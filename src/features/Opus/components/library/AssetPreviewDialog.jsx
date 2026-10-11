@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Download, File } from "lucide-react";
+import { Download, File } from "@/components/icons";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { Button } from "@/components/arc/button/button";
 import { Alert } from "@/components/arc/alert/alert";

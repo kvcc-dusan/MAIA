@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { Command as CommandIcon, Search, X } from "lucide-react";
+import { Command as CommandIcon, Search, X } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./command-palette.module.css";
 const enter = { duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] };

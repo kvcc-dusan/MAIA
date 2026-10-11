@@ -2,7 +2,7 @@
 import { forwardRef, useId, useState } from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./select.module.css";
 

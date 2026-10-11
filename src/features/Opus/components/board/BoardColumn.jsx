@@ -1,7 +1,7 @@
 import React, { useId } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
+import { Plus } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import TaskCard from "./TaskCard";
 import { STATUS_LABELS, WIP_LIMIT } from "./model";

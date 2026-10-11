@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { NotebookPen } from "lucide-react";
+import { NotebookPen } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { useData } from "@/context/DataContext";

@@ -1,6 +1,6 @@
 "use client";
 import { animate, AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { Check, ChevronDown, Search, X } from "@/components/icons";
 import {
   forwardRef,
   useEffect,

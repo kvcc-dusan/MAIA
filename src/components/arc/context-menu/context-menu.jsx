@@ -2,7 +2,7 @@
 import { createPortal } from "react-dom";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Check, Copy, MoreHorizontal, Trash2 } from "lucide-react";
+import { Check, Copy, MoreHorizontal, Trash2 } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./context-menu.module.css";
 

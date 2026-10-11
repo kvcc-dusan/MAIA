@@ -11,7 +11,7 @@ import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { IconButton } from "@/components/composed/IconButton";
 import { Button } from "@/components/arc/button/button";
-import { PlusIcon, BellOff, ListTodo } from "lucide-react";
+import { PlusIcon, BellOff, ListTodo } from "@/components/icons";
 
 import { formatTime, formatDayLabel, toLocalInputValue, isPastTime, hasOverlap, sameDay } from "../../lib/time";
 import TaskRow from "./components/TaskRow";

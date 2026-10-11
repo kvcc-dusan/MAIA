@@ -22,7 +22,7 @@ Pages (`PAGES` in `src/App.jsx`): `codex`, `projects` (Opus), `graph` (Conexa). 
 - Motion: `framer-motion` 12 (`MotionConfig reducedMotion="user"` in `App.jsx`). `motion` 14 (`motion/react`) is used by Arc components and the Opus board. Both are installed.
 - Primitives: `@base-ui/react` 1.6 (`Menu`), Radix packages (dialog, popover, select, tabs, tooltip, dropdown-menu, context-menu and more), `cmdk` (command palette via `ui/command.jsx`), `@dnd-kit` (Opus board only), `sonner` (toasts).
 - Data and MCP: `yaml` 2.9 (frontmatter), `zod` 4 and `@modelcontextprotocol/sdk` 1.x (the `mcp/` server).
-- Desktop: `@tauri-apps/api`, `plugin-dialog`, `plugin-fs` (2.x), `src-tauri/`. Icons: `lucide-react` (see Conventions). Tests: Vitest 4, jsdom 27, Testing Library.
+- Desktop: `@tauri-apps/api`, `plugin-dialog`, `plugin-fs` (2.x), `src-tauri/`. Icons: local Solar module `src/components/icons` (see Conventions). Tests: Vitest 4, jsdom 27, Testing Library.
 - Gone: Recharts (Ledger charts are Arc charts), the Today dnd grid, the dock, ColorBends. The unused Manrope and Roboto fontsource packages were removed.
 
 ## Feature map
@@ -226,7 +226,7 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
 - Comment the *why*, not the *what*.
 - Tailwind for layout. Inline styles only for canvas, SVG and three.js. `cn()` from `src/lib/utils.js` for conditional classes.
 - File size: 200 to 400 lines typical, 800 hard max. The big ones may only shrink and should be extracted into `features/<Feature>/components/`: `components/ui/CustomIcon.jsx` (1054 lines), `pages/NotesPage.jsx` (428).
-- Icons: Lucide React by default. `CustomIcon.jsx` (name-keyed MAIA SVG set) only where a MAIA-specific icon exists.
+- Icons: Solar (Linear, CC BY 4.0, credited in Settings > About), no npm package. `src/components/icons/index.jsx` exports components under their old semantic names (`Search`, `ChevronDown`, `Trash2`...); bodies live in `solarData.js` (also used by `editor/calloutTypes.js`), project icons in `projectIcon/icons.js`. Need a new icon: fetch its `-linear` body from `https://api.iconify.design/solar.json?icons=<name>`, strip `stroke-width`, add it to `solarData.js` and export it. Size 16/20/24, `strokeWidth` 1.75, `aria-hidden` on decorative ones. `ui/CustomIcon.jsx` is now unused (delete needs Dušan's yes). Arc vendored files import from `@/components/icons` too: re-check after every `shadcn add`.
 - Never claim work is done without evidence (a test run, a grep, a screenshot).
 - Every pass: `npm run lint:tokens`, `npx vitest run`, `npm run build`, plus the `checklist.md` sweeps over changed files. Then report what to check: light and dark, narrow window, keyboard.
 

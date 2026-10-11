@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpen, FileSearch, NotebookPen, SquarePen } from "lucide-react";
+import { BookOpen, FileSearch, NotebookPen, SquarePen } from "@/components/icons";
 import styles from "./NewTabPage.module.css";
 
 const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);

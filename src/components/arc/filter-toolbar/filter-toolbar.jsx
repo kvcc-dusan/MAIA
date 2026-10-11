@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Plus, X } from "@/components/icons";
 import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./filter-toolbar.module.css";

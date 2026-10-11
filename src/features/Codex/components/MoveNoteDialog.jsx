@@ -1,6 +1,6 @@
 import React from "react";
 import { useRef } from "react";
-import { Check, Folder } from "lucide-react";
+import { Check, Folder } from "@/components/icons";
 import { AppDialog } from "@/components/composed/AppDialog";
 import { Button } from "@/components/arc/button/button";
 import { ROOT_LABEL } from "../folderTree.js";

@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "@/components/icons";
 import { Menu, MenuDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
 import { workstreamMenuId } from "./roadmapModel";

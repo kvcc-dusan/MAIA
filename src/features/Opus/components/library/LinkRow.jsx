@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link2, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Link2, Mail, MoreHorizontal, Pencil, Trash2 } from "@/components/icons";
 import { Menu, MenuDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
 import { hostOf, isMailto, isSafeHref, linkLabel } from "./linkModel";

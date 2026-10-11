@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { FileText, SearchX } from "lucide-react";
+import { FileText, SearchX } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";

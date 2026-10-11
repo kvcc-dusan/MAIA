@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import EditorRich from "../components/EditorRich.jsx";
 import SourceEditor from "../components/SourceEditor.jsx";
-import { WriteIcon } from "../components/ui/CustomIcon.jsx";
+import { SquarePen as WriteIcon } from "@/components/icons";
 import { EmptyState } from "../components/composed/EmptyState.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 import NoteHeader from "../features/Codex/NoteHeader.jsx";

@@ -1,6 +1,6 @@
 import { forwardRef, useId, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Search, X as Xmark } from "lucide-react";
+import { Search, X as Xmark } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./search-field.module.css";
 export const SearchField = forwardRef(function SearchField2({ label, value, onValueChange, id, className, ...props }, ref) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MoreHorizontal, Pencil, Shapes, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Shapes, Trash2 } from "@/components/icons";
 import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/Menu";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { IconButton } from "@/components/composed/IconButton";

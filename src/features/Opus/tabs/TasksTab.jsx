@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Plus, SearchX, ListChecks, X } from "lucide-react";
+import { Plus, SearchX, ListChecks, X } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Select } from "@/components/composed/Select";

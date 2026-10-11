@@ -1,5 +1,5 @@
 import { LayoutGroup, motion, useReducedMotion } from "motion/react";
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "@/components/icons";
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./app-shell.module.css";

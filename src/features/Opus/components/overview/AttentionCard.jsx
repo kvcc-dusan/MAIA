@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { ListRow, OwnerAvatar, humanDate } from "../../kit";

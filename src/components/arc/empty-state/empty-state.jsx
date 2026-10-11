@@ -8,7 +8,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "motion/react";
-import { Folder } from "lucide-react";
+import { Folder } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./empty-state.module.css";
 

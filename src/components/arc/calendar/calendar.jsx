@@ -1,6 +1,6 @@
 "use client";
 import { useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "@/components/icons";
 import { animate, AnimatePresence, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform } from "motion/react";
 import { motionTokens } from "../lib/motion-tokens";
 import { useToday } from "../lib/use-today";

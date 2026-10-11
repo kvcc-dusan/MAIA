@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDayLabel, formatMonthYear, sameDay } from "../../../lib/time";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import styles from "./MonthCalendar.module.css";
 

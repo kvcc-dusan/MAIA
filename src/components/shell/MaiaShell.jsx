@@ -10,7 +10,7 @@ import {
   PanelLeftOpen,
   Search,
   Settings,
-} from "lucide-react";
+} from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { isTauri } from "@/lib/vault";
 import { RailButton } from "./RailButton";

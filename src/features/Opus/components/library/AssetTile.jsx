@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { File, FileText, Trash2 } from "lucide-react";
+import { File, FileText, Trash2 } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { isImageType, isPdfType } from "./assetRules";

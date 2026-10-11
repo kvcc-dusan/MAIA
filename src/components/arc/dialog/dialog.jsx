@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { createContext, useCallback, useContext, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./dialog.module.css";
 const OpenContext = createContext(null);

@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { ChevronRight, FileText, Folder, FolderOpen } from "lucide-react";
+import { ChevronRight, FileText, Folder, FolderOpen } from "@/components/icons";
 import styles from "./FileTree.module.css";
 
 const INDENT_STEP = 16;

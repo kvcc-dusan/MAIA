@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { Input } from "@/components/arc/input/input";
 import { IconButton } from "@/components/composed/IconButton";
 import { normalizeTag } from "@/lib/frontmatterProps";

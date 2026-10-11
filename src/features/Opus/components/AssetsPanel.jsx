@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { FolderOpen, Upload } from "lucide-react";
+import { FolderOpen, Upload } from "@/components/icons";
 import { useData } from "../../../context/DataContext";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { EmptyState } from "@/components/composed/EmptyState";

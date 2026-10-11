@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, Plus } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import {
   isFrontmatterReadable, readProperties, removeFrontmatterProperty, renameFrontmatterProperty,

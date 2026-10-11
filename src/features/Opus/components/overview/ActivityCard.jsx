@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity } from "lucide-react";
+import { Activity } from "@/components/icons";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";

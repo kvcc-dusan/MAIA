@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BookOpen, MoreHorizontal, Pencil } from "lucide-react";
+import { BookOpen, MoreHorizontal, Pencil } from "@/components/icons";
 import { toast } from "sonner";
 import { IconButton } from "@/components/composed/IconButton";
 import { Menu, MenuDangerItem } from "@/components/composed/Menu";

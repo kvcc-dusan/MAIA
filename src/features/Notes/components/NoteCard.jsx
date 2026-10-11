@@ -1,8 +1,8 @@
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "@/components/icons";
 import { Badge } from "@/components/arc/badge/badge";
 import { Menu, MenuDangerItem, ContextDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
-import { Pin, CheckmarkSquare02, Delete01, Pen01 } from "@/components/ui/CustomIcon.jsx";
+import { Pin, SquareCheck as CheckmarkSquare02, Trash2 as Delete01, Pencil as Pen01 } from "@/components/icons";
 import { useLongPress } from "@/hooks/useLongPress";
 import { noteTags } from "@/lib/noteTags";
 import styles from "./NoteCard.module.css";

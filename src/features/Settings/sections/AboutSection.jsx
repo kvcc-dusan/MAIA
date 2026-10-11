@@ -18,6 +18,11 @@ export const AboutSection = () => {
           <span className={styles.value}>{pkg.version}</span>
         </SettingRow>
       </SettingGroup>
+      <SettingGroup title="Credits">
+        <SettingRow label="Icons" description="Solar icon set by 480 Design, licensed CC BY 4.0.">
+          <span className={styles.value}>Solar</span>
+        </SettingRow>
+      </SettingGroup>
       <SettingGroup title="Keyboard shortcuts">
         {SHORTCUTS.map(({ keys, label }) => (
           <SettingRow key={label} label={label}>

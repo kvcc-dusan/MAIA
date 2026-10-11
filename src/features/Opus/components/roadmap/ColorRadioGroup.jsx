@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons";
 import { WORKSTREAM_COLORS } from "../../lib/projectModel.js";
 import styles from "./panels.module.css";
 

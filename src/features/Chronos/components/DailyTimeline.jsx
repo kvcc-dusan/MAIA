@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { SessionColorSwatches } from "./SessionColorSwatches";
 import { SESSION_COLOR_VARS } from "./sessionColorVars";
 import { Menu } from "@/components/composed/Menu";
-import { Pen01, Delete01 } from "@/components/ui/CustomIcon.jsx";
+import { Pencil as Pen01, Trash2 as Delete01 } from "@/components/icons";
 import styles from "./DailyTimeline.module.css";
 
 const SLOT_HEIGHT = 40;

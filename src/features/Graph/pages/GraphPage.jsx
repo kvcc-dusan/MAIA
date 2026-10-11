@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js";
 import { noteTags } from "../../../lib/noteTags.js";
-import { Network } from "lucide-react";
+import { Network } from "@/components/icons";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
 import GraphHoverCard from "../components/GraphHoverCard.jsx";

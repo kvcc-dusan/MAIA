@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link2, Plus } from "lucide-react";
+import { Link2, Plus } from "@/components/icons";
 import { uid } from "../../../lib/ids";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { EmptyState } from "@/components/composed/EmptyState";

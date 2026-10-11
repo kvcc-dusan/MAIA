@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil, Unlink } from "lucide-react";
+import { Pencil, Unlink } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { Badge } from "@/components/arc/badge/badge";
 import { IconButton } from "@/components/composed/IconButton";

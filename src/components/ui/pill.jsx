@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ArrowDown01, ArrowUp01, DashedLine02 } from '../CustomIcon.jsx';
+import { ArrowDown as ArrowDown01, ArrowUp as ArrowUp01, Minus as DashedLine02 } from '@/components/icons';
 
 export const Pill = ({
     variant = 'secondary',

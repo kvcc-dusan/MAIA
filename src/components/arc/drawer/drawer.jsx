@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion } from "motion/react";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./drawer.module.css";
 function useDrawerItem(item) {

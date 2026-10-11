@@ -1,4 +1,4 @@
-import { AlignLeft, Calendar, CalendarClock, CornerDownRight, Hash, List, Paintbrush, SquareCheck, Tag } from "lucide-react";
+import { AlignLeft, Calendar, CalendarClock, CornerDownRight, Hash, List, Paintbrush, SquareCheck, Tag } from "@/components/icons";
 import { toLocalInputValue } from "@/lib/time";
 
 export const TYPE_ICONS = {

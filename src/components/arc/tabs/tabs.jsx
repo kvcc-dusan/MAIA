@@ -1,6 +1,6 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { createContext, useCallback, useContext, useId, useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft as NavArrowLeft, ChevronRight as NavArrowRight } from "lucide-react";
+import { ChevronLeft as NavArrowLeft, ChevronRight as NavArrowRight } from "@/components/icons";
 import { AnimatePresence, LayoutGroup, animate, motion, useReducedMotion } from "motion/react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./tabs.module.css";

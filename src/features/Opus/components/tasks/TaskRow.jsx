@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "@/components/icons";
 import { Checkbox } from "@/components/arc/checkbox/checkbox";
 import { Menu } from "@/components/composed/Menu";
 import { DueLabel, ListRow, OwnerAvatar, StatusBadge, statusLabel } from "../../kit";

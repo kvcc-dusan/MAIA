@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "@/components/icons";
 import { Checkbox } from "@/components/arc/checkbox/checkbox";
 import { Input } from "@/components/arc/input/input";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { ContextMenu as BaseContextMenu } from "@base-ui/react/context-menu";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import styles from "./Menu.module.css";
 

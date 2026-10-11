@@ -25,10 +25,7 @@ export default function ProjectIcon({ name, size = 20, color, className = "" }) 
             style={strokeColor ? { color: strokeColor } : undefined}
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
-        >
-            {icon.paths.map((d, i) => (
-                <path key={i} d={d} />
-            ))}
-        </svg>
+            dangerouslySetInnerHTML={{ __html: icon.body }}
+        />
     );
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil } from "lucide-react";
+import { Pencil } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { Badge } from "@/components/arc/badge/badge";
 import styles from "./ProjectIdentity.module.css";

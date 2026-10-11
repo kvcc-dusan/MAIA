@@ -1,6 +1,6 @@
 // @maia:projects
 import React, { useEffect, useMemo, useState } from "react";
-import { FolderKanban } from "lucide-react";
+import { FolderKanban } from "@/components/icons";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";

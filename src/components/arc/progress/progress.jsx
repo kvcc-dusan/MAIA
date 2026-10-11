@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { AnimatePresence, animate, motion, useIsPresent, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { Check } from "lucide-react";
+import { Check } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./progress.module.css";
 const exitFast = { duration: motionTokens.duration.fast, ease: [...motionTokens.ease.standard] };

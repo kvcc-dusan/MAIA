@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowUpDown, Settings } from "lucide-react";
+import { ArrowUpDown, Settings } from "@/components/icons";
 import { toast } from "sonner";
 import { Button } from "@/components/arc/button/button";
 import { SearchField } from "@/components/arc/search-field/search-field";
@@ -11,7 +11,7 @@ import { Menu, MenuDangerItem } from "@/components/composed/Menu";
 import { IconButton } from "@/components/composed/IconButton";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { noteTags } from "@/lib/noteTags";
-import { StickyNote03, Delete01, AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
+import { StickyNote as StickyNote03, Trash2 as Delete01, Sparkles } from "@/components/icons";
 import GridCard from "../features/Notes/components/GridCard.jsx";
 import { useProgressiveCount } from "../hooks/useProgressiveCount.js";
 import { notePreview } from "../features/Notes/lib/notePreview.js";

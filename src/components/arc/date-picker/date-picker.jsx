@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown } from "@/components/icons";
 import { Calendar } from "../calendar/calendar";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./date-picker.module.css";

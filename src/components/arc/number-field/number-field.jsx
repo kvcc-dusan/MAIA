@@ -7,7 +7,7 @@ import {
   useReducedMotion,
   useTransform,
 } from "motion/react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "@/components/icons";
 import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./number-field.module.css";

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList } from "@/components/icons";
 import { Alert } from "@/components/arc/alert/alert";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Select } from "@/components/composed/Select";

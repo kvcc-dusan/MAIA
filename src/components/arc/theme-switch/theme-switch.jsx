@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "@/components/icons";
 import { motionTokens } from "../lib/motion-tokens";
 import { Button } from "../button/button";
 import styles from "./theme-switch.module.css";

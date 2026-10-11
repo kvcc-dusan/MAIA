@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpDown, Check, ChevronsDownUp, ChevronsUpDown, FolderPlus, LocateFixed, NotebookPen, SquarePen } from "lucide-react";
+import { ArrowUpDown, Check, ChevronsDownUp, ChevronsUpDown, FolderPlus, LocateFixed, NotebookPen, SquarePen } from "@/components/icons";
 import { IconButton } from "@/components/composed/IconButton";
 import { Menu } from "@/components/composed/Menu";
 import { SORT_OPTIONS } from "../sortOrder.js";
