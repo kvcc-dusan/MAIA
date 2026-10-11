@@ -12,16 +12,21 @@ const FORM_ID = "overview-edit-project";
 const DAY_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 // A date-only string parses as UTC midnight, which can land on the wrong local day.
-const toFieldValue = (stored) => (!stored ? "" : DAY_ONLY.test(stored) ? `${stored}T00:00` : stored);
+// Project files are hand-editable YAML, so a field can arrive as a number or a Date. Anything that is not a plain string becomes text (or empty) instead of throwing while the panel mounts.
+const asText = (value) => (value == null ? "" : value instanceof Date ? (Number.isNaN(value.getTime()) ? "" : value.toISOString()) : String(value));
+const toFieldValue = (stored) => {
+  const text = asText(stored);
+  return DAY_ONLY.test(text) ? `${text}T00:00` : text;
+};
 const toDay = (value) => (value ? value.slice(0, 10) : null);
 
 /** Name, phase, headline, focus and the three dates. Mounted fresh per open, saves on submit. */
 export default function EditProjectPanel({ open, project, onClose, onSave }) {
   const [form, setForm] = useState(() => ({
-    name: project.name ?? "",
-    phase: project.phase ?? null,
-    headline: project.headline ?? "",
-    focus: project.focus ?? "",
+    name: asText(project.name),
+    phase: project.phase == null ? null : asText(project.phase),
+    headline: asText(project.headline),
+    focus: asText(project.focus),
     startDate: toFieldValue(project.startDate),
     targetDate: toFieldValue(project.targetDate),
     nextMeeting: toFieldValue(project.nextMeeting),
