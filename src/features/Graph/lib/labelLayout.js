@@ -15,9 +15,10 @@ export const estimateLabelSize = (text, fontPx) => ({
   height: fontPx * LINE_HEIGHT_RATIO,
 });
 
-/** Higher priority first, then bigger hubs, then title (and id) so the result is stable between passes. */
+/** Higher priority first, then higher score (default: degree), then title (and id) so the result is stable between passes. */
 export const compareCandidates = (a, b) =>
   b.priority - a.priority
+  || (b.score ?? b.degree) - (a.score ?? a.degree)
   || b.degree - a.degree
   || (a.title || "").localeCompare(b.title || "")
   || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

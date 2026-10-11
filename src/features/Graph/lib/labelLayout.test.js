@@ -5,6 +5,24 @@ const viewport = { width: 800, height: 600 };
 const c = (id, x, y, extra = {}) => ({ id, title: id, x, y, width: 80, height: 14, priority: LABEL_PRIORITY.normal, degree: 1, ...extra });
 const run = (candidates, cap = 60) => layoutLabels({ candidates, viewport, cap });
 
+describe("layoutLabels with a score", () => {
+  it("lets the node nearer the viewer win a contested spot over a bigger hub", () => {
+    const result = run([
+      c("hub-behind", 100, 100, { degree: 9, score: 0.2 }),
+      c("near", 104, 102, { degree: 1, score: 1.2 }),
+    ]);
+    expect(result).toEqual(["near"]);
+  });
+
+  it("keeps a label that is already showing when scores are close (sticky bonus is part of the score)", () => {
+    const result = run([
+      c("shown", 100, 100, { score: 0.9 + 0.25 }),
+      c("rival", 103, 101, { score: 1.0 }),
+    ]);
+    expect(result).toEqual(["shown"]);
+  });
+});
+
 describe("layoutLabels", () => {
   it("accepts labels that do not touch", () => {
     expect(run([c("a", 100, 100), c("b", 300, 100), c("c", 100, 300)])).toEqual(["a", "b", "c"]);

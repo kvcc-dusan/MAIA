@@ -3,7 +3,7 @@
 // never recreates the WebGL context. Everything three.js owns is released in
 // destroy().
 import ForceGraph3D from "3d-force-graph";
-import { Vector3 } from "three";
+import { Spherical, Vector3 } from "three";
 import { intToHex, mixInts } from "./colorConvert.js";
 import {
   DIM_OPACITY, boundingSphere, buildAdjacency, computeFocus, diffFocus, fitDistance, flyTarget, isLit, linkRotation, linkState,
@@ -40,6 +40,16 @@ const FLY_MS = 900;
 const FIT_MS = 700;
 const FOCUS_DISTANCE = 60;
 const AUTO_ROTATE_SPEED = 0.45;
+const ORBIT_KEY_STEP = 0.08;
+// Depth rules for names (distances are in units of the graph's radius, measured from its centre):
+const DEPTH_FRONT_EDGE = 0.35; // a node this far in front of the centre has a full-strength label
+const DEPTH_BACK_EDGE = 0.1; // behind this the label has faded out completely
+const DEPTH_MIN_WEIGHT = 0.04;
+const NEAR_SCORE_WEIGHT = 0.8; // closer nodes win the screen space first
+const DEGREE_SCORE_WEIGHT = 0.015;
+const DEGREE_SCORE_CAP = 10;
+const LABEL_STICKY_BONUS = 0.25; // a label already showing keeps its place unless clearly outranked
+const ORBIT_POLE_MARGIN = 0.05;
 const SETTLE_FIT_DELAY_MS = 350;
 
 const endId = (end) => (end !== null && typeof end === "object" ? end.id : end);
@@ -234,8 +244,19 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     });
   };
 
+  // How far in front of the graph's centre a node is, as 0..1: nodes facing the viewer count fully, nodes
+  // on the far side fade out, with a soft band between so rotating changes names gradually, not abruptly.
+  const frontWeight = (dist, centerDist, radius) => {
+    const t = (centerDist - dist) / Math.max(1e-3, radius); // +1 at the near edge of the graph, -1 at the far edge
+    const x = clamp01((t + DEPTH_BACK_EDGE) / (DEPTH_FRONT_EDGE + DEPTH_BACK_EDGE));
+    return x * x * (3 - 2 * x);
+  };
+
   const collectCandidates = (camera) => {
     const { focus, style } = s;
+    const { center, radius } = boundingSphere(s.nodes);
+    const target = graph.controls().target ?? center;
+    const centerDist = Math.hypot(camera.position.x - target.x, camera.position.y - target.y, camera.position.z - target.z);
     const pxPerUnit = s.height / (2 * Math.tan((camera.fov * Math.PI) / 360));
     const candidates = [];
     s.parts.forEach((parts) => {
@@ -251,10 +272,18 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       const hovered = focus.hoverId === n.id;
       const emphasised = focus.kind === "hover" || focus.kind === "search";
       const scale = worldHeight / LABEL_TEXT_HEIGHT;
+      const front = frontWeight(dist, centerDist, radius);
+      // Focus (hover/search) overrides depth; otherwise a node on the far side gets no label at all.
+      if (!emphasised && front < DEPTH_MIN_WEIGHT) return;
+      const nearness = clamp01((centerDist - dist) / Math.max(1e-3, radius));
+      const wasShown = parts.labelTarget > 0 ? LABEL_STICKY_BONUS : 0;
+      const score = front + nearness * NEAR_SCORE_WEIGHT + Math.min(n.degree, DEGREE_SCORE_CAP) * DEGREE_SCORE_WEIGHT + wasShown;
       candidates.push({
         id: n.id,
         title: n.title,
         degree: n.degree,
+        score,
+        front,
         priority: hovered ? LABEL_PRIORITY.hovered : emphasised ? LABEL_PRIORITY.emphasised : LABEL_PRIORITY.normal,
         x: ((projected.x + 1) / 2) * s.width,
         y: ((1 - projected.y) / 2) * s.height - labelOffset(parts, scale) * pxPerWorld,
@@ -293,7 +322,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
         resizeLabel(parts, c.scale);
       }
       parts.labelSeen = s.labelPass;
-      setLabelTarget(parts, c.priority > LABEL_PRIORITY.normal ? 1 : LABEL_OPACITY);
+      setLabelTarget(parts, c.priority > LABEL_PRIORITY.normal ? 1 : LABEL_OPACITY * c.front);
     });
     s.forceResize = false;
     s.parts.forEach((parts, id) => {
@@ -421,7 +450,34 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   controls.autoRotate = !reducedMotion;
   controls.autoRotateSpeed = AUTO_ROTATE_SPEED;
   controls.addEventListener("start", stopAutoRotate);
-  controls.listenToKeyEvents?.(container);
+  // The graph stays centred: orbit and zoom only. Panning (right-drag, Ctrl+click on a Mac, two-finger
+  // gestures, arrow keys) would slide it out of the viewport, so it is off and the arrow keys orbit instead.
+  controls.enablePan = false;
+  const orbitOffset = new Vector3();
+  const orbitSpherical = new Spherical();
+  const orbitBy = (dTheta, dPhi) => {
+    const camera = graph.camera();
+    const target = controls.target ?? new Vector3();
+    orbitOffset.copy(camera.position).sub(target);
+    orbitSpherical.setFromVector3(orbitOffset);
+    orbitSpherical.theta += dTheta;
+    orbitSpherical.phi = Math.min(Math.PI - ORBIT_POLE_MARGIN, Math.max(ORBIT_POLE_MARGIN, orbitSpherical.phi + dPhi));
+    orbitOffset.setFromSpherical(orbitSpherical);
+    camera.position.copy(target).add(orbitOffset);
+    camera.lookAt(target);
+    controls.update?.();
+  };
+  const ARROW_ORBIT = {
+    ArrowLeft: [ORBIT_KEY_STEP, 0], ArrowRight: [-ORBIT_KEY_STEP, 0], ArrowUp: [0, ORBIT_KEY_STEP], ArrowDown: [0, -ORBIT_KEY_STEP],
+  };
+  const handleOrbitKey = (event) => {
+    const step = ARROW_ORBIT[event.key];
+    if (!step) return;
+    event.preventDefault();
+    stopAutoRotate();
+    orbitBy(step[0], step[1]);
+  };
+  container.addEventListener("keydown", handleOrbitKey);
 
   const canvas = graph.renderer().domElement;
   const handleContextLost = (event) => {
@@ -564,7 +620,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       window.clearTimeout(s.fitTimer);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       controls.removeEventListener("start", stopAutoRotate);
-      controls.stopListenToKeyEvents?.();
+      container.removeEventListener("keydown", handleOrbitKey);
       window.clearTimeout(s.retireTimer);
       s.retired.forEach((m) => m.dispose());
       s.retired = [];
