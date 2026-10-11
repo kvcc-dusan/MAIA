@@ -164,6 +164,34 @@ describe("useNotesStore (vault branch)", () => {
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("conflict copy"));
   });
 
+  it("stamps modifiedAt with the save time after a write, without queueing another write", async () => {
+    const note = { id: "st1", title: "Stamp", content: "x", folder: "", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", modifiedAt: 1 };
+    vaultMocks.loadNotes.mockResolvedValue([note]);
+    vaultMocks.saveNote.mockResolvedValue(true);
+    const { useNotesStore } = await importStore();
+    const { result } = renderHook(() => useNotesStore());
+    await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+    const before = Date.now();
+    act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "edited" }))));
+    await waitFor(() => expect(result.current[0][0].modifiedAt).toBeGreaterThanOrEqual(before), { timeout: 3000 });
+    await new Promise((r) => setTimeout(r, 1300));
+    expect(vaultMocks.saveNote.mock.calls.filter(([, n]) => n.id === "st1")).toHaveLength(1);
+  });
+
+  it("keeps modifiedAt when the save found nothing to write", async () => {
+    const note = { id: "st2", title: "Same", content: "x", folder: "", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", modifiedAt: 5 };
+    vaultMocks.loadNotes.mockResolvedValue([note]);
+    vaultMocks.saveNote.mockResolvedValue(false);
+    const { useNotesStore } = await importStore();
+    const { result } = renderHook(() => useNotesStore());
+    await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+    act(() => result.current[1]((prev) => prev.map((n) => ({ ...n, content: "edited" }))));
+    await waitFor(() => expect(vaultMocks.saveNote.mock.calls.some(([, n]) => n.id === "st2")).toBe(true), { timeout: 3000 });
+    expect(result.current[0][0].modifiedAt).toBe(5);
+  });
+
   it("exposes folders (disk, empty ones, ancestors of note folders) and never saves on load", async () => {
     const note = { id: "fold1", title: "Plan", content: "x", folder: "Omnis/PROJECTS", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
     vaultMocks.loadNotes.mockResolvedValue([note]);

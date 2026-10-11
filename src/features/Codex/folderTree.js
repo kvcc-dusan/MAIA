@@ -1,8 +1,7 @@
 // Pure helpers for the Codex file tree. Paths are "/"-separated, no leading or
 // trailing slash; "" is the vault root.
 
-const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
-const byName = (a, b) => collator.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
+import { DEFAULT_SORT, folderComparator, noteComparator } from "./sortOrder.js";
 
 export const normalizeFolder = (value) =>
   typeof value === "string" ? value.split("/").map((s) => s.trim()).filter(Boolean).join("/") : "";
@@ -23,9 +22,12 @@ const noteTitle = (note) => note.title || "Untitled";
  * Builds the folder tree. Folders come from `folders` (empty ones included) and
  * from every note's own `folder`, with all ancestors filled in. Each folder node
  * carries `noteCount`, the number of notes in it and below.
+ * `sort` is a sortOrder.js id: folders first, folders by name, notes by the chosen key.
  * Node: { path, name, folders: Node[], notes: Note[], noteCount }
  */
-export const buildTree = (notes = [], folders = []) => {
+export const buildTree = (notes = [], folders = [], sort = DEFAULT_SORT) => {
+  const compareFolders = folderComparator(sort);
+  const compareNotes = noteComparator(sort);
   const nodes = new Map();
   const make = (path) => ({ path, name: path ? folderName(path) : "", folders: [], notes: [], noteCount: 0 });
   const root = make("");
@@ -51,8 +53,8 @@ export const buildTree = (notes = [], folders = []) => {
   }
 
   const finish = (node) => {
-    node.folders.sort((a, b) => byName(a.name, b.name));
-    node.notes.sort((a, b) => byName(noteTitle(a), noteTitle(b)));
+    node.folders.sort(compareFolders);
+    node.notes.sort(compareNotes);
     node.noteCount = node.notes.length + node.folders.reduce((sum, child) => sum + finish(child), 0);
     return node.noteCount;
   };

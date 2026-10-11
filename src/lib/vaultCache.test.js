@@ -32,7 +32,8 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     if (fsState.statFails) return Promise.reject(new Error("stat failed"));
     const real = find(path);
     if (real === undefined) return Promise.reject(new Error(`ENOENT: ${path}`));
-    return Promise.resolve({ mtime: new Date(fsState.mtimes[real] ?? OLD), size: new TextEncoder().encode(fsState.files[real]).length });
+    const birth = fsState.births?.[real];
+    return Promise.resolve({ mtime: new Date(fsState.mtimes[real] ?? OLD), ...(birth ? { birthtime: new Date(birth) } : {}), size: new TextEncoder().encode(fsState.files[real]).length });
   }),
   readTextFile: vi.fn((path) => {
     const real = find(path);
@@ -208,7 +209,7 @@ describe("vault.js incremental loads", () => {
     await loadVault(VAULT);
     setFile("n.md", md({ id: "n1", content: "edited externally" }), OLD + 7000);
     const { notes } = await loadVault(VAULT);
-    await expect(saveNote(VAULT, { ...notes[0], content: "next" })).resolves.toBeUndefined();
+    await expect(saveNote(VAULT, { ...notes[0], content: "next" })).resolves.toBe(true);
   });
 
   it("picks up added files, drops deleted ones, and keeps the folder list right", async () => {
@@ -417,5 +418,67 @@ describe("vault.js save hardening", () => {
     const before = fsState.files[`${VAULT}/big.md`];
     await saveNote(VAULT, notes[0]);
     expect(fsState.files[`${VAULT}/big.md`]).toBe(before);
+  });
+});
+
+describe("vault.js note times (non-persisted)", () => {
+  const BIRTH = new Date("2024-03-03T00:00:00.000Z").getTime();
+
+  beforeEach(() => {
+    fsState = { files: {}, dirs: new Set(), mtimes: {}, births: {}, caseInsensitive: false, statFails: false };
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it("loads modifiedAt from mtime and birthAt from birthtime", async () => {
+    const { loadVault } = await setup();
+    setFile("a.md", md({ id: "a" }), OLD);
+    fsState.births[`${VAULT}/a.md`] = BIRTH;
+    const { notes } = await loadVault(VAULT);
+    expect(notes[0]).toMatchObject({ modifiedAt: OLD, birthAt: BIRTH });
+  });
+
+  it("falls back to createdAt for birthAt when the OS gives no birthtime", async () => {
+    const { loadVault } = await setup();
+    setFile("a.md", md({ id: "a", createdAt: "2026-01-01T00:00:00.000Z" }), OLD);
+    const { notes } = await loadVault(VAULT);
+    expect(notes[0].birthAt).toBe(new Date("2026-01-01T00:00:00.000Z").getTime());
+  });
+
+  it("falls back to createdAt for modifiedAt when stat fails", async () => {
+    const { loadVault } = await setup();
+    setFile("a.md", md({ id: "a", createdAt: "2026-01-01T00:00:00.000Z" }));
+    fsState.statFails = true;
+    const { notes } = await loadVault(VAULT);
+    expect(notes[0].modifiedAt).toBe(new Date("2026-01-01T00:00:00.000Z").getTime());
+  });
+
+  it("keeps the same note object and times when an unchanged file is reused from the cache", async () => {
+    const { loadVault } = await setup();
+    setFile("a.md", md({ id: "a" }), OLD);
+    fsState.births[`${VAULT}/a.md`] = BIRTH;
+    const first = await loadVault(VAULT);
+    const second = await loadVault(VAULT);
+    expect(second.stats.reads).toBe(0);
+    expect(second.notes[0]).toBe(first.notes[0]);
+    expect(second.notes[0]).toMatchObject({ modifiedAt: OLD, birthAt: BIRTH });
+  });
+
+  it("writes nothing on load and never serialises the times", async () => {
+    const { fs, loadVault } = await setup();
+    setFile("a.md", md({ id: "a" }), OLD);
+    const { notes } = await loadVault(VAULT);
+    expect(fs.writeTextFile).not.toHaveBeenCalled();
+    const text = noteToMarkdown(notes[0]);
+    expect(text).not.toMatch(/modifiedAt|birthAt/);
+  });
+
+  it("saveNote reports a real write, and false when the file already matches", async () => {
+    const { loadVault, saveNote } = await setup();
+    setFile("a.md", md({ id: "a", title: "a" }), OLD);
+    const { notes } = await loadVault(VAULT);
+    expect(await saveNote(VAULT, notes[0])).toBe(false);
+    expect(await saveNote(VAULT, { ...notes[0], content: "changed" })).toBe(true);
+    expect(fsState.files[`${VAULT}/a.md`]).not.toMatch(/modifiedAt|birthAt/);
   });
 });

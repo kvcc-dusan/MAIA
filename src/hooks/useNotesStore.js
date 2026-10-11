@@ -70,6 +70,8 @@ function useVaultNotes() {
   const loadRunRef = useRef(null); // the running load, if any
   const loadQueuedRef = useRef(false);
   const lastLoadCountRef = useRef(-1);
+  // Notes that only gained a fresh modifiedAt after a save: not an edit, so the diff must not rewrite them.
+  const stampedRef = useRef(new WeakSet());
 
   const loadOnce = useCallback(async () => {
     const vaultPath = getVaultPath();
@@ -194,7 +196,14 @@ function useVaultNotes() {
         if (item.deleted) {
           await deleteNoteFile(vaultPath, item.id);
         } else {
-          await saveNote(vaultPath, item.note);
+          const written = await saveNote(vaultPath, item.note);
+          // Only a real write moves the file's mtime. If the note was edited again meanwhile, it is a
+          // different object by now and keeps waiting for its own save.
+          if (written !== false) {
+            const stamped = { ...item.note, modifiedAt: Date.now() };
+            stampedRef.current.add(stamped);
+            setNotes((prev) => prev.map((n) => (n === item.note ? stamped : n)));
+          }
         }
         dirtyRef.current.delete(item.id);
       } catch (e) {
@@ -289,7 +298,7 @@ function useVaultNotes() {
       const nextById = new Map(notes.map((n) => [n.id, n]));
 
       for (const note of notes) {
-        if (prevById.get(note.id) !== note) {
+        if (prevById.get(note.id) !== note && !stampedRef.current.has(note)) {
           pendingRef.current.set(note.id, { id: note.id, note });
           dirtyRef.current.add(note.id);
         }

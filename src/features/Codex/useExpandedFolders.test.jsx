@@ -97,4 +97,15 @@ describe("useExpandedFolders", () => {
     expect(result.current.expanded.has("Omnis")).toBe(true);
     expect(localStorage.getItem(EXPANDED_KEY)).toBeNull();
   });
+
+  it("collapseAll clears everything, persists it, and keeps the same state when already empty", () => {
+    setStored(JSON.stringify(["A", "A/B"]));
+    const { result } = renderHook(() => useExpandedFolders());
+    act(() => result.current.collapseAll());
+    expect([...result.current.expanded]).toEqual([]);
+    expect(stored()).toEqual([]);
+    const before = result.current.expanded;
+    act(() => result.current.collapseAll());
+    expect(result.current.expanded).toBe(before);
+  });
 });

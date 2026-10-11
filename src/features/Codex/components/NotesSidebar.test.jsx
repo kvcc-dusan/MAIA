@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import NotesSidebar from "./NotesSidebar.jsx";
 import { EXPANDED_KEY } from "../useExpandedFolders.js";
+import { AUTO_REVEAL_KEY } from "../useAutoReveal.js";
 
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 
@@ -47,7 +48,8 @@ describe("NotesSidebar tree", () => {
     expect(onOpenNote).toHaveBeenCalledWith("r");
   });
 
-  it("auto-expands the ancestors of the active note and marks it current", () => {
+  it("marks the active note current and reveals it when auto-reveal is on", () => {
+    localStorage.setItem(AUTO_REVEAL_KEY, "true");
     setup({ currentNoteId: "o" });
     expect(labels()).toContain("OWL");
     expect(screen.getByText("OWL").closest("[role=treeitem]").getAttribute("aria-current")).toBe("true");

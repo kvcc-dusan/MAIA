@@ -48,5 +48,9 @@ export const useExpandedFolders = () => {
     setExpanded((prev) => (paths.every((p) => prev.has(p)) ? prev : new Set([...prev, ...paths])));
   }, []);
 
-  return { expanded, toggle, setOpen, expandAll };
+  const collapseAll = useCallback(() => {
+    setExpanded((prev) => (prev.size === 0 ? prev : new Set()));
+  }, []);
+
+  return { expanded, toggle, setOpen, expandAll, collapseAll };
 };

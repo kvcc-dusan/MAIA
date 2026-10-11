@@ -1,0 +1,4 @@
+/* Buttons never shrink (touch targets); the bar scrolls sideways instead of wrapping. */
+.toolbar { display: flex; flex: none; align-items: center; gap: var(--space-1); padding: var(--space-2); border-bottom: 1px solid var(--border-subtle); overflow-x: auto; scrollbar-width: none; }
+.toolbar > * { flex: none; }
+.check { display: inline-flex; width: 1rem; flex: none; align-items: center; justify-content: center; }

@@ -104,6 +104,7 @@ export const readFiles = async ({ vaultPath, files, cache, stat, readTextFile, n
       // older than the text, so the next reload reads again (the safe direction).
       reads.set(rel, {
         mtimeMs: st?.mtimeMs ?? null,
+        birthMs: st?.birthMs ?? null,
         size: st?.size ?? null,
         trusted: st !== null && st.mtimeMs !== null && st.size !== null && now - st.mtimeMs > TRUST_AGE_MS,
         text,
@@ -140,9 +141,24 @@ const baseNote = (rel, entry) => {
   return entry.note;
 };
 
+const timeOr = (ms, fallbackIso) => {
+  if (ms != null) return ms;
+  const parsed = new Date(fallbackIso).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+// modifiedAt / birthAt are for sorting only. They are read from the file system on every
+// load and are not frontmatter keys, so noteToMarkdown never writes them.
 const noteFor = (rel, entry, id) => {
   if (entry.final && entry.final.id === id) return entry.final;
-  entry.final = { ...baseNote(rel, entry), id, folder: relDir(rel) };
+  const base = baseNote(rel, entry);
+  entry.final = {
+    ...base,
+    id,
+    folder: relDir(rel),
+    modifiedAt: timeOr(entry.mtimeMs, base.createdAt),
+    birthAt: timeOr(entry.birthMs, base.createdAt),
+  };
   return entry.final;
 };
 

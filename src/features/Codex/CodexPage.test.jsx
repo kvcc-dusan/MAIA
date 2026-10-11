@@ -130,6 +130,7 @@ describe("CodexPage folder-aware note creation", () => {
   });
 
   it("moves a note through updateNote when the picker chooses a folder", () => {
+    localStorage.setItem("maia.codex.expanded", JSON.stringify(["Omnis", "Omnis/PROJECTS"]));
     const { updateNote } = setup({ activeTab: noteTab("o") });
     fireEvent.contextMenu(within(sidebar()).getByText("OWL").closest("[role=treeitem]"));
     fireEvent.click(screen.getByRole("menuitem", { name: "Move to folder" }));

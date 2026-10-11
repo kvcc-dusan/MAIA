@@ -233,7 +233,7 @@ const saveNoteNow = async (vaultPath, note) => {
   // is on disk, writing again would only bump the file's mtime and make a cloud drive re-sync it.
   if (current && desired === current && onDiskText === nextText) {
     contentMap.set(note.id, nextText);
-    return;
+    return false;
   }
 
   if (folder) await mkdir(joinPath(vaultPath, folder), { recursive: true });
@@ -257,8 +257,10 @@ const saveNoteNow = async (vaultPath, note) => {
   }
   fileMap.set(note.id, desired);
   contentMap.set(note.id, nextText);
+  return true;
 };
 
+// Resolves true when the file was written, false when it already matched (mtime untouched).
 export const saveNote = (vaultPath, note) => trackMutation(() => saveNoteNow(vaultPath, note));
 
 const deleteNoteNow = async (vaultPath, id) => {

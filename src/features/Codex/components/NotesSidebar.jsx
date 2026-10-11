@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FolderPlus, NotebookPen, SquarePen } from "lucide-react";
 import { toast } from "sonner";
-import { IconButton } from "@/components/composed/IconButton";
 import { Menu } from "@/components/composed/Menu";
 import { PromptDialog } from "@/components/composed/PromptDialog";
 import { ancestorPaths, buildTree, flattenTree, listFolderPaths, normalizeFolder, ROOT_LABEL } from "../folderTree.js";
+import { getVaultPath, isTauri } from "@/lib/vault.js";
+import { useAutoReveal } from "../useAutoReveal.js";
 import { useExpandedFolders } from "../useExpandedFolders.js";
+import { useSortOrder } from "../useSortOrder.js";
 import { useTreeKeyboard } from "../useTreeKeyboard.js";
 import MoveNoteDialog from "./MoveNoteDialog.jsx";
+import SidebarToolbar from "./SidebarToolbar.jsx";
 import TreeRow from "./TreeRow.jsx";
 import fileTree from "./FileTree.module.css";
 import styles from "./NotesSidebar.module.css";
@@ -19,7 +21,7 @@ const errorMessage = (error) => (error instanceof Error && error.message ? error
 
 /**
  * The Codex file tree, rendered into the shell's secondary sidebar. Folders come
- * first, then notes, each alphabetical. `folders` lists every folder in the
+ * first, then notes, in the order chosen in the toolbar (A to Z by default). `folders` lists every folder in the
  * vault (empty ones too); folders are also derived from the notes themselves.
  */
 export default function NotesSidebar({
@@ -31,8 +33,14 @@ export default function NotesSidebar({
   onCreateJournal,
   onCreateFolder,
   onMoveNote,
+  // Keys the remembered sort; undefined = ask the vault module (no path on the web).
+  vaultPath = isTauri() ? getVaultPath() : null,
 }) {
-  const { expanded, toggle, setOpen, expandAll } = useExpandedFolders();
+  const { expanded, toggle, setOpen, expandAll, collapseAll } = useExpandedFolders();
+  const [sort, setSort] = useSortOrder(vaultPath);
+  const [isAutoReveal, toggleAutoReveal] = useAutoReveal();
+  const [revealRequest, setRevealRequest] = useState(0);
+  const isRevealPending = useRef(false);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [focusKey, setFocusKey] = useState(null);
   const [newFolderParent, setNewFolderParent] = useState(null);
@@ -49,17 +57,34 @@ export default function NotesSidebar({
     focusRow(returnKey.current);
   };
 
-  const tree = useMemo(() => buildTree(notes, folders), [notes, folders]);
+  const tree = useMemo(() => buildTree(notes, folders, sort), [notes, folders, sort]);
   const rows = useMemo(() => flattenTree(tree, expanded), [tree, expanded]);
   const folderPaths = useMemo(() => listFolderPaths(tree), [tree]);
 
   const activeNote = useMemo(() => notes.find((n) => n.id === currentNoteId) ?? null, [notes, currentNoteId]);
   const activeFolder = activeNote ? normalizeFolder(activeNote.folder) : null;
+  // A boolean, not the object: a reloaded notes array must not count as "the note changed".
+  const hasActiveNote = activeNote !== null;
 
-  // Reveal the open note, but only when it changes, so the user can collapse afterwards.
+  // With auto-reveal on, follow the open note when it (or its folder) changes, or when the
+  // button is switched on. Off, the tree never moves by itself. Clicks inside the tree do not
+  // change these inputs, so the scroller does not jump under the user.
   useEffect(() => {
-    if (activeFolder) expandAll(ancestorPaths(activeFolder));
-  }, [currentNoteId, activeFolder, expandAll]);
+    if (!isAutoReveal || !hasActiveNote) return;
+    expandAll(ancestorPaths(activeFolder));
+    isRevealPending.current = true;
+    setRevealRequest((n) => n + 1);
+  }, [isAutoReveal, currentNoteId, activeFolder, hasActiveNote, expandAll]);
+
+  // Scroll once the row exists; an expansion triggered above lands in the next render.
+  useEffect(() => {
+    if (!isRevealPending.current || !treeRef.current) return;
+    const el = [...treeRef.current.querySelectorAll('[role="treeitem"]')].find((node) => node.dataset.key === `n:${currentNoteId}`);
+    if (!el) return;
+    isRevealPending.current = false;
+    // Instant on purpose: no smooth scrolling, so reduced-motion users are covered too.
+    el.scrollIntoView?.({ block: "nearest" });
+  }, [rows, revealRequest, currentNoteId]);
 
   const flushFocus = useCallback(() => {
     const key = pendingFocus.current;
@@ -176,11 +201,18 @@ export default function NotesSidebar({
 
   return (
     <nav className={styles.sidebar} aria-label="Notes">
-      <div className={styles.toolbar}>
-        <IconButton icon={SquarePen} size="icon" label="New note" side="bottom" onClick={() => createNoteIn(targetFolder)} />
-        <IconButton icon={NotebookPen} size="icon" label="New journal" side="bottom" onClick={onCreateJournal} />
-        <IconButton icon={FolderPlus} size="icon" label="New folder" side="bottom" onClick={() => { returnKey.current = null; setNewFolderParent(targetFolder); }} />
-      </div>
+      <SidebarToolbar
+        onNewNote={() => createNoteIn(targetFolder)}
+        onNewJournal={onCreateJournal}
+        onNewFolder={() => { returnKey.current = null; setNewFolderParent(targetFolder); }}
+        sort={sort}
+        onSortChange={setSort}
+        isAutoReveal={isAutoReveal}
+        onToggleAutoReveal={toggleAutoReveal}
+        hasFolders={folderPaths.length > 0}
+        isAnyExpanded={folderPaths.some((p) => expanded.has(p))}
+        onToggleAllFolders={() => (folderPaths.some((p) => expanded.has(p)) ? collapseAll() : expandAll(folderPaths))}
+      />
 
       {isEmpty ? (
         <p className={styles.empty}>No notes yet. Create one with the buttons above.</p>
