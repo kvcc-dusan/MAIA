@@ -20,6 +20,8 @@ import AttentionCard from "../components/overview/AttentionCard";
 import ActivityCard from "../components/overview/ActivityCard";
 import styles from "./OverviewTab.module.css";
 
+const KEY_NUMBERS_ID = "overview-key-numbers";
+
 // A throw in the metrics (corrupt stored data) becomes an error state, not a blank tab.
 const safeBuild = (input) => {
   try {
@@ -83,10 +85,11 @@ export default function OverviewTab({ project }) {
               showOwners={showOwners(project, projectTasks)}
               navigate={navigate}
             />
-            <ActivityCard heat={overview.heat} navigate={navigate} />
+            <section aria-labelledby={KEY_NUMBERS_ID}>
+              <h2 id={KEY_NUMBERS_ID} className={styles.srOnly}>Key numbers</h2>
+              <StatTiles overview={overview} navigate={navigate} />
+            </section>
           </div>
-          <h2 className={styles.srOnly}>Key numbers</h2>
-          <StatTiles overview={overview} navigate={navigate} />
           <div className={`${styles.row} ${styles.split}`}>
             <ForecastCard forecast={overview.forecast} startDate={project.startDate} targetDate={project.targetDate} today={today} />
             <StatusMixCard mix={overview.mix} />
@@ -94,6 +97,7 @@ export default function OverviewTab({ project }) {
         </>
       )}
       <WorkstreamsCard progress={overview.progress} navigate={navigate} onAdd={() => setIsAddingWorkstream(true)} />
+      {overview.isEmpty ? null : <ActivityCard heat={overview.heat} navigate={navigate} />}
       {isAddingWorkstream ? (
         <AddWorkstreamPanel
           open
