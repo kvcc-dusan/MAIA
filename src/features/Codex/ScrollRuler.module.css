@@ -2,7 +2,7 @@
 .ruler {
   position: absolute;
   top: 50%;
-  right: var(--space-2);
+  right: var(--space-4); /* same inset as the counters pill */
   z-index: var(--z-sticky, 10);
   display: flex;
   flex-direction: column;

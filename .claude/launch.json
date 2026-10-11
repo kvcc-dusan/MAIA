@@ -4,8 +4,23 @@
     {
       "name": "maia-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5183
+    },
+    {
+      "name": "hub",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5190",
+        "--directory",
+        "/Users/dusankvcc/Desktop/Atrium/Claude Code/projecthub/out-test"
+      ],
+      "port": 5190
     }
   ]
 }
