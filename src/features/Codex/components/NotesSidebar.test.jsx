@@ -100,3 +100,19 @@ describe("NotesSidebar tree", () => {
     expect(screen.getByText(/No notes yet/)).toBeTruthy();
   });
 });
+
+describe("tree indent guides", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(cleanup);
+
+  it("gives each row its depth so the guide lines span the ancestor levels", () => {
+    setup();
+    fireEvent.click(screen.getByText("Omnis"));
+    fireEvent.click(screen.getByText("PROJECTS"));
+    const depthOf = (name) => screen.getByText(name).closest("[role=treeitem]").style.getPropertyValue("--depth");
+    expect(depthOf("Omnis")).toBe("0");
+    expect(depthOf("PROJECTS")).toBe("1");
+    expect(depthOf("OWL")).toBe("2");
+    expect(depthOf("Readme")).toBe("0");
+  });
+});

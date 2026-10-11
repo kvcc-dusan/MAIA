@@ -1,11 +1,12 @@
 .tree { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; padding: var(--space-2); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 
 .row {
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;
   gap: var(--space-1);
-  min-height: var(--control-height-sm);
+  min-height: 1.75rem; /* compact like Obsidian; touch screens get the full target below */
   padding-inline-end: var(--space-2);
   border-radius: var(--radius-control);
   color: var(--text-secondary);
@@ -13,6 +14,18 @@
   cursor: pointer;
   user-select: none;
   transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+/* Indent guides: one thin vertical line per ancestor level, centred under that ancestor's chevron
+   (row padding 8px, 16px per level, chevron 16px wide). Adjacent rows have no gap, so the lines
+   read as one continuous rule down the whole branch. */
+.row::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 8px;
+  width: calc(var(--depth, 0) * 16px);
+  background: repeating-linear-gradient(to right, transparent 0 7px, color-mix(in oklab, var(--border), var(--border-strong) 50%) 7px 8px, transparent 8px 16px);
+  pointer-events: none;
 }
 .row:hover { background: var(--surface-muted); color: var(--foreground); }
 .row[data-active] { background: var(--surface-muted); color: var(--foreground); font-weight: 500; }

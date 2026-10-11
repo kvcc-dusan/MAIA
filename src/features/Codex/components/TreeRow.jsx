@@ -17,7 +17,7 @@ function TreeRow({ row, isActive, isSelected, isTabStop }) {
     <div
       role="treeitem"
       className={styles.row}
-      style={{ paddingInlineStart: BASE_PAD + row.depth * INDENT_STEP }}
+      style={{ paddingInlineStart: BASE_PAD + row.depth * INDENT_STEP, "--depth": row.depth }}
       data-key={row.key}
       data-note-id={isFolder ? undefined : row.note.id}
       data-folder-path={isFolder ? row.path : undefined}
