@@ -12,7 +12,9 @@ import { IconButton } from "@/components/composed/IconButton";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { noteTags } from "@/lib/noteTags";
 import { StickyNote03, Delete01, AiMagic as Sparkles } from "../components/ui/CustomIcon.jsx";
-import { NoteCardMenu } from "../features/Notes/components/NoteCard.jsx";
+import GridCard from "../features/Notes/components/GridCard.jsx";
+import { useProgressiveCount } from "../hooks/useProgressiveCount.js";
+import { notePreview } from "../features/Notes/lib/notePreview.js";
 import { useData } from "../context/DataContext";
 import styles from "./NotesPage.module.css";
 
@@ -68,6 +70,14 @@ export default function NotesOverview({
       return next;
     });
   }, []);
+
+  // Kept stable (selectNote comes through a ref) so the memoised cards do not re-render on every page render.
+  const selectNoteRef = React.useRef(selectNote);
+  selectNoteRef.current = selectNote;
+  const onActivateNote = useCallback((id) => {
+    if (selectMode) toggleSelected(id);
+    else selectNoteRef.current?.(id);
+  }, [selectMode, toggleSelected]);
 
   const exitSelectMode = useCallback(() => {
     setSelectMode(false);
@@ -173,6 +183,9 @@ export default function NotesOverview({
       ...arr.filter((n) => !isPinned(n.id)),
     ];
   }, [notes, sort, parsedFilter, isPinned, projects]);
+
+  // Hundreds of cards built in one pass freeze the page for a moment when it opens; show the first ones at once.
+  const visibleCount = useProgressiveCount(viewNotes.length, `${sort}|${parsedFilter.q}`);
 
   // pin/unpin
   const togglePin = (id) => {
@@ -348,31 +361,23 @@ export default function NotesOverview({
         )}
 
         <div className={styles.grid} onClick={exitOnBlankClick}>
-          {viewNotes.map(n => {
+          {viewNotes.slice(0, visibleCount).map(n => {
             const linkedProject = (n.projectIds || []).length > 0
               ? projects.find(p => p.id === n.projectIds[0])
               : null;
 
-            const onActivate = () => {
-              if (selectMode) {
-                toggleSelected(n.id);
-              } else {
-                selectNote?.(n.id);
-              }
-            };
-
             return (
-              <NoteCardMenu
+              <GridCard
                 key={n.id}
                 note={n}
                 dateDisplay={formatNoteDate(n.createdAt)}
-                previewText={n.content && n.content.trim().length > 0 ? n.content : "No text yet."}
+                previewText={notePreview(n.content)}
                 projectName={linkedProject?.name}
                 isSelected={selectMode && selected.has(n.id)}
                 selectMode={selectMode}
-                selected={selected.size}
+                selectedCount={selected.size}
                 isPinned={isPinned(n.id)}
-                onActivate={onActivate}
+                onActivateNote={onActivateNote}
                 actions={menuActions}
               />
             );

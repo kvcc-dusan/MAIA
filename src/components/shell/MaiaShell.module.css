@@ -8,6 +8,8 @@
   --shell-top: var(--control-height-md);
   --shell-rail: 48px;
   --shell-sidebar: 264px;
+  /* Short and plain like Obsidian's. The old 580ms spring overshot and the whole page re-laid out on every frame of it. */
+  --sidebar-motion: var(--duration-fast) var(--ease-standard);
   /* Height of every control in the top strip (icon buttons, close, new tab). */
   --shell-item: var(--control-height-sm);
   display: grid;
@@ -68,8 +70,8 @@
   min-width: 0;
   border-right: 0 solid var(--border-subtle);
   transition:
-    min-width var(--duration-spring) var(--ease-spring),
-    border-right-width var(--duration-spring) var(--ease-spring);
+    min-width var(--sidebar-motion),
+    border-right-width var(--sidebar-motion);
 }
 .cluster[data-sidebar-open] {
   min-width: calc(var(--shell-rail) + var(--shell-sidebar));
@@ -172,13 +174,13 @@
   width: 0;
   overflow: hidden;
   border-right: 0 solid var(--border-subtle);
-  transition: width var(--duration-spring) var(--ease-spring);
+  transition: width var(--sidebar-motion);
 }
 .sidebar[data-open] { width: var(--shell-sidebar); border-right-width: 1px; }
 .sidebarInner { display: flex; flex-direction: column; width: var(--shell-sidebar); height: 100%; min-height: 0; }
 
 /* The page fills the rest and scrolls itself. */
-.content { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; }
+.content { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; contain: layout paint; }
 
 @media (pointer: coarse) {
   .frame { --shell-rail: 56px; }

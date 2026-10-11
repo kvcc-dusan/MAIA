@@ -29,10 +29,12 @@ const formatCreated = (createdAt) => {
 };
 
 /** Slim bar above a note: breadcrumb on the left, read/edit toggle and More menu on the right. */
-export default function NoteHeader({ title, createdAt, content, isEditing, onToggleMode, isSource = false, onToggleView, onDelete }) {
+export default function NoteHeader({ title, folder = "", createdAt, content, isEditing, onToggleMode, isSource = false, onToggleView, onDelete }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const displayTitle = title?.trim() || "Untitled";
   const created = formatCreated(createdAt);
+  // The path the note lives in, like Obsidian's breadcrumb: its folders, or the vault name for a note at the top level.
+  const segments = folder.split("/").filter(Boolean).length > 0 ? folder.split("/").filter(Boolean) : [getVaultName()];
 
   const copyMarkdown = async () => {
     try {
@@ -45,9 +47,13 @@ export default function NoteHeader({ title, createdAt, content, isEditing, onTog
 
   return (
     <div className={styles.header}>
-      <p className={styles.crumb}>
-        <span className={styles.vault}>{getVaultName()}</span>
-        <span className={styles.sep} aria-hidden="true">/</span>
+      <p className={styles.crumb} aria-label={`${[...segments].join(" / ")} / ${displayTitle}`}>
+        {segments.map((name, index) => (
+          <React.Fragment key={`${index}:${name}`}>
+            <span className={styles.vault}>{name}</span>
+            <span className={styles.sep} aria-hidden="true">/</span>
+          </React.Fragment>
+        ))}
         <span className={styles.title}>{displayTitle}</span>
       </p>
 

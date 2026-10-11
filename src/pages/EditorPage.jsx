@@ -203,6 +203,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
     <div className={styles.page}>
       <NoteHeader
         title={local.title}
+        folder={note?.folder || ""}
         createdAt={local.createdAt}
         content={local.content}
         isEditing={editable}

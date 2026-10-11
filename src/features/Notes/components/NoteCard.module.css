@@ -2,6 +2,9 @@
    for floating layers only). Selection reads through border + tint + the
    aria-pressed state, never color alone. */
 .card {
+  /* Cards off screen are not laid out or painted until they scroll near: with hundreds of notes the grid opens at once. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
   position: relative;
   box-sizing: border-box;
   display: flex;
