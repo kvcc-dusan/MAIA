@@ -6,6 +6,7 @@ import {
   toRelPath, validateFolderPath,
 } from "./vaultFolders.js";
 import { snapshotVault, joinPath } from "./vaultLoad.js";
+import { writeTextAtomic, ATOMIC_WRITES } from "./atomicWrite.js";
 
 const VAULT_PATH_KEY = "maia.vaultPath";
 export const NOTES_MIGRATED_KEY = "maia.notesMigrated";
@@ -195,7 +196,8 @@ const pickName = (note, current, taken) => {
 };
 
 const saveNoteNow = async (vaultPath, note) => {
-  const { writeTextFile, remove, exists, readTextFile, mkdir } = await import("@tauri-apps/plugin-fs");
+  const fs = await import("@tauri-apps/plugin-fs");
+  const { remove, exists, readTextFile, mkdir } = fs;
   const current = fileMap.get(note.id);
   const folder = note.folder == null
     ? (current ? relDir(current) : "")
@@ -238,7 +240,7 @@ const saveNoteNow = async (vaultPath, note) => {
   // The cache holds the pre-write stat of these paths; never let a reload trust it.
   fileCache.delete(desired);
   if (current) fileCache.delete(current);
-  await writeTextFile(joinPath(vaultPath, desired), nextText);
+  await writeTextAtomic(fs, joinPath(vaultPath, desired), nextText, { atomic: ATOMIC_WRITES });
 
   // On a case-insensitive disk (macOS) "Omnis/projects" and "Omnis/PROJECTS" are the same
   // folder: the write above already replaced the file, so removing "the old one" would

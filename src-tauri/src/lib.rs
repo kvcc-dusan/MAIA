@@ -48,6 +48,10 @@ const BLOCKED_EXTENSIONS: &[&str] = &[
   "jar", "jnlp", "py", "pyw", "pyc", "rb", "pl", "php", "deb", "rpm", "apk", "ipa",
 ];
 
+/// Web documents run script in the browser (even from a local file), so they are refused with their
+/// own code and the user can still open them from Finder. SVG stays allowed.
+const BLOCKED_WEB_EXTENSIONS: &[&str] = &["html", "htm", "xhtml"];
+
 /// NTFS alternate data stream ("report.pdf:evil.exe"). Only meaningful on Windows: on macOS a colon
 /// is a legal character that Finder shows as a slash.
 fn has_stream_marker(name: &str) -> bool {
@@ -67,6 +71,16 @@ fn is_blocked_extension(path: &std::path::Path) -> bool {
   }
 }
 
+fn is_blocked_web(path: &std::path::Path) -> bool {
+  let Some(name) = path.file_name().and_then(|n| n.to_str()) else { return false };
+  // Same trailing dot/space rule as above: "page.html." opens as page.html on Windows.
+  let trimmed = name.trim_end_matches(|c| c == ' ' || c == '.');
+  match std::path::Path::new(trimmed).extension().and_then(|e| e.to_str()) {
+    Some(ext) => BLOCKED_WEB_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str()),
+    None => false,
+  }
+}
+
 /// Resolves symlinks and `..`, then refuses anything that is not an existing regular file with
 /// an openable type. Error strings are stable codes the frontend maps to user-facing copy.
 fn checked_file(path: &str) -> Result<std::path::PathBuf, String> {
@@ -76,6 +90,9 @@ fn checked_file(path: &str) -> Result<std::path::PathBuf, String> {
   }
   if is_blocked_extension(&canonical) {
     return Err("blocked_type".into());
+  }
+  if is_blocked_web(&canonical) {
+    return Err("blocked_web".into());
   }
   Ok(canonical)
 }
@@ -151,6 +168,29 @@ mod tests {
     ] {
       assert!(is_blocked_extension(Path::new(name)), "{name} should be blocked");
     }
+  }
+
+  #[test]
+  fn refuses_web_documents_case_insensitively_but_keeps_svg() {
+    for name in ["a.html", "a.HTM", "a.xhtml", "a.Html", "page.html.", "page.htm ", "page.xhtml. ."] {
+      assert!(is_blocked_web(Path::new(name)), "{name:?} should be blocked_web");
+    }
+    for name in ["a.svg", "a.pdf", "a.md", "html", "a.html.txt"] {
+      assert!(!is_blocked_web(Path::new(name)), "{name:?} should not be blocked_web");
+    }
+  }
+
+  #[test]
+  fn checked_file_reports_blocked_web_with_its_own_code() {
+    let dir = std::env::temp_dir().join(format!("maia-web-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let html = dir.join("Page.HTML");
+    let svg = dir.join("pic.svg");
+    std::fs::write(&html, "<script>1</script>").unwrap();
+    std::fs::write(&svg, "<svg/>").unwrap();
+    assert_eq!(checked_file(html.to_str().unwrap()).unwrap_err(), "blocked_web");
+    assert!(checked_file(svg.to_str().unwrap()).is_ok());
+    std::fs::remove_dir_all(&dir).ok();
   }
 
   #[test]

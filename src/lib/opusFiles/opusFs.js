@@ -1,6 +1,7 @@
 // @maia:opusFiles - fs plumbing and remembered-file state for the Opus tree.
 // Tauri imports stay dynamic so the web bundle never pulls them in.
 import { VaultConflictError } from "../vault.js";
+import { writeTextAtomic, ATOMIC_WRITES } from "../atomicWrite.js";
 import { normalizeEol } from "./yamlFrontmatter.js";
 
 export const OPUS_DIR = "Opus";
@@ -109,7 +110,8 @@ export const guardedWrite = async (fs, { entry, path, text, kind, id }) => {
   const target = entry ? entry.path : path;
   await fs.mkdir(parentOf(target), { recursive: true });
   // createNew makes the OS refuse an overwrite even if the file appeared since the exists check.
-  await fs.writeTextFile(target, text, entry ? undefined : { createNew: true });
+  if (entry) await writeTextAtomic(fs, target, text, { atomic: ATOMIC_WRITES });
+  else await fs.writeTextFile(target, text, { createNew: true });
   return { path: target, text, mtimeMs: await statMtime(fs, target), kind };
 };
 

@@ -5,6 +5,7 @@ const MESSAGES = {
   missing: 'That file is not in your vault any more.',
   not_a_file: 'That is a folder, not a file.',
   blocked_type: 'MAIA will not open programs or scripts. Open it from Finder if you trust it.',
+  blocked_web: 'Open it from Finder if you trust it.',
   outside_vault: 'That file is outside your vault.',
   open_failed: 'Your system could not open that file.',
 };

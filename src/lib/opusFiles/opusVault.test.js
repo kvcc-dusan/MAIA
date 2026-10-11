@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // In-memory fs behind the Tauri plugin so the adapter runs without a disk.
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 let files;
 let dirs;
@@ -28,6 +28,12 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   mkdir: vi.fn(async (p) => {
     dirs.add(p);
     addDirs(p);
+  }),
+  rename: vi.fn(async (from, to) => {
+    if (!(from in files)) throw new Error(`ENOENT ${from}`);
+    addDirs(to);
+    files[to] = files[from];
+    delete files[from];
   }),
   remove: vi.fn(async (p) => {
     delete files[p];
@@ -359,5 +365,68 @@ describe("opus vault adapter", () => {
     release();
     await reload;
     expect(getOpusMeta("task", "t1")).toBeTruthy();
+  });
+  describe("atomic saves", () => {
+    const taskPath = `${OPUS}/Atlas/tasks/First.md`;
+    afterEach(() => vi.doUnmock("../atomicWrite.js"));
+
+    it("writes an existing item through <name>.md.tmp and a rename", async () => {
+      seed();
+      const fs = await import("@tauri-apps/plugin-fs");
+      const { loadOpus, saveTask } = await load();
+      const { tasks } = await loadOpus(VAULT);
+      await saveTask(VAULT, { ...tasks.find((t) => t.id === "t1"), status: "doing" });
+      expect(fs.writeTextFile).toHaveBeenCalledWith(`${taskPath}.tmp`, expect.stringContaining("status: doing"));
+      expect(fs.rename).toHaveBeenCalledWith(`${taskPath}.tmp`, taskPath);
+      expect(Object.keys(files).filter((p) => p.endsWith(".tmp"))).toEqual([]);
+    });
+
+    it("keeps createNew exclusive creation for brand-new files, with no rename", async () => {
+      seed();
+      const fs = await import("@tauri-apps/plugin-fs");
+      const { loadOpus, saveTask } = await load();
+      await loadOpus(VAULT);
+      await saveTask(VAULT, { id: "t9", title: "Fresh", projectId: "p1", status: "todo", createdAt: "2026-10-03T00:00:00.000Z" });
+      expect(fs.rename).not.toHaveBeenCalled();
+      expect(fs.writeTextFile).toHaveBeenCalledWith(expect.stringContaining("Fresh"), expect.any(String), { createNew: true });
+    });
+
+    it("surfaces a rename failure and leaves the item and no temp file behind", async () => {
+      seed();
+      const fs = await import("@tauri-apps/plugin-fs");
+      const { loadOpus, saveTask } = await load();
+      const { tasks } = await loadOpus(VAULT);
+      fs.rename.mockRejectedValueOnce(new Error("rename denied"));
+      await expect(saveTask(VAULT, { ...tasks.find((t) => t.id === "t1"), status: "doing" })).rejects.toThrow("rename denied");
+      expect(files[taskPath]).toBe(TASK);
+      expect(Object.keys(files).filter((p) => p.endsWith(".tmp"))).toEqual([]);
+    });
+
+    it("the loader and watcher ignore .tmp files, and own echoes of the rename are dropped", async () => {
+      seed();
+      vi.useFakeTimers();
+      files[`${taskPath}.tmp`] = "---\nid: ghost\ntitle: Ghost\n---\n";
+      const { loadOpus, saveTask, watchOpus } = await load();
+      const { tasks } = await loadOpus(VAULT);
+      expect(tasks.map((t) => t.id)).not.toContain("ghost");
+      const onChange = vi.fn();
+      await watchOpus(VAULT, onChange, { debounceMs: 10 });
+      await saveTask(VAULT, { ...tasks.find((t) => t.id === "t1"), status: "doing" });
+      watchCb({ paths: [`${taskPath}.tmp`, taskPath] });
+      await vi.advanceTimersByTimeAsync(20);
+      expect(onChange).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it("with ATOMIC_WRITES off it writes in place and never renames", async () => {
+      vi.doMock("../atomicWrite.js", async (orig) => ({ ...(await orig()), ATOMIC_WRITES: false }));
+      seed();
+      const fs = await import("@tauri-apps/plugin-fs");
+      const { loadOpus, saveTask } = await load();
+      const { tasks } = await loadOpus(VAULT);
+      await saveTask(VAULT, { ...tasks.find((t) => t.id === "t1"), status: "doing" });
+      expect(fs.writeTextFile).toHaveBeenCalledWith(taskPath, expect.stringContaining("status: doing"));
+      expect(fs.rename).not.toHaveBeenCalled();
+    });
   });
 });

@@ -43,6 +43,12 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     fsState.files[path] = content;
     return Promise.resolve();
   }),
+  rename: vi.fn((from, to) => {
+    if (!(from in fsState.files)) return Promise.reject(new Error(`ENOENT: ${from}`));
+    fsState.files[to] = fsState.files[from];
+    delete fsState.files[from];
+    return Promise.resolve();
+  }),
   remove: vi.fn((path) => {
     delete fsState.files[path];
     return Promise.resolve();
@@ -531,5 +537,93 @@ describe("vault.js recent vaults", () => {
     await expect(probeVault("/mock/vault")).resolves.toBeUndefined();
     readDir.mockRejectedValueOnce(new Error("ENOENT"));
     await expect(probeVault("/gone")).rejects.toThrow("ENOENT");
+  });
+});
+
+describe("vault.js atomic saves", () => {
+  const note = { id: "n1", title: "Mine", content: "x", folder: "a", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
+  beforeEach(() => {
+    fsState = { files: {}, dirs: new Set() };
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.doUnmock("./atomicWrite.js");
+  });
+
+  it("writes <name>.md.tmp then renames it, leaving no temp file", async () => {
+    const { writeTextFile, rename } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    await saveNote(VAULT, note);
+    expect(writeTextFile).toHaveBeenCalledWith(`${VAULT}/a/mine.md.tmp`, expect.any(String));
+    expect(rename).toHaveBeenCalledWith(`${VAULT}/a/mine.md.tmp`, `${VAULT}/a/mine.md`);
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/mine.md`]);
+  });
+
+  it("a stale temp from a crash does not block the next save", async () => {
+    fsState.files[`${VAULT}/a/mine.md.tmp`] = "half";
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    await saveNote(VAULT, note);
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/mine.md`]);
+  });
+
+  it("never loads a .tmp file as a note", async () => {
+    fsState.files[`${VAULT}/a/mine.md.tmp`] = md({ id: "ghost" });
+    const { loadNotes } = await importVault();
+    expect(await loadNotes(VAULT)).toEqual([]);
+  });
+
+  it("surfaces a rename failure, leaves the old text and no temp file", async () => {
+    const { rename } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan", content: "old" });
+    const [loaded] = await loadNotes(VAULT);
+    const before = fsState.files[`${VAULT}/a/Plan.md`];
+    rename.mockRejectedValueOnce(new Error("rename denied"));
+    await expect(saveNote(VAULT, { ...loaded, content: "new" })).rejects.toThrow("rename denied");
+    expect(fsState.files).toEqual({ [`${VAULT}/a/Plan.md`]: before });
+  });
+
+  it("still detects a conflict before touching anything", async () => {
+    const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote, VaultConflictError } = await importVault();
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan" });
+    const [loaded] = await loadNotes(VAULT);
+    fsState.files[`${VAULT}/a/Plan.md`] = md({ id: "n1", title: "Plan", content: "obsidian" });
+    writeTextFile.mockClear();
+    await expect(saveNote(VAULT, { ...loaded, content: "mine" })).rejects.toBeInstanceOf(VaultConflictError);
+    expect(writeTextFile).not.toHaveBeenCalled();
+  });
+
+  it("the watcher drops the echo of an atomic save (temp and final paths)", async () => {
+    vi.useFakeTimers();
+    const { watchImmediate } = await import("@tauri-apps/plugin-fs");
+    const vault = await importVault();
+    const onChange = vi.fn();
+    await vault.watchVault(VAULT, onChange, { debounceMs: 10 });
+    const handler = watchImmediate.mock.calls[0][1];
+    await vault.loadNotes(VAULT);
+    await vault.saveNote(VAULT, note);
+    handler({ paths: [`${VAULT}/a/mine.md.tmp`, `${VAULT}/a/mine.md`] });
+    await vi.advanceTimersByTimeAsync(50);
+    expect(onChange).not.toHaveBeenCalled();
+    fsState.files[`${VAULT}/a/mine.md`] = "edited in Obsidian";
+    handler({ paths: [`${VAULT}/a/mine.md`] });
+    await vi.advanceTimersByTimeAsync(50);
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("with ATOMIC_WRITES off it writes in place and never renames", async () => {
+    vi.doMock("./atomicWrite.js", async (orig) => ({ ...(await orig()), ATOMIC_WRITES: false }));
+    const { writeTextFile, rename } = await import("@tauri-apps/plugin-fs");
+    const { loadNotes, saveNote } = await importVault();
+    await loadNotes(VAULT);
+    await saveNote(VAULT, note);
+    expect(writeTextFile).toHaveBeenCalledTimes(1);
+    expect(writeTextFile).toHaveBeenCalledWith(`${VAULT}/a/mine.md`, expect.any(String));
+    expect(rename).not.toHaveBeenCalled();
   });
 });

@@ -44,6 +44,14 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     fsState.mtimes[real] = Date.now(); // a write really does move mtime
     return Promise.resolve();
   }),
+  rename: vi.fn((from, to) => {
+    const real = find(from);
+    if (real === undefined) return Promise.reject(new Error(`ENOENT: ${from}`));
+    fsState.files[find(to) ?? to] = fsState.files[real];
+    fsState.mtimes[to] = Date.now();
+    delete fsState.files[real];
+    return Promise.resolve();
+  }),
   remove: vi.fn((path) => {
     const real = find(path);
     if (real !== undefined) delete fsState.files[real];

@@ -20,6 +20,12 @@ describe('openVaultFile', () => {
     expect(toastError).toHaveBeenCalledWith(expect.stringContaining('will not open programs'));
   });
 
+  it('explains a refused web document', async () => {
+    const invokeFn = vi.fn().mockRejectedValue('blocked_web');
+    expect(await openVaultFile('/v', 'page.html', { invokeFn })).toBe(false);
+    expect(toastError).toHaveBeenCalledWith('Open it from Finder if you trust it.');
+  });
+
   it('shows a generic message for unknown errors', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const invokeFn = vi.fn().mockRejectedValue(new Error('boom'));

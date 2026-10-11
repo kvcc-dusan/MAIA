@@ -33,6 +33,13 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     delete files[p];
     dirs.delete(p);
   }),
+  rename: vi.fn(async (from, to) => {
+    if (!(from in files)) throw new Error(`ENOENT ${from}`);
+    addDirs(to);
+    files[to] = files[from];
+    mtimes.set(to, ++clock);
+    delete files[from];
+  }),
   stat: vi.fn(async (p) => ({ mtime: new Date(mtimes.get(p) ?? 0) })),
   readDir: vi.fn(async (dir) => {
     const out = new Map();

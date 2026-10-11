@@ -37,6 +37,12 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
     dirs.add(p);
     addDirs(p);
   }),
+  rename: vi.fn(async (from, to) => {
+    if (!(from in files)) throw new Error(`ENOENT ${from}`);
+    addDirs(to);
+    files[to] = files[from];
+    delete files[from];
+  }),
   remove: vi.fn(async (p) => {
     delete files[p];
     dirs.delete(p);
