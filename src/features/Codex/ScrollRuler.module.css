@@ -1,0 +1,35 @@
+/* Floats over the right edge of the note, centred vertically. It never takes pointer events. */
+.ruler {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  z-index: var(--z-sticky, 10);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-height: 60%;
+  overflow: hidden;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tick {
+  width: 20px;
+  height: 2px;
+  flex: none;
+  border-radius: 1px;
+  background: var(--text-muted);
+  opacity: 0.45;
+  transform-origin: right center;
+  transition:
+    transform var(--duration-standard) var(--ease-standard),
+    opacity var(--duration-standard) var(--ease-standard),
+    background-color var(--duration-standard) var(--ease-standard);
+}
+
+.tick[data-active] { background: var(--foreground); opacity: 0.9; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tick { transition: none; }
+}

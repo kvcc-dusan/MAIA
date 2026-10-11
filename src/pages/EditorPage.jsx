@@ -5,6 +5,7 @@ import { WriteIcon } from "../components/ui/CustomIcon.jsx";
 import { EmptyState } from "../components/composed/EmptyState.jsx";
 import { useDebounced } from "../hooks/useDebounced.js";
 import NoteHeader from "../features/Codex/NoteHeader.jsx";
+import ScrollRuler from "../features/Codex/ScrollRuler.jsx";
 import NoteCounters from "../features/Codex/NoteCounters.jsx";
 import SyntaxNotice from "../features/Codex/SyntaxNotice.jsx";
 import { checkRoundTrip } from "../editor/roundTripSafe.js";
@@ -69,6 +70,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
   // Decided once per mount: CodexPage remounts this when the note id changes.
   const [autoFocusTarget] = useState(() => getAutoFocusTarget(note));
   const titleRef = useRef(null);
+  const bodyRef = useRef(null);
 
   useEffect(() => {
     if (autoFocusTarget !== "title" || isTypingElsewhere()) return;
@@ -214,7 +216,7 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
       />
 
       <div className={styles.stage}>
-        <div className={`${styles.body} custom-scrollbar`}>
+        <div ref={bodyRef} className={`${styles.body} custom-scrollbar`}>
           <div className={styles.content}>
             <input
               ref={titleRef}
@@ -255,6 +257,8 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
             )}
           </div>
         </div>
+
+        <ScrollRuler scrollRef={bodyRef} />
 
         <NoteCounters
           backlinks={countBacklinks(notes, local)}
