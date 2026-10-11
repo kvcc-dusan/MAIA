@@ -38,24 +38,40 @@ const makeRingTexture = () => {
 };
 
 /** Shared resources for one scene. Call `dispose()` on teardown. The ring texture is only built when a hot node asks for it. */
-export const createSharedAssets = (segments) => {
+const buildGeometries = (levels) => levels.map((segments) => new SphereGeometry(1, segments, Math.max(4, Math.round(segments * 0.75))));
+
+/**
+ * `levels` are sphere segment counts from coarse to fine. Every node starts on the coarse one and the scene
+ * switches the ones you are close to to a finer one, so a node filling the screen is a smooth sphere while the
+ * hundreds of tiny distant dots stay cheap.
+ */
+export const createSharedAssets = (levels) => {
   let ringTexture = null;
-  let geometry = new SphereGeometry(1, segments, segments);
+  let geometries = buildGeometries(levels);
   return {
     get ringTexture() {
       if (!ringTexture) ringTexture = makeRingTexture();
       return ringTexture;
     },
-    get geometry() { return geometry; },
-    setSegments(next) {
-      geometry.dispose();
-      geometry = new SphereGeometry(1, next, next);
+    get geometry() { return geometries[0]; },
+    get levelCount() { return geometries.length; },
+    geometryAt(level) { return geometries[Math.min(Math.max(0, level), geometries.length - 1)]; },
+    setLevels(next) {
+      geometries.forEach((g) => g.dispose());
+      geometries = buildGeometries(next);
     },
     dispose() {
       ringTexture?.dispose();
-      geometry.dispose();
+      geometries.forEach((g) => g.dispose());
     },
   };
+};
+
+/** Puts the node's sphere on the geometry for `level`; a no-op when it is already there. */
+export const setDetail = (parts, level, assets) => {
+  if (parts.detail === level) return;
+  parts.detail = level;
+  parts.mesh.geometry = assets.geometryAt(level);
 };
 
 const makeRing = (texture) => {
@@ -76,7 +92,7 @@ export const createNodeParts = (node, assets) => {
     group.add(ring);
   }
   return {
-    group, mesh, ring, label: null, node, radius: 1, opacity: 1, labelScale: 1, labelOpacity: 0, labelTarget: 0, labelBase: null,
+    group, mesh, ring, label: null, node, radius: 1, opacity: 1, labelScale: 1, labelOpacity: 0, labelTarget: 0, labelBase: null, detail: 0,
   };
 };
 

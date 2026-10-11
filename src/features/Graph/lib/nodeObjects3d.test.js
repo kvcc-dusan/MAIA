@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createNodeParts, createSharedAssets, disposeParts, stylePart } from "./nodeObjects3d.js";
 
 describe("node parts", () => {
-  const assets = createSharedAssets(6);
+  const assets = createSharedAssets([6, 12, 24]);
 
   it("builds just a sphere for a normal node: no glow sprite, no ring", () => {
     const parts = createNodeParts({ id: "a" }, assets);

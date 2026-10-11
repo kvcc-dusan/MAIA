@@ -13,7 +13,7 @@ import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFo
 import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
 import { createLinkMaterials } from "./linkMaterials3d.js";
 import {
-  LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, labelOffset, pulseRing, releaseLabel,
+  LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, labelOffset, pulseRing, releaseLabel, setDetail,
   repositionLabel, resizeLabel, setLabelColor, stylePart,
 } from "./nodeObjects3d.js";
 
@@ -41,6 +41,8 @@ const FIT_MS = 700;
 const FOCUS_DISTANCE = 60;
 const AUTO_ROTATE_SPEED = 0.45;
 const ORBIT_KEY_STEP = 0.08;
+const DETAIL_MEDIUM_PX = 7; // on-screen radius where spheres switch to the medium geometry
+const DETAIL_SMOOTH_PX = 22; // and to the smooth one
 // Depth rules for names (distances are in units of the graph's radius, measured from its centre):
 const DEPTH_FRONT_EDGE = 0.35; // a node this far in front of the centre has a full-strength label
 const DEPTH_BACK_EDGE = 0.1; // behind this the label has faded out completely
@@ -77,7 +79,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     adjacency: new Map(),
     parts: new Map(),
     tier: qualityTier(0),
-    assets: createSharedAssets(qualityTier(0).sphereSegments),
+    assets: createSharedAssets(qualityTier(0).sphereLevels),
     gravity: createGravityForce(0),
     focus: computeFocus({ hoverId: null, adjacency: new Map(), matchIds: null, clusterIds: null }),
     hoverId: null,
@@ -252,6 +254,18 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     return x * x * (3 - 2 * x);
   };
 
+  // Sphere detail by on-screen radius: a node you are close to is a smooth sphere, a distant dot stays coarse.
+  const updateDetail = (camera) => {
+    const pxPerUnit = s.height / (2 * Math.tan((camera.fov * Math.PI) / 360));
+    s.parts.forEach((parts) => {
+      const n = parts.node;
+      if (n.x === undefined) return;
+      const dist = Math.max(1e-3, Math.hypot(camera.position.x - n.x, camera.position.y - n.y, camera.position.z - n.z));
+      const radiusPx = (parts.radius * pxPerUnit) / dist;
+      setDetail(parts, radiusPx >= DETAIL_SMOOTH_PX ? 2 : radiusPx >= DETAIL_MEDIUM_PX ? 1 : 0, s.assets);
+    });
+  };
+
   const collectCandidates = (camera) => {
     const { focus, style } = s;
     const { center, radius } = boundingSphere(s.nodes);
@@ -303,6 +317,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     s.labelPass += 1;
     const camera = graph.camera();
     camera.updateMatrixWorld();
+    updateDetail(camera);
     const candidates = collectCandidates(camera);
     const byId = new Map(candidates.map((c) => [c.id, c]));
     const accepted = layoutLabels({ candidates, viewport: { width: s.width, height: s.height }, cap: s.tier.labelCap });
@@ -568,7 +583,12 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       });
       if (s.hoverId && !s.nodeById.has(s.hoverId)) s.hoverId = null;
       graph.renderer().setPixelRatio(tier.pixelRatio);
-      if (tierChanged) s.assets.setSegments(tier.sphereSegments);
+      if (tierChanged) {
+        s.assets.setLevels(tier.sphereLevels);
+        s.parts.forEach((parts) => {
+          parts.detail = -1; // forces setDetail to pick the new geometry on the next pass
+        });
+      }
       if (s.style) applyWidth();
       graph.graphData({ nodes, links });
       if (tierChanged) graph.refresh();

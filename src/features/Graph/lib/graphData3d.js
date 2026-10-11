@@ -162,7 +162,7 @@ export const qualityTier = (nodeCount, devicePixelRatio = 1) => {
   const pixelCap = heavy ? 1 : nodeCount > DENSE_NODE_COUNT ? DENSE_PIXEL_RATIO : MAX_PIXEL_RATIO;
   return {
     heavy,
-    sphereSegments: heavy ? 6 : 14,
+    sphereLevels: heavy ? [6, 8, 12] : [12, 28, 72], // coarse, medium, smooth (see createSharedAssets)
     pixelRatio: Math.min(pixelCap, Math.max(1, devicePixelRatio)),
     labelCap: heavy ? HEAVY_LABEL_CAP : LABEL_CAP,
     thinLinks: heavy,

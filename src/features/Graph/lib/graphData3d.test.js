@@ -97,7 +97,7 @@ describe("camera, quality and links", () => {
     expect(qualityTier(258, 3)).toMatchObject({ pixelRatio: 1.5, thinLinks: false });
     expect(qualityTier(258, 1)).toMatchObject({ pixelRatio: 1 });
     expect(qualityTier(2001, 3)).toMatchObject({ pixelRatio: 1, thinLinks: true, labelCap: 30 });
-    expect(qualityTier(2001).sphereSegments).toBeLessThan(qualityTier(10).sphereSegments);
+    expect(qualityTier(2001).sphereLevels.at(-1)).toBeLessThan(qualityTier(10).sphereLevels.at(-1));
     expect(qualityTier(10)).not.toHaveProperty("glow");
   });
   it("gives each link a stable angle", () => {
