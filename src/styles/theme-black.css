@@ -1,0 +1,25 @@
+/* Black theme: a variant of dark, not a fourth theme. The page keeps data-theme="dark" so every dark
+   rule, chart and canvas keeps working, and data-variant="black" only swaps the palette below for pure
+   black surfaces with white text, like the Obsidian setup it mirrors. Overrides live here and never in
+   foundation.css (vendored from kvcc-arc); once the palette settles it can move upstream as a theme. */
+:root[data-theme="dark"][data-variant="black"] {
+  --background: oklch(0% 0 0);
+  --surface: oklch(7% 0 0);
+  --surface-raised: oklch(10% 0 0);
+  /* hover and selected rows: just visible against pure black */
+  --surface-muted: oklch(14% 0 0);
+  --foreground: oklch(98% 0 0);
+  --text-secondary: oklch(80% 0 0);
+  --text-muted: oklch(62% 0 0);
+  --border: oklch(21% 0 0);
+  --border-subtle: oklch(15% 0 0);
+  --border-strong: oklch(36% 0 0);
+  --control-glyph: oklch(0% 0 0);
+  --control-track: oklch(24% 0 0);
+  --control-track-hover: oklch(29% 0 0);
+  --control-thumb-on: oklch(0% 0 0);
+  /* black shadows disappear on black: floating layers rely on their raised surface and border instead */
+  --shadow-resting: none;
+  --shadow-raised: 0 0 0 1px oklch(21% 0 0);
+  --shadow-floating: 0 0 0 1px oklch(26% 0 0), 0 18px 48px oklch(0% 0 0 / .8);
+}

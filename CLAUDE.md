@@ -163,7 +163,7 @@ Rules of thumb (binding):
 
 ### Theming
 
-- `data-theme="light|dark"` and `data-accent` (MAIA uses `neutral`) on `<html>`, set before first paint by `public/theme-boot.js`. It is an external script because the CSP is `script-src 'self'`. Keep it in sync with `src/lib/theme.js` (`getTheme`, `resolveTheme`, `setTheme`, `subscribe`). Follows `prefers-color-scheme` with a saved user toggle.
+- `data-theme="light|dark"` and `data-accent` (MAIA uses `neutral`) on `<html>`, set before first paint by `public/theme-boot.js`. It is an external script because the CSP is `script-src 'self'`. Keep it in sync with `src/lib/theme.js` (`getTheme`, `resolveTheme`, `setTheme`, `subscribe`). Follows `prefers-color-scheme` with a saved user toggle. **Black** is a variant of dark: `data-theme="dark"` plus `data-variant="black"`, with its palette in `src/styles/theme-black.css` (imported after `foundation.css`, never edit foundation). `resolveTheme` returns `dark` for it, so every dark rule, chart and canvas keeps working; `resolveVariant` says `black`. The Settings choice is System / Light / Dark / Black.
 - Overrides go in a theme layer after `foundation.css`, never inside `foundation.css`.
 - Canvas and chart code (D3, Arc charts, Graph) follows the theme through CSS variables or `subscribe()` from `lib/theme.js`. Subscribe to redraw on theme change.
 

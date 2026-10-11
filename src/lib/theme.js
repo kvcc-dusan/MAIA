@@ -1,8 +1,9 @@
 // @maia:theme
-// --- Theme mode (light | dark | system) ---------------------------------
-// Mirrors public/theme-boot.js, which applies the first paint.
+// --- Theme mode (light | dark | black | system) ---------------------------
+// Mirrors public/theme-boot.js, which applies the first paint. `black` is a variant of dark: the page
+// is data-theme="dark" (so every dark rule still applies) plus data-variant="black" for the palette.
 const STORAGE_KEY = 'maia.theme'
-const MODES = ['light', 'dark', 'system']
+const MODES = ['light', 'dark', 'black', 'system']
 const listeners = new Set()
 
 const readStored = () => {
@@ -21,11 +22,18 @@ const query = typeof window !== 'undefined' && window.matchMedia
 
 export const getTheme = () => mode
 
+/** 'light' or 'dark'; black resolves to dark because it is a dark variant. */
 export const resolveTheme = (m = mode) =>
-  m === 'system' ? (query?.matches ? 'dark' : 'light') : m
+  m === 'system' ? (query?.matches ? 'dark' : 'light') : m === 'black' ? 'dark' : m
+
+export const resolveVariant = (m = mode) => (m === 'black' ? 'black' : null)
 
 const apply = () => {
-  document.documentElement.setAttribute('data-theme', resolveTheme())
+  const root = document.documentElement
+  root.setAttribute('data-theme', resolveTheme())
+  const variant = resolveVariant()
+  if (variant) root.setAttribute('data-variant', variant)
+  else root.removeAttribute('data-variant')
   listeners.forEach((fn) => fn(mode))
 }
 
