@@ -47,7 +47,7 @@ export default function CodexPage({
   onOpenInternalLink,
   onOpenPalette,
 }) {
-  const { tabs, activeTab, activeNoteId, openNote, activate, close, newTab, openNotesView } = codex;
+  const { tabs, activeTab, activeNoteId, openNote, activate, close, moveTab, newTab, openNotesView } = codex;
   const { createNote, notesMeta } = useData();
   const activeFolder = normalizeFolder(notes.find((n) => n.id === activeNoteId)?.folder);
 
@@ -111,6 +111,7 @@ export default function CodexPage({
           notes={notes}
           onActivate={activate}
           onClose={close}
+          onMove={moveTab}
           onNewTab={newTab}
         />
       </ShellTopBar>

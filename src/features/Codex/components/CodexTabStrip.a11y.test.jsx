@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/vitest";
@@ -80,5 +80,116 @@ describe("CodexTabStrip accessibility", () => {
     expect(onClose).toHaveBeenCalledWith("t2");
     expect(screen.getByRole("button", { name: "New tab" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "All tabs" })).toBeInTheDocument();
+  });
+});
+
+// jsdom has no layout: give each tab a 100px slot so dnd-kit can find neighbours.
+const TAB_WIDTH = 100;
+const stubSlots = () => vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function slot() {
+  const list = this.parentElement;
+  const index = list?.getAttribute("role") === "tablist" ? Array.from(list.children).indexOf(this) : -1;
+  const left = Math.max(index, 0) * TAB_WIDTH;
+  return { x: left, y: 0, left, top: 0, right: left + TAB_WIDTH, bottom: 40, width: TAB_WIDTH, height: 40, toJSON: () => ({}) };
+});
+
+describe("CodexTabStrip keyboard reorder", () => {
+  let slots;
+  beforeEach(() => {
+    slots = stubSlots();
+  });
+  afterEach(() => {
+    slots.mockRestore();
+  });
+
+  const setupReorder = () => {
+    const handlers = { onActivate: vi.fn(), onClose: vi.fn(), onNewTab: vi.fn(), onMove: vi.fn() };
+    render(<CodexTabStrip tabs={tabs} activeId="t1" notes={notes} {...handlers} />);
+    return handlers;
+  };
+
+  it("moves a tab right: Space picks it up, arrows move it, Space drops it", async () => {
+    const user = userEvent.setup();
+    const { onMove, onActivate } = setupReorder();
+    const [first] = screen.getAllByRole("tab");
+    first.focus();
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowRight}");
+    await user.keyboard(" ");
+    expect(onMove).toHaveBeenCalledWith("t1", "t2");
+    expect(onActivate).not.toHaveBeenCalled();
+  });
+
+  it("moves a tab left", async () => {
+    const user = userEvent.setup();
+    const { onMove } = setupReorder();
+    const third = screen.getByRole("tab", { name: "New tab" });
+    third.focus();
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowLeft}");
+    await user.keyboard("{ArrowLeft}");
+    await user.keyboard(" ");
+    expect(onMove).toHaveBeenCalledWith("t3", "t1");
+  });
+
+  it("keeps focus on the dragged tab while arrows move it", async () => {
+    const user = userEvent.setup();
+    setupReorder();
+    const [first, second] = screen.getAllByRole("tab");
+    first.focus();
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(first);
+    expect(document.activeElement).not.toBe(second);
+  });
+
+  it("cancels with Escape without moving or activating", async () => {
+    const user = userEvent.setup();
+    const { onMove, onActivate } = setupReorder();
+    const [first] = screen.getAllByRole("tab");
+    first.focus();
+    await user.keyboard(" ");
+    await user.keyboard("{ArrowRight}");
+    await user.keyboard("{Escape}");
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onActivate).not.toHaveBeenCalled();
+  });
+
+  it("treats Space to pick up and Space to drop with no move as an activation", async () => {
+    const user = userEvent.setup();
+    const { onMove, onActivate } = setupReorder();
+    const second = screen.getAllByRole("tab")[1];
+    second.focus();
+    await user.keyboard(" ");
+    await user.keyboard(" ");
+    expect(onMove).not.toHaveBeenCalled();
+    expect(onActivate).toHaveBeenCalledWith("t2");
+  });
+
+  it("announces the pick up and the drop in plain English", async () => {
+    const user = userEvent.setup();
+    setupReorder();
+    const [first] = screen.getAllByRole("tab");
+    first.focus();
+    await user.keyboard(" ");
+    expect(await screen.findByText("Picked up Alpha, position 1 of 3.")).toBeInTheDocument();
+    await user.keyboard("{ArrowRight}");
+    expect(await screen.findByText("Alpha is now at position 2 of 3.")).toBeInTheDocument();
+    await user.keyboard(" ");
+    expect(await screen.findByText("Dropped Alpha at position 2 of 3.")).toBeInTheDocument();
+  });
+
+  it("keeps the new tab and overflow controls out of the sortable list", () => {
+    setupReorder();
+    const scroller = screen.getByRole("tablist");
+    expect(scroller.querySelectorAll("[role=tab]")).toHaveLength(3);
+    expect(scroller.querySelector('button[aria-label="New tab"]')).toBeNull();
+    expect(screen.getByRole("button", { name: "New tab" })).toBeInTheDocument();
+  });
+
+  it("never puts the window drag region on a tab", () => {
+    setupReorder();
+    screen.getAllByRole("tab").forEach((tab) => {
+      expect(tab.closest("[data-tauri-drag-region]")).toBeNull();
+    });
   });
 });

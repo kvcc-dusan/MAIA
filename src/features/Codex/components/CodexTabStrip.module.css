@@ -38,7 +38,8 @@
   border-radius: var(--radius-control) var(--radius-control) 0 0;
   color: var(--text-secondary);
   font-size: var(--text-sm);
-  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+  /* transform is the neighbours sliding aside while a tab is dragged. */
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
 }
 .tab:hover { background: var(--surface-muted); color: var(--text-secondary); }
 /* The bottom border stays transparent over the page background, which hides the strip's hairline: the tab opens into the page. */
@@ -76,7 +77,8 @@
   font: inherit;
   text-align: left;
   line-height: var(--leading-body);
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
 }
 .title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -89,6 +91,17 @@
   padding: 0;
   opacity: 0;
 }
+/* Flat lift: a 1px border and the page surface, no shadow. Follows the pointer on x only. */
+.tab[data-dragging] {
+  z-index: 2;
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--foreground);
+  transition: none;
+}
+.tab[data-dragging]::after { opacity: 0; }
+.tab[data-dragging] .label { cursor: grabbing; }
+
 .tab:hover .close.close.close,
 .tab:focus-within .close.close.close,
 .tab[data-active] .close.close.close { opacity: 1; }

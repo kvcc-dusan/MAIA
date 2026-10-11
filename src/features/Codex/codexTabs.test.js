@@ -5,6 +5,7 @@ import {
   codexTabsReducer as reduce,
   createInitialState,
   loadTabsState,
+  moveTab,
   sanitizeState,
   saveTabsState,
   tabTitle,
@@ -196,5 +197,71 @@ describe("tabTitle", () => {
     expect(tabTitle(noteTab("a", "1"), notes)).toBe("Alpha");
     expect(tabTitle(noteTab("b", "2"), notes)).toBe("Untitled");
     expect(tabTitle(noteTab("c", "9"), notes)).toBe("Untitled");
+  });
+});
+
+describe("move", () => {
+  const base = () => st([notesTab("n"), noteTab("a", "1"), noteTab("b", "2"), newTab("x")], "a");
+  const ids = (s) => s.tabs.map((t) => t.id);
+
+  it("moves a tab right onto a later tab's index", () => {
+    const next = reduce(base(), { type: "move", fromId: "n", toId: "b" });
+    expect(ids(next)).toEqual(["a", "b", "n", "x"]);
+  });
+
+  it("moves a tab left onto an earlier tab's index", () => {
+    const next = reduce(base(), { type: "move", fromId: "x", toId: "a" });
+    expect(ids(next)).toEqual(["n", "x", "a", "b"]);
+  });
+
+  it("swaps two neighbours", () => {
+    expect(ids(reduce(base(), { type: "move", fromId: "a", toId: "b" }))).toEqual(["n", "b", "a", "x"]);
+    expect(ids(reduce(base(), { type: "move", fromId: "b", toId: "a" }))).toEqual(["n", "b", "a", "x"]);
+  });
+
+  it("keeps the active tab active wherever it moves", () => {
+    const next = reduce(base(), { type: "move", fromId: "a", toId: "x" });
+    expect(next.activeId).toBe("a");
+    expect(next.tabs.find((t) => t.id === "a")).toEqual(noteTab("a", "1"));
+  });
+
+  it("keeps the active tab when a different tab moves", () => {
+    const s = st(base().tabs, "b");
+    expect(reduce(s, { type: "move", fromId: "n", toId: "x" }).activeId).toBe("b");
+  });
+
+  it("returns the same state for the same position", () => {
+    const s = base();
+    expect(reduce(s, { type: "move", fromId: "b", toId: "b" })).toBe(s);
+    expect(moveTab(s, "b", "b")).toBe(s);
+  });
+
+  it("returns the same state for unknown ids", () => {
+    const s = base();
+    expect(reduce(s, { type: "move", fromId: "nope", toId: "b" })).toBe(s);
+    expect(reduce(s, { type: "move", fromId: "b", toId: "nope" })).toBe(s);
+  });
+
+  it("does not mutate the previous state", () => {
+    const s = base();
+    const snapshot = JSON.parse(JSON.stringify(s));
+    const next = reduce(s, { type: "move", fromId: "x", toId: "a" });
+    expect(next).not.toBe(s);
+    expect(next.tabs).not.toBe(s.tabs);
+    expect(s).toEqual(snapshot);
+  });
+
+  it("keeps every tab, with its data, when reordering", () => {
+    const s = base();
+    const next = reduce(s, { type: "move", fromId: "b", toId: "n" });
+    expect([...next.tabs].sort((p, q) => (p.id < q.id ? -1 : 1))).toEqual([...s.tabs].sort((p, q) => (p.id < q.id ? -1 : 1)));
+  });
+
+  it("persists the new order", () => {
+    localStorage.clear();
+    const next = reduce(base(), { type: "move", fromId: "x", toId: "n" });
+    saveTabsState(next);
+    expect(loadTabsState()).toEqual(next);
+    expect(ids(loadTabsState())).toEqual(["x", "n", "a", "b"]);
   });
 });

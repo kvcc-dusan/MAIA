@@ -43,6 +43,7 @@ export const useCodexTabs = ({ notes, isReady }) => {
   const close = useCallback((id) => dispatch({ type: "close", id, newId: uid() }), []);
   const newTab = useCallback(() => dispatch({ type: "newTab", id: uid() }), []);
   const openNotesView = useCallback(() => dispatch({ type: "openNotesView", id: uid() }), []);
+  const moveTab = useCallback((fromId, toId) => dispatch({ type: "move", fromId, toId }), []);
 
   const activeTab = useMemo(
     () => state.tabs.find((t) => t.id === state.activeId) ?? state.tabs[0],
@@ -50,5 +51,5 @@ export const useCodexTabs = ({ notes, isReady }) => {
   );
   const activeNoteId = activeTab.kind === "note" ? activeTab.noteId : null;
 
-  return { tabs: state.tabs, activeTab, activeNoteId, openNote, activate, close, newTab, openNotesView };
+  return { tabs: state.tabs, activeTab, activeNoteId, openNote, activate, close, newTab, openNotesView, moveTab };
 };

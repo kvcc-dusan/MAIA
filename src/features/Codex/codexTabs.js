@@ -94,6 +94,17 @@ const replaceTab = (state, id, tab) => ({
   tabs: state.tabs.map((t) => (t.id === id ? tab : t)),
 });
 
+// Takes the tab out and puts it at toId's index, like arrayMove, so dragging
+// onto a neighbour swaps them. activeId is untouched: moving never changes what is shown.
+export const moveTab = (state, fromId, toId) => {
+  const from = state.tabs.findIndex((t) => t.id === fromId);
+  const to = state.tabs.findIndex((t) => t.id === toId);
+  if (from === -1 || to === -1 || from === to) return state;
+  const tabs = state.tabs.filter((t) => t.id !== fromId);
+  tabs.splice(to, 0, state.tabs[from]);
+  return { ...state, tabs };
+};
+
 export const codexTabsReducer = (state, action) => {
   switch (action.type) {
     case "open": {
@@ -129,6 +140,8 @@ export const codexTabsReducer = (state, action) => {
       const alive = new Set(action.noteIds);
       return removeWhere(state, (t) => t.kind === "note" && !alive.has(t.noteId), action.newId);
     }
+    case "move":
+      return moveTab(state, action.fromId, action.toId);
     default:
       return state;
   }
