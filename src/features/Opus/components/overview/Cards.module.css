@@ -65,5 +65,7 @@
 
 .clear { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-5); color: var(--text-secondary); font-size: var(--text-sm); }
 
-/* Arc caps the heatmap cell at 15px, which leaves a wide card half empty. This lifts the cap and keeps Arc's own sizing formula (a full year of 53 columns, 30px label column, 3px gaps). */
-.heat.heat [class*="canvas"] { --cell: clamp(9px, calc((100cqi - 30px - 3px * 53) / 53), 26px); }
+/* Arc caps the heatmap cell at 15px, which leaves a wide card half empty and pushes the grid off to the right. This lifts the cap and keeps Arc's own sizing formula but divides by the real column count (--weeks) instead of a fixed 53, so the weekday labels start at the card padding and the last column ends at it. */
+.heat.heat [class*="canvas"] { --cell: clamp(9px, calc((100cqi - 30px - 3px * var(--weeks)) / var(--weeks)), 40px); }
+/* The weekday column normally overlaps the 3px gap beside it, which hides the left edge of the hover ring on the first week. */
+.heat.heat [class*="weekdays"] { margin-right: 0; padding-right: 0; }
