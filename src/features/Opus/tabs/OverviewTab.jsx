@@ -76,12 +76,15 @@ export default function OverviewTab({ project }) {
         />
       ) : (
         <>
-          <AttentionCard
-            attention={overview.attention}
-            workstreams={project.workstreams}
-            showOwners={showOwners(project, projectTasks)}
-            navigate={navigate}
-          />
+          <div className={`${styles.row} ${styles.split}`}>
+            <AttentionCard
+              attention={overview.attention}
+              workstreams={project.workstreams}
+              showOwners={showOwners(project, projectTasks)}
+              navigate={navigate}
+            />
+            <ActivityCard heat={overview.heat} navigate={navigate} />
+          </div>
           <h2 className={styles.srOnly}>Key numbers</h2>
           <StatTiles overview={overview} navigate={navigate} />
           <div className={`${styles.row} ${styles.split}`}>
@@ -91,7 +94,6 @@ export default function OverviewTab({ project }) {
         </>
       )}
       <WorkstreamsCard progress={overview.progress} navigate={navigate} onAdd={() => setIsAddingWorkstream(true)} />
-      {overview.isEmpty ? null : <ActivityCard heat={overview.heat} navigate={navigate} />}
       {isAddingWorkstream ? (
         <AddWorkstreamPanel
           open

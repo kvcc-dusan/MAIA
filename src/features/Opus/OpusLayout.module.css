@@ -21,3 +21,5 @@
 
 /* min-width keeps the tab list scrolling inside itself instead of widening the page. */
 .tabs { min-width: 0; }
+/* Arc's tab strip scrolls sideways (overflow-x: auto), which makes it scroll vertically too. Only sideways is wanted. */
+.tabs :has(> [role="tablist"]) { overflow-y: hidden; }

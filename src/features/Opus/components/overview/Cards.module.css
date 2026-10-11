@@ -11,8 +11,8 @@
 /* forecast track */
 .track { position: relative; height: 16px; margin: var(--space-5) 0 var(--space-3); }
 .trackLine, .trackElapsed { position: absolute; top: 50%; left: 0; height: 4px; transform: translateY(-50%); border-radius: var(--radius-pill); }
-.trackLine { right: 0; background: var(--surface-muted); }
-.trackElapsed { background: var(--border-strong); }
+.trackLine { right: 0; background: var(--border-strong); }
+.trackElapsed { background: var(--text-muted); }
 .mark { position: absolute; top: 50%; width: 12px; height: 12px; box-sizing: border-box; transform: translate(-50%, -50%); border-radius: var(--radius-pill); }
 .mark[data-kind="today"], .legendMark[data-kind="today"] { background: var(--foreground); }
 .mark[data-kind="target"], .legendMark[data-kind="target"] { width: 2px; height: 16px; border-radius: 1px; background: var(--foreground); }
