@@ -107,6 +107,10 @@
   padding-right: var(--space-2);
 }
 
+/* The cluster's right border is the divider; the first tab has its own 1px left border. Pulling the strip over
+   the divider by that one pixel makes them the same line instead of a doubled, thicker one. */
+.cluster[data-sidebar-open] + .strip { margin-inline-start: -1px; }
+
 .topBarSlot { display: flex; flex: 1 1 auto; align-self: stretch; align-items: stretch; min-width: 0; }
 
 .pageTitle {
@@ -184,6 +188,7 @@
   /* Floating sidebar: no divider in the top row, tabs follow the cluster. */
   .cluster[data-sidebar-open] { min-width: 0; border-right-width: 0; }
   .cluster[data-sidebar-open]::after { opacity: 1; }
+  .cluster[data-sidebar-open] + .strip { margin-inline-start: 0; }
   .sidebar { position: absolute; z-index: var(--z-drawer, 30); inset-block: 0; left: var(--shell-rail); background: var(--surface-raised); }
   .sidebar[data-open] { box-shadow: var(--shadow-floating); }
 }
