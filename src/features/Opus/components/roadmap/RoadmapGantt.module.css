@@ -1,7 +1,7 @@
 .root { min-width: 0; }
 
 .frame { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); }
-.scroller { overflow-x: auto; overscroll-behavior-x: contain; scroll-padding-inline-start: var(--roadmap-label-w); }
+.scroller { overflow-x: auto; /* Room under the rows, so an overlay scrollbar never sits on the last lane or the card's rounded corners. */ padding-bottom: var(--space-3); scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; overscroll-behavior-x: contain; scroll-padding-inline-start: var(--roadmap-label-w); }
 
 .chart {
   --marker-anchor: 8px;
