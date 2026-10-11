@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  DOC_KINDS, DOC_STATUSES, docKindLabel, docStatusLabel, isDocument, projectDocuments, projectNotes, docMeta,
+  DOC_KINDS, DOC_STATUSES, docKindLabel, docStatusLabel, isDocument, projectDocuments, projectNotes, isSavedReport, docMeta,
 } from "./docModel.js";
 
 const notes = [
@@ -60,5 +60,21 @@ describe("docMeta", () => {
   });
   it("omits what it cannot resolve and falls back to createdAt", () => {
     expect(docMeta({ workstreamId: "gone", createdAt: "c" }, project)).toEqual({ updatedAt: "c" });
+  });
+});
+
+describe("saved reports", () => {
+  it("detects the report tag and the #report hashtag", () => {
+    expect(isSavedReport({ tags: ["report"] })).toBe(true);
+    expect(isSavedReport({ content: "Weekly #report" })).toBe(true);
+    expect(isSavedReport({ content: "#reporting" })).toBe(false);
+    expect(isSavedReport({})).toBe(false);
+  });
+  it("keeps reports out of projectNotes", () => {
+    const list = [
+      { id: "a", projectIds: ["p"], createdAt: "2026-01-01" },
+      { id: "r", projectIds: ["p"], createdAt: "2026-01-02", tags: ["report"] },
+    ];
+    expect(projectNotes(list, "p").map((n) => n.id)).toEqual(["a"]);
   });
 });

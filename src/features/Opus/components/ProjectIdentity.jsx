@@ -2,8 +2,6 @@ import React from "react";
 import { Pencil } from "lucide-react";
 import { IconButton } from "@/components/composed/IconButton";
 import { Badge } from "@/components/arc/badge/badge";
-import Progress from "@/components/arc/progress/progress";
-import { useData } from "../../../context/DataContext";
 import styles from "./ProjectIdentity.module.css";
 
 /**
@@ -13,11 +11,7 @@ import styles from "./ProjectIdentity.module.css";
  * stays editable in place and still outlines the page. Overview renders the
  * hub's full header block itself.
  */
-export default function ProjectIdentity({ project, updateProject, onEdit, showProgress = true }) {
-  const { tasks } = useData();
-
-  const projectTasks = tasks.filter((t) => t.projectId === project.id);
-  const doneCount = projectTasks.filter((t) => t.status === "done" || t.done).length;
+export default function ProjectIdentity({ project, updateProject, onEdit }) {
   const headline = typeof project.headline === "string" ? project.headline.trim() : "";
   const phase = typeof project.phase === "string" ? project.phase.trim() : "";
 
@@ -41,12 +35,6 @@ export default function ProjectIdentity({ project, updateProject, onEdit, showPr
         {onEdit ? <IconButton label="Edit project" icon={Pencil} onClick={onEdit} /> : null}
       </div>
       {headline ? <p className={styles.headline}>{headline}</p> : null}
-      {showProgress ? (
-        <div className={styles.meta}>
-          <span>{doneCount} of {projectTasks.length} tasks done</span>
-          <Progress className={styles.progress} value={doneCount} max={Math.max(projectTasks.length, 1)} />
-        </div>
-      ) : null}
     </div>
   );
 }

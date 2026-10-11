@@ -13,7 +13,7 @@ import QuestionsTab from "./tabs/QuestionsTab";
 import DocumentsTab from "./tabs/DocumentsTab";
 import NotesTab from "./tabs/NotesTab";
 import ReportTab from "./tabs/ReportTab";
-import CoreTab from "./tabs/CoreTab";
+import ResourcesTab from "./tabs/ResourcesTab";
 import styles from "./OpusLayout.module.css";
 
 const TAB_STORAGE_KEY = "maia.opus.tab";
@@ -30,13 +30,13 @@ const TABS = [
   { id: "documents", label: "Documents", Panel: DocumentsTab },
   { id: "notes", label: "Notes", Panel: NotesTab },
   { id: "report", label: "Weekly report", Panel: ReportTab },
-  { id: "core", label: "Core", Panel: CoreTab },
+  { id: "resources", label: "Resources", Panel: ResourcesTab },
 ];
 const TAB_IDS = TABS.map((t) => t.id);
 const DEFAULT_TAB = TAB_IDS[0];
 
 // Tabs that were folded into others when the hub pages arrived.
-const LEGACY_TABS = { record: "decisions", library: "core" };
+const LEGACY_TABS = { record: "decisions", library: "resources", core: "resources" };
 
 // Storage can be blocked or hold a tab id from another version, so both
 // directions swallow errors and the read validates against the current ids.
@@ -71,7 +71,7 @@ function OpusPage({ project, updateProject, selectNote }) {
   return (
     <div ref={pageRef} className={styles.page}>
       <header className={styles.header}>
-        <ProjectIdentity project={project} updateProject={updateProject} onEdit={() => setIsEditing(true)} showProgress={tab !== "overview"} />
+        <ProjectIdentity project={project} updateProject={updateProject} onEdit={() => setIsEditing(true)} />
       </header>
 
       <Tabs value={tab} onValueChange={(next) => navigate(next)} className={styles.tabs}>
@@ -104,7 +104,7 @@ function OpusPage({ project, updateProject, selectNote }) {
 }
 
 /**
- * OPUS: the project command center. A header (phase, name, headline, progress)
+ * OPUS: the project command center. A header (phase, name, headline)
  * above Arc tabs. The selected tab lives in OpusNavContext so any panel can
  * link to another with a filter applied; it is remembered across visits.
  */

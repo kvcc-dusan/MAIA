@@ -30,8 +30,13 @@ const newestFirst = (key) => (a, b) => key(b).localeCompare(key(a));
 export const projectDocuments = (notes = [], projectId) =>
   notes.filter((n) => isLinked(n, projectId) && isDocument(n)).sort(newestFirst(stamp));
 
+// Same rule as components/report/reportHistory.js: the Weekly report tab owns saved reports.
+const REPORT_HASHTAG = /#report(?![\w-])/i;
+export const isSavedReport = (note) =>
+  (note?.tags ?? []).includes("report") || REPORT_HASHTAG.test(String(note?.content ?? ""));
+
 export const projectNotes = (notes = [], projectId) =>
-  notes.filter((n) => isLinked(n, projectId) && !isDocument(n)).sort(newestFirst((n) => String(n.createdAt ?? "")));
+  notes.filter((n) => isLinked(n, projectId) && !isDocument(n) && !isSavedReport(n)).sort(newestFirst((n) => String(n.createdAt ?? "")));
 
 /** Display facts for a document row. Names are omitted when they cannot be resolved. */
 export const docMeta = (note, project) => {
