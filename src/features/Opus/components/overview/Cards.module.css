@@ -64,3 +64,6 @@
 .chart { margin-inline-end: calc(var(--space-4) * -1); }
 
 .clear { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-5); color: var(--text-secondary); font-size: var(--text-sm); }
+
+/* Arc caps the heatmap cell at 15px, which leaves a wide card half empty. This lifts the cap and keeps Arc's own sizing formula (a full year of 53 columns, 30px label column, 3px gaps). */
+.heat.heat [class*="canvas"] { --cell: clamp(9px, calc((100cqi - 30px - 3px * 53) / 53), 26px); }

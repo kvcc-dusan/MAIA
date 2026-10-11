@@ -1,5 +1,4 @@
 import React from "react";
-import Progress from "@/components/arc/progress/progress";
 import { humanDate } from "../../kit";
 import styles from "./ProjectHeader.module.css";
 
@@ -14,10 +13,9 @@ const targetText = (days) => {
   return { text: `${days} ${days === 1 ? "day" : "days"} to target`, isLate: false };
 };
 
-/** The full block under the compact header: focus, dates and overall progress. */
+/** The full block under the compact header: focus and dates. Progress is the Open tasks tile, so it is not repeated here. */
 export default function ProjectHeader({ project, overview }) {
   const target = targetText(overview.daysToTarget);
-  const { done, total } = overview;
   return (
     <section className={styles.root} aria-label="Project summary">
       <div className={styles.top}>
@@ -30,13 +28,6 @@ export default function ProjectHeader({ project, overview }) {
           </p>
         </div>
       </div>
-      <Progress
-        className={styles.bar}
-        value={done}
-        max={total || 1}
-        label={`${done} of ${total} ${total === 1 ? "task" : "tasks"} done`}
-        showValue
-      />
     </section>
   );
 }
