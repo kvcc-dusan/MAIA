@@ -11,10 +11,9 @@ import { WORKSTREAM_COLORS } from "../lib/projectModel";
 import { useOpusNav } from "../OpusNavContext";
 import { buildHubOverview } from "../components/overview/hubOverview";
 import ProjectHeader from "../components/overview/ProjectHeader";
-import EditProjectPanel from "../components/overview/EditProjectPanel";
 import AddWorkstreamPanel from "../components/overview/AddWorkstreamPanel";
 import StatTiles from "../components/overview/StatTiles";
-import BurnupCard from "../components/overview/BurnupCard";
+import ForecastCard from "../components/overview/ForecastCard";
 import StatusMixCard from "../components/overview/StatusMixCard";
 import WorkstreamsCard from "../components/overview/WorkstreamsCard";
 import AttentionCard from "../components/overview/AttentionCard";
@@ -33,10 +32,10 @@ const safeBuild = (input) => {
 
 /** The hub's Overview: header, four tiles, burn-up, status mix, workstreams, attention, activity. */
 export default function OverviewTab({ project }) {
-  const { tasks, activity, updateProject, addWorkstream } = useData();
+  const { tasks, activity, addWorkstream } = useData();
   const { navigate } = useOpusNav();
   const [attempt, setAttempt] = useState(0);
-  const [panel, setPanel] = useState(null); // "edit" | "workstream" | null
+  const [isAddingWorkstream, setIsAddingWorkstream] = useState(false);
   const today = toDayString(new Date());
   const ready = Array.isArray(tasks) && Array.isArray(activity);
 
@@ -45,7 +44,7 @@ export default function OverviewTab({ project }) {
     [ready, tasks, project.id],
   );
   const result = useMemo(
-    () => (ready ? safeBuild({ project, tasks: projectTasks, activity, today, now: new Date() }) : null),
+    () => (ready ? safeBuild({ project, tasks: projectTasks, activity, today }) : null),
     // `attempt` re-runs a failed build when the person presses retry.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ready, project, projectTasks, activity, today, attempt],
@@ -63,12 +62,11 @@ export default function OverviewTab({ project }) {
   }
 
   const { overview } = result;
-  const closePanel = () => setPanel(null);
   const nextColor = WORKSTREAM_COLORS[project.workstreams.length % WORKSTREAM_COLORS.length];
 
   return (
     <div className={styles.root}>
-      <ProjectHeader project={project} overview={overview} onEdit={() => setPanel("edit")} />
+      <ProjectHeader project={project} overview={overview} />
       {overview.isEmpty ? (
         <EmptyState
           icon={ListChecks}
@@ -78,40 +76,28 @@ export default function OverviewTab({ project }) {
         />
       ) : (
         <>
-          <h2 className={styles.srOnly}>Key numbers</h2>
-          <StatTiles overview={overview} navigate={navigate} />
-          <div className={`${styles.row} ${styles.burn}`}>
-            <BurnupCard overview={overview} />
-            <StatusMixCard mix={overview.mix} />
-          </div>
-        </>
-      )}
-      <WorkstreamsCard progress={overview.progress} navigate={navigate} onAdd={() => setPanel("workstream")} />
-      {overview.isEmpty ? null : (
-        <div className={`${styles.row} ${styles.split}`}>
           <AttentionCard
             attention={overview.attention}
             workstreams={project.workstreams}
             showOwners={showOwners(project, projectTasks)}
             navigate={navigate}
           />
-          <ActivityCard heat={overview.heat} navigate={navigate} />
-        </div>
+          <h2 className={styles.srOnly}>Key numbers</h2>
+          <StatTiles overview={overview} navigate={navigate} />
+          <div className={`${styles.row} ${styles.split}`}>
+            <ForecastCard forecast={overview.forecast} startDate={project.startDate} targetDate={project.targetDate} today={today} />
+            <StatusMixCard mix={overview.mix} />
+          </div>
+        </>
       )}
-      {panel === "edit" ? (
-        <EditProjectPanel
-          open
-          project={project}
-          onClose={closePanel}
-          onSave={(patch) => { updateProject(project.id, patch); closePanel(); }}
-        />
-      ) : null}
-      {panel === "workstream" ? (
+      <WorkstreamsCard progress={overview.progress} navigate={navigate} onAdd={() => setIsAddingWorkstream(true)} />
+      {overview.isEmpty ? null : <ActivityCard heat={overview.heat} navigate={navigate} />}
+      {isAddingWorkstream ? (
         <AddWorkstreamPanel
           open
           defaultColor={nextColor}
-          onClose={closePanel}
-          onSave={(data) => { addWorkstream(project.id, data); closePanel(); }}
+          onClose={() => setIsAddingWorkstream(false)}
+          onSave={(data) => { addWorkstream(project.id, data); setIsAddingWorkstream(false); }}
         />
       ) : null}
     </div>

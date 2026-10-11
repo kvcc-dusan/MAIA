@@ -1,6 +1,5 @@
 import React from "react";
 import { MetricTile } from "../../kit";
-import Sparkline from "./Sparkline";
 import styles from "./StatTiles.module.css";
 
 const count = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -19,22 +18,22 @@ export default function StatTiles({ overview, navigate }) {
         label="Open tasks"
         value={tiles.open}
         unit={`/${total}`}
-        context={`${tiles.doing} in progress`}
-        link={{ label: "View tasks", onClick: () => navigate("tasks") }}
+        context={<span>{tiles.doing} in progress, <InlineLink onClick={() => navigate("tasks")}>view tasks</InlineLink></span>}
       />
       <MetricTile
         label="Done this week"
         value={tiles.thisWeek}
         context={`${tiles.average} per week on average`}
-      >
-        <Sparkline values={tiles.weekly.map((w) => w.count)} label="Done per week, 8 weeks" />
-      </MetricTile>
+      />
       <MetricTile
         label="Overdue"
         value={tiles.overdue}
         tone={tiles.overdue ? "danger" : undefined}
-        context={tiles.overdue ? `${count(tiles.overdue, "task")} past due` : "Nothing is overdue"}
-        link={tiles.overdue ? { label: "View overdue tasks", onClick: () => navigate("tasks", { status: "overdue" }) } : undefined}
+        context={
+          tiles.overdue ? (
+            <span>{count(tiles.overdue, "task")} past due, <InlineLink onClick={() => navigate("tasks", { status: "overdue" })}>view</InlineLink></span>
+          ) : "Nothing is overdue"
+        }
       />
       <MetricTile
         label="Blocking"

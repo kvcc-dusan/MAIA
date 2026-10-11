@@ -1,7 +1,7 @@
 import React from "react";
 import { CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/arc/button/button";
 import { SectionCard } from "@/components/composed/SectionCard";
-import { EmptyState } from "@/components/composed/EmptyState";
 import { ListRow, OwnerAvatar, humanDate } from "../../kit";
 import styles from "./Cards.module.css";
 
@@ -10,19 +10,25 @@ const reasonOf = (item) => {
   return "Blocked";
 };
 
-/** Overdue and blocked tasks, most urgent first. Each row opens Tasks filtered the same way. */
+const SHOWN = 3;
+
+/** Overdue and blocked tasks, most urgent first, as a slim strip under the header. Each row opens Tasks filtered the same way. */
 export default function AttentionCard({ attention, workstreams, showOwners, navigate }) {
-  const { items, total } = attention;
+  const { total } = attention;
+  const items = attention.items.slice(0, SHOWN);
   const nameOf = (id) => workstreams.find((w) => w.id === id)?.name;
   return (
     <SectionCard
       titleAs="h2"
       title="Needs attention"
-      count={total ? (total > items.length ? `${items.length} of ${total}` : total) : undefined}
+      count={total || undefined}
+      action={total > items.length ? (
+        <Button variant="ghost" size="sm" onClick={() => navigate("tasks", { status: "overdue" })}>See all {total}</Button>
+      ) : undefined}
       bodyClassName={styles.listBody}
     >
       {total === 0 ? (
-        <EmptyState icon={CheckCircle2} title="Nothing needs attention" description="Overdue and blocked tasks appear here as soon as there are any." />
+        <p className={styles.clear}><CheckCircle2 size={16} strokeWidth={1.75} aria-hidden="true" /> All clear. Nothing is overdue or blocked.</p>
       ) : (
         <ul className={styles.rows}>
           {items.map((item) => {

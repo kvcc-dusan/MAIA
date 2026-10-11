@@ -1,4 +1,6 @@
 import React from "react";
+import { Pencil } from "lucide-react";
+import { IconButton } from "@/components/composed/IconButton";
 import { Badge } from "@/components/arc/badge/badge";
 import Progress from "@/components/arc/progress/progress";
 import { useData } from "../../../context/DataContext";
@@ -11,7 +13,7 @@ import styles from "./ProjectIdentity.module.css";
  * stays editable in place and still outlines the page. Overview renders the
  * hub's full header block itself.
  */
-export default function ProjectIdentity({ project, updateProject, showProgress = true }) {
+export default function ProjectIdentity({ project, updateProject, onEdit, showProgress = true }) {
   const { tasks } = useData();
 
   const projectTasks = tasks.filter((t) => t.projectId === project.id);
@@ -26,15 +28,18 @@ export default function ProjectIdentity({ project, updateProject, showProgress =
           <Badge tone="info" size="sm">{phase}</Badge>
         </div>
       ) : null}
-      <h2 className={styles.heading}>
-        <input
-          value={project.name}
-          onChange={(e) => updateProject(project.id, { name: e.target.value })}
-          aria-label="Project name"
-          className={styles.name}
-          placeholder="Project name"
-        />
-      </h2>
+      <div className={styles.nameRow}>
+        <h2 className={styles.heading}>
+          <input
+            value={project.name}
+            onChange={(e) => updateProject(project.id, { name: e.target.value })}
+            aria-label="Project name"
+            className={styles.name}
+            placeholder="Project name"
+          />
+        </h2>
+        {onEdit ? <IconButton label="Edit project" icon={Pencil} onClick={onEdit} /> : null}
+      </div>
       {headline ? <p className={styles.headline}>{headline}</p> : null}
       {showProgress ? (
         <div className={styles.meta}>

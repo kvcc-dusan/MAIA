@@ -2,7 +2,7 @@ import React from "react";
 import { SectionCard } from "@/components/composed/SectionCard";
 import styles from "./Cards.module.css";
 
-/** One stacked bar for the split, then a row per status with count and share. Rows carry text labels, so colour is never the only cue. */
+/** One stacked bar for the split, then the counts inline. Rows carry text labels, so colour is never the only cue. */
 export default function StatusMixCard({ mix }) {
   const total = mix.reduce((sum, s) => sum + s.value, 0);
   const summary = mix.filter((s) => s.value > 0).map((s) => `${s.value} ${s.label.toLowerCase()}`).join(", ");
@@ -24,9 +24,8 @@ export default function StatusMixCard({ mix }) {
         {mix.map((s) => (
           <li key={s.key} className={styles.mixRow}>
             <span className={styles.dot} style={{ background: s.color }} aria-hidden="true" />
-            <span className={styles.mixName}>{s.label}</span>
+            <span>{s.label}</span>
             <span className={styles.mixCount}>{s.value}</span>
-            <span className={styles.mixPct}>{s.pct}%</span>
           </li>
         ))}
       </ul>

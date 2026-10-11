@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { useData } from "../../context/DataContext";
 import ProjectIdentity from "./components/ProjectIdentity";
+import EditProjectPanel from "./components/overview/EditProjectPanel";
 import { OpusNavProvider, useOpusNav } from "./OpusNavContext";
 import OverviewTab from "./tabs/OverviewTab";
 import BoardTab from "./tabs/BoardTab";
@@ -60,6 +61,7 @@ const saveTab = (tab) => {
 function OpusPage({ project, updateProject, selectNote }) {
   const { tab, navigate } = useOpusNav();
   const pageRef = useRef(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // On a narrow window the remembered tab can start out of view in the scrolling tab strip; Arc only reveals a tab it was asked to switch to.
   useEffect(() => {
@@ -69,7 +71,7 @@ function OpusPage({ project, updateProject, selectNote }) {
   return (
     <div ref={pageRef} className={styles.page}>
       <header className={styles.header}>
-        <ProjectIdentity project={project} updateProject={updateProject} showProgress={tab !== "overview"} />
+        <ProjectIdentity project={project} updateProject={updateProject} onEdit={() => setIsEditing(true)} showProgress={tab !== "overview"} />
       </header>
 
       <Tabs value={tab} onValueChange={(next) => navigate(next)} className={styles.tabs}>
@@ -89,6 +91,14 @@ function OpusPage({ project, updateProject, selectNote }) {
           );
         })}
       </Tabs>
+      {isEditing ? (
+        <EditProjectPanel
+          open
+          project={project}
+          onClose={() => setIsEditing(false)}
+          onSave={(patch) => { updateProject(project.id, patch); setIsEditing(false); }}
+        />
+      ) : null}
     </div>
   );
 }

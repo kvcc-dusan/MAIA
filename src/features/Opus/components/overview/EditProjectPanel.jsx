@@ -3,12 +3,13 @@ import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { SidePanel } from "@/components/composed/SidePanel";
-import { Select } from "@/components/composed/Select";
+import { ChipGroup } from "@/components/arc/chip-group/chip-group";
 import { DateTimeField } from "@/components/composed/DateTimeField";
 import { PROJECT_PHASES } from "../../lib/projectModel";
 import styles from "./Panels.module.css";
 
 const FORM_ID = "overview-edit-project";
+const PHASE_LABEL_ID = "overview-edit-project-phase";
 const DAY_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 // A date-only string parses as UTC midnight, which can land on the wrong local day.
@@ -71,7 +72,17 @@ export default function EditProjectPanel({ open, project, onClose, onSave }) {
     >
       <form id={FORM_ID} className={styles.form} onSubmit={submit} noValidate>
         <Input label="Name" value={form.name} error={error} onChange={onText("name")} />
-        <Select label="Phase" value={form.phase} options={phases} clearLabel="No phase" placeholder="Choose a phase" onChange={set("phase")} />
+        {/* Chips, not a dropdown: a popup opened inside this slide-in panel froze the Tauri window. */}
+        <div className={styles.phase}>
+          <span className={styles.fieldLabel} id={PHASE_LABEL_ID}>Phase</span>
+          <ChipGroup
+            label="Phase"
+            multiple={false}
+            options={phases}
+            value={form.phase ? [form.phase] : []}
+            onValueChange={(next) => set("phase")(next[0] ?? null)}
+          />
+        </div>
         <Input label="Headline" value={form.headline} onChange={onText("headline")} />
         <Textarea label="Focus" value={form.focus} onChange={onText("focus")} />
         <DateTimeField dateOnly label="Start date" value={form.startDate} onChange={set("startDate")} />

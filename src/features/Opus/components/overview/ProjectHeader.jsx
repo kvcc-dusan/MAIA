@@ -1,6 +1,4 @@
 import React from "react";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/arc/button/button";
 import Progress from "@/components/arc/progress/progress";
 import { humanDate } from "../../kit";
 import styles from "./ProjectHeader.module.css";
@@ -16,8 +14,8 @@ const targetText = (days) => {
   return { text: `${days} ${days === 1 ? "day" : "days"} to target`, isLate: false };
 };
 
-/** The full block under the compact header: focus, dates, overall progress and Edit project. */
-export default function ProjectHeader({ project, overview, onEdit }) {
+/** The full block under the compact header: focus, dates and overall progress. */
+export default function ProjectHeader({ project, overview }) {
   const target = targetText(overview.daysToTarget);
   const { done, total } = overview;
   return (
@@ -31,10 +29,6 @@ export default function ProjectHeader({ project, overview, onEdit }) {
             {project.nextMeeting ? <span>Next meeting {fullDate(project.nextMeeting)}</span> : null}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={onEdit}>
-          <Pencil size={16} strokeWidth={1.75} aria-hidden="true" />
-          Edit project
-        </Button>
       </div>
       <Progress
         className={styles.bar}

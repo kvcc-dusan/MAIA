@@ -5,31 +5,32 @@
 .dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: var(--radius-pill); }
 
 /* burn-up */
-.forecast { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); color: var(--foreground); font-size: var(--text-sm); line-height: var(--leading-body); }
+.forecast { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; color: var(--foreground); font-size: var(--text-sm); line-height: var(--leading-body); }
 .flag { flex: none; }
-.legend { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-5); margin: 0 0 var(--space-3); padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--text-sm); }
-.legendItem { display: inline-flex; align-items: center; gap: var(--space-2); }
-.legendValue { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
-.swatch { width: 16px; height: 0; border-top: 2px solid var(--swatch); }
-.dashed { border-top-style: dashed; }
-.tableToggle { margin-top: var(--space-2); }
-.tableWrap { max-height: 240px; margin-top: var(--space-2); overflow: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
-.table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
-.table th, .table td { padding: var(--space-2) var(--space-3); text-align: right; font-weight: 400; border-bottom: 1px solid var(--border-subtle); }
-.table thead th { position: sticky; top: 0; background: var(--surface); color: var(--text-secondary); font-weight: 500; }
-.table th:first-child { text-align: left; }
-.table tbody th { color: var(--foreground); }
+
+/* forecast track */
+.track { position: relative; height: 16px; margin: var(--space-5) 0 var(--space-3); }
+.trackLine, .trackElapsed { position: absolute; top: 50%; left: 0; height: 4px; transform: translateY(-50%); border-radius: var(--radius-pill); }
+.trackLine { right: 0; background: var(--surface-muted); }
+.trackElapsed { background: var(--border-strong); }
+.mark { position: absolute; top: 50%; width: 12px; height: 12px; box-sizing: border-box; transform: translate(-50%, -50%); border-radius: var(--radius-pill); }
+.mark[data-kind="today"], .legendMark[data-kind="today"] { background: var(--foreground); }
+.mark[data-kind="target"], .legendMark[data-kind="target"] { width: 2px; height: 16px; border-radius: 1px; background: var(--foreground); }
+.mark[data-kind="finish"], .legendMark[data-kind="finish"] { border: 2px solid var(--foreground); background: var(--surface); }
+.mark[data-late], .legendMark[data-late] { border-color: var(--warning); }
+.trackLegend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--text-sm); }
+.trackItem { display: inline-flex; align-items: center; gap: var(--space-2); }
+.trackDate { color: var(--foreground); font-variant-numeric: tabular-nums; }
+.legendMark { width: 10px; height: 10px; box-sizing: border-box; border-radius: var(--radius-pill); }
 
 /* status mix */
 .mixTotal { margin: 0 0 var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); }
 .mixTotalValue { color: var(--foreground); font-size: var(--text-2xl); font-weight: 500; font-variant-numeric: tabular-nums; }
 .mixBar { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: var(--radius-pill); }
 .mixSegment { flex-basis: 0; min-width: 4px; }
-.mixList { display: grid; margin: var(--space-4) 0 0; padding: 0; list-style: none; }
-.mixRow { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-sm); font-size: var(--text-sm); }
-.mixName { flex: 1 1 auto; color: var(--foreground); }
+.mixList { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.mixRow { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); }
 .mixCount { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
-.mixPct { min-width: 3.5ch; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
 
 /* workstreams */
 .wsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
@@ -61,3 +62,5 @@
 
 /* Arc puts the value axis on the right, which leaves the plot short of the card's right padding. Pulling the chart into that padding evens the margins. */
 .chart { margin-inline-end: calc(var(--space-4) * -1); }
+
+.clear { display: flex; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-5); color: var(--text-secondary); font-size: var(--text-sm); }

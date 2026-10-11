@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildHubOverview, forecastSentence, heatSummary, burnupTableRows } from "./hubOverview.js";
+import { buildHubOverview, forecastSentence, heatSummary } from "./hubOverview.js";
 
 const TODAY = "2026-10-09";
 const NOW = new Date("2026-10-09T12:00:00Z");
@@ -25,13 +25,13 @@ describe("buildHubOverview", () => {
     expect(o.tiles.weekly).toHaveLength(8);
   });
 
-  it("adds percentages to the status mix", () => {
-    expect(o.mix.map((s) => [s.key, s.value, s.pct])).toEqual([["todo", 1, 25], ["doing", 1, 25], ["blocked", 1, 25], ["done", 1, 25]]);
+  it("colours the status mix in greys, with red only for blocked", () => {
+    expect(o.mix.find((s) => s.key === "blocked").color).toBe("var(--danger)");
+    expect(o.mix.filter((s) => s.key !== "blocked").every((s) => !/danger|series|success/.test(s.color))).toBe(true);
   });
 
-  it("labels the target on the chart axis", () => {
-    const target = o.burnup.data[o.burnup.targetIndex];
-    expect(target.axisLabel).toBe("Target");
+  it("adds percentages to the status mix", () => {
+    expect(o.mix.map((s) => [s.key, s.value, s.pct])).toEqual([["todo", 1, 25], ["doing", 1, 25], ["blocked", 1, 25], ["done", 1, 25]]);
   });
 
   it("is empty without tasks", () => {
@@ -62,13 +62,5 @@ describe("heatSummary", () => {
   });
   it("says so when nothing changed", () => {
     expect(heatSummary([{ date: "2026-08-17", count: 0 }]).total).toBe(0);
-  });
-});
-
-describe("burnupTableRows", () => {
-  it("keeps weekly rows plus today and the target", () => {
-    const o = buildHubOverview({ project, tasks, activity: [], today: TODAY, now: NOW });
-    const marks = burnupTableRows(o.burnup).filter((r) => r.mark).map((r) => r.mark);
-    expect(marks).toEqual(["Today", "Target"]);
   });
 });

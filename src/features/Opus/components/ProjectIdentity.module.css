@@ -1,5 +1,6 @@
 .root { display: grid; min-width: 0; gap: var(--space-2); }
-.heading { margin: 0; min-width: 0; font: inherit; }
+.nameRow { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.heading { flex: 1 1 auto; margin: 0; min-width: 0; font: inherit; }
 
 /* Geist from 30px up, Inter below it. The border only appears on hover and focus,
    so the name reads as a heading until you reach for it. The negative margin keeps
