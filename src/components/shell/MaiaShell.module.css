@@ -76,7 +76,7 @@
   border-right-width: 1px;
 }
 
-/* Hairline under the cluster while the sidebar is closed. Open, the left column runs unbroken to the window top. */
+/* Hairline under the cluster and under the strip: one line across the whole top bar, apart from the gap under the active tab. */
 .cluster::after,
 .strip::after {
   content: "";
@@ -88,13 +88,15 @@
   background: var(--border-subtle);
   pointer-events: none;
 }
-.cluster[data-sidebar-open]::after { opacity: 0; }
 
 /* Room for the macOS traffic lights, which sit over the bar in the Tauri window. */
 .lights { flex: none; width: 0; align-self: stretch; }
 .frame[data-lights] .lights { width: 78px; }
 
-.controls { display: flex; flex: none; align-items: center; gap: var(--space-1); }
+.controls { display: flex; flex: 1 1 auto; align-items: center; gap: var(--space-1); min-width: 0; }
+/* Back and forward sit on the left of the cluster; the show/hide button is pushed to its right edge, like Obsidian.
+   While the sidebar is closed the cluster is only as wide as its content, so it simply follows the arrows. */
+.toggleSlot { display: flex; margin-inline-start: auto; }
 
 /* The line is a pseudo-element, not a border, so the strip keeps its full height and the centre line stays put. */
 .strip {

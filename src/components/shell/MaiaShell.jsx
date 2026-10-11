@@ -124,14 +124,6 @@ export const MaiaShell = ({
           >
             <div className={styles.lights} data-tauri-drag-region aria-hidden="true" />
             <div className={styles.controls}>
-              {hasSidebar && (
-                <IconButton
-                  icon={ToggleIcon}
-                  label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
-                  side="bottom"
-                  onClick={toggleSidebar}
-                />
-              )}
               <IconButton
                 icon={ArrowLeft}
                 label="Back"
@@ -146,6 +138,16 @@ export const MaiaShell = ({
                 disabled={!history.canForward}
                 onClick={history.forward}
               />
+              {hasSidebar && (
+                <span className={styles.toggleSlot}>
+                  <IconButton
+                    icon={ToggleIcon}
+                    label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+                    side="bottom"
+                    onClick={toggleSidebar}
+                  />
+                </span>
+              )}
             </div>
           </div>
           <div className={styles.strip} data-testid="shell-strip" data-tauri-drag-region>

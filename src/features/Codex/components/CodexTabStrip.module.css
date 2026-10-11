@@ -45,7 +45,7 @@
 .tab[data-active] {
   z-index: 1;
   background: var(--background);
-  border-color: var(--border) var(--border) transparent;
+  border-color: var(--border-subtle) var(--border-subtle) transparent; /* same colour as the divider and the strip line, or the seam shows */
   color: var(--foreground);
   font-weight: 500;
 }
