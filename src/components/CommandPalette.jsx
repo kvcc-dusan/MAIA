@@ -7,7 +7,7 @@ import {
   Upload,
   StickyNote,
   Clock,
-  FolderKanban,
+  Suitcase,
   BookOpen,
   Network,
   Settings,
@@ -30,7 +30,7 @@ const RECENT_NOTE_ITEMS = 5;
 const icon = (Icon) => React.createElement(Icon, { size: 16, strokeWidth: 1.75, "aria-hidden": "true" });
 
 const PAGES = [
-  { label: "Go to Opus", icon: FolderKanban, to: "projects" },
+  { label: "Go to Opus", icon: Suitcase, to: "projects" },
   { label: "Go to Codex", icon: BookOpen, to: "codex" },
   { label: "Go to Conexa", icon: Network, to: "graph" },
 ];

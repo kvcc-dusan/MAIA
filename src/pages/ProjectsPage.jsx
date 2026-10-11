@@ -1,6 +1,6 @@
 // @maia:projects
 import React, { useEffect, useMemo, useState } from "react";
-import { FolderKanban } from "@/components/icons";
+import { Suitcase } from "@/components/icons";
 import { ConfirmDialog } from "@/components/composed/ConfirmDialog";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
@@ -149,7 +149,7 @@ export default function Projects({
           <div className={styles.empty}>
             <EmptyState
               size="page"
-              icon={FolderKanban}
+              icon={Suitcase}
               title="No projects yet"
               description="Create a project to start tracking its tasks, milestones and notes."
               action={<Button onClick={openCreateModal}>New project</Button>}

@@ -4,7 +4,7 @@ import {
   ArrowRight,
   BookOpen,
   Clock,
-  FolderKanban,
+  Suitcase,
   Network,
   PanelLeftClose,
   PanelLeftOpen,
@@ -43,7 +43,7 @@ const writeSidebarOpen = (open) => {
 
 // Pages are routes; "chronos" and "search" are actions that open overlays.
 const PAGES = [
-  { id: "projects", label: "Opus", icon: FolderKanban },
+  { id: "projects", label: "Opus", icon: Suitcase },
   { id: "codex", label: "Codex", icon: BookOpen },
   { id: "graph", label: "Conexa", icon: Network },
 ];
