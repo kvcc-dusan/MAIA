@@ -301,3 +301,32 @@ Suggested sequence: ship the load-time guard and the raw/wikilink/image/table fi
 - `npx vitest run`: 79 files, 850 tests passed, including the harness (which is a no-op without `OBS_PARITY_OUT`).
 - `npx eslint src/`: 0 errors, 5 warnings, all existing (e.g. `react-hooks/exhaustive-deps`).
 - Files added: `docs/obsidian-parity.md`, `scripts/obsidian-parity.test.js`. No existing source file was modified.
+
+## Real vault fidelity
+
+Harness: `scripts/vault-fidelity.test.js` (read-only, no-op unless `VAULT_FIDELITY_DIR` is set; classifier in `scripts/fidelityDiff.js`). Run with `VAULT_FIDELITY_DIR=<vault> VAULT_FIDELITY_OUT=<file outside the repo> NODE_OPTIONS=--max-old-space-size=8192 npx vitest run --pool=threads scripts/vault-fidelity.test.js`. 257 notes (dot folders, `node_modules`, root `Opus` skipped), measured on the body `markdownToNote` hands the editor. No note text is recorded here, only counts.
+
+### What changed
+
+Before, the first keystroke re-serialized the whole body in the editor's own style. Now (`src/editor/sourceFormat*.js`): every top-level block, and every list item, remembers its exact source lines and the blank lines before it; a block that is still the node the note was opened with (or equal to it) is written back verbatim; the note's leading/trailing blank lines (so the final newline) and CRLF are kept. Blocks that were edited are written in the editor's style, but remember the list bullet / ordered delimiter, rule style (`***`), fence style (`~~~`), `_`/`__` emphasis, bare-URL form and two-space hard breaks, and no longer escape a lone `~`, a `-` that starts a word, or `*`/`_` surrounded by spaces. Tricky invariants: a remembered text is used only when the editor's own serialization of the node equals that of the node it was read as; a zero blank-line gap is only used between blocks that are both original and still neighbours (or where the types make it safe); `_` emphasis falls back to `*` when a word character would touch it.
+
+### Numbers (before / after)
+
+| Measure | Before | After |
+|---|---|---|
+| Untouched note saves byte-identical | 52 of 257 (20.2%) | 256 of 257 (99.6%) |
+| Edit one middle paragraph/heading: nothing else changes | not measured | 239 of 245 (97.6%), 12 other lines changed in total |
+| Edit one middle list item: nothing else changes | not measured | 170 of 178 (95.5%), 40 other lines changed in total |
+| Idempotence (save of the saved text equals it) | 12 notes violated | 1 note violated |
+
+Changed hunks per class for the untouched round trip, before: EOF newline 133 (133 notes), blank-line count 1116 (107), escapes 409 (62), trailing whitespace 140 (41), heading style 66 (15), emphasis marker 119 (15), link/URL form 113 (19), indentation 94 (17), table formatting 17 (8), rule 7 (5), ordered marker 1, fence style 1, other 618 (63). After: other 1 (1 note), everything else 0.
+
+The editor's own formatting (original text switched off, what an edited block gets) now: identical 55 of 257; hunks EOF newline 133, blank-line count 1200, escapes 346, trailing whitespace 163, heading style 66, indentation 115, link/URL form 33, emphasis marker 5, table formatting 6, other 443 (those are mostly blank lines around lists and headings in the editor's style, which an edit does not touch).
+
+### Not preserved / limits
+
+- The one violating note has an empty bullet holding a nested bullet (`- - x`): TipTap lifts the nested list out of its item, so the parse itself duplicates content. The load-time guard (`roundTripSafe.js`, which serializes in plain mode, original text off) already sends it to source mode. Idempotence there is a parse problem, not formatting.
+- An edited block is reformatted inside itself: setext headings become ATX, trailing single spaces before a soft break are dropped, `[`/`]` are still escaped, list items whose lines are not consistently indented lose their original indentation, `*` text inside words stays escaped.
+- A tab-indented item or an item with lazy continuation is kept verbatim only at the left margin, not when moved deeper.
+- Same text that reads differently in two places is never reused verbatim (falls back to editor style).
+- Not verified in a real window; tests run in jsdom.

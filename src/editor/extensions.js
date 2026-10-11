@@ -21,6 +21,7 @@ import { HtmlEntity } from './entities.js';
 import { StrictLinkify } from './strictLinkify.js';
 import { InlineShortcuts } from './inlineShortcuts.js';
 import { LinkSuggest } from './linkSuggest.js';
+import { SourceFormat } from './sourceFormat.js';
 import { MarkdownTable, MarkdownTableRow, MarkdownTableHeader, MarkdownTableCell } from './table.js';
 
 const HEADING_LEVELS = [1, 2, 3, 4, 5, 6];
@@ -78,6 +79,7 @@ export const createExtensions = ({ onOpenLink, embeds = null, linkSuggest = null
     transformPastedText: true,
     transformCopiedText: true,
   }),
+  SourceFormat,
   AutoMarkdownShortcuts,
   ...(linkSuggest ? [LinkSuggest.configure(linkSuggest)] : []),
 ];

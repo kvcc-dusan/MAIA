@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { roundTrip, makeEditor, typeInto } from './testHelpers.js';
+import { roundTrip, roundTripPlain, makeEditor, typeInto } from './testHelpers.js';
 
 describe('headings 1 to 6', () => {
   it.each([1, 2, 3, 4, 5, 6])('keeps the hashes of a level %i heading', (level) => {
@@ -29,7 +29,8 @@ describe('plain text', () => {
   });
 
   it('still escapes markdown syntax that is only text', () => {
-    expect(roundTrip('2 * 3 * 4')).toBe('2 \\* 3 \\* 4');
+    expect(roundTripPlain('2 * 3 * 4')).toBe('2 * 3 * 4');
+    expect(roundTripPlain('a \\*b\\* c')).toBe('a \\*b\\* c');
   });
 
   it('keeps an escaped dollar pair from becoming math', () => {

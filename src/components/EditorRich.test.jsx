@@ -37,3 +37,24 @@ describe('EditorRich writes only on a real edit', () => {
     expect(document.querySelectorAll('.maia-raw').length).toBeGreaterThan(0);
   });
 });
+
+describe('EditorRich cursor movement', () => {
+  it('emits no change when the cursor only moves', async () => {
+    const onChange = vi.fn();
+    render(<EditorRich value={REWRITABLE} onChange={onChange} editable />);
+    await waitFor(() => expect(document.querySelector('.ProseMirror')).not.toBeNull());
+    const pm = document.querySelector('.ProseMirror');
+    await act(async () => {
+      pm.focus();
+      const range = document.createRange();
+      range.selectNodeContents(pm.lastElementChild);
+      range.collapse(false);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.dispatchEvent(new Event('selectionchange'));
+      pm.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

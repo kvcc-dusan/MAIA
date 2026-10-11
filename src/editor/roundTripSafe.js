@@ -63,9 +63,14 @@ export const contentFingerprint = (markdown) => markdown
   .replace(ORDERED_MARKER, '')
   .replace(SAFE_REWRITE_CHARS, '');
 
-/** Markdown through the same parse and serialize path as the first keystroke, headless. */
+/**
+ * Markdown through the same parse and serialize path as the first keystroke, headless. Plain:
+ * the original text of untouched blocks is not reused, because this measures what the editor
+ * can represent, which decides what an edit to a block may do to it.
+ */
 export const roundTripMarkdown = (markdown) => {
   const editor = new Editor({ element: document.createElement('div'), content: markdown, extensions: createExtensions() });
+  editor.storage.sourceFormat.plain = true;
   try {
     return editor.storage.markdown.getMarkdown();
   } finally {

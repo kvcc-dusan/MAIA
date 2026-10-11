@@ -16,6 +16,15 @@ export const roundTrip = (markdown) => {
   return out;
 };
 
+/** The editor's own formatting: what an edited block is written as (the original text is not reused). */
+export const roundTripPlain = (markdown) => {
+  const editor = makeEditor(markdown);
+  editor.storage.sourceFormat.plain = true;
+  const out = editor.storage.markdown.getMarkdown();
+  editor.destroy();
+  return out;
+};
+
 export const nodeTypes = (markdown) => {
   const editor = makeEditor(markdown);
   const found = new Set();

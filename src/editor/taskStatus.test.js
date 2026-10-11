@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { roundTrip, nodeTypes, makeEditor, typeInto } from './testHelpers.js';
+import { roundTrip, roundTripPlain, nodeTypes, makeEditor, typeInto } from './testHelpers.js';
 import { statusChar } from './taskStatus.js';
 
 const LOSSLESS = [
@@ -43,12 +43,12 @@ describe('task statuses', () => {
   });
 
   it('renumbers an ordered task list from its start (normalization)', () => {
-    expect(roundTrip('1. [ ] a\n1. [ ] b')).toBe('1. [ ] a\n2. [ ] b');
+    expect(roundTripPlain('1. [ ] a\n1. [ ] b')).toBe('1. [ ] a\n2. [ ] b');
   });
 
   it('leaves text that only looks like a status alone', () => {
     expect(nodeTypes('- [ab] not a task').has('taskItem')).toBe(false);
-    expect(roundTrip('[x] not in a list')).toBe('\\[x\\] not in a list');
+    expect(roundTripPlain('[x] not in a list')).toBe('\\[x\\] not in a list');
   });
 
   it('renders the status on the list item and the glyph in the checkbox label', () => {

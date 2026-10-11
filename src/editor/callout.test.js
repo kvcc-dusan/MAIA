@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { roundTrip, nodeTypes, makeEditor, typeInto } from './testHelpers.js';
+import { roundTrip, roundTripPlain, nodeTypes, makeEditor, typeInto } from './testHelpers.js';
 import { calloutKind, defaultCalloutTitle, CALLOUT_KINDS } from './calloutTypes.js';
 
 const LOSSLESS = [
@@ -70,7 +70,7 @@ describe('callouts', () => {
   it('a normal blockquote stays a blockquote', () => {
     expect(nodeTypes('> just a quote').has('callout')).toBe(false);
     expect(roundTrip('> just a quote')).toBe('> just a quote');
-    expect(roundTrip('> [not a callout] x')).toBe('> \\[not a callout\\] x');
+    expect(roundTripPlain('> [not a callout] x')).toBe('> \\[not a callout\\] x');
   });
 
   it('starts folded callouts collapsed and toggles them without touching the document', () => {

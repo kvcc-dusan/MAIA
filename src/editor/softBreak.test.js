@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { roundTrip, nodeTypes } from './testHelpers.js';
+import { roundTrip, roundTripPlain, nodeTypes } from './testHelpers.js';
 import { parseContentMeta } from '../lib/parseContentMeta.js';
 import { makeEditor } from './testHelpers.js';
 
@@ -28,8 +28,8 @@ describe('softBreak', () => {
     expect(nodeTypes('a\\\nb').has('softBreak')).toBe(false);
   });
 
-  it('turns CRLF files into LF without joining lines', () => {
-    expect(roundTrip('# T\r\n\r\ntext\r\nmore\r\n')).toBe('# T\n\ntext\nmore');
+  it('turns CRLF files into LF without joining lines (the editor\'s own formatting)', () => {
+    expect(roundTripPlain('# T\r\n\r\ntext\r\nmore\r\n')).toBe('# T\n\ntext\nmore');
   });
 
   it('reads as a newline in getText', () => {
