@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/arc/tabs/tabs";
 import { useData } from "../../context/DataContext";
 import ProjectIdentity from "./components/ProjectIdentity";
@@ -59,9 +59,15 @@ const saveTab = (tab) => {
 
 function OpusPage({ project, updateProject, selectNote }) {
   const { tab, navigate } = useOpusNav();
+  const pageRef = useRef(null);
+
+  // On a narrow window the remembered tab can start out of view in the scrolling tab strip; Arc only reveals a tab it was asked to switch to.
+  useEffect(() => {
+    pageRef.current?.querySelector('[role="tab"][aria-selected="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, []);
 
   return (
-    <div className={styles.page}>
+    <div ref={pageRef} className={styles.page}>
       <header className={styles.header}>
         <ProjectIdentity project={project} updateProject={updateProject} showProgress={tab !== "overview"} />
       </header>
