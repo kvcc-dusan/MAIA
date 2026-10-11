@@ -108,6 +108,17 @@ describe("Graph3DRenderer", () => {
     }
   });
 
+  it("tracks a drag so a flick keeps spinning, and cleans up its listeners", () => {
+    const { unmount } = render(<Graph3DRenderer {...baseProps} />);
+    const { controlsMock } = h.instances[0];
+    const registered = controlsMock.addEventListener.mock.calls.map(([name]) => name);
+    expect(registered).toEqual(expect.arrayContaining(["start", "change", "end"]));
+    unmount();
+    const removed = controlsMock.removeEventListener.mock.calls.map(([name]) => name);
+    expect(removed).toEqual(expect.arrayContaining(["start", "change", "end"]));
+  });
+
+
   it("updates data without recreating the scene", () => {
     const { rerender } = render(<Graph3DRenderer {...baseProps} />);
     const graph = h.instances[0];
