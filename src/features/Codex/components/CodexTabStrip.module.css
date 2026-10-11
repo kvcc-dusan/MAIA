@@ -1,18 +1,20 @@
-/* Sits in the shell's top bar slot. The extra 1px at the bottom lets the active
-   tab overlap the bar's hairline so it reads as joined to the page below. */
+/* Sits in the shell's top bar slot, as tall as the strip. Items centre on its
+   middle; tabs stretch to the full height so the active one covers the strip's
+   bottom hairline. */
 .root {
   display: flex;
   flex: 1 1 auto;
-  align-items: flex-end;
+  align-items: center;
+  align-self: stretch;
   gap: var(--space-1);
   min-width: 0;
-  margin-bottom: -1px;
 }
 
 .scroller {
   display: flex;
   flex: 0 1 auto;
-  align-items: flex-end;
+  align-items: center;
+  align-self: stretch;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -28,18 +30,25 @@
   align-items: center;
   min-width: 6.5rem;
   max-width: 12rem;
-  height: var(--control-height-sm);
-  /* Bottom padding lifts the label's centre onto the centre line of the top bar's icons. */
-  padding: 0 var(--space-1) calc(var(--space-2) + 1px) var(--space-3);
+  /* Full strip height, so the label centres on the same line as the icon buttons. */
+  align-self: stretch;
+  padding: 0 var(--space-1) 0 var(--space-3);
+  /* Same width on all sides so the active outline never shifts the text. */
   border: 1px solid transparent;
-  border-bottom: 0;
   border-radius: var(--radius-control) var(--radius-control) 0 0;
   color: var(--text-secondary);
   font-size: var(--text-sm);
   transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
 .tab:hover { background: var(--surface-muted); color: var(--text-secondary); }
-.tab[data-active] { background: var(--background); border-color: var(--border); color: var(--foreground); font-weight: 500; }
+/* The bottom border stays transparent over the page background, which hides the strip's hairline: the tab opens into the page. */
+.tab[data-active] {
+  z-index: 1;
+  background: var(--background);
+  border-color: var(--border) var(--border) transparent;
+  color: var(--foreground);
+  font-weight: 500;
+}
 
 /* Hairline between neighbours, hidden next to the active tab and after the last one. */
 .tab::after {
@@ -59,13 +68,14 @@
 .label {
   flex: 1 1 auto;
   min-width: 0;
-  height: 100%;
+  align-self: stretch;
   padding: 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
+  line-height: var(--leading-body);
   cursor: pointer;
 }
 .title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -73,9 +83,9 @@
 /* Arc's button sets its own size; tripled so a 24px close target out-ranks it. */
 .close.close.close {
   flex: none;
-  width: 1.5rem;
-  min-height: 1.5rem;
-  height: 1.5rem;
+  width: calc(var(--shell-item) * 2 / 3);
+  min-height: calc(var(--shell-item) * 2 / 3);
+  height: calc(var(--shell-item) * 2 / 3);
   padding: 0;
   opacity: 0;
 }
@@ -87,7 +97,6 @@
 .drag { flex: 1 1 0; align-self: stretch; min-width: var(--space-2); }
 
 @media (pointer: coarse) {
-  .tab { height: var(--control-height-md); padding-bottom: calc(var(--space-2) + 1px); }
   .close.close.close { width: var(--control-height-md); min-height: var(--control-height-md); height: var(--control-height-md); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

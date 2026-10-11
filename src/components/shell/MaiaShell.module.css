@@ -8,6 +8,8 @@
   --shell-top: var(--control-height-md);
   --shell-rail: 48px;
   --shell-sidebar: 264px;
+  /* Height of every control in the top strip (icon buttons, close, new tab). */
+  --shell-item: var(--control-height-sm);
   display: grid;
   grid-template-rows: var(--shell-top) minmax(0, 1fr);
   /* Without this the column grows to the top bar's min-content (tab strip, drag region) and the window scrolls sideways. */
@@ -37,22 +39,73 @@
 
 /* ---- top bar ---------------------------------------------------------- */
 
+/*
+ * Two parts. The cluster is the top of the left column (traffic lights, sidebar
+ * toggle, back, forward); with the sidebar open it is exactly as wide as rail
+ * plus sidebar and its right border is the divider that continues the
+ * sidebar's own. The strip holds the page's tabs and sits right of that line.
+ * Everything in both is centred on the bar's centre line (--shell-top / 2).
+ */
 .topBar {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
   min-width: 0;
-  padding-inline: var(--space-2);
-  border-bottom: 1px solid var(--border-subtle);
   -webkit-user-select: none;
   user-select: none;
 }
+
+.cluster {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  align-self: stretch;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  padding-inline: var(--space-2);
+  /* min-width, not width: the closed width is the content's own, and a min-width
+     can still animate down to it in step with the sidebar. */
+  min-width: 0;
+  border-right: 0 solid var(--border-subtle);
+  transition:
+    min-width var(--duration-spring) var(--ease-spring),
+    border-right-width var(--duration-spring) var(--ease-spring);
+}
+.cluster[data-sidebar-open] {
+  min-width: calc(var(--shell-rail) + var(--shell-sidebar));
+  border-right-width: 1px;
+}
+
+/* Hairline under the cluster while the sidebar is closed. Open, the left column runs unbroken to the window top. */
+.cluster::after,
+.strip::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 1px;
+  background: var(--border-subtle);
+  pointer-events: none;
+}
+.cluster[data-sidebar-open]::after { opacity: 0; }
 
 /* Room for the macOS traffic lights, which sit over the bar in the Tauri window. */
 .lights { flex: none; width: 0; align-self: stretch; }
 .frame[data-lights] .lights { width: 78px; }
 
 .controls { display: flex; flex: none; align-items: center; gap: var(--space-1); }
+
+/* The line is a pseudo-element, not a border, so the strip keeps its full height and the centre line stays put. */
+.strip {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  align-self: stretch;
+  min-width: 0;
+  padding-right: var(--space-2);
+}
 
 .topBarSlot { display: flex; flex: 1 1 auto; align-self: stretch; align-items: stretch; min-width: 0; }
 
@@ -128,10 +181,13 @@
 
 /* On a narrow window the sidebar floats over the page instead of squeezing it. */
 @media (max-width: 720px) {
+  /* Floating sidebar: no divider in the top row, tabs follow the cluster. */
+  .cluster[data-sidebar-open] { min-width: 0; border-right-width: 0; }
+  .cluster[data-sidebar-open]::after { opacity: 1; }
   .sidebar { position: absolute; z-index: var(--z-drawer, 30); inset-block: 0; left: var(--shell-rail); background: var(--surface-raised); }
   .sidebar[data-open] { box-shadow: var(--shadow-floating); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar, .railButton { transition: none; }
+  .sidebar, .railButton, .cluster { transition: none; }
 }

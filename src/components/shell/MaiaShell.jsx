@@ -59,8 +59,9 @@ const hasTrafficLights = () =>
   isTauri() && typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
 
 /**
- * App chrome, laid out like Obsidian: a top bar across the whole window (traffic
- * lights, sidebar toggle, back and forward, then the page's own strip), a slim
+ * App chrome, laid out like Obsidian: the left column (rail plus sidebar) runs
+ * to the window top and its top part holds the traffic lights, sidebar toggle,
+ * back and forward; the page's own tab strip sits right of the divider. A slim
  * icon rail, an optional secondary sidebar a page fills through ShellSidebar,
  * and the page itself. Navigation state stays in App.
  */
@@ -115,37 +116,46 @@ export const MaiaShell = ({
           Skip to content
         </a>
         <header className={styles.topBar} data-tauri-drag-region>
-          <div className={styles.lights} data-tauri-drag-region aria-hidden="true" />
-          <div className={styles.controls}>
-            {hasSidebar && (
+          <div
+            className={styles.cluster}
+            data-testid="shell-cluster"
+            data-sidebar-open={showSidebar || undefined}
+            data-tauri-drag-region
+          >
+            <div className={styles.lights} data-tauri-drag-region aria-hidden="true" />
+            <div className={styles.controls}>
+              {hasSidebar && (
+                <IconButton
+                  icon={ToggleIcon}
+                  label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+                  side="bottom"
+                  onClick={toggleSidebar}
+                />
+              )}
               <IconButton
-                icon={ToggleIcon}
-                label={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+                icon={ArrowLeft}
+                label="Back"
                 side="bottom"
-                onClick={toggleSidebar}
+                disabled={!history.canBack}
+                onClick={history.back}
               />
-            )}
-            <IconButton
-              icon={ArrowLeft}
-              label="Back"
-              side="bottom"
-              disabled={!history.canBack}
-              onClick={history.back}
-            />
-            <IconButton
-              icon={ArrowRight}
-              label="Forward"
-              side="bottom"
-              disabled={!history.canForward}
-              onClick={history.forward}
-            />
+              <IconButton
+                icon={ArrowRight}
+                label="Forward"
+                side="bottom"
+                disabled={!history.canForward}
+                onClick={history.forward}
+              />
+            </div>
           </div>
-          <div className={styles.topBarSlot} ref={setTopBarEl} data-tauri-drag-region />
-          {currentPage !== "codex" && (
-            <span className={styles.pageTitle} data-tauri-drag-region>
-              {title}
-            </span>
-          )}
+          <div className={styles.strip} data-testid="shell-strip" data-tauri-drag-region>
+            <div className={styles.topBarSlot} ref={setTopBarEl} data-tauri-drag-region />
+            {currentPage !== "codex" && (
+              <span className={styles.pageTitle} data-tauri-drag-region>
+                {title}
+              </span>
+            )}
+          </div>
         </header>
 
         <div className={styles.body}>
