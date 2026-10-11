@@ -11,15 +11,16 @@
   --foreground: oklch(98% 0 0);
   --text-secondary: oklch(80% 0 0);
   --text-muted: oklch(62% 0 0);
-  --border: oklch(21% 0 0);
-  --border-subtle: oklch(15% 0 0);
-  --border-strong: oklch(36% 0 0);
+  /* The shell dividers (side menu, top bar, tab strip) use --border-subtle, so it has to be visible on pure black. */
+  --border: oklch(30% 0 0);
+  --border-subtle: oklch(25% 0 0);
+  --border-strong: oklch(44% 0 0);
   --control-glyph: oklch(0% 0 0);
   --control-track: oklch(24% 0 0);
   --control-track-hover: oklch(29% 0 0);
   --control-thumb-on: oklch(0% 0 0);
   /* black shadows disappear on black: floating layers rely on their raised surface and border instead */
   --shadow-resting: none;
-  --shadow-raised: 0 0 0 1px oklch(21% 0 0);
-  --shadow-floating: 0 0 0 1px oklch(26% 0 0), 0 18px 48px oklch(0% 0 0 / .8);
+  --shadow-raised: 0 0 0 1px oklch(30% 0 0);
+  --shadow-floating: 0 0 0 1px oklch(34% 0 0), 0 18px 48px oklch(0% 0 0 / .8);
 }
