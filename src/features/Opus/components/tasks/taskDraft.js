@@ -1,8 +1,8 @@
 // Draft <-> task conversion for the create/edit panel. Pure.
 import { day } from "../../lib/metrics.js";
 
-export const emptyDraft = ({ workstreamId = null, milestoneId = null, owner = "" } = {}) => ({
-  title: "", desc: "", workstreamId, milestoneId, status: "todo", priority: "p3", owner, due: "", estimate: null,
+export const emptyDraft = ({ status = "todo", workstreamId = null, milestoneId = null, owner = "" } = {}) => ({
+  title: "", desc: "", workstreamId, milestoneId, status, priority: "p3", owner, due: "", estimate: null,
 });
 
 export const draftFromTask = (task) => ({

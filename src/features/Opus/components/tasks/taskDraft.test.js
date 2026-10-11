@@ -28,3 +28,16 @@ describe("taskDraft", () => {
     expect(validateDraft({ ...emptyDraft(), title: "x" })).toEqual({});
   });
 });
+
+describe("preset status and untouched data", () => {
+  it("builds addTask arguments with the preset column status", () => {
+    const args = buildCreateArgs({ ...emptyDraft({ status: "blocked", workstreamId: "w2" }), title: " New " }, "p1");
+    expect(args).toMatchObject({ title: "New", due: null, projectId: "p1", extras: { status: "blocked", workstreamId: "w2" } });
+  });
+  it("never writes schedule or next-action fields", () => {
+    const stored = { ...task, schedule: "soon", isNextAction: true };
+    expect(buildPatch(stored, { ...draftFromTask(stored), title: "Other" })).toEqual({ title: "Other" });
+    expect(buildCreateArgs({ ...emptyDraft(), title: "t" }, "p").extras).not.toHaveProperty("schedule");
+  });
+});
+

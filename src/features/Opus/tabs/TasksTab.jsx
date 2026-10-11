@@ -7,7 +7,7 @@ import { useData } from "@/context/DataContext";
 import { useOpusNav } from "../OpusNavContext";
 import { FilterChips, PageBar, SearchBox } from "../kit";
 import { toDayString } from "../lib/metrics";
-import { showOwners as hasManyOwners } from "../lib/people";
+import { projectPeople, showOwners as hasManyOwners } from "../lib/people";
 import TaskEditor from "../components/tasks/TaskEditor";
 import TasksList from "../components/tasks/TasksList";
 import {
@@ -33,6 +33,7 @@ export default function TasksTab({ project }) {
   const milestones = useMemo(() => project.milestones ?? [], [project.milestones]);
   const projectTasks = useMemo(() => tasks.filter((t) => t.projectId === project.id), [tasks, project.id]);
   const owners = useMemo(() => [...new Set(projectTasks.map((t) => t.owner).filter(Boolean))].sort(), [projectTasks]);
+  const people = useMemo(() => projectPeople(project, tasks), [project, tasks]);
   const showOwners = hasManyOwners(project, tasks);
   const workstreamsById = useMemo(() => new Map(workstreams.map((w) => [w.id, w])), [workstreams]);
   const milestonesById = useMemo(() => new Map(milestones.map((m) => [m.id, m])), [milestones]);
@@ -191,6 +192,7 @@ export default function TasksTab({ project }) {
         task={editing}
         initial={drawer.initial}
         project={project}
+        people={people}
         onClose={closeDrawer}
         onSave={handleSave}
         onDelete={() => { if (editing) deleteTask(editing.id); }}

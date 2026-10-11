@@ -2,3 +2,4 @@
 .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: var(--space-4); }
 .row > * { min-width: 0; }
 .delete { margin-inline-end: auto; }
+.error { margin: 0; color: var(--danger); font-size: var(--text-sm); }

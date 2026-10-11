@@ -8,10 +8,10 @@ import { toDayString } from "../lib/metrics";
 import { projectPeople, showOwners } from "../lib/people";
 import { FilterChips, PageBar } from "../kit";
 import Board from "../components/board/Board";
-import TaskDrawer from "../components/board/TaskDrawer";
+import TaskEditor from "../components/tasks/TaskEditor";
 import { STATUS_LABELS, STATUS_ORDER, buildColumns, filterTasks, wsFromParams } from "../components/board/model";
 import { insertIndex, planOrder, sortColumn } from "../components/board/order";
-import { buildCreateArgs, buildPatch } from "../components/board/taskForm";
+import { buildCreateArgs, buildPatch } from "../components/tasks/taskDraft";
 import styles from "../components/board/BoardTab.module.css";
 
 const ALL = "";
@@ -33,7 +33,7 @@ export default function BoardTab({ project }) {
   const data = useData();
   const { params } = useOpusNav();
   const tasks = data?.tasks;
-  const { addTask, updateTask, deleteTask, setNextAction } = data ?? {};
+  const { addTask, updateTask, deleteTask } = data ?? {};
 
   const [wsId, setWsId] = useState(() => wsFromParams(params)[0] ?? ALL);
   const [owner, setOwner] = useState(ALL);
@@ -132,12 +132,6 @@ export default function BoardTab({ project }) {
     setTimeout(() => document.querySelector(`[aria-label="${addLabel}"]`)?.focus(), DRAWER_EXIT_MS);
   }, [editing, deleteTask]);
 
-  const handleSetNext = useCallback(() => {
-    if (!editing) return;
-    setNextAction(editing.id, project.id);
-    setMessage(`${editing.title} is now the next action.`);
-  }, [editing, project.id, setNextAction]);
-
   if (!Array.isArray(tasks)) return <BoardSkeleton />;
 
   return (
@@ -181,7 +175,7 @@ export default function BoardTab({ project }) {
           </>
         )}
 
-        <TaskDrawer
+        <TaskEditor
           open={isDrawerOpen}
           mode={drawer.mode}
           session={drawer.session}
@@ -192,7 +186,6 @@ export default function BoardTab({ project }) {
           onClose={closeDrawer}
           onSave={handleSave}
           onDelete={handleDelete}
-          onSetNextAction={handleSetNext}
         />
         <p className={styles.srOnly} role="status" aria-live="polite">{message}</p>
       </div>
