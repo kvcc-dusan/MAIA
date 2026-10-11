@@ -81,6 +81,13 @@ describe("projectFile", () => {
     expect(item).toMatchObject({ name: "Folder name", status: "Active", workstreams: [], milestones: [], startDate: null });
   });
 
+  it("keeps a workstream status of planned, the value the Roadmap panel offers", () => {
+    const text = "---\nid: p5\nname: X\nworkstreams:\n  - id: w1\n    name: Pitch edit\n    status: planned\n---\n";
+    const { item, warnings } = fromFile(text, { fallbackId: "fb" });
+    expect(item.workstreams[0].status).toBe("planned");
+    expect(warnings).toEqual([]);
+  });
+
   it("warns about unknown status and bad entries without throwing", () => {
     const text = "---\nid: p4\nname: X\nstatus: Archived\nworkstreams: [Design, {nope: 1}, 5]\nmilestones:\n  - title: M\n    workstream: Missing\n---\n";
     const { ok, item, warnings } = fromFile(text, { fallbackId: "fb" });

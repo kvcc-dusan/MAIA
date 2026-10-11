@@ -11,7 +11,7 @@ import {
 } from "./fileCodec.js";
 
 export const PROJECT_STATUSES = ["Active", "Paused", "Done"];
-const WORKSTREAM_STATUSES = ["active", "paused", "done"];
+const WORKSTREAM_STATUSES = ["active", "planned", "paused", "done"];
 
 const KEYS = [
   "id", "name", "status", "phase", "icon", "iconColor", "headline", "focus", "startDate", "targetDate",

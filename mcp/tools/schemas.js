@@ -14,7 +14,7 @@ export const priority = z.enum(["p1", "p2", "p3"]);
 export const estimate = z.enum(["S", "M", "L"]);
 export const projectStatus = z.enum(["Active", "Paused", "Done"]);
 export const milestoneStatus = z.enum(["planned", "active", "at-risk", "done"]);
-export const workstreamStatus = z.enum(["active", "paused", "done"]);
+export const workstreamStatus = z.enum(["active", "planned", "paused", "done"]);
 
 export const workstreamInput = z.object({
   name: short.min(1),
