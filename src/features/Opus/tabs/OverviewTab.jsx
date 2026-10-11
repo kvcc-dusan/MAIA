@@ -7,11 +7,9 @@ import { EmptyState } from "@/components/composed/EmptyState";
 import { ErrorState } from "@/components/composed/ErrorState";
 import { toDayString } from "../lib/metrics";
 import { showOwners } from "../lib/people";
-import { WORKSTREAM_COLORS } from "../lib/projectModel";
 import { useOpusNav } from "../OpusNavContext";
 import { buildHubOverview } from "../components/overview/hubOverview";
 import ProjectHeader from "../components/overview/ProjectHeader";
-import AddWorkstreamPanel from "../components/overview/AddWorkstreamPanel";
 import StatTiles from "../components/overview/StatTiles";
 import ForecastCard from "../components/overview/ForecastCard";
 import StatusMixCard from "../components/overview/StatusMixCard";
@@ -34,10 +32,9 @@ const safeBuild = (input) => {
 
 /** The hub's Overview: header, four tiles, burn-up, status mix, workstreams, attention, activity. */
 export default function OverviewTab({ project }) {
-  const { tasks, activity, addWorkstream } = useData();
+  const { tasks, activity } = useData();
   const { navigate } = useOpusNav();
   const [attempt, setAttempt] = useState(0);
-  const [isAddingWorkstream, setIsAddingWorkstream] = useState(false);
   const today = toDayString(new Date());
   const ready = Array.isArray(tasks) && Array.isArray(activity);
 
@@ -64,7 +61,6 @@ export default function OverviewTab({ project }) {
   }
 
   const { overview } = result;
-  const nextColor = WORKSTREAM_COLORS[project.workstreams.length % WORKSTREAM_COLORS.length];
 
   return (
     <div className={styles.root}>
@@ -96,16 +92,8 @@ export default function OverviewTab({ project }) {
           </div>
         </>
       )}
-      <WorkstreamsCard progress={overview.progress} navigate={navigate} onAdd={() => setIsAddingWorkstream(true)} />
+      <WorkstreamsCard progress={overview.progress} navigate={navigate} />
       {overview.isEmpty ? null : <ActivityCard heat={overview.heat} navigate={navigate} />}
-      {isAddingWorkstream ? (
-        <AddWorkstreamPanel
-          open
-          defaultColor={nextColor}
-          onClose={() => setIsAddingWorkstream(false)}
-          onSave={(data) => { addWorkstream(project.id, data); setIsAddingWorkstream(false); }}
-        />
-      ) : null}
     </div>
   );
 }

@@ -22,7 +22,6 @@ describe("buildHubOverview", () => {
     expect(o).toMatchObject({ total: 4, done: 1, pct: 25, isEmpty: false });
     expect(o.tiles).toMatchObject({ open: 3, doing: 1, overdue: 1, thisWeek: 1 });
     expect(o.tiles.blocking).toEqual({ tasks: 1, questions: 1, total: 2 });
-    expect(o.tiles.weekly).toHaveLength(8);
   });
 
   it("colours the status mix in greys, with red only for blocked", () => {
@@ -30,8 +29,8 @@ describe("buildHubOverview", () => {
     expect(o.mix.filter((s) => s.key !== "blocked").every((s) => !/danger|series|success/.test(s.color))).toBe(true);
   });
 
-  it("adds percentages to the status mix", () => {
-    expect(o.mix.map((s) => [s.key, s.value, s.pct])).toEqual([["todo", 1, 25], ["doing", 1, 25], ["blocked", 1, 25], ["done", 1, 25]]);
+  it("lists the status mix counts", () => {
+    expect(o.mix.map((s) => [s.key, s.value])).toEqual([["todo", 1], ["doing", 1], ["blocked", 1], ["done", 1]]);
   });
 
   it("is empty without tasks", () => {

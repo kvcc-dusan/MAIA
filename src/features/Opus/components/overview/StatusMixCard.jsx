@@ -8,9 +8,6 @@ export default function StatusMixCard({ mix }) {
   const summary = mix.filter((s) => s.value > 0).map((s) => `${s.value} ${s.label.toLowerCase()}`).join(", ");
   return (
     <SectionCard titleAs="h2" title="Status mix" bodyClassName={styles.body}>
-      <p className={styles.mixTotal}>
-        <span className={styles.mixTotalValue}>{total}</span> {total === 1 ? "task" : "tasks"}
-      </p>
       {total === 0 ? (
         <p className={styles.quiet}>No tasks yet</p>
       ) : (

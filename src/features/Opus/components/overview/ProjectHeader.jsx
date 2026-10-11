@@ -13,7 +13,7 @@ const targetText = (days) => {
   return { text: `${days} ${days === 1 ? "day" : "days"} to target`, isLate: false };
 };
 
-/** The full block under the compact header: focus and dates. Progress is the Open tasks tile, so it is not repeated here. */
+/** The full block under the compact header: focus and the days left. The target date itself is on the Forecast card. Progress is the Open tasks tile, so it is not repeated here. */
 export default function ProjectHeader({ project, overview }) {
   const target = targetText(overview.daysToTarget);
   return (
@@ -23,7 +23,6 @@ export default function ProjectHeader({ project, overview }) {
           {project.focus ? <p className={styles.focus}>{project.focus}</p> : null}
           <p className={styles.meta}>
             <span className={target.isLate ? styles.late : undefined}>{target.text}</span>
-            {project.targetDate ? <span>Target {fullDate(project.targetDate)}</span> : null}
             {project.nextMeeting ? <span>Next meeting {fullDate(project.nextMeeting)}</span> : null}
           </p>
         </div>

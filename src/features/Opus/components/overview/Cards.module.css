@@ -24,8 +24,6 @@
 .legendMark { width: 10px; height: 10px; box-sizing: border-box; border-radius: var(--radius-pill); }
 
 /* status mix */
-.mixTotal { margin: 0 0 var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); }
-.mixTotalValue { color: var(--foreground); font-size: var(--text-2xl); font-weight: 500; font-variant-numeric: tabular-nums; }
 .mixBar { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: var(--radius-pill); }
 .mixSegment { flex-basis: 0; min-width: 4px; }
 .mixList { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); margin: var(--space-4) 0 0; padding: 0; list-style: none; }

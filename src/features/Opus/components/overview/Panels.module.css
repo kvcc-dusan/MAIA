@@ -1,15 +1,6 @@
 .form { display: grid; gap: var(--space-5); min-width: 0; }
-.field { display: grid; gap: var(--space-2); min-width: 0; }
-.legend { color: var(--text-secondary); font-size: var(--text-sm); }
 .warning { margin: 0; color: var(--warning); font-size: var(--text-sm); }
 .meeting { display: grid; gap: var(--space-2); justify-items: start; }
-.swatches { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.swatch { display: inline-flex; align-items: center; gap: var(--space-2); min-width: var(--control-height-lg); min-height: var(--control-height-md); padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--foreground); font: inherit; font-size: var(--text-sm); font-variant-numeric: tabular-nums; cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
-.swatch[aria-checked="true"] { border-color: var(--foreground); background: var(--surface-muted); font-weight: 500; }
-.chip { width: var(--space-4); height: var(--space-4); border-radius: var(--radius-pill); }
-@media (hover: hover) and (pointer: fine) { .swatch:hover { background: var(--surface-muted); } }
-@media (pointer: coarse) { .swatch { min-height: 44px; min-width: 44px; } }
-@media (prefers-reduced-motion: reduce) { .swatch { transition: none; } }
 
 .phase { display: grid; gap: var(--space-2); }
 .fieldLabel { color: var(--text-secondary); font-size: var(--text-sm); font-weight: 500; }

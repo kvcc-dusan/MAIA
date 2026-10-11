@@ -1,12 +1,11 @@
 // Everything the hub-style Overview shows, in one pure call so the tab can wrap
 // it in a single try/catch. `today` is "YYYY-MM-DD", `now` a Date (for "2 days ago").
 import {
-  averagePerWeek, blockingSummary, day, daysToTarget, doneThisWeek,
-  heatmap, label, overdue, projection, statusMix, weeklyDone, workstreamProgress,
+  blockingSummary, day, daysToTarget, doneThisWeek,
+  heatmap, label, overdue, projection, statusMix, workstreamProgress,
 } from "../../lib/metrics.js";
 import { attentionTasks } from "./attention.js";
 
-export const SPARK_WEEKS = 8;
 // 52 weeks fills the Arc heatmap's width: its cell size is computed for a full year of columns.
 export const HEAT_WEEKS = 52;
 export const MAX_ATTENTION = 8;
@@ -52,16 +51,11 @@ export const buildHubOverview = ({ project, tasks, activity, today }) => {
   const total = tasks.length;
   const done = tasks.filter((t) => t.status === "done").length;
   const open = total - done;
-  const weekly = weeklyDone(tasks, { weeks: SPARK_WEEKS, today });
   const blocking = blockingSummary(tasks, project.questions);
   const projectActivity = activity.filter((a) => a.projectId === project.id);
   const heat = heatmap(projectActivity, { weeks: HEAT_WEEKS, today });
   const attention = attentionTasks(tasks, today, MAX_ATTENTION);
-  const mix = statusMix(tasks).map((s) => ({
-    ...s,
-    color: STATUS_COLOR[s.key],
-    pct: total ? Math.round((s.value / total) * 100) : 0,
-  }));
+  const mix = statusMix(tasks).map((s) => ({ ...s, color: STATUS_COLOR[s.key] }));
 
   return {
     isEmpty: total === 0,
@@ -73,8 +67,6 @@ export const buildHubOverview = ({ project, tasks, activity, today }) => {
       open,
       doing: tasks.filter((t) => t.status === "doing").length,
       thisWeek: doneThisWeek(tasks, today),
-      weekly,
-      average: averagePerWeek(weekly),
       overdue: overdue(tasks, today).length,
       blocking,
     },

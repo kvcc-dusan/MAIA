@@ -23,7 +23,7 @@ export default function StatTiles({ overview, navigate }) {
       <MetricTile
         label="Done this week"
         value={tiles.thisWeek}
-        context={`${tiles.average} per week on average`}
+        context={`${tiles.thisWeek === 1 ? "task" : "tasks"} finished since Monday`}
       />
       <MetricTile
         label="Overdue"

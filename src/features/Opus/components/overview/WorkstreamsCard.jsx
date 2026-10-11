@@ -1,5 +1,5 @@
 import React from "react";
-import { Layers, Plus } from "lucide-react";
+import { Layers } from "lucide-react";
 import { SectionCard } from "@/components/composed/SectionCard";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
@@ -37,21 +37,16 @@ function WorkstreamCard({ p, onOpen }) {
   );
 }
 
-/** One card per workstream, each opening the Board filtered to it, plus Add workstream. */
-export default function WorkstreamsCard({ progress, navigate, onAdd }) {
-  const addButton = (
-    <Button variant="ghost" size="sm" onClick={onAdd}>
-      <Plus size={16} strokeWidth={1.75} aria-hidden="true" />
-      Add workstream
-    </Button>
-  );
+/** One card per workstream, each opening the Board filtered to it. Adding one lives on the Roadmap. */
+export default function WorkstreamsCard({ progress, navigate }) {
   return (
-    <SectionCard titleAs="h2" title="Workstreams" count={progress.length || undefined} action={addButton} bodyClassName={styles.body}>
+    <SectionCard titleAs="h2" title="Workstreams" count={progress.length || undefined} bodyClassName={styles.body}>
       {progress.length === 0 ? (
         <EmptyState
           icon={Layers}
           title="No workstreams yet"
-          description="Workstreams group the work into streams you can track separately."
+          description="Add workstreams on the Roadmap to group the work."
+          action={<Button variant="secondary" onClick={() => navigate("roadmap")}>Open roadmap</Button>}
         />
       ) : (
         <ul className={styles.wsGrid}>
