@@ -14,6 +14,11 @@ import { PropertiesPanel, PROPERTY_FIELDS } from "../features/Codex/properties/i
 import styles from "./EditorPage.module.css";
 
 const modeKey = (id) => `maia:note-mode:${id}`;
+// Fields a person edits. The editor also emits counts and links on mount, so comparing whole objects
+// would call a freshly opened note "edited".
+const EDITABLE_FIELDS = ['title', 'content', 'tags', 'kind', 'status', 'owner', 'frontmatterRaw', 'frontmatterExtra'];
+const sameEditableFields = (a, b) => EDITABLE_FIELDS.every((f) => JSON.stringify(a?.[f] ?? null) === JSON.stringify(b?.[f] ?? null));
+
 const viewKey = (id) => `maia:note-view:${id}`;
 
 // The title createNote() gives every new note; it is a value, not a placeholder.
@@ -87,6 +92,24 @@ export default function Editor({ note, notes = [], updateNote, onDelete, project
   // does. Flush anything typed in that last window so a quick switch loses nothing.
   const localRef = useRef(local);
   localRef.current = local;
+
+  // The store hands over a new `note` when the file changes on disk (Obsidian, Drive, MCP). Without
+  // this the open editor kept its first copy and only showed the change after a tab switch remounted it.
+  // Two cases must NOT overwrite local state: the echo of our own save (same text as what we last
+  // saved), and unsaved typing (local differs from the last saved copy): that edit wins and the
+  // store's conflict guard handles the clash when it is saved.
+  const lastNoteRef = useRef(note);
+  useEffect(() => {
+    if (!note || note === lastNoteRef.current) return;
+    lastNoteRef.current = note;
+    const saved = savedRef.current;
+    const isEcho = saved && note.content === saved.content && note.title === saved.title;
+    const hasUnsavedEdits = !sameEditableFields(localRef.current, saved);
+    if (isEcho || hasUnsavedEdits) return;
+    savedRef.current = note;
+    setLocal(note);
+  }, [note]);
+
   const updateNoteRef = useRef(updateNote);
   updateNoteRef.current = updateNote;
   // A deleted note must not be written back by that same flush.
