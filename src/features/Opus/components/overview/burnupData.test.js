@@ -75,8 +75,8 @@ describe("buildBurnup axis", () => {
   const result = buildBurnup(input);
   const labelled = result.data.filter((row) => row.axisLabel);
 
-  it("labels about six days, not every day", () => {
-    expect(labelled.length).toBeGreaterThanOrEqual(5);
+  it("labels four to six days, not every day", () => {
+    expect(labelled.length).toBeGreaterThanOrEqual(4);
     expect(labelled.length).toBeLessThanOrEqual(8);
   });
 

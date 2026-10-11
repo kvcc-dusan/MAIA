@@ -47,8 +47,8 @@ export const pickAxisIndexes = (length, required = [], count = AXIS_LABEL_COUNT)
   const picks = Math.min(count, length);
   const evenly = Array.from({ length: picks }, (_, i) => Math.round((i * (length - 1)) / (picks - 1)));
   const chosen = [...new Set(required.filter((i) => Number.isInteger(i) && i >= 0 && i < length))];
-  // Roughly one label width on a wide chart; the chart thins labels again on narrow ones.
-  const minGap = Math.max(1, Math.floor((length - 1) / (picks * 1.5)));
+  // One full slot (range / labels): an even pick that close to Today or Target would sit under it and make the spacing uneven.
+  const minGap = Math.max(1, Math.floor((length - 1) / picks));
   evenly.forEach((i) => {
     if (chosen.every((c) => Math.abs(c - i) >= minGap)) chosen.push(i);
   });
