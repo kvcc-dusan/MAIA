@@ -4,14 +4,12 @@ import { SectionCard } from "@/components/composed/SectionCard";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
 import { ActivityHeatmap } from "@/components/arc/activity-heatmap/activity-heatmap";
-import { ListRow } from "../../kit";
-import { activitySentence } from "./activitySentence";
 import styles from "./Cards.module.css";
 
 const CHANGE_UNIT = { one: "change", other: "changes" };
 
-/** 26-week heatmap, the summary line, then the newest changes. */
-export default function ActivityCard({ heat, feed, navigate }) {
+/** A year of changes as a heatmap, with the summary as one quiet line under it. The change feed lives with Claude over MCP (`list_activity`). */
+export default function ActivityCard({ heat, navigate }) {
   return (
     <SectionCard titleAs="h2" title="Activity" bodyClassName={styles.body}>
       {heat.total === 0 ? (
@@ -23,15 +21,8 @@ export default function ActivityCard({ heat, feed, navigate }) {
         />
       ) : (
         <>
+          <ActivityHeatmap days={heat.days} label="Changes per day over the past year" period="the past year" unit={CHANGE_UNIT} weekStartsOn={1} className={styles.heat} />
           <p className={styles.summary}>{heat.summary.text}</p>
-          <ActivityHeatmap days={heat.days} label="Changes per day over the last 26 weeks" period="the last 26 weeks" unit={CHANGE_UNIT} weekStartsOn={1} />
-          <ul className={styles.feed} aria-label="Recent changes">
-            {feed.map((a, i) => (
-              <li key={`${a.at}-${a.itemId}-${i}`}>
-                <ListRow title={activitySentence(a)} trailing={<span className={styles.ago}>{a.ago}</span>} />
-              </li>
-            ))}
-          </ul>
         </>
       )}
     </SectionCard>

@@ -1,16 +1,16 @@
 // Everything the hub-style Overview shows, in one pure call so the tab can wrap
 // it in a single try/catch. `today` is "YYYY-MM-DD", `now` a Date (for "2 days ago").
 import {
-  activityFeed, averagePerWeek, blockingSummary, day, daysToTarget, doneThisWeek,
+  averagePerWeek, blockingSummary, day, daysToTarget, doneThisWeek,
   heatmap, label, overdue, projection, statusMix, weeklyDone, workstreamProgress,
 } from "../../lib/metrics.js";
 import { attentionTasks } from "./attention.js";
 import { buildBurnup } from "./burnupData.js";
 
 export const SPARK_WEEKS = 8;
-export const HEAT_WEEKS = 26;
+// 52 weeks fills the Arc heatmap's width: its cell size is computed for a full year of columns.
+export const HEAT_WEEKS = 52;
 export const MAX_ATTENTION = 8;
-export const MAX_FEED = 8;
 const TABLE_STEP_DAYS = 7;
 
 const STATUS_COLOR = {
@@ -40,12 +40,12 @@ export const forecastSentence = ({ tasks, targetDate, today }) => {
 /** Busiest day of the heatmap window, or null when nothing changed. */
 export const heatSummary = (days) => {
   const total = days.reduce((sum, d) => sum + d.count, 0);
-  if (total === 0) return { total, busiest: null, text: "No changes in 26 weeks" };
+  if (total === 0) return { total, busiest: null, text: "No changes in the past year" };
   const busiest = days.reduce((best, d) => (d.count > best.count ? d : best), days[0]);
   return {
     total,
     busiest,
-    text: `${plural(total, "change")} in ${HEAT_WEEKS} weeks. Busiest day ${label(busiest.date)} with ${plural(busiest.count, "change")}.`,
+    text: `Busiest day ${label(busiest.date)}, ${plural(busiest.count, "change")}.`,
   };
 };
 
@@ -74,7 +74,7 @@ export const burnupLegend = (burnup, today) => {
   return items.map((i) => ({ ...i, today }));
 };
 
-export const buildHubOverview = ({ project, tasks, activity, today, now }) => {
+export const buildHubOverview = ({ project, tasks, activity, today }) => {
   const total = tasks.length;
   const done = tasks.filter((t) => t.status === "done").length;
   const open = total - done;
@@ -117,6 +117,5 @@ export const buildHubOverview = ({ project, tasks, activity, today, now }) => {
     progress: workstreamProgress(project.workstreams, tasks, today),
     attention,
     heat: { days: heat, summary: heatSummary(heat), total: projectActivity.length },
-    feed: activityFeed(projectActivity, { limit: MAX_FEED, now }),
   };
 };

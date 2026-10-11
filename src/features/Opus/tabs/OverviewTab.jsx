@@ -95,7 +95,7 @@ export default function OverviewTab({ project }) {
             showOwners={showOwners(project, projectTasks)}
             navigate={navigate}
           />
-          <ActivityCard heat={overview.heat} feed={overview.feed} navigate={navigate} />
+          <ActivityCard heat={overview.heat} navigate={navigate} />
         </div>
       )}
       {panel === "edit" ? (

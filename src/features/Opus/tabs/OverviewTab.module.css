@@ -1,7 +1,7 @@
 /* A container, not a media query: the room depends on the app shell's sidebar. */
-.root { container-type: inline-size; container-name: overview; display: grid; min-width: 0; gap: var(--space-6); }
+.root { container-type: inline-size; container-name: overview; display: grid; min-width: 0; gap: var(--space-4); }
 .root > * { min-width: 0; }
-.row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-items: stretch; }
 .row > * { min-width: 0; }
 @container overview (min-width: 800px) {
   .split { grid-template-columns: repeat(2, minmax(0, 1fr)); }

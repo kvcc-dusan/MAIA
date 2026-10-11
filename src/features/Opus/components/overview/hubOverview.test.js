@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { buildHubOverview, forecastSentence, heatSummary, burnupTableRows } from "./hubOverview.js";
-import { activitySentence } from "./activitySentence.js";
 
 const TODAY = "2026-10-09";
 const NOW = new Date("2026-10-09T12:00:00Z");
@@ -59,7 +58,7 @@ describe("forecastSentence", () => {
 describe("heatSummary", () => {
   it("names the busiest day", () => {
     const days = [{ date: "2026-08-17", count: 2 }, { date: "2026-08-18", count: 12 }, { date: "2026-08-19", count: 0 }];
-    expect(heatSummary(days).text).toBe("14 changes in 26 weeks. Busiest day 18 Aug with 12 changes.");
+    expect(heatSummary(days).text).toBe("Busiest day 18 Aug, 12 changes.");
   });
   it("says so when nothing changed", () => {
     expect(heatSummary([{ date: "2026-08-17", count: 0 }]).total).toBe(0);
@@ -71,14 +70,5 @@ describe("burnupTableRows", () => {
     const o = buildHubOverview({ project, tasks, activity: [], today: TODAY, now: NOW });
     const marks = burnupTableRows(o.burnup).filter((r) => r.mark).map((r) => r.mark);
     expect(marks).toEqual(["Today", "Target"]);
-  });
-});
-
-describe("activitySentence", () => {
-  it("reads like the hub", () => {
-    expect(activitySentence({ kind: "status", collection: "tasks", to: "done", title: "X" })).toBe("Marked “X” done");
-    expect(activitySentence({ kind: "status", collection: "tasks", to: "doing", title: "X" })).toBe("Moved “X” to In progress");
-    expect(activitySentence({ kind: "created", collection: "decisions", title: "X" })).toBe("Created decision “X”");
-    expect(activitySentence({ kind: "updated", collection: "tasks", title: "" })).toBe("Updated task “Untitled”");
   });
 });

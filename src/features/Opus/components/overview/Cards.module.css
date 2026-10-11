@@ -1,4 +1,4 @@
-.body { min-width: 0; padding: var(--space-5); }
+.body { flex: 1 1 auto; min-width: 0; padding: var(--space-5); }
 .listBody { min-width: 0; padding: var(--space-2) 0; }
 @container overview (max-width: 380px) { .body { padding: var(--space-4); } }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -21,8 +21,12 @@
 .table tbody th { color: var(--foreground); }
 
 /* status mix */
-.mixList { display: grid; gap: var(--space-1); margin: var(--space-4) 0 0; padding: 0; list-style: none; }
-.mixRow { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-md); font-size: var(--text-sm); }
+.mixTotal { margin: 0 0 var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); }
+.mixTotalValue { color: var(--foreground); font-size: var(--text-2xl); font-weight: 500; font-variant-numeric: tabular-nums; }
+.mixBar { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: var(--radius-pill); }
+.mixSegment { flex-basis: 0; min-width: 4px; }
+.mixList { display: grid; margin: var(--space-4) 0 0; padding: 0; list-style: none; }
+.mixRow { display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-height-sm); font-size: var(--text-sm); }
 .mixName { flex: 1 1 auto; color: var(--foreground); }
 .mixCount { color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
 .mixPct { min-width: 3.5ch; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
@@ -45,9 +49,12 @@
 @media (prefers-reduced-motion: reduce) { .wsCard { transition: none; } }
 
 /* needs attention and activity */
-.rows, .feed { margin: 0; padding: 0; list-style: none; }
-.rows > li + li, .feed > li + li { border-top: 1px solid var(--border-subtle); }
+.rows { margin: 0; padding: 0; list-style: none; }
+.rows > li + li { border-top: 1px solid var(--border-subtle); }
 .reason { display: inline-flex; align-items: center; gap: var(--space-2); }
-.due, .ago { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.summary { margin: 0 0 var(--space-3); color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
-.feed { margin-top: var(--space-4); margin-inline: calc(var(--space-5) * -1); }
+.due { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary { margin: var(--space-3) 0 0; color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+
+/* Arc's empty heatmap cell is 6.5% foreground, which vanishes on the dark surfaces. The doubled class beats the component's own .root rule. */
+:global(:root[data-theme="dark"]) .heat.heat { --level-0: color-mix(in oklab, var(--foreground) 12%, var(--surface)); }
+:global(:root[data-variant="black"]) .heat.heat { --level-0: color-mix(in oklab, var(--foreground) 17%, var(--surface)); }
