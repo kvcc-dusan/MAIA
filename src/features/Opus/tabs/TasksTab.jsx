@@ -131,46 +131,49 @@ export default function TasksTab({ project }) {
       </PageBar>
 
       {projectTasks.length > 0 ? (
-        <div className={styles.tools}>
-          <div className={styles.field}>
-            <Select
-              label="Workstream"
-              labelClassName="sr-only"
-              value={filters.workstreamId || null}
-              options={wsOptions}
-              clearLabel="All workstreams"
-              placeholder="All workstreams"
-              onChange={(value) => dispatch({ type: "workstream", value })}
+        <div className={styles.toolbar}>
+          <div className={styles.tools}>
+            <SearchBox
+              className={styles.search}
+              label="Search tasks"
+              placeholder="Search tasks"
+              value={filters.query}
+              onValueChange={(value) => dispatch({ type: "query", value })}
             />
-          </div>
-          {showOwners ? (
             <div className={styles.field}>
               <Select
-                label="Owner"
+                label="Workstream"
                 labelClassName="sr-only"
-                value={filters.owner || null}
-                options={ownerOptions}
-                clearLabel="Everyone"
-                placeholder="Everyone"
-                onChange={(value) => dispatch({ type: "owner", value })}
+                value={filters.workstreamId || null}
+                options={wsOptions}
+                clearLabel="All workstreams"
+                placeholder="All workstreams"
+                onChange={(value) => dispatch({ type: "workstream", value })}
               />
             </div>
-          ) : null}
-          <div className={styles.field}>
-            <Select
-              label="Sort by"
-              labelClassName="sr-only"
-              value={filters.sort}
-              options={SORT_OPTIONS}
-              onChange={(value) => dispatch({ type: "sort", value })}
-            />
+            {showOwners ? (
+              <div className={styles.field}>
+                <Select
+                  label="Owner"
+                  labelClassName="sr-only"
+                  value={filters.owner || null}
+                  options={ownerOptions}
+                  clearLabel="Everyone"
+                  placeholder="Everyone"
+                  onChange={(value) => dispatch({ type: "owner", value })}
+                />
+              </div>
+            ) : null}
+            <div className={styles.field}>
+              <Select
+                label="Sort by"
+                labelClassName="sr-only"
+                value={filters.sort}
+                options={SORT_OPTIONS}
+                onChange={(value) => dispatch({ type: "sort", value })}
+              />
+            </div>
           </div>
-          <SearchBox
-            label="Search tasks"
-            placeholder="Search tasks"
-            value={filters.query}
-            onValueChange={(value) => dispatch({ type: "query", value })}
-          />
           <div className={styles.group}>
             <span className={styles.groupLabel}>Group by</span>
             <FilterChips
