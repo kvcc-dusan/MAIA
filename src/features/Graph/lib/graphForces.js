@@ -149,3 +149,42 @@ export const createFolderForce = (strength = folderStrengthFor(GROUP_PULL_DEFAUL
   };
   return force;
 };
+
+// Elastic return after a drag. The settled layout is remembered; once a dragged node is let go, every node is
+// pulled back toward its remembered place, so the whole graph springs back into the entanglement it had.
+// Per-tick pull (not scaled by alpha), so the return stays brisk however far the node was taken.
+export const HOME_STRENGTH = 0.05;
+const HOME_SETTLED_DISTANCE = 4; // world units: close enough to home to stop pulling (nodes sit ~40 apart)
+
+/** d3 force with a remembered position per node; inert until `activate(true)`. */
+export const createHomeForce = (strength = HOME_STRENGTH) => {
+  let nodes = [];
+  let active = false;
+  const home = new Map();
+
+  const force = () => {
+    if (!active) return;
+    for (const n of nodes) {
+      const h = home.get(n.id);
+      if (!h) continue;
+      n.vx += (h.x - (n.x || 0)) * strength;
+      n.vy += (h.y - (n.y || 0)) * strength;
+      if (n.vz !== undefined) n.vz += (h.z - (n.z || 0)) * strength;
+    }
+  };
+  force.initialize = (list) => { nodes = list; };
+  /** Records where every node is now as its home. */
+  force.remember = () => {
+    home.clear();
+    for (const n of nodes) home.set(n.id, { x: n.x || 0, y: n.y || 0, z: n.z || 0 });
+  };
+  force.hasHome = () => home.size > 0;
+  force.activate = (on) => { active = on; };
+  force.isActive = () => active;
+  /** True when every remembered node is back within a hair of its home. */
+  force.isSettled = () => nodes.every((n) => {
+    const h = home.get(n.id);
+    return !h || Math.hypot((n.x || 0) - h.x, (n.y || 0) - h.y, (n.z || 0) - h.z) < HOME_SETTLED_DISTANCE;
+  });
+  return force;
+};
