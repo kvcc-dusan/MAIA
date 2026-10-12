@@ -180,3 +180,10 @@
 .maia-editor .ProseMirror {
   cursor: text;
 }
+
+/* Arc's select popup is exactly as wide as its trigger, so options in a narrow trigger wrapped onto
+   several lines. Let it grow to its longest option (Arc still caps it at 24rem). */
+[role="listbox"][data-side] {
+  width: max-content;
+  min-width: var(--radix-select-trigger-width);
+}

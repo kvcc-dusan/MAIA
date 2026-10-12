@@ -5,11 +5,10 @@ import styles from "./TasksList.module.css";
 
 const metaOf = (group) => `${group.done} of ${group.total} done`;
 
-/** The count line and one GroupCard per group. Rows hide the name the group already shows. */
-export default function TasksList({ groups, count, groupBy, ctx, workstreamsById, milestonesById }) {
+/** One GroupCard per group. Rows hide the name the group already shows. */
+export default function TasksList({ groups, groupBy, ctx, workstreamsById, milestonesById }) {
   return (
     <div className={styles.list}>
-      <p className={styles.count} role="status">{count} {count === 1 ? "task" : "tasks"}</p>
       {groups.map((group) => (
         <GroupCard
           key={group.key}

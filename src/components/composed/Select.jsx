@@ -17,10 +17,12 @@ const CLEAR_VALUE = "__clear__";
  * `null`.
  */
 function Select({ label, labelClassName, value, options, onChange, placeholder = "Select…", clearLabel, icon: Icon }) {
+  // One option with a colour dot reserves the dot's slot in every row, so the labels stay on one line.
+  const hasDots = options.some((opt) => opt.color);
   const renderLabel = (text, color) => (
     <span className={styles.option}>
       {Icon && <Icon size={16} strokeWidth={1.75} className={styles.icon} aria-hidden="true" />}
-      {color && <span className={styles.dot} style={{ backgroundColor: color }} aria-hidden="true" />}
+      {hasDots && <span className={styles.dot} style={color ? { backgroundColor: color } : undefined} aria-hidden="true" />}
       <span className={styles.optionText}>{text}</span>
     </span>
   );

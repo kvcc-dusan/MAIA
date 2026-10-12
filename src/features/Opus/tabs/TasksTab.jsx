@@ -9,7 +9,7 @@ import { toDayString } from "../lib/metrics";
 import { projectPeople, showOwners as hasManyOwners } from "../lib/people";
 import TaskEditor from "../components/tasks/TaskEditor";
 import TasksList from "../components/tasks/TasksList";
-import TasksToolbar from "../components/tasks/TasksToolbar";
+import { TaskFilters, TaskViewTools } from "../components/tasks/TasksToolbar";
 import {
   EMPTY_COPY, EXACT_STATUSES, filterTasks, groupTasks,
   hasExtraFilters, sanitizeFilters,
@@ -100,7 +100,6 @@ export default function TasksTab({ project }) {
     return (
       <TasksList
         groups={groups}
-        count={visible.length}
         groupBy={filters.groupBy}
         ctx={ctx}
         workstreamsById={workstreamsById}
@@ -113,7 +112,7 @@ export default function TasksTab({ project }) {
     <div className={styles.page}>
       <PageBar action={<Button onClick={openCreate}><Plus size={16} strokeWidth={1.75} aria-hidden="true" /> New task</Button>}>
         {projectTasks.length > 0 ? (
-          <TasksToolbar
+          <TaskFilters
             filters={filters}
             dispatch={dispatch}
             wsOptions={wsOptions}
@@ -124,6 +123,13 @@ export default function TasksTab({ project }) {
           />
         ) : null}
       </PageBar>
+
+      {projectTasks.length > 0 ? (
+        <div className={styles.subbar}>
+          <p className={styles.count} role="status">{visible.length} {visible.length === 1 ? "task" : "tasks"}</p>
+          <TaskViewTools filters={filters} dispatch={dispatch} />
+        </div>
+      ) : null}
 
       {renderBody()}
 

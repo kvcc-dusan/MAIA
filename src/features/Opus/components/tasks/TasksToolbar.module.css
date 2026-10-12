@@ -1,7 +1,9 @@
-/* One line that gives way before it wraps: the selects shrink when the search opens. */
-.row { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex: 0 1 auto; }
-.field { flex: 0 1 12rem; min-width: 8rem; }
-.search { flex: 0 1 13rem; min-width: 9rem; }
-.row > button, .row > [data-slot] { flex: none; }
+/* Dropdown widths fit their longest label; the popup grows past them (see components.css). */
+.status { flex: 0 0 9.5rem; }
+.workstream { flex: 0 1 12rem; min-width: 9rem; }
+.owner { flex: 0 1 10rem; min-width: 8rem; }
+.view { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.search { flex: 0 1 16rem; min-width: 10rem; }
+.search > * { max-width: none; }
 .hidden { visibility: hidden; }
-@media (max-width: 560px) { .row { flex-wrap: wrap; } .field { flex: 1 1 100%; } }
+@media (max-width: 560px) { .status, .workstream, .owner, .search { flex: 1 1 100%; } .view { flex-wrap: wrap; } }
