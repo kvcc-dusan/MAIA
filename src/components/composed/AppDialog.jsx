@@ -17,6 +17,7 @@ import styles from "./AppDialog.module.css";
 const SIZE_CLASS = {
   sm: styles.sm,
   md: undefined, // Arc's default width
+  form: styles.form,
   lg: styles.lg,
   xl: styles.xl,
   full: styles.full,

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { EntityForm } from "@/components/composed/EntityForm";
+import { FormGrid, FormSpan } from "@/components/composed/FormGrid";
 import { Select } from "@/components/composed/Select";
 import { Input } from "@/components/arc/input/input";
 import { DOC_STATUSES } from "../../lib/docModel";
@@ -51,35 +52,50 @@ export default function DocumentForm({ note, workstreams = [], onSave, onCancel 
       onSubmit={handleSubmit}
       submitLabel={isEditing ? "Save changes" : "Add document"}
     >
-      <Input
-        ref={titleRef}
-        autoFocus
-        label="Title"
-        placeholder="Launch plan"
-        aria-required="true"
-        value={draft.title}
-        error={errors.title}
-        onChange={(event) => change("title", event.target.value)}
-      />
-      <Select label="Kind" value={draft.kind} options={kindOptions} onChange={(value) => change("kind", value)} />
-      <Select label="Status" value={draft.status} options={DOC_STATUSES} onChange={(value) => change("status", value)} />
-      {workstreamChoices.length > 0 && (
+      <FormGrid>
+        <FormSpan>
+          <Input
+            ref={titleRef}
+            autoFocus
+            label="Title"
+            placeholder="Launch plan"
+            aria-required="true"
+            value={draft.title}
+            error={errors.title}
+            onChange={(event) => change("title", event.target.value)}
+          />
+        </FormSpan>
+        <Select label="Kind" value={draft.kind} options={kindOptions} onChange={(value) => change("kind", value)} />
         <Select
-          label="Workstream"
-          value={draft.workstreamId}
-          options={workstreamChoices}
-          onChange={(value) => change("workstreamId", value)}
-          placeholder="None"
-          clearLabel="None"
+          label="Status"
+          value={draft.status}
+          options={DOC_STATUSES}
+          onChange={(value) => change("status", value)}
         />
-      )}
-      <Input
-        label="Owner"
-        placeholder="Who looks after this?"
-        value={draft.owner}
-        onChange={(event) => change("owner", event.target.value)}
-      />
-      {saveError && <p role="alert" className={styles.saveError}>{saveError}</p>}
+        {workstreamChoices.length > 0 && (
+          <Select
+            label="Workstream"
+            value={draft.workstreamId}
+            options={workstreamChoices}
+            onChange={(value) => change("workstreamId", value)}
+            placeholder="None"
+            clearLabel="None"
+          />
+        )}
+        <Input
+          label="Owner"
+          placeholder="Who looks after this?"
+          value={draft.owner}
+          onChange={(event) => change("owner", event.target.value)}
+        />
+        {saveError && (
+          <FormSpan>
+            <p role="alert" className={styles.saveError}>
+              {saveError}
+            </p>
+          </FormSpan>
+        )}
+      </FormGrid>
     </EntityForm>
   );
 }

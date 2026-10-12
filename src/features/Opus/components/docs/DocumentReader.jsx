@@ -13,7 +13,7 @@ export default function DocumentReader({ note, project, onClose, onOpenInCodex }
   const hasBody = Boolean(note?.content?.trim());
   return (
     <SidePanel
-      size="lg"
+      size="xl"
       open={Boolean(note)}
       onClose={onClose}
       title={note ? docTitle(note) : "Document"}

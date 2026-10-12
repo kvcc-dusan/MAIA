@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
 import { SidePanel } from "@/components/composed/SidePanel";
+import { FormGrid, FormSpan } from "@/components/composed/FormGrid";
 import { Select } from "@/components/composed/Select";
 import { DateTimeField } from "@/components/composed/DateTimeField";
 import { STATUS_OPTIONS, seriesColor, statsText } from "./roadmapModel";
@@ -51,7 +52,6 @@ export default function MilestonePanel({ open, milestone, workstreams, onClose, 
       onClose={onClose}
       onCloseAutoFocus={onCloseAutoFocus}
       title={isEditing ? "Edit milestone" : "Add milestone"}
-      description={isEditing ? milestone.title : "Give it a due date to place it on the timeline."}
       footer={
         <>
           {isEditing && (
@@ -62,8 +62,10 @@ export default function MilestonePanel({ open, milestone, workstreams, onClose, 
         </>
       }
     >
-      <form id={FORM_ID} className={styles.form} onSubmit={handleSubmit} noValidate>
-        <Input label="Title" value={title} error={errors.title} onChange={(e) => setTitle(e.target.value)} />
+      <FormGrid as="form" id={FORM_ID} onSubmit={handleSubmit} noValidate>
+        <FormSpan>
+          <Input label="Title" value={title} error={errors.title} onChange={(e) => setTitle(e.target.value)} />
+        </FormSpan>
         <Select
           label="Workstream"
           value={workstreamId}
@@ -73,15 +75,14 @@ export default function MilestonePanel({ open, milestone, workstreams, onClose, 
           clearLabel="Unassigned"
         />
         <Select label="Status" value={status} options={STATUS_OPTIONS} onChange={setStatus} />
-        <fieldset className={styles.fieldset}>
-          <legend className={styles.legend}>Dates</legend>
-          <DateTimeField dateOnly label="Start date" value={toField(start)} onChange={(v) => setStart(fromField(v))} />
-          <DateTimeField dateOnly label="Due date" value={toField(due)} onChange={(v) => setDue(fromField(v))} />
+        <DateTimeField dateOnly label="Start date" value={toField(start)} onChange={(v) => setStart(fromField(v))} />
+        <DateTimeField dateOnly label="Due date" value={toField(due)} onChange={(v) => setDue(fromField(v))} />
+        <FormSpan>
           {errors.due && <p role="alert" className={styles.error}>{errors.due}</p>}
-          <p className={styles.hint}>Both are optional. Without a start date the milestone shows as a marker on its due date.</p>
-        </fieldset>
-        {isEditing && <p className={styles.info}>{statsText(milestone.stats)}</p>}
-      </form>
+          <p className={styles.hint}>Both dates are optional. Without a start date the milestone shows as a marker on its due date.</p>
+        </FormSpan>
+        {isEditing && <FormSpan><p className={styles.info}>{statsText(milestone.stats)}</p></FormSpan>}
+      </FormGrid>
     </SidePanel>
   );
 }

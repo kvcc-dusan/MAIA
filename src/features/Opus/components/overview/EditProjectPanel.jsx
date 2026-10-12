@@ -3,6 +3,7 @@ import { Button } from "@/components/arc/button/button";
 import { Input } from "@/components/arc/input/input";
 import { Textarea } from "@/components/arc/textarea/textarea";
 import { SidePanel } from "@/components/composed/SidePanel";
+import { FormGrid, FormSpan } from "@/components/composed/FormGrid";
 import { ChipGroup } from "@/components/arc/chip-group/chip-group";
 import { DateTimeField } from "@/components/composed/DateTimeField";
 import { PROJECT_PHASES } from "../../lib/projectModel";
@@ -62,7 +63,6 @@ export default function EditProjectPanel({ open, project, onClose, onSave }) {
       open={open}
       onClose={onClose}
       title="Edit project"
-      description="The name, phase and dates shown at the top of the project."
       footer={
         <>
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
@@ -70,9 +70,9 @@ export default function EditProjectPanel({ open, project, onClose, onSave }) {
         </>
       }
     >
-      <form id={FORM_ID} className={styles.form} onSubmit={submit} noValidate>
+      <FormGrid as="form" id={FORM_ID} onSubmit={submit} noValidate>
         <Input label="Name" value={form.name} error={error} onChange={onText("name")} />
-        {/* Chips, not a dropdown: a popup opened inside this slide-in panel froze the Tauri window. */}
+        {/* Chips, not a dropdown: a popup opened inside the old slide-in panel froze the Tauri window. */}
         <div className={styles.phase}>
           <span className={styles.fieldLabel} id={PHASE_LABEL_ID}>Phase</span>
           <ChipGroup
@@ -84,17 +84,17 @@ export default function EditProjectPanel({ open, project, onClose, onSave }) {
           />
         </div>
         <Input label="Headline" value={form.headline} onChange={onText("headline")} />
-        <Textarea label="Focus" value={form.focus} onChange={onText("focus")} />
+        <Textarea label="Focus" rows={2} value={form.focus} onChange={onText("focus")} />
         <DateTimeField dateOnly label="Start date" value={form.startDate} onChange={set("startDate")} />
         <DateTimeField dateOnly label="Target date" value={form.targetDate} onChange={set("targetDate")} />
-        {targetBeforeStart ? <p className={styles.warning} role="status">The target date is before the start date.</p> : null}
-        <div className={styles.meeting}>
+        {targetBeforeStart ? <FormSpan><p className={styles.warning} role="status">The target date is before the start date.</p></FormSpan> : null}
+        <FormSpan className={styles.meeting}>
           <DateTimeField label="Next meeting" value={form.nextMeeting} onChange={set("nextMeeting")} />
           {form.nextMeeting ? (
             <Button type="button" variant="ghost" size="sm" onClick={() => set("nextMeeting")("")}>Clear meeting</Button>
           ) : null}
-        </div>
-      </form>
+        </FormSpan>
+      </FormGrid>
     </SidePanel>
   );
 }

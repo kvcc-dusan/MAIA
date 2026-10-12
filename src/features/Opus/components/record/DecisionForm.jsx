@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { EntityForm } from "@/components/composed/EntityForm";
+import { FormGrid, FormSpan } from "@/components/composed/FormGrid";
 import { Select } from "@/components/composed/Select";
 import { DateTimeField } from "@/components/composed/DateTimeField";
 import { Button } from "@/components/arc/button/button";
@@ -65,57 +66,71 @@ export default function DecisionForm({ decision, workstreams, today, onSave, onC
       onSubmit={handleSubmit}
       submitLabel={isEditing ? "Save changes" : "Log decision"}
     >
-      <Input
-        ref={titleRef}
-        autoFocus
-        label="Title"
-        placeholder="What was decided?"
-        aria-required="true"
-        value={draft.title}
-        error={errors.title}
-        onChange={(event) => change("title", event.target.value)}
-      />
+      <FormGrid>
+        <FormSpan>
+          <Input
+            ref={titleRef}
+            autoFocus
+            label="Title"
+            placeholder="What was decided?"
+            aria-required="true"
+            value={draft.title}
+            error={errors.title}
+            onChange={(event) => change("title", event.target.value)}
+          />
+        </FormSpan>
 
-      <DateTimeField
-        label="Date"
-        dateOnly
-        value={dayToFieldValue(draft.date)}
-        onChange={(value) => change("date", fieldValueToDay(value))}
-      />
-
-      <Input
-        label="Decided by"
-        placeholder="Who made the call?"
-        value={draft.by}
-        onChange={(event) => change("by", event.target.value)}
-      />
-
-      {options.length > 0 && (
-        <Select
-          label="Workstream"
-          value={draft.workstreamId}
-          options={options}
-          onChange={(value) => change("workstreamId", value)}
-          placeholder="None"
-          clearLabel="None"
+        <DateTimeField
+          label="Date"
+          dateOnly
+          value={dayToFieldValue(draft.date)}
+          onChange={(value) => change("date", fieldValueToDay(value))}
         />
-      )}
 
-      <Textarea
-        label="Detail"
-        placeholder="Why this, and what was ruled out?"
-        rows={4}
-        value={draft.detail}
-        onChange={(event) => change("detail", event.target.value)}
-      />
+        <Input
+          label="Decided by"
+          placeholder="Who made the call?"
+          value={draft.by}
+          onChange={(event) => change("by", event.target.value)}
+        />
 
-      {saveError && <p role="alert" className={styles.saveError}>{saveError}</p>}
+        {options.length > 0 && (
+          <Select
+            label="Workstream"
+            value={draft.workstreamId}
+            options={options}
+            onChange={(value) => change("workstreamId", value)}
+            placeholder="None"
+            clearLabel="None"
+          />
+        )}
 
-      {isEditing && onDelete && (
-        <div className={styles.dangerRow}>
-          <Button type="button" variant="danger" onClick={onDelete}>Delete decision</Button>
-        </div>
-      )}
+        <FormSpan>
+          <Textarea
+            label="Detail"
+            placeholder="Why this, and what was ruled out?"
+            rows={4}
+            value={draft.detail}
+            onChange={(event) => change("detail", event.target.value)}
+          />
+        </FormSpan>
+
+        {saveError && (
+          <FormSpan>
+            <p role="alert" className={styles.saveError}>
+              {saveError}
+            </p>
+          </FormSpan>
+        )}
+
+        {isEditing && onDelete && (
+          <FormSpan className={styles.dangerRow}>
+            <Button type="button" variant="danger" onClick={onDelete}>
+              Delete decision
+            </Button>
+          </FormSpan>
+        )}
+      </FormGrid>
     </EntityForm>
   );
 }

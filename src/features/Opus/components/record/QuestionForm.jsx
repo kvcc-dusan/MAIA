@@ -1,5 +1,6 @@
 import React, { useId, useRef, useState } from "react";
 import { EntityForm } from "@/components/composed/EntityForm";
+import { FormGrid, FormSpan } from "@/components/composed/FormGrid";
 import { Select } from "@/components/composed/Select";
 import { Button } from "@/components/arc/button/button";
 import StatusBadge from "../../kit/StatusBadge";
@@ -69,83 +70,105 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel, 
       onSubmit={handleSubmit}
       submitLabel={isEditing ? "Save changes" : "Add question"}
     >
-      {isEditing && (
-        <div className={styles.statusRow}>
-          <span className={styles.switchLabel}>Status</span>
-          <StatusBadge status={draft.status} />
-        </div>
-      )}
+      <FormGrid>
+        {isEditing && (
+          <FormSpan className={styles.statusRow}>
+            <span className={styles.switchLabel}>Status</span>
+            <StatusBadge status={draft.status} />
+          </FormSpan>
+        )}
 
-      <Textarea
-        ref={questionRef}
-        autoFocus
-        label="Question"
-        placeholder="What is still unknown?"
-        rows={3}
-        aria-required="true"
-        value={draft.question}
-        error={errors.question}
-        onChange={(event) => change("question", event.target.value)}
-      />
+        <FormSpan>
+          <Textarea
+            ref={questionRef}
+            autoFocus
+            label="Question"
+            placeholder="What is still unknown?"
+            rows={3}
+            aria-required="true"
+            value={draft.question}
+            error={errors.question}
+            onChange={(event) => change("question", event.target.value)}
+          />
+        </FormSpan>
 
-      <Input
-        label="Owner"
-        placeholder="Who needs to answer this?"
-        value={draft.owner}
-        onChange={(event) => change("owner", event.target.value)}
-      />
-
-      {options.length > 0 && (
-        <Select
-          label="Workstream"
-          value={draft.workstreamId}
-          options={options}
-          onChange={(value) => change("workstreamId", value)}
-          placeholder="None"
-          clearLabel="None"
+        <Input
+          label="Owner"
+          placeholder="Who needs to answer this?"
+          value={draft.owner}
+          onChange={(event) => change("owner", event.target.value)}
         />
-      )}
 
-      <div className={styles.switchRow}>
-        <div className={styles.switchText}>
-          <span id={blockingLabelId} className={styles.switchLabel}>Blocking</span>
-          <span id={blockingHintId} className={styles.switchHint}>
-            Work is held up until this question is answered.
-          </span>
-        </div>
-        <Switch
-          checked={draft.blocking}
-          onCheckedChange={(checked) => change("blocking", checked)}
-          aria-labelledby={blockingLabelId}
-          aria-describedby={blockingHintId}
-        />
-      </div>
+        {options.length > 0 && (
+          <Select
+            label="Workstream"
+            value={draft.workstreamId}
+            options={options}
+            onChange={(value) => change("workstreamId", value)}
+            placeholder="None"
+            clearLabel="None"
+          />
+        )}
 
-      {isEditing && (
-        <Textarea
-          ref={answerRef}
-          label="Answer"
-          placeholder="What was decided or found out?"
-          rows={3}
-          aria-required={isAnswered || undefined}
-          value={draft.answer}
-          error={errors.answer}
-          onChange={(event) => change("answer", event.target.value)}
-        />
-      )}
+        <FormSpan className={styles.switchRow}>
+          <div className={styles.switchText}>
+            <span id={blockingLabelId} className={styles.switchLabel}>
+              Blocking
+            </span>
+            <span id={blockingHintId} className={styles.switchHint}>
+              Work is held up until this question is answered.
+            </span>
+          </div>
+          <Switch
+            checked={draft.blocking}
+            onCheckedChange={(checked) => change("blocking", checked)}
+            aria-labelledby={blockingLabelId}
+            aria-describedby={blockingHintId}
+          />
+        </FormSpan>
 
-      {saveError && <p role="alert" className={styles.saveError}>{saveError}</p>}
+        {isEditing && (
+          <FormSpan>
+            <Textarea
+              ref={answerRef}
+              label="Answer"
+              placeholder="What was decided or found out?"
+              rows={3}
+              aria-required={isAnswered || undefined}
+              value={draft.answer}
+              error={errors.answer}
+              onChange={(event) => change("answer", event.target.value)}
+            />
+          </FormSpan>
+        )}
 
-      {isEditing && (
-        <div className={styles.dangerRow}>
-          {isAnswered ? (
-            <Button type="button" variant="secondary" onClick={() => submitAs("open")}>Reopen</Button>
-          ) : (
-            <Button type="button" variant="secondary" onClick={() => submitAs("answered")}>Mark answered</Button>
-          )}
-          {onDelete && <Button type="button" variant="danger" onClick={onDelete}>Delete question</Button>}
-        </div>
-      )}
+        {saveError && (
+          <FormSpan>
+            <p role="alert" className={styles.saveError}>
+              {saveError}
+            </p>
+          </FormSpan>
+        )}
+
+        {isEditing && (
+          <FormSpan className={styles.dangerRow}>
+            {isAnswered ? (
+              <Button type="button" variant="secondary" onClick={() => submitAs("open")}>
+                Reopen
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" onClick={() => submitAs("answered")}>
+                Mark answered
+              </Button>
+            )}
+            {onDelete && (
+              <Button type="button" variant="danger" onClick={onDelete}>
+                Delete question
+              </Button>
+            )}
+          </FormSpan>
+        )}
+      </FormGrid>
     </EntityForm>
   );
 }

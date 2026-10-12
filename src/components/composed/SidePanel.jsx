@@ -8,7 +8,7 @@ import { AppDialog } from "./AppDialog";
  * `side` is accepted and ignored.
  */
 // eslint-disable-next-line no-unused-vars
-function SidePanel({ side, size = "md", ...props }) {
+function SidePanel({ side, size = "form", ...props }) {
   return <AppDialog size={size} {...props} />;
 }
 

@@ -5,6 +5,7 @@
 
 /* Two classes so a size beats Arc's single-class width regardless of stylesheet order. */
 .dialog.sm { width: min(calc(100vw - var(--space-8)), 24rem); }
+.dialog.form { width: min(calc(100vw - var(--space-8)), 46rem); }
 .dialog.lg { width: min(calc(100vw - var(--space-8)), 42rem); }
 .dialog.xl { width: min(calc(100vw - var(--space-8)), 56rem); }
 .dialog.full { width: min(72rem, calc(100vw - var(--space-16))); height: min(85vh, calc(100dvh - var(--space-16))); }

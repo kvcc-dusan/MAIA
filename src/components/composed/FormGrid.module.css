@@ -1,0 +1,7 @@
+/* Two columns for short fields, FormSpan for anything that needs the full width. One column on narrow windows. */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5) var(--space-6); align-items: start; min-width: 0; }
+.grid > * { min-width: 0; }
+.span { grid-column: 1 / -1; min-width: 0; }
+@media (max-width: 40rem) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}
