@@ -1,0 +1,24 @@
+/*
+ * Arc's accent hues as standalone tokens, so several can show at once (project icon colours).
+ * foundation.css only defines them as the single active --accent under :root[data-accent="..."];
+ * these are the same light and dark values, written in oklch. Overrides live here, never in foundation.
+ */
+:root {
+  --hue-violet: oklch(56.7% 0.253 287.3);
+  --hue-blue: oklch(54.2% 0.226 260.6);
+  --hue-green: oklch(69.1% 0.155 159.7);
+  --hue-amber: oklch(79.4% 0.159 78.0);
+  --hue-orange: oklch(71.9% 0.171 53.7);
+  --hue-coral: oklch(67.2% 0.182 27.0);
+  --hue-rose: oklch(66.5% 0.207 353.6);
+}
+
+:root[data-theme="dark"] {
+  --hue-violet: oklch(71.2% 0.166 292.8);
+  --hue-blue: oklch(71.7% 0.147 259.9);
+  --hue-green: oklch(80.6% 0.143 163.6);
+  --hue-amber: oklch(86.8% 0.135 82.8);
+  --hue-orange: oklch(81.2% 0.135 62.8);
+  --hue-coral: oklch(77.5% 0.132 27.8);
+  --hue-rose: oklch(77.9% 0.154 350.0);
+}

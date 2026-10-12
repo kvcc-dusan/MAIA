@@ -10,6 +10,7 @@
 /* Arc foundation owns the semantic palette; tokens.css is the legacy-name bridge. */
 @import './components/arc/foundation.css';
 @import './styles/theme-black.css';
+@import './styles/accent-hues.css';
 @import './styles/tokens.css';
 @import './styles/base.css';
 @import './styles/surfaces.css';
