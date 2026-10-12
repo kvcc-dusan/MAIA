@@ -241,6 +241,7 @@ npx vitest run                             # tests
 npx eslint src/                            # lint (ignores src-tauri/target and src/components/arc)
 npm run lint:tokens                        # token ratchet, the count must go down
 npm run tauri build -- --debug --no-bundle # desktop debug build
+npm run install-app                        # ship: release build, quit Maia, replace /Applications/Maia.app, relaunch (`-- --build-only` just builds)
 ```
 
 ## Docs
