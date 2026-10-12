@@ -4,16 +4,12 @@ import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { useData } from "@/context/DataContext";
 import { useOpusNav } from "../OpusNavContext";
-import { PageBar } from "../kit";
 import { toDayString } from "../lib/metrics";
 import { projectPeople, showOwners as hasManyOwners } from "../lib/people";
 import TaskEditor from "../components/tasks/TaskEditor";
 import TasksList from "../components/tasks/TasksList";
-import { TaskFilters, TaskViewTools } from "../components/tasks/TasksToolbar";
-import {
-  EMPTY_COPY, EXACT_STATUSES, filterTasks, groupTasks,
-  hasExtraFilters, sanitizeFilters,
-} from "../components/tasks/filterTasks";
+import { TaskFilters } from "../components/tasks/TasksToolbar";
+import { EMPTY_COPY, EXACT_STATUSES, filterTasks, groupTasks, hasExtraFilters, sanitizeFilters } from "../components/tasks/filterTasks";
 import { useTaskFilters } from "../components/tasks/useTaskFilters";
 import { buildCreateArgs, buildPatch } from "../components/tasks/taskDraft";
 import { workstreamColor } from "../components/tasks/taskDisplay";
@@ -45,14 +41,24 @@ export default function TasksTab({ project }) {
   const milestone = milestonesById.get(filters.milestoneId);
   const hasExtras = hasExtraFilters(filters);
 
-  const openTask = useCallback((id) => setDrawer((d) => ({ open: true, mode: "edit", session: d.session + 1, taskId: id, initial: {} })), []);
-  const openCreate = useCallback(() => setDrawer((d) => ({
-    open: true, mode: "create", session: d.session + 1, taskId: null,
-    initial: { workstreamId: filters.workstreamId || null, milestoneId: filters.milestoneId || null },
-  })), [filters.workstreamId, filters.milestoneId]);
+  const openTask = useCallback(
+    (id) => setDrawer((d) => ({ open: true, mode: "edit", session: d.session + 1, taskId: id, initial: {} })),
+    [],
+  );
+  const openCreate = useCallback(
+    () =>
+      setDrawer((d) => ({
+        open: true,
+        mode: "create",
+        session: d.session + 1,
+        taskId: null,
+        initial: { workstreamId: filters.workstreamId || null, milestoneId: filters.milestoneId || null },
+      })),
+    [filters.workstreamId, filters.milestoneId],
+  );
   const closeDrawer = useCallback(() => setDrawer((d) => ({ ...d, open: false })), []);
 
-  const editing = drawer.mode === "edit" ? projectTasks.find((t) => t.id === drawer.taskId) ?? null : null;
+  const editing = drawer.mode === "edit" ? (projectTasks.find((t) => t.id === drawer.taskId) ?? null) : null;
   const isDrawerOpen = drawer.open && (drawer.mode === "create" || Boolean(editing));
 
   const handleSave = (draft) => {
@@ -68,7 +74,7 @@ export default function TasksTab({ project }) {
 
   const ctx = useMemo(
     () => ({ today, showOwners, onToggle: toggleTask, onUpdate: updateTask, onOpen: openTask }),
-    [today, showOwners, toggleTask, updateTask, openTask]
+    [today, showOwners, toggleTask, updateTask, openTask],
   );
 
   const wsOptions = workstreams.map((w) => ({ value: w.id, label: w.name, color: workstreamColor(w) }));
@@ -93,24 +99,24 @@ export default function TasksTab({ project }) {
           icon={isFiltered ? SearchX : ListChecks}
           title={isFiltered ? "No tasks match" : emptyTitle}
           description={isFiltered ? "Nothing fits these filters. Clear them to see more." : emptyText}
-          action={isFiltered ? <Button variant="secondary" onClick={() => dispatch({ type: "clear" })}>Clear filters</Button> : undefined}
+          action={
+            isFiltered ? (
+              <Button variant="secondary" onClick={() => dispatch({ type: "clear" })}>
+                Clear filters
+              </Button>
+            ) : undefined
+          }
         />
       );
     }
     return (
-      <TasksList
-        groups={groups}
-        groupBy={filters.groupBy}
-        ctx={ctx}
-        workstreamsById={workstreamsById}
-        milestonesById={milestonesById}
-      />
+      <TasksList groups={groups} groupBy={filters.groupBy} ctx={ctx} workstreamsById={workstreamsById} milestonesById={milestonesById} />
     );
   };
 
   return (
     <div className={styles.page}>
-      <PageBar action={<Button onClick={openCreate}><Plus size={16} strokeWidth={1.75} aria-hidden="true" /> New task</Button>}>
+      <div className={styles.bar}>
         {projectTasks.length > 0 ? (
           <TaskFilters
             filters={filters}
@@ -122,13 +128,15 @@ export default function TasksTab({ project }) {
             milestone={milestone}
           />
         ) : null}
-      </PageBar>
+        <Button className={styles.create} onClick={openCreate}>
+          <Plus size={16} strokeWidth={1.75} aria-hidden="true" /> New task
+        </Button>
+      </div>
 
       {projectTasks.length > 0 ? (
-        <div className={styles.subbar}>
-          <p className={styles.count} role="status">{visible.length} {visible.length === 1 ? "task" : "tasks"}</p>
-          <TaskViewTools filters={filters} dispatch={dispatch} />
-        </div>
+        <p className={styles.count} role="status">
+          {visible.length} {visible.length === 1 ? "task" : "tasks"}
+        </p>
       ) : null}
 
       {renderBody()}
@@ -143,7 +151,9 @@ export default function TasksTab({ project }) {
         people={people}
         onClose={closeDrawer}
         onSave={handleSave}
-        onDelete={() => { if (editing) deleteTask(editing.id); }}
+        onDelete={() => {
+          if (editing) deleteTask(editing.id);
+        }}
       />
     </div>
   );

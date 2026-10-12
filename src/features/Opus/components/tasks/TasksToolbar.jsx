@@ -10,12 +10,12 @@ import styles from "./TasksToolbar.module.css";
 const ICON = { size: 16, strokeWidth: 1.75, "aria-hidden": "true" };
 
 /**
- * The filters, in the top bar next to New task: status, workstream and owner dropdowns.
+ * The whole toolbar in one line: status, workstream and owner dropdowns, the search field and the View menu.
  * Removable chips show filters that only arrive through navigation (an exact status, a milestone).
  */
 export function TaskFilters({ filters, dispatch, wsOptions, ownerOptions, showOwners, exactLabel, milestone }) {
   return (
-    <>
+    <div className={styles.row} data-owners={showOwners || undefined}>
       <div className={styles.status}>
         <Select
           label="Status"
@@ -33,7 +33,7 @@ export function TaskFilters({ filters, dispatch, wsOptions, ownerOptions, showOw
           value={filters.workstreamId || null}
           options={wsOptions}
           clearLabel="All workstreams"
-          placeholder="All workstreams"
+          placeholder="Workstream"
           onChange={(value) => dispatch({ type: "workstream", value })}
         />
       </div>
@@ -45,22 +45,41 @@ export function TaskFilters({ filters, dispatch, wsOptions, ownerOptions, showOw
             value={filters.owner || null}
             options={ownerOptions}
             clearLabel="Everyone"
-            placeholder="Everyone"
+            placeholder="Owner"
             onChange={(value) => dispatch({ type: "owner", value })}
           />
         </div>
       ) : null}
+      <div className={styles.search}>
+        <SearchBox
+          label="Search tasks"
+          placeholder="Search"
+          value={filters.query}
+          onValueChange={(value) => dispatch({ type: "query", value })}
+        />
+      </div>
+      <ViewMenu sort={filters.sort} groupBy={filters.groupBy} dispatch={dispatch} />
       {exactLabel ? (
-        <Button variant="secondary" size="sm" onClick={() => dispatch({ type: "status", value: "open" })} aria-label={`Remove status filter ${exactLabel}`}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => dispatch({ type: "status", value: "open" })}
+          aria-label={`Remove status filter ${exactLabel}`}
+        >
           Status: {exactLabel} <X size={14} strokeWidth={1.75} aria-hidden="true" />
         </Button>
       ) : null}
       {milestone ? (
-        <Button variant="secondary" size="sm" onClick={() => dispatch({ type: "milestone", value: "" })} aria-label={`Remove milestone filter ${milestone.title}`}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => dispatch({ type: "milestone", value: "" })}
+          aria-label={`Remove milestone filter ${milestone.title}`}
+        >
           Milestone: {milestone.title} <X size={14} strokeWidth={1.75} aria-hidden="true" />
         </Button>
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -91,22 +110,5 @@ function ViewMenu({ sort, groupBy, dispatch }) {
         </Menu.Group>
       </Menu.Content>
     </Menu.Root>
-  );
-}
-
-/** The second row's right side: the search field and the View menu. */
-export function TaskViewTools({ filters, dispatch }) {
-  return (
-    <div className={styles.view}>
-      <div className={styles.search}>
-        <SearchBox
-          label="Search tasks"
-          placeholder="Search tasks"
-          value={filters.query}
-          onValueChange={(value) => dispatch({ type: "query", value })}
-        />
-      </div>
-      <ViewMenu sort={filters.sort} groupBy={filters.groupBy} dispatch={dispatch} />
-    </div>
   );
 }
