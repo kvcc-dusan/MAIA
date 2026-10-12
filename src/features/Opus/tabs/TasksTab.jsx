@@ -1,17 +1,17 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Plus, SearchX, ListChecks, X } from "@/components/icons";
+import { Plus, SearchX, ListChecks } from "@/components/icons";
 import { Button } from "@/components/arc/button/button";
 import { EmptyState } from "@/components/composed/EmptyState";
-import { Select } from "@/components/composed/Select";
 import { useData } from "@/context/DataContext";
 import { useOpusNav } from "../OpusNavContext";
-import { FilterChips, PageBar, SearchBox } from "../kit";
+import { PageBar } from "../kit";
 import { toDayString } from "../lib/metrics";
 import { projectPeople, showOwners as hasManyOwners } from "../lib/people";
 import TaskEditor from "../components/tasks/TaskEditor";
 import TasksList from "../components/tasks/TasksList";
+import TasksToolbar from "../components/tasks/TasksToolbar";
 import {
-  EMPTY_COPY, EXACT_STATUSES, GROUP_OPTIONS, SORT_OPTIONS, STATUS_FILTERS, filterTasks, groupTasks,
+  EMPTY_COPY, EXACT_STATUSES, filterTasks, groupTasks,
   hasExtraFilters, sanitizeFilters,
 } from "../components/tasks/filterTasks";
 import { useTaskFilters } from "../components/tasks/useTaskFilters";
@@ -112,79 +112,18 @@ export default function TasksTab({ project }) {
   return (
     <div className={styles.page}>
       <PageBar action={<Button onClick={openCreate}><Plus size={16} strokeWidth={1.75} aria-hidden="true" /> New task</Button>}>
-        <FilterChips
-          label="Task status"
-          options={STATUS_FILTERS}
-          value={exactLabel ? "" : filters.status}
-          onValueChange={(value) => dispatch({ type: "status", value })}
-        />
-        {exactLabel ? (
-          <Button variant="secondary" size="sm" onClick={() => dispatch({ type: "status", value: "open" })} aria-label={`Remove status filter ${exactLabel}`}>
-            Status: {exactLabel} <X size={14} strokeWidth={1.75} aria-hidden="true" />
-          </Button>
-        ) : null}
-        {milestone ? (
-          <Button variant="secondary" size="sm" onClick={() => dispatch({ type: "milestone", value: "" })} aria-label={`Remove milestone filter ${milestone.title}`}>
-            Milestone: {milestone.title} <X size={14} strokeWidth={1.75} aria-hidden="true" />
-          </Button>
+        {projectTasks.length > 0 ? (
+          <TasksToolbar
+            filters={filters}
+            dispatch={dispatch}
+            wsOptions={wsOptions}
+            ownerOptions={ownerOptions}
+            showOwners={showOwners}
+            exactLabel={exactLabel}
+            milestone={milestone}
+          />
         ) : null}
       </PageBar>
-
-      {projectTasks.length > 0 ? (
-        <div className={styles.toolbar}>
-          <div className={styles.tools}>
-            <SearchBox
-              className={styles.search}
-              label="Search tasks"
-              placeholder="Search tasks"
-              value={filters.query}
-              onValueChange={(value) => dispatch({ type: "query", value })}
-            />
-            <div className={styles.field}>
-              <Select
-                label="Workstream"
-                labelClassName="sr-only"
-                value={filters.workstreamId || null}
-                options={wsOptions}
-                clearLabel="All workstreams"
-                placeholder="All workstreams"
-                onChange={(value) => dispatch({ type: "workstream", value })}
-              />
-            </div>
-            {showOwners ? (
-              <div className={styles.field}>
-                <Select
-                  label="Owner"
-                  labelClassName="sr-only"
-                  value={filters.owner || null}
-                  options={ownerOptions}
-                  clearLabel="Everyone"
-                  placeholder="Everyone"
-                  onChange={(value) => dispatch({ type: "owner", value })}
-                />
-              </div>
-            ) : null}
-            <div className={styles.field}>
-              <Select
-                label="Sort by"
-                labelClassName="sr-only"
-                value={filters.sort}
-                options={SORT_OPTIONS}
-                onChange={(value) => dispatch({ type: "sort", value })}
-              />
-            </div>
-          </div>
-          <div className={styles.group}>
-            <span className={styles.groupLabel}>Group by</span>
-            <FilterChips
-              label="Group tasks by"
-              options={GROUP_OPTIONS}
-              value={filters.groupBy}
-              onValueChange={(value) => dispatch({ type: "groupBy", value })}
-            />
-          </div>
-        </div>
-      ) : null}
 
       {renderBody()}
 

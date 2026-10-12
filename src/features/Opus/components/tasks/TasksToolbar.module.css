@@ -1,0 +1,7 @@
+/* One line that gives way before it wraps: the selects shrink when the search opens. */
+.row { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex: 0 1 auto; }
+.field { flex: 0 1 12rem; min-width: 8rem; }
+.search { flex: 0 1 13rem; min-width: 9rem; }
+.row > button, .row > [data-slot] { flex: none; }
+.hidden { visibility: hidden; }
+@media (max-width: 560px) { .row { flex-wrap: wrap; } .field { flex: 1 1 100%; } }
