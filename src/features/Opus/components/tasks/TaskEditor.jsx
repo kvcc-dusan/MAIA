@@ -64,6 +64,7 @@ export default function TaskEditor({ open, mode, session, task, initial, project
   return (
     <>
       <SidePanel
+        size="lg"
         open={open}
         onClose={onClose}
         title={isEdit ? "Edit task" : "New task"}
