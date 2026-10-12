@@ -20,14 +20,31 @@ export default function TaskForm({ formId, draft, errors, saveError, project, pe
 
   return (
     <FormGrid as="form" id={formId} onSubmit={onSubmit} noValidate>
-      <FormSpan>
-        <Input label="Title" value={draft.title} onChange={(e) => patch({ title: e.target.value })} error={errors.title} autoFocus />
-      </FormSpan>
+      <Input
+        label="Title"
+        value={draft.title}
+        onChange={(e) => patch({ title: e.target.value })}
+        error={errors.title}
+        autoFocus
+      />
+      <Select label="Status" value={draft.status} options={STATUS_OPTIONS} onChange={(status) => patch({ status })} />
       <FormSpan>
         <Textarea label="Description" value={draft.desc} onChange={(e) => patch({ desc: e.target.value })} rows={4} />
       </FormSpan>
-      <Select label="Status" value={draft.status} options={STATUS_OPTIONS} onChange={(status) => patch({ status })} />
-      <Select label="Priority" value={draft.priority} options={PRIORITY_OPTIONS_SHORT} onChange={(priority) => patch({ priority: priority ?? "p3" })} />
+      <Select
+        label="Priority"
+        value={draft.priority}
+        options={PRIORITY_OPTIONS_SHORT}
+        onChange={(priority) => patch({ priority: priority ?? "p3" })}
+      />
+      <Select
+        label="Estimate"
+        value={draft.estimate}
+        options={estimateOptionsFor(draft.estimate)}
+        clearLabel="No estimate"
+        placeholder="No estimate"
+        onChange={(estimate) => patch({ estimate })}
+      />
       <Select
         label="Workstream"
         value={draft.workstreamId}
@@ -44,9 +61,17 @@ export default function TaskForm({ formId, draft, errors, saveError, project, pe
         placeholder="None"
         onChange={(milestoneId) => patch({ milestoneId })}
       />
-      <Input label="Owner" value={draft.owner} onChange={(e) => patch({ owner: e.target.value })} list={listId} autoComplete="off" />
+      <Input
+        label="Owner"
+        value={draft.owner}
+        onChange={(e) => patch({ owner: e.target.value })}
+        list={listId}
+        autoComplete="off"
+      />
       <datalist id={listId}>
-        {people.map((name) => <option key={name} value={name} />)}
+        {people.map((name) => (
+          <option key={name} value={name} />
+        ))}
       </datalist>
       <DateTimeField
         dateOnly
@@ -54,15 +79,13 @@ export default function TaskForm({ formId, draft, errors, saveError, project, pe
         value={draft.due ? `${draft.due}T12:00` : ""}
         onChange={(value) => patch({ due: String(value ?? "").slice(0, 10) })}
       />
-      <Select
-        label="Estimate"
-        value={draft.estimate}
-        options={estimateOptionsFor(draft.estimate)}
-        clearLabel="No estimate"
-        placeholder="No estimate"
-        onChange={(estimate) => patch({ estimate })}
-      />
-      {saveError && <FormSpan><p role="alert" className={styles.error}>{saveError}</p></FormSpan>}
+      {saveError && (
+        <FormSpan>
+          <p role="alert" className={styles.error}>
+            {saveError}
+          </p>
+        </FormSpan>
+      )}
     </FormGrid>
   );
 }

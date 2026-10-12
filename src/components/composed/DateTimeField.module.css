@@ -17,6 +17,10 @@
   .withTime {
     grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   }
+  .withTime.equal {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-6);
+  }
 }
 
 /* Arc's pickers always render a visible label. When the caller gives none (or

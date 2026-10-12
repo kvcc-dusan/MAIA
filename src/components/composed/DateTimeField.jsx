@@ -25,9 +25,10 @@ const parseValue = (value) => {
  * keeps the current time; picking a time keeps the current date. With no
  * value, the missing half starts from "now", as before.
  *
- * `dateOnly` renders just the date picker.
+ * `dateOnly` renders just the date picker. `equal` gives date and time equal columns with the
+ * form grid's column gap, so they line up with two-column fields above and below.
  */
-function DateTimeField({ label, labelClassName, value, onChange, dateOnly = false }) {
+function DateTimeField({ label, labelClassName, value, onChange, dateOnly = false, equal = false }) {
   const parsed = parseValue(value);
   const base = parsed ?? new Date();
   const hideLabels = !label || /(^|\s)sr-only(\s|$)/.test(labelClassName ?? "");
@@ -60,7 +61,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
       <div
         role="group"
         aria-label={label || undefined}
-        className={cn(styles.group, !dateOnly && styles.withTime, hideLabels && styles.hiddenLabels)}
+        className={cn(styles.group, !dateOnly && styles.withTime, equal && styles.equal, hideLabels && styles.hiddenLabels)}
       >
         <DatePicker
           label={dateLabel}

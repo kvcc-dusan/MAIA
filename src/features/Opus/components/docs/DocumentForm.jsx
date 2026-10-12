@@ -45,6 +45,9 @@ export default function DocumentForm({ note, workstreams = [], onSave, onCancel 
 
   const workstreamChoices = workstreams.map((w) => ({ value: w.id, label: w.name }));
 
+  // Owner pairs with Workstream; without workstreams it takes the full row so the grid stays even.
+  const OwnerSlot = workstreamChoices.length > 0 ? React.Fragment : FormSpan;
+
   return (
     <EntityForm
       inPanel
@@ -82,12 +85,14 @@ export default function DocumentForm({ note, workstreams = [], onSave, onCancel 
             clearLabel="None"
           />
         )}
-        <Input
-          label="Owner"
-          placeholder="Who looks after this?"
-          value={draft.owner}
-          onChange={(event) => change("owner", event.target.value)}
-        />
+        <OwnerSlot>
+          <Input
+            label="Owner"
+            placeholder="Who looks after this?"
+            value={draft.owner}
+            onChange={(event) => change("owner", event.target.value)}
+          />
+        </OwnerSlot>
         {saveError && (
           <FormSpan>
             <p role="alert" className={styles.saveError}>

@@ -62,6 +62,9 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel, 
 
   const handleSubmit = () => submitAs(draft.status);
 
+  // Owner pairs with Workstream; without workstreams it takes the full row so the grid stays even.
+  const OwnerSlot = options.length > 0 ? React.Fragment : FormSpan;
+
   return (
     <EntityForm
       inPanel
@@ -92,12 +95,14 @@ export default function QuestionForm({ question, workstreams, onSave, onCancel, 
           />
         </FormSpan>
 
-        <Input
-          label="Owner"
-          placeholder="Who needs to answer this?"
-          value={draft.owner}
-          onChange={(event) => change("owner", event.target.value)}
-        />
+        <OwnerSlot>
+          <Input
+            label="Owner"
+            placeholder="Who needs to answer this?"
+            value={draft.owner}
+            onChange={(event) => change("owner", event.target.value)}
+          />
+        </OwnerSlot>
 
         {options.length > 0 && (
           <Select

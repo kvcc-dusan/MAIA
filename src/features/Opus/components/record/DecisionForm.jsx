@@ -95,14 +95,16 @@ export default function DecisionForm({ decision, workstreams, today, onSave, onC
         />
 
         {options.length > 0 && (
-          <Select
-            label="Workstream"
-            value={draft.workstreamId}
-            options={options}
-            onChange={(value) => change("workstreamId", value)}
-            placeholder="None"
-            clearLabel="None"
-          />
+          <FormSpan>
+            <Select
+              label="Workstream"
+              value={draft.workstreamId}
+              options={options}
+              onChange={(value) => change("workstreamId", value)}
+              placeholder="None"
+              clearLabel="None"
+            />
+          </FormSpan>
         )}
 
         <FormSpan>
