@@ -12,12 +12,15 @@ const MODES = [
 ];
 
 /** The generated report: Preview or Markdown source, Copy markdown, Save as note. */
-export default function ReportCard({ title, markdown, mode, onModeChange, savedNoteId, onSave, onOpenSaved }) {
+export default function ReportCard({ title, rangeText, markdown, mode, onModeChange, savedNoteId, onSave, onOpenSaved }) {
   const isSaved = savedNoteId !== null;
   return (
     <section className={styles.card} aria-labelledby="report-card-title">
       <header className={styles.head}>
-        <h2 id="report-card-title" className={styles.cardTitle}>{title}</h2>
+        <div className={styles.heading}>
+          <h2 id="report-card-title" className={styles.cardTitle}>{title}</h2>
+          {rangeText ? <p className={styles.range}>{rangeText}</p> : null}
+        </div>
         <FilterChips label="Report format" options={MODES} value={mode} onValueChange={onModeChange} />
       </header>
       <div className={styles.content}>

@@ -62,7 +62,6 @@ export default function ReportTab({ project, selectNote }) {
             onChange={(next) => next != null && setWeeksBack(Number(next))}
           />
         </div>
-        <span className={styles.range}>{rangeLabel(range)}</span>
       </PageBar>
 
       {report.failed ? (
@@ -79,6 +78,7 @@ export default function ReportTab({ project, selectNote }) {
         <>
           <ReportCard
             title={weekTitle(range)}
+            rangeText={rangeLabel(range)}
             markdown={report.markdown}
             mode={mode}
             onModeChange={setMode}

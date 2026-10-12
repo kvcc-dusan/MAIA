@@ -1,3 +1,2 @@
 .page { container: report / inline-size; display: grid; gap: var(--space-4); min-width: 0; }
 .week { flex: 0 1 12rem; min-width: 9rem; }
-.range { color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
