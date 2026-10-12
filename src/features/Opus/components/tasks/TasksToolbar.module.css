@@ -1,9 +1,9 @@
-/* Dropdown widths fit their longest label; the popup grows past them (see components.css). */
-.status { flex: 0 0 9.5rem; }
-.workstream { flex: 0 1 12rem; min-width: 9rem; }
-.owner { flex: 0 1 10rem; min-width: 8rem; }
-.view { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
-.search { flex: 0 1 16rem; min-width: 10rem; }
-.search > * { max-width: none; }
+/* The three filter dropdowns share one width; their popups grow to the labels (see components.css). */
+.status, .workstream, .owner { flex: 1 1 0; min-width: 8rem; max-width: 12rem; }
+/* A fixed two-column grid, so the search and View always end flush with the right edge of the page. */
+.view { display: grid; grid-template-columns: 16rem auto; align-items: center; gap: var(--space-3); min-width: 0; margin-inline-start: auto; }
+.search { min-width: 0; }
+.search > * { max-width: none; width: 100%; }
 .hidden { visibility: hidden; }
-@media (max-width: 560px) { .status, .workstream, .owner, .search { flex: 1 1 100%; } .view { flex-wrap: wrap; } }
+@media (max-width: 40rem) { .view { grid-template-columns: minmax(0, 1fr) auto; width: 100%; } }
+@media (max-width: 560px) { .status, .workstream, .owner { flex: 1 1 100%; max-width: none; } }
