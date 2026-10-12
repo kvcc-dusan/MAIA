@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  GROUP_PULL_DEFAULT, GROUP_PULL_MAX, GROUP_PULL_MIN, HOME_STRENGTH, chargeFor, createFolderForce, createHomeForce, folderStrengthFor, linkDistanceFor, linkDistanceFor3d,
+  GROUP_PULL_DEFAULT, GROUP_PULL_MAX, GROUP_PULL_MIN, chargeFor, createFolderForce, folderStrengthFor, linkDistanceFor, linkDistanceFor3d,
 } from "./graphForces.js";
 
 const node = (id, folder, x, y = 0, z = 0) => ({ id, folder, x, y, z, vx: 0, vy: 0, vz: 0 });
@@ -116,55 +116,5 @@ describe("entanglement mappings", () => {
 
   it("Entropy charge already scales 80x across its slider", () => {
     expect(chargeFor(800) / chargeFor(10)).toBe(80);
-  });
-});
-
-describe("home force", () => {
-  const setup = (...nodes) => {
-    const force = createHomeForce(0.1);
-    force.initialize(nodes);
-    force.remember();
-    return force;
-  };
-
-  it("does nothing until it is activated", () => {
-    const a = node("a", "", 0);
-    const force = setup(a);
-    a.x = 10;
-    force();
-    expect(a.vx).toBe(0);
-  });
-
-  it("pulls a node that was moved back toward where it settled", () => {
-    const a = node("a", "", 0, 0, 0);
-    const force = setup(a);
-    a.x = 10; a.y = -20; a.z = 30;
-    force.activate(true);
-    force();
-    expect(a.vx).toBeCloseTo(-1);
-    expect(a.vy).toBeCloseTo(2);
-    expect(a.vz).toBeCloseTo(-3);
-  });
-
-  it("reports when every node is back home", () => {
-    const a = node("a", "", 0);
-    const force = setup(a);
-    a.x = 10;
-    expect(force.isSettled()).toBe(false);
-    a.x = 0.1;
-    expect(force.isSettled()).toBe(true);
-  });
-
-  it("leaves nodes it never saw alone", () => {
-    const force = setup(node("a", "", 0));
-    const late = node("late", "", 50);
-    force.initialize([late]);
-    force.activate(true);
-    force();
-    expect(late.vx).toBe(0);
-  });
-
-  it("has a default strength", () => {
-    expect(HOME_STRENGTH).toBeGreaterThan(0);
   });
 });

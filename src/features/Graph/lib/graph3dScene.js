@@ -11,7 +11,7 @@ import {
 } from "./graphData3d.js";
 import { createFolderLabels, FOLDER_LABEL_SIZE } from "./folderLabels3d.js";
 import { labelGroups } from "./folderGroups.js";
-import { chargeFor, createFolderForce, createGravityForce, createHomeForce, folderStrengthFor, GROUP_PULL_DEFAULT, gravityFor, linkDistanceFor3d, linkWidthFor } from "./graphForces.js";
+import { chargeFor, createFolderForce, createGravityForce, folderStrengthFor, GROUP_PULL_DEFAULT, gravityFor, linkDistanceFor3d, linkWidthFor } from "./graphForces.js";
 import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
 import { createLinkMaterials } from "./linkMaterials3d.js";
 import {
@@ -37,7 +37,6 @@ const LABEL_RELEASE_PER_PASS = 12;
 const MAX_FRAME_DT_MS = 50;
 const RETIRE_DELAY_MS = 1500;
 const PULL_REHEAT_MS = 250; // minimum gap between re-heats while the Group pull slider moves
-const HOMING_RESTARTS_MAX = 8; // extra reheats while the graph is still on its way back after a drag
 const ALPHA_MIN = 0.002; // d3 stops the simulation here instead of ticking until cooldownTime
 const DOUBLE_CLICK_MS = 350;
 const FLY_MS = 900;
@@ -93,10 +92,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     assets: createSharedAssets(qualityTier(0).sphereLevels),
     gravity: createGravityForce(0),
     folderForce: createFolderForce(folderStrengthFor(GROUP_PULL_DEFAULT)),
-    homeForce: createHomeForce(),
     dragging: false, // a node is being held
-    homing: false, // let go: the graph is springing back to its settled layout
-    homingRestarts: 0,
     linkStrength: null, // the library's link strength, kept while links are stiffened for a drag
     pullKey: null,
     reheatAt: -Infinity,
@@ -453,9 +449,15 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
 
   // --- dragging a node ------------------------------------------------------
 
-  // While a node is held its links run at full strength, so the notes tied to it follow instead of lagging
-  // behind (the default strength shrinks with a note's link count, which left well-linked notes behind).
-  // On release everything springs back to the layout it had, so a drag never leaves the graph rearranged.
+  // Hold a node and the notes tied to it follow; let go and it stays where it was dropped, with its group
+  // settling around it, so the layout can be arranged by hand. Right-click a node to let it float again.
+  //
+  // The engine checks alpha against d3AlphaMin BEFORE it ticks. Once the layout has fully settled, alpha sits
+  // under ALPHA_MIN, and a drag only raises alphaTarget, so every frame the engine stopped again without a single
+  // tick: the held node moved, nothing else did. While a node is held the floor is 0, so the engine always ticks.
+  //
+  // Links run at full strength while held: the default strength shrinks with a note's link count, which left
+  // well-linked notes trailing far behind.
   const stiffenLinks = (on) => {
     const link = graph.d3Force("link");
     if (!link) return;
@@ -471,27 +473,27 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   const beginDrag = () => {
     if (s.dragging) return;
     s.dragging = true;
-    s.homing = false;
-    s.homeForce.activate(false);
-    // Grabbed before the first layout came to rest: the layout as it is now is the best home there is.
-    if (!s.homeForce.hasHome()) s.homeForce.remember();
+    stopAutoRotate();
+    graph.d3AlphaMin(0);
     stiffenLinks(true);
   };
 
-  const endDrag = () => {
+  const endDrag = (node) => {
     s.dragging = false;
     stiffenLinks(false);
-    s.homing = true;
-    s.homingRestarts = 0;
-    s.homeForce.activate(true);
-    graph.d3ReheatSimulation();
+    graph.d3AlphaMin(ALPHA_MIN); // the library keeps the engine running after release until the graph settles
+    node.fx = node.x;
+    node.fy = node.y;
+    node.fz = node.z;
   };
 
-  // A slider or data change makes a new layout on purpose; the spring must not drag it back to the old one.
-  const cancelHoming = () => {
-    if (!s.homing) return;
-    s.homing = false;
-    s.homeForce.activate(false);
+  /** Lets a node the user placed float again; the layout relaxes around it. */
+  const releasePin = (node) => {
+    if (node.fx === undefined) return;
+    delete node.fx;
+    delete node.fy;
+    delete node.fz;
+    graph.d3ReheatSimulation();
   };
 
   // --- setup --------------------------------------------------------------
@@ -538,27 +540,16 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       }
       s.lastBgClick = now;
     })
+    // Right-click (two-finger click) a node you placed to let it float again. A double-click cannot do this:
+    // the first click already flies the camera to the node, so the second one lands somewhere else.
+    .onNodeRightClick((node) => releasePin(node))
     .onNodeDrag(() => beginDrag())
-    .onNodeDragEnd(() => endDrag())
+    .onNodeDragEnd((node) => endDrag(node))
     .onEngineStop(() => {
-      // The layout has come to rest: that is the one to spring back to after the next drag.
-      if (!s.dragging) {
-        // The engine's cooldown can end before a slow machine has finished the trip home: keep going.
-        if (s.homing && !s.homeForce.isSettled() && s.homingRestarts < HOMING_RESTARTS_MAX) {
-          s.homingRestarts += 1;
-          graph.d3ReheatSimulation();
-          return;
-        }
-        s.homing = false;
-        s.homeForce.activate(false);
-        s.homeForce.remember();
-      }
       if (s.fitted || s.interacted || s.nodes.length === 0) return;
       s.fitted = true;
       fit(FIT_MS);
     });
-
-  graph.d3Force("home", s.homeForce);
 
   const controls = graph.controls();
   controls.autoRotate = !reducedMotion;
@@ -705,10 +696,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     graph.d3Force("link")?.distance(linkDistanceFor3d(linkDistance));
     s.gravity.strength(gravityFor(repelForce));
     graph.d3Force("center", s.gravity);
-    if (!first) {
-      cancelHoming();
-      graph.d3ReheatSimulation();
-    }
+    if (!first) graph.d3ReheatSimulation();
   };
 
   // The folder pull and its labels switch together; flipping it later re-heats so the layout animates.
@@ -719,10 +707,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     s.folderOn = on;
     graph.d3Force("folder", on ? s.folderForce : null);
     s.folderLabels.setEnabled(on);
-    if (!first) {
-      cancelHoming();
-      graph.d3ReheatSimulation();
-    }
+    if (!first) graph.d3ReheatSimulation();
   };
 
   // Dragging the Group pull slider fires many changes: re-heat at most once per interval, plus one trailing
@@ -731,7 +716,6 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     const wait = PULL_REHEAT_MS - (performance.now() - s.reheatAt);
     if (wait <= 0) {
       s.reheatAt = performance.now();
-      cancelHoming();
       graph.d3ReheatSimulation();
       return;
     }
@@ -739,7 +723,6 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     s.reheatTimer = window.setTimeout(() => {
       s.reheatTimer = 0;
       s.reheatAt = performance.now();
-      cancelHoming();
       graph.d3ReheatSimulation();
     }, wait);
   };
@@ -811,7 +794,6 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
         });
       }
       if (s.style) applyWidth();
-      cancelHoming();
       graph.graphData({ nodes, links });
       if (tierChanged) graph.refresh();
       s.focusDirty = true; // the frame loop diffs the new focus against what is drawn

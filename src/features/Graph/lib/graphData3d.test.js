@@ -30,6 +30,14 @@ describe("buildGraphData", () => {
     expect(renamed.nodes[0]).toMatchObject({ x: 5, y: 6, z: 7, title: "New" });
   });
 
+  it("keeps a node the user placed pinned when it is rebuilt", () => {
+    const first = buildGraphData([n("a"), n("b")], [{ source: "a", target: "b" }]);
+    Object.assign(first.nodes[0], { x: 5, y: 6, z: 7, fx: 5, fy: 6, fz: 7 });
+    const renamed = buildGraphData([n("a", { title: "New" }), n("b")], [{ source: "a", target: "b" }], first);
+    expect(renamed.nodes[0]).toMatchObject({ fx: 5, fy: 6, fz: 7 });
+    expect(renamed.nodes[1].fx).toBeUndefined();
+  });
+
   it("makes fresh link objects each time and accepts object ends", () => {
     const first = buildGraphData([n("a"), n("b")], [{ source: "a", target: "b" }]);
     const again = buildGraphData([n("a"), n("b")], [{ source: first.nodes[0], target: first.nodes[1] }], first);

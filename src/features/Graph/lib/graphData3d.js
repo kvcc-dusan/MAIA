@@ -60,8 +60,9 @@ export const buildGraphData = (nodes, links, previous = null) => {
       isHot: !!n.isHot,
       degree,
       __sig: sig,
-      // Seed from the old position so a rebuilt node does not jump.
+      // Seed from the old position so a rebuilt node does not jump; a node the user placed stays placed.
       ...(old ? { x: old.x, y: old.y, z: old.z } : {}),
+      ...(old && old.fx !== undefined ? { fx: old.fx, fy: old.fy, fz: old.fz } : {}),
     };
   });
   return { nodes: mapped, links: cleanLinks, degrees };
