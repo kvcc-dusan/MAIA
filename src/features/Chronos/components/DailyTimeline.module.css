@@ -28,54 +28,50 @@
 .cellOccupied { opacity: .6; cursor: not-allowed; }
 .cellOccupied:hover { background: none; }
 
-/* Session block, draft preview and drag preview share one box. */
+/*
+ * Session block, draft preview and drag preview share one box. kvcc-arc card: a 1px border and the panel radius,
+ * with the session colour as a faint tint and a small dot beside the title (as workstream groups do in Opus).
+ * No coloured side bar. Text stays in the foreground colours for contrast whatever the session colour.
+ */
 .block {
+  --session-tint: var(--session-color, var(--text-secondary));
   position: absolute;
   z-index: 10;
   left: calc(var(--gutter) + var(--space-2));
   right: var(--space-2);
   overflow: hidden;
   box-sizing: border-box;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius-control) - var(--space-1));
-  background: color-mix(in oklab, var(--session-color, var(--text-secondary)) 12%, var(--surface));
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--session-tint) 28%, var(--border));
+  border-radius: var(--radius-control);
+  background: color-mix(in oklab, var(--session-tint) 10%, var(--surface));
   color: var(--foreground);
   user-select: none;
   cursor: move;
   transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
 }
-/* The colour shows as a leading bar; the text stays in the foreground for contrast. */
-.block::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  left: 0;
-  width: var(--space-1);
-  background: var(--session-color, var(--text-secondary));
+@media (hover: hover) and (pointer: fine) {
+  .block:hover { border-color: color-mix(in oklab, var(--session-tint) 50%, var(--border-strong)); }
 }
-.block:hover { border-color: var(--border-strong); }
-.blockShort { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
-.blockTall { display: flex; flex-direction: column; gap: 2px; padding-block: var(--space-2); }
+/* Half-hour sessions: title and time share one line. */
+.blockShort { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-block: 0; }
+.blockTall { display: flex; flex-direction: column; gap: var(--space-1); }
 .blockDragging { opacity: .3; pointer-events: none; }
 
-.blockTitle { overflow: hidden; font-size: var(--text-xs); font-weight: 500; line-height: var(--leading-body); text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
-.blockDesc { display: -webkit-box; overflow: hidden; color: var(--text-secondary); font-size: var(--text-xs); line-height: 1.3; white-space: pre-wrap; pointer-events: none; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-.blockTime { color: var(--text-secondary); font-size: var(--text-xs); font-variant-numeric: tabular-nums; pointer-events: none; }
-.blockTimeShort { flex: none; }
-.blockTimeTall { margin-top: auto; opacity: 0; transition: opacity var(--duration-fast) var(--ease-standard); }
-.block:hover .blockTimeTall, .block:focus-visible .blockTimeTall { opacity: 1; }
-@media (hover: none) {
-  .blockTimeTall { opacity: 1; }
-}
+.blockHead { display: flex; min-width: 0; align-items: center; gap: var(--space-2); pointer-events: none; }
+.blockDot { width: var(--space-2); height: var(--space-2); flex: none; border-radius: var(--radius-pill); background: var(--session-tint); }
+.blockTitle { min-width: 0; overflow: hidden; font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); text-overflow: ellipsis; white-space: nowrap; }
+.blockTime { padding-left: calc(var(--space-2) + var(--space-2)); color: var(--text-secondary); font-size: var(--text-xs); font-variant-numeric: tabular-nums; pointer-events: none; }
+.blockTimeShort { flex: none; padding-left: 0; }
+.blockDesc { display: -webkit-box; overflow: hidden; padding-left: calc(var(--space-2) + var(--space-2)); color: var(--text-muted); font-size: var(--text-xs); line-height: var(--leading-body); white-space: pre-wrap; pointer-events: none; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 
 .resize { position: absolute; inset: auto 0 0; height: var(--space-2); cursor: s-resize; }
-.resize:hover { background: var(--border-subtle); }
+.resize:hover { background: color-mix(in oklab, var(--session-tint) 20%, transparent); }
 
 .draft { z-index: 20; border-color: var(--border-strong); border-style: dashed; background: var(--surface-muted); }
+.draft .blockTime { padding-left: 0; }
 .draftTitle { color: var(--text-secondary); }
 .dragPreview { z-index: 20; pointer-events: none; border-color: var(--border-strong); background: var(--surface-muted); }
-.dragPreview::before { display: none; }
 
 /* Current-time marker, today only. Accent marks the one live cue. */
 .now {

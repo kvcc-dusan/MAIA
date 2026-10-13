@@ -86,9 +86,12 @@ const SessionItem = memo(({
       }}
       onMouseDown={(e) => onMouseDownMove(e, session)}
     >
-      <div className={styles.blockTitle}>{session.title}</div>
+      <div className={styles.blockHead}>
+        <span className={styles.blockDot} aria-hidden="true" />
+        <span className={styles.blockTitle}>{session.title}</span>
+      </div>
+      <div className={cn(styles.blockTime, isShort && styles.blockTimeShort)}>{timeRange}</div>
       {!isShort && session.description && <div className={styles.blockDesc}>{session.description}</div>}
-      <div className={cn(styles.blockTime, isShort ? styles.blockTimeShort : styles.blockTimeTall)}>{timeRange}</div>
       <div className={styles.resize} aria-hidden="true" onMouseDown={(e) => onMouseDownResize(e, session)} />
     </div>
   );
@@ -464,7 +467,9 @@ function DailyTimeline({
                 openForm({ id: null, title: "", description: "", start, end, linkedProjectId: "none", color: "neutral" });
               }}
             >
-              <div className={cn(styles.blockTitle, styles.draftTitle)}>New session</div>
+              <div className={styles.blockHead}>
+                <span className={cn(styles.blockTitle, styles.draftTitle)}>New session</span>
+              </div>
               <div className={styles.blockTime}>
                 {formatTime(start)} to {formatTime(end)}
               </div>
