@@ -45,9 +45,6 @@ export const STORAGE_KEYS = {
  */
 export const INPUT_CLASS = "bg-input/50 border border-transparent rounded-xl text-foreground text-sm outline-hidden transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 
-/** @deprecated Use the Menu / Popover components instead. */
-export const POPOVER_CLASS = "bg-popover border border-border shadow-overlay rounded-2xl";
-
 // getPriorityColor lives in lib/utils.js. It was defined here as well (and a
 // third time inline in FocusTaskItem), all returning divergent raw hex.
 export { getPriorityColor } from "./utils.js";

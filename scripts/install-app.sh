@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the release app and replace /Applications/Maia.app with it.
-# Usage: npm run install-app            (build, quit Maia, replace, relaunch)
+# Usage: npm run install-app            (MCP bundle, build, quit Maia, replace, relaunch)
 #        npm run install-app -- --build-only
 # Only the .app is built (--bundles app): the dmg step is flaky and not needed to install.
 set -euo pipefail
@@ -10,6 +10,9 @@ INSTALL_PATH="/Applications/${APP_NAME}.app"
 BUILT_APP="src-tauri/target/release/bundle/macos/${APP_NAME}.app"
 
 cd "$(dirname "$0")/.."
+
+# The Claude desktop app runs the MCP server from a bundle outside the repo; refresh it with every install.
+npm run mcp:bundle
 
 npm run tauri build -- --bundles app
 

@@ -50,7 +50,7 @@ import Graph3DRenderer from "./Graph3DRenderer.jsx";
 globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
 
 const colors = (bgInt) => ({
-  bgInt, fgInt: 16777215, neutral: 8947848, textInt: 16777215, isDark: true, colors: new Map([["Work", 255]]),
+  bgInt, fgInt: 16777215, neutral: 8947848, textInt: 16777215,
 });
 const nodesA = [
   { id: "a", title: "A", type: "note", tags: [], folder: "Work" },
@@ -61,7 +61,6 @@ const linksA = [{ source: "a", target: "b" }];
 const baseProps = {
   nodes: nodesA,
   links: linksA,
-  groupOf: new Map([["a", "Work"], ["b", "Work"]]),
   groupColors: colors(0),
   activeCluster: null,
   onOpenNote: vi.fn(),
@@ -138,7 +137,7 @@ describe("Graph3DRenderer", () => {
     const { rerender } = render(<Graph3DRenderer {...baseProps} />);
     const graph = h.instances[0];
     expect(graph.calls.get("backgroundColor").mock.calls.at(-1)[0]).toBe("#000000");
-    rerender(<Graph3DRenderer {...baseProps} groupColors={{ ...colors(16777215), isDark: false }} />);
+    rerender(<Graph3DRenderer {...baseProps} groupColors={colors(16777215)} />);
     expect(h.instances).toHaveLength(1);
     expect(graph.calls.get("backgroundColor").mock.calls.at(-1)[0]).toBe("#ffffff");
   });

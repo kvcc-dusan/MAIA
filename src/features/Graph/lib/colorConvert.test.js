@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  cssColorToInt, intToHex, intToHexAlpha, luminance, mixInts, parseSimpleColor, readBackRgb, rgbToInt, shiftHue,
-} from "./colorConvert.js";
+import { cssColorToInt, mixInts, parseSimpleColor, readBackRgb, rgbToInt } from "./colorConvert.js";
 
 // A fake 2D context that behaves like a browser: unparseable fillStyle values
 // are ignored, oklch is "converted" to a fixed rgb so the test can see it ran.
@@ -51,20 +49,7 @@ describe("cssColorToInt", () => {
 });
 
 describe("colour maths", () => {
-  it("round-trips ints and hex strings", () => {
-    const n = rgbToInt({ r: 1, g: 2, b: 3 });
-    expect(intToHex(n)).toBe("#010203");
-    expect(intToHexAlpha(n, 0.5)).toBe("#01020380");
-  });
-  it("mixes and measures luminance", () => {
+  it("mixes two colours", () => {
     expect(mixInts(rgbToInt({ r: 0, g: 0, b: 0 }), rgbToInt({ r: 200, g: 100, b: 50 }), 0.5)).toBe(rgbToInt({ r: 100, g: 50, b: 25 }));
-    expect(luminance(rgbToInt({ r: 0, g: 0, b: 0 }))).toBe(0);
-    expect(luminance(rgbToInt({ r: 255, g: 255, b: 255 }))).toBeCloseTo(1, 5);
-  });
-  it("shifts hue to a different colour but keeps it in range", () => {
-    const base = rgbToInt({ r: 40, g: 120, b: 220 });
-    const shifted = shiftHue(base, 90);
-    expect(shifted).not.toBe(base);
-    expect(shifted).toBeGreaterThanOrEqual(0);
   });
 });

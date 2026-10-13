@@ -7,11 +7,9 @@ import { Network } from "@/components/icons";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
 import GraphHoverCard from "../components/GraphHoverCard.jsx";
-import { assignGroups } from "../lib/graphGroups.js";
-import { intToHex } from "../lib/colorConvert.js";
 import { useGraphView } from "../hooks/useGraphView.js";
 import { readNumberPref, writePref } from "../lib/viewPrefs.js";
-import { useGroupColors } from "../hooks/useGroupColors.js";
+import { useGraphColors } from "../hooks/useGraphColors.js";
 import { isHotNode } from "../lib/hot.js";
 import { useThemeTokens } from "../hooks/useThemeTokens.js";
 import { EmptyState } from "@/components/composed/EmptyState";
@@ -237,13 +235,8 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     if (searchResults[0]) openNode(searchResults[0]);
   };
 
-  // Group colours for the 3D view (folder or tag), and the legend that explains them.
-  const grouping = useMemo(() => assignGroups(nodes, view.colorBy), [nodes, view.colorBy]);
-  const groupColors = useGroupColors(theme, colors, grouping.groups);
-  const legend = useMemo(
-    () => grouping.groups.map((g) => ({ ...g, color: intToHex(groupColors.colors.get(g.key) ?? groupColors.neutral) })),
-    [grouping.groups, groupColors],
-  );
+  // The 3D graph is monochrome: background, foreground and neutral from the theme.
+  const graphColors = useGraphColors(theme);
 
   // Resize Handler (2D only: the 3D scene observes its own container)
   useEffect(() => {
@@ -267,8 +260,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
           <Graph3DRenderer
             nodes={nodes}
             links={links}
-            groupOf={grouping.groupOf}
-            groupColors={groupColors}
+            groupColors={graphColors}
             activeCluster={activeCluster}
             onOpenNote={onOpenNote}
             nodeSize={nodeSize}
@@ -340,13 +332,10 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         view={{
           mode: view.mode,
           setMode: view.setViewMode,
-          colorBy: view.colorBy,
-          setColorBy: view.setColorBy,
           groupByFolder: view.groupByFolder,
           setGroupByFolder: view.setGroupByFolder,
           groupPull: view.groupPull,
           setGroupPull: view.setGroupPull,
-          legend,
         }}
         onSearchSubmit={openFirstResult}
         values={{ showOnlyProjects, showOrphans, showGhostNodes, nodeSize, linkThickness, fontSize, repelForce, linkDistance }}

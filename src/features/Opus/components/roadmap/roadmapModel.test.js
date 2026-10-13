@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ariaLabelFor, buildRoadmap, groupByMonth, rangeText, summaryText, unassignText, UNASSIGNED_LANE_ID } from "./roadmapModel.js";
+import { ariaLabelFor, buildRoadmap, groupByMonth, rangeText, unassignText, UNASSIGNED_LANE_ID } from "./roadmapModel.js";
 
 const project = {
   id: "p1",
@@ -65,8 +65,10 @@ describe("labels", () => {
     expect(groupByMonth(r.scheduled).map((g) => [g.label, g.items.length])).toEqual([["October 2026", 2], ["November 2026", 1]]);
   });
 
-  it("summarises and words the delete consequence", () => {
-    expect(summaryText({ milestoneCount: 1, workstreamCount: 2, targetDay: null })).toBe("1 milestone, 2 workstreams");
+});
+
+describe("unassignText", () => {
+  it("words the delete consequence", () => {
     expect(unassignText({ milestones: 2, tasks: 1, decisions: 0, questions: 3 })).toBe(
       "Its 2 milestones, 1 task and 3 questions become unassigned. None of them are deleted."
     );

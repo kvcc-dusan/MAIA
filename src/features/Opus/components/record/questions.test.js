@@ -1,13 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  QUESTION_FILTERS,
-  DEFAULT_QUESTION_FILTER,
-  parseQuestionFilter,
-  isBlockingOpen,
-  filterQuestions,
-  sortQuestions,
-  questionStatusLabel,
-} from "./questions.js";
+import {QUESTION_FILTERS, DEFAULT_QUESTION_FILTER, parseQuestionFilter, isBlockingOpen, filterQuestions, sortQuestions} from "./questions.js";
 
 const q = (id, overrides = {}) => ({
   id,
@@ -77,9 +69,3 @@ describe("sortQuestions", () => {
   });
 });
 
-describe("labels", () => {
-  it("labels the status in words", () => {
-    expect(questionStatusLabel(q("a"))).toBe("Open");
-    expect(questionStatusLabel(q("a", { status: "answered" }))).toBe("Answered");
-  });
-});

@@ -3,13 +3,8 @@
 
 import { folderChain } from "./folderGroups.js";
 
-const DISTANCE_SCALE = 0.1;
-const MIN_DISTANCE = 8;
 const CHARGE_SCALE = 0.3;
 const GRAVITY_SCALE = 0.08;
-
-/** "Entanglement": a higher value pulls linked nodes closer, as in 2D. */
-export const linkDistanceFor = (linkDistance) => Math.max(MIN_DISTANCE, (500 - linkDistance) * DISTANCE_SCALE);
 
 // 3D only. The shared slider (10 to 500) barely moved the 3D layout with the 2D mapping: repulsion keeps
 // links near 42 world units however short the target is. Stretching the target distance on a log scale gives

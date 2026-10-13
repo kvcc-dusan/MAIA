@@ -101,13 +101,6 @@ describe("workstreamProgress", () => {
   });
 });
 
-describe("cycleTime", () => {
-  it("takes the median and p85 of started-to-done spans", () => {
-    // spans 7, 2, 1, 2, 3 days
-    expect(M.cycleTime(tasks)).toEqual({ median: 2, p85: 7, n: 5 });
-    expect(M.cycleTime([])).toEqual({ median: 0, p85: 0, n: 0 });
-  });
-});
 
 describe("throughput", () => {
   it("counts done tasks per week, oldest first", () => {
@@ -120,16 +113,6 @@ describe("throughput", () => {
   });
 });
 
-describe("burnup", () => {
-  it("has one point per day up to min(end, today)", () => {
-    const bu = M.burnup(tasks, { start: "2026-10-01", end: "2026-10-31", today: TODAY });
-    expect(bu).toHaveLength(9);
-    expect(bu[0]).toEqual({ date: "2026-10-01", scope: 9, done: 3 });
-    expect(bu[bu.length - 1]).toEqual({ date: "2026-10-09", scope: 12, done: 5 });
-    expect(M.burnup(tasks, { start: "2026-10-01", end: "2026-10-03", today: TODAY })).toHaveLength(3);
-    expect(M.burnup(tasks, { start: "2026-10-20", end: "2026-10-31", today: TODAY })).toEqual([]);
-  });
-});
 
 describe("projection", () => {
   it("extrapolates 5 done over 4 full weeks plus 5 days of this week", () => {
@@ -207,7 +190,7 @@ describe("date helpers", () => {
 });
 
 describe("hub overview helpers", () => {
-  const { doneThisWeek, weeklyDone, averagePerWeek, blockingSummary, daysToTarget, timeAgo, activityFeed } = M;
+  const { doneThisWeek, weeklyDone, blockingSummary, daysToTarget, timeAgo } = M;
   // Fri 9 Oct 2026; the week starts Mon 5 Oct.
   const TODAY = "2026-10-09";
   const done = (doneAt) => ({ status: "done", doneAt });
@@ -223,10 +206,6 @@ describe("hub overview helpers", () => {
     expect(weekly[2].weekStart).toBe("2026-10-05");
   });
 
-  it("averagePerWeek is the mean to one decimal", () => {
-    expect(averagePerWeek([{ count: 1 }, { count: 2 }, { count: 2 }])).toBe(1.7);
-    expect(averagePerWeek([])).toBe(0);
-  });
 
   it("blockingSummary adds blocked tasks and open blocking questions", () => {
     const tasks = [{ status: "blocked" }, { status: "blocked" }, { status: "todo" }];
@@ -257,14 +236,4 @@ describe("hub overview helpers", () => {
     expect(timeAgo("2026-07-01T12:00:00Z", now)).toBe("3 months ago");
   });
 
-  it("activityFeed is newest first, capped, labelled and does not mutate", () => {
-    const log = [
-      { at: "2026-10-01T10:00:00Z", title: "a" },
-      { at: "2026-10-08T10:00:00Z", title: "b" },
-      { at: "2026-10-07T10:00:00Z", title: "c" },
-    ];
-    const feed = activityFeed(log, { limit: 2, now: new Date("2026-10-09T10:00:00Z") });
-    expect(feed.map((e) => [e.title, e.ago])).toEqual([["b", "yesterday"], ["c", "2 days ago"]]);
-    expect(log[0].title).toBe("a");
-  });
 });

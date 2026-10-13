@@ -64,18 +64,6 @@ export const blocked = (tasks) => openTasks(tasks).filter((t) => t.status === "b
 export const statusMix = (tasks) =>
   STATUS_LABELS.map(([key, text]) => ({ key, label: text, value: tasks.filter((t) => t.status === key).length }));
 
-export const burnup = (tasks, { start, end, today }) => {
-  const last = end && end < today ? end : today;
-  const points = [];
-  for (let d = start; d <= last; d = addDays(d, 1)) {
-    // A task with no createdAt counts from the first day.
-    const scope = tasks.filter((t) => !t.createdAt || day(t.createdAt) <= d).length;
-    const done = tasks.filter((t) => t.doneAt && day(t.doneAt) <= d).length;
-    points.push({ date: d, scope, done });
-  }
-  return points;
-};
-
 /**
  * perWeek = done tasks in the window / window length in weeks. The window is
  * the `weeks` full weeks before this week plus the current partial week
@@ -112,19 +100,6 @@ export const workstreamProgress = (workstreams, tasks, today) => {
       blocked: blocked(own).length,
     };
   });
-};
-
-export const cycleTime = (tasks) => {
-  const spans = tasks
-    .filter((t) => t.status === "done" && t.startedAt && t.doneAt)
-    .map((t) => Math.max(0, diffDays(t.doneAt, t.startedAt)))
-    .sort((a, b) => a - b);
-  const n = spans.length;
-  if (!n) return { median: 0, p85: 0, n: 0 };
-  const mid = Math.floor(n / 2);
-  const median = n % 2 ? spans[mid] : (spans[mid - 1] + spans[mid]) / 2;
-  const p85 = spans[Math.max(0, Math.ceil(0.85 * n) - 1)];
-  return { median, p85, n };
 };
 
 export const throughput = (tasks, { weeks = 8, today }) => {
@@ -197,13 +172,6 @@ export const doneThisWeek = (tasks, today) => {
 /** Done counts for the last `weeks` weeks, oldest first; the last one is this week. */
 export const weeklyDone = (tasks, { weeks = 8, today }) => throughput(tasks, { weeks, today });
 
-/** Mean of the weekly counts, one decimal. Accepts weeklyDone output. */
-export const averagePerWeek = (weekly) => {
-  if (!weekly.length) return 0;
-  const total = weekly.reduce((sum, w) => sum + w.count, 0);
-  return Math.round((total / weekly.length) * 10) / 10;
-};
-
 /** Open blocked tasks plus open blocking questions. */
 export const blockingSummary = (tasks, questions = []) => {
   const taskCount = blocked(tasks).length;
@@ -234,9 +202,3 @@ export const timeAgo = (at, now) => {
   return `${Math.floor(days / 30)} months ago`;
 };
 
-/** Newest first, capped at `limit`, each entry gains an `ago` label. */
-export const activityFeed = (activity, { limit = 10, now }) =>
-  [...activity]
-    .sort((a, b) => String(b.at).localeCompare(String(a.at)))
-    .slice(0, limit)
-    .map((entry) => ({ ...entry, ago: timeAgo(entry.at, now) }));

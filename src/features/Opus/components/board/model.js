@@ -9,11 +9,6 @@ export const STATUS_ORDER = ["todo", "doing", "blocked", "done"];
 export const STATUS_LABELS = { todo: "To do", doing: "In progress", blocked: "Blocked", done: "Done" };
 export const DONE_LIMIT = 20;
 export const WIP_LIMIT = 5;
-export const SCHEDULE_OPTIONS = [
-  { value: "today", label: "Today" },
-  { value: "soon", label: "Soon" },
-  { value: "future", label: "Future" },
-];
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const pad = (n) => String(n).padStart(2, "0");

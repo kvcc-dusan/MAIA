@@ -17,10 +17,10 @@ Pages (`PAGES` in `src/App.jsx`): `codex`, `projects` (Opus), `graph` (Conexa). 
 
 - React 19.1, Vite 7.1. No Next.js, no SSR, no React Router (page switch in `App.jsx`). No class components.
 - Tailwind CSS 4.3 via `@tailwindcss/vite`, CSS-first (`@import 'tailwindcss'`, `@theme` blocks). There is no `tailwind.config.js`. In MAIA's own files Tailwind is for layout. Colour, radius and type must resolve to kvcc-arc tokens. Arc components style themselves with CSS modules: never Tailwind-restyle them.
-- Editor: TipTap 2.26.1 (`@tiptap/*`), `tiptap-markdown` 0.8, `markdown-it` 14 with the footnote, mark and task-lists plugins, `lowlight`, `dompurify`, `@tiptap/suggestion` (link suggest). KaTeX 0.19 and mermaid 12 load lazily.
+- Editor: TipTap 2.26.1 (`@tiptap/*`), `tiptap-markdown` 0.8, `markdown-it` 14 with the footnote, mark and task-lists plugins, `dompurify`, `@tiptap/suggestion` (link suggest). KaTeX 0.19 and mermaid 12 load lazily.
 - Graph: D3 7.9 (2D, SVG). 3D view: `three` 0.186.1, `3d-force-graph` 1.80, `three-spritetext` 1.10, lazy-loaded only when the 3D view opens.
 - Motion: `framer-motion` 12 (`MotionConfig reducedMotion="user"` in `App.jsx`). `motion` 14 (`motion/react`) is used by Arc components and the Opus board. Both are installed.
-- Primitives: `@base-ui/react` 1.6 (`Menu`), Radix packages (dialog, popover, select, tabs, tooltip, dropdown-menu, context-menu and more), `cmdk` (command palette via `ui/command.jsx`), `@dnd-kit` (Opus board only), `sonner` (toasts).
+- Primitives: `@base-ui/react` 1.6 (`Menu`), Radix packages (dialog, popover, select, tabs, tooltip and more), the command palette (Arc `command-palette`), `@dnd-kit` (Opus board only), `sonner` (toasts).
 - Data and MCP: `yaml` 2.9 (frontmatter), `zod` 4 and `@modelcontextprotocol/sdk` 1.x (the `mcp/` server).
 - Desktop: `@tauri-apps/api`, `plugin-dialog`, `plugin-fs` (2.x), `src-tauri/`. Icons: local Solar module `src/components/icons` (see Conventions). Tests: Vitest 4, jsdom 27, Testing Library.
 - Gone: Recharts (Ledger charts are Arc charts), the Today dnd grid, the dock, ColorBends. The unused Manrope and Roboto fontsource packages were removed.
@@ -41,7 +41,7 @@ src/
 │   │                       components/ (NotesSidebar as a file tree, TreeRow, CodexTabStrip, NewTabPage,
 │   │                       MoveNoteDialog), properties/ (the Properties panel), folderTree.js, backlinks.js
 │   ├── Graph/              Conexa: pages/GraphPage.jsx, GraphRenderer (2D D3), Graph3DRenderer (3D, lazy),
-│   │                       hooks/, lib/ (graphForces, graphGroups, colorConvert, viewPrefs)
+│   │                       hooks/, lib/ (graph3dScene, orbitMomentum, graphForces, colorConvert, viewPrefs)
 │   ├── Opus/               OpusLayout.jsx, tabs/ (ten tabs), kit/ (shared primitives), components/, lib/
 │   │                       (taskModel, metrics, report, activityLog, projectModel, docModel, people), OpusNavContext.jsx
 │   ├── Chronos/            ChronosModal.jsx (a modal), components/ (MonthCalendar, DailyTimeline, TaskRow, SignalRow, ChronosForms)
@@ -51,7 +51,7 @@ src/
 │   ├── shell/              MaiaShell, RailButton, ShellContext (ShellSidebar and ShellTopBar portals), VaultMenu
 │   ├── composed/           MAIA app primitives (see Components)
 │   ├── arc/                vendored @kvcc installs
-│   ├── ui/                 legacy shadcn plus MAIA's own: CustomIcon, PriorityCheckbox, CloseButton, portal
+│   ├── ui/                 legacy shadcn plus MAIA's own PriorityCheckbox
 │   └── EditorRich.jsx, SourceEditor.jsx, CommandPalette.jsx, VaultSetup.jsx
 ├── editor/                 TipTap extensions, one file per feature (see Editor)
 ├── lib/                    vault.js, vaultLoad.js, vaultFolders.js, vaultFiles.js, noteFile.js, frontmatterProps.js,
@@ -133,7 +133,7 @@ Rules that matter:
 ## MCP server (`mcp/`)
 
 Full tool list, register commands and safety notes: `mcp/README.md`. Summary:
-- stdio server: `node mcp/server.js` or `npm run mcp`. `MAIA_VAULT` is required and must exist; `Opus/` is created if missing (`mcp/config.js`).
+- stdio server: `node mcp/server.js` or `npm run mcp`. The Claude desktop app cannot read ~/Desktop, so its config runs a bundle at `~/.maia-mcp/server.mjs`: a snapshot, rebuilt by `npm run mcp:bundle` (also part of `npm run install-app`) after any change to `mcp/` or the app code it reuses. `MAIA_VAULT` is required and must exist; `Opus/` is created if missing (`mcp/config.js`).
 - 28 tools. Reads: `list_projects`, `get_project`, `list_tasks`, `get_task`, `list_decisions`, `list_questions`, `list_activity`, `list_notes`, `read_note`, `list_trash`, `get_agenda`. Writes: `create_project`, `update_project`, `add_workstream`, `add_milestone`, `create_task`, `update_task`, `add_decision`, `update_decision`, `add_question`, `update_question`, `answer_question`, `create_note`, `weekly_report`. Deletes: `delete_task`, `delete_decision`, `delete_question` (registered in a loop in `mcp/tools/trash.js`), plus `restore_from_trash`.
 - Deletes MOVE the file to `Opus/_trash/`. Nothing is erased. No project, note or asset delete tool exists.
 - Every write appends an activity entry with `actor: "claude-mcp"` (`mcp/writer.js`) to the project's `activity.jsonl` or `_inbox/activity.jsonl`.
@@ -182,7 +182,7 @@ Rules of thumb (binding):
 
 - `npm run lint:tokens` (`scripts/lint-tokens.mjs`) counts legacy patterns: zinc utilities, white/black alpha, hex, `rgba()`, legacy fluid type, arbitrary z-index, arbitrary radius and font size, `font-mono`. The count must only go down (baseline 1: a `font-mono` in `EditorRich.module.css`). It only counts git-tracked files, so run it again after committing new files. Colour-conversion code and its tests (`lib/tokens.js`, `lib/contrast.test.js`, the Graph `colorConvert` files) are exempt in `ALLOW`.
 - Current count: 1 (measured 2026-10-11, the `font-mono` in `EditorRich.module.css`). The contrast and Graph test files are exempt in `ALLOW`.
-- Exempt (the script's ALLOW list): `src/components/ui/CustomIcon.jsx`, `src/styles/tokens.css`, `src/lib/tokens.js` and its test, the Graph colour converter (`colorConvert.js` and its test, `Graph3DRenderer.test.jsx`), `src/components/arc/`, and the vendored shadcn files in `src/components/ui/`. MAIA's own files in `ui/` are not exempt.
+- Exempt (the script's ALLOW list): `src/styles/tokens.css`, `src/lib/tokens.js` and its test, the Graph colour converter (`colorConvert.js` and its test, `Graph3DRenderer.test.jsx`), `src/components/arc/`, and the vendored shadcn files in `src/components/ui/`. MAIA's own files in `ui/` are not exempt.
 
 ## Migration status (kvcc-arc)
 
@@ -202,7 +202,7 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
 
 - `src/components/arc/`: vendored @kvcc installs. First choice for any UI.
 - `src/components/composed/`: MAIA's app primitives, public APIs frozen: `AppDialog`, `ConfirmDialog`, `PromptDialog`, `SidePanel`, `Menu`, `Select`, `Field`, `EntityForm` (takes `inPanel` inside a SidePanel), `DateTimeField`, `PageHeader`, `SectionCard`, `SectionBits`, `Surface`, `EmptyState`, `ErrorState`, `IconButton`, `StatusDot`. Pages use these. Hand-rolled empty states, overlays without a focus trap and bespoke eyebrows are recurring regressions.
-- `src/components/ui/`: legacy. Mostly vendored shadcn. Don't add new usages. `shadcn add` regenerates those files, so hand edits are reverted. MAIA's own files there (`CustomIcon.jsx`, `PriorityCheckbox.jsx`, `CloseButton.jsx`, `portal.jsx`) are not exempt. Deleting any of them needs Dušan's yes.
+- `src/components/ui/`: legacy. Mostly vendored shadcn. Don't add new usages. `shadcn add` regenerates those files, so hand edits are reverted. MAIA's own file there (`PriorityCheckbox.jsx`) is not exempt. Unused files there and in `arc/` were deleted on 2026-10-14 (dead-code sweep); `shadcn add` brings an Arc item back if it is needed again.
 
 ## Shell and Conexa
 
@@ -226,8 +226,8 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
 - No new dependencies without asking. No backend, no external DB.
 - Comment the *why*, not the *what*.
 - Tailwind for layout. Inline styles only for canvas, SVG and three.js. `cn()` from `src/lib/utils.js` for conditional classes.
-- File size: 200 to 400 lines typical, 800 hard max. The big ones may only shrink and should be extracted into `features/<Feature>/components/`: `components/ui/CustomIcon.jsx` (1054 lines), `pages/NotesPage.jsx` (428).
-- Icons: Solar (Linear, CC BY 4.0, credited in Settings > About), no npm package. `src/components/icons/index.jsx` exports components under their old semantic names (`Search`, `ChevronDown`, `Trash2`...); bodies live in `solarData.js` (also used by `editor/calloutTypes.js`), project icons in `projectIcon/icons.js`. Need a new icon: fetch its `-linear` body from `https://api.iconify.design/solar.json?icons=<name>`, strip `stroke-width`, add it to `solarData.js` and export it. Size 16/20/24, `strokeWidth` 1.75, `aria-hidden` on decorative ones. `ui/CustomIcon.jsx` is now unused (delete needs Dušan's yes). Arc vendored files import from `@/components/icons` too: re-check after every `shadcn add`.
+- File size: 200 to 400 lines typical, 800 hard max. The big ones may only shrink and should be extracted into `features/<Feature>/components/`: `pages/NotesPage.jsx` (428).
+- Icons: Solar (Linear, CC BY 4.0, credited in Settings > About), no npm package. `src/components/icons/index.jsx` exports components under their old semantic names (`Search`, `ChevronDown`, `Trash2`...); bodies live in `solarData.js` (also used by `editor/calloutTypes.js`), project icons in `projectIcon/icons.js`. Need a new icon: fetch its `-linear` body from `https://api.iconify.design/solar.json?icons=<name>`, strip `stroke-width`, add it to `solarData.js` and export it. Size 16/20/24, `strokeWidth` 1.75, `aria-hidden` on decorative ones. Arc vendored files import from `@/components/icons` too: re-check after every `shadcn add`.
 - Never claim work is done without evidence (a test run, a grep, a screenshot).
 - Every pass: `npm run lint:tokens`, `npx vitest run`, `npm run build`, plus the `checklist.md` sweeps over changed files. Then report what to check: light and dark, narrow window, keyboard.
 
@@ -242,7 +242,8 @@ npx vitest run                             # tests
 npx eslint src/                            # lint (ignores src-tauri/target and src/components/arc)
 npm run lint:tokens                        # token ratchet, the count must go down
 npm run tauri build -- --debug --no-bundle # desktop debug build
-npm run install-app                        # ship: release build, quit Maia, replace /Applications/Maia.app, relaunch (`-- --build-only` just builds)
+npm run install-app                        # ship: MCP bundle, release build, quit Maia, replace /Applications/Maia.app, relaunch (`-- --build-only` just builds)
+npm run mcp:bundle                         # rebuild ~/.maia-mcp/server.mjs (the Claude desktop app's MCP server) and check it answers; restart Claude after
 ```
 
 ## Docs

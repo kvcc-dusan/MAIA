@@ -11,11 +11,6 @@ export const rgbToInt = ({ r, g, b }) => (clamp255(r) << 16) | (clamp255(g) << 8
 export const intToRgb = (n) => ({ r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 });
 export const intToHex = (n) => `#${n.toString(16).padStart(6, "0")}`;
 
-// Alpha as an 8 digit hex string, the one alpha notation 3d-force-graph's
-// colour parser reads without needing rgb() strings.
-export const intToHexAlpha = (n, alpha) =>
-  `${intToHex(n)}${clamp255(alpha * 255).toString(16).padStart(2, "0")}`;
-
 export const parseSimpleColor = (css) => {
   if (typeof css !== "string") return null;
   const text = css.trim();
@@ -79,46 +74,8 @@ export const cssColorToInt = (css, fallback, ctx = getCtx()) => {
   return out;
 };
 
-export const clearColorCache = () => cache.clear();
-
 export const mixInts = (a, b, t) => {
   const x = intToRgb(a);
   const y = intToRgb(b);
   return rgbToInt({ r: x.r + (y.r - x.r) * t, g: x.g + (y.g - x.g) * t, b: x.b + (y.b - x.b) * t });
-};
-
-/** Relative luminance, 0 (black) to 1 (white). */
-export const luminance = (n) => {
-  const { r, g, b } = intToRgb(n);
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-};
-
-const toHsl = ({ r, g, b }) => {
-  const rn = r / 255, gn = g / 255, bn = b / 255;
-  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
-  const l = (max + min) / 2;
-  if (max === min) return { h: 0, s: 0, l };
-  const d = max - min;
-  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-  const h = max === rn ? (gn - bn) / d + (gn < bn ? 6 : 0) : max === gn ? (bn - rn) / d + 2 : (rn - gn) / d + 4;
-  return { h: h * 60, s, l };
-};
-
-const fromHsl = ({ h, s, l }) => {
-  const f = (n) => {
-    const k = (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-  };
-  return rgbToInt({ r: f(0) * 255, g: f(8) * 255, b: f(4) * 255 });
-};
-
-/** Same colour with its hue turned by `degrees` and lightness nudged by `dl`. */
-export const shiftHue = (n, degrees, dl = 0) => {
-  const hsl = toHsl(intToRgb(n));
-  return fromHsl({
-    h: (((hsl.h + degrees) % 360) + 360) % 360,
-    s: hsl.s,
-    l: Math.max(0.25, Math.min(0.8, hsl.l + dl)),
-  });
 };

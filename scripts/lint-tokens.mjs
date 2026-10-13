@@ -34,7 +34,6 @@ const RULES = [
 // probe sentinel, its tests exercise hex parsing. Counting them would bar the
 // tool from its own toolkit.
 const ALLOW = [
-  'src/components/ui/CustomIcon.jsx',
   'src/components/__snapshots__/',
   'src/styles/tokens.css',
   'src/lib/tokens.js',

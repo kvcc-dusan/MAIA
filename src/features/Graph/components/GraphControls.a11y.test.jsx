@@ -35,7 +35,7 @@ function Harness({ mode = "3d", groupByFolder = true, setMode = () => {}, setGro
       clusters={[]}
       colors={["black"]}
       nodeDotColor={() => "black"}
-      view={{ mode, setMode, colorBy: "folder", setColorBy: () => {}, groupByFolder, setGroupByFolder, groupPull: 20, setGroupPull, legend: [] }}
+      view={{ mode, setMode, groupByFolder, setGroupByFolder, groupPull: 20, setGroupPull }}
     />
   );
 }

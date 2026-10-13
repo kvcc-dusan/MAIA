@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generateDummyData } from "./dummyData.js";
 import { projectPeople, showOwners, priorityLabel } from "../features/Opus/lib/people.js";
 import { projectDocuments, projectNotes } from "../features/Opus/lib/docModel.js";
-import { cycleTime, heatmap, throughput, burnup, toDayString } from "../features/Opus/lib/metrics.js";
+import { heatmap, throughput, toDayString } from "../features/Opus/lib/metrics.js";
 
 const TODAY = new Date(2026, 9, 9); // Fri 9 Oct 2026, local
 const TODAY_STRING = toDayString(TODAY);
@@ -100,14 +100,6 @@ describe("generateDummyData", () => {
     expect(new Set(data.activity.map((a) => a.collection))).toEqual(new Set(["tasks", "workstreams", "milestones", "decisions", "questions"]));
   });
 
-  it("gives the dashboard metrics something to draw", () => {
-    expect(cycleTime(data.tasks).n).toBeGreaterThan(15);
-    expect(throughput(data.tasks, { weeks: 8, today: TODAY_STRING }).filter((w) => w.count > 0).length).toBeGreaterThanOrEqual(6);
-    const points = burnup(data.tasks, { start: day(new Date(TODAY.getTime() - 70 * DAY_MS).toISOString()), end: null, today: TODAY_STRING });
-    expect(points[points.length - 1].done).toBeGreaterThan(20);
-    const cells = heatmap(data.activity, { weeks: 26, today: TODAY_STRING });
-    expect(cells.filter((c) => c.count > 0).length).toBeGreaterThan(30);
-  });
 
   it("gives Maia Core a team, owners, priorities, descriptions and hub text", () => {
     const core = data.projects.find((p) => p.name === "Maia Core");
@@ -138,5 +130,11 @@ describe("generateDummyData", () => {
     expect(docs.some((d) => d.owner && d.workstreamId)).toBe(true);
     const notes = projectNotes(data.notes, core.id).filter((n) => n.content.length < 100);
     expect(notes.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("gives the live dashboard metrics something to draw", () => {
+    expect(throughput(data.tasks, { weeks: 8, today: TODAY_STRING }).filter((w) => w.count > 0).length).toBeGreaterThanOrEqual(6);
+    const cells = heatmap(data.activity, { weeks: 26, today: TODAY_STRING });
+    expect(cells.filter((c) => c.count > 0).length).toBeGreaterThan(30);
   });
 });

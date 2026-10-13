@@ -49,9 +49,6 @@ export const questionDraftToPatch = (draft) => ({
   answer: text(draft.answer),
 });
 
-/** Answer text from the inline composer; blank is an error. */
-export const validateAnswer = (answer) => (text(answer) ? null : QUESTION_ERRORS.answer);
-
 /* decisions */
 
 export const emptyDecisionDraft = (today) => ({

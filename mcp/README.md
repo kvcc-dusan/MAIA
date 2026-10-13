@@ -29,14 +29,19 @@ Claude Code:
 claude mcp add maia -e MAIA_VAULT=/Users/you/Vault -- node /Users/dusankvcc/Desktop/maia/mcp/server.js
 ```
 
-Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`). The desktop app cannot read
+`~/Desktop` (macOS privacy), so it runs a one-file bundle outside the repo. Build it with `npm run mcp:bundle`
+(also part of `npm run install-app`): it writes `~/.maia-mcp/server.mjs`, keeps the last one as
+`server.previous.mjs`, and only replaces it once the new bundle has answered an MCP handshake on a throwaway vault.
+The bundle is a snapshot: rebuild it after any change to `mcp/` or the app code it reuses, then restart Claude.
+`command` is node's full path, since a GUI app does not see nvm's PATH.
 
 ```json
 {
   "mcpServers": {
     "maia": {
-      "command": "node",
-      "args": ["/Users/dusankvcc/Desktop/maia/mcp/server.js"],
+      "command": "/Users/you/.nvm/versions/node/<version>/bin/node",
+      "args": ["/Users/you/.maia-mcp/server.mjs"],
       "env": { "MAIA_VAULT": "/Users/you/Vault" }
     }
   }

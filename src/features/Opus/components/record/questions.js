@@ -45,4 +45,3 @@ export const sortQuestions = (questions) =>
     .sort((a, b) => groupRank(a.q) - groupRank(b.q) || recency(b.q).localeCompare(recency(a.q)) || a.index - b.index)
     .map(({ q }) => q);
 
-export const questionStatusLabel = (question) => (isAnswered(question) ? "Answered" : "Open");

@@ -21,7 +21,6 @@ const prefersReducedMotion = () =>
 function Graph3DRenderer({
   nodes,
   links,
-  groupOf,
   groupColors,
   activeCluster,
   onOpenNote,
@@ -106,7 +105,6 @@ function Graph3DRenderer({
   const style = useMemo(
     () => ({
       ...groupColors,
-      groupOf,
       nodeSize,
       linkThickness,
       fontSize,
@@ -116,7 +114,7 @@ function Graph3DRenderer({
       groupPull,
       fontFace: cssVar("--font-body") || "sans-serif",
     }),
-    [groupColors, groupOf, nodeSize, linkThickness, fontSize, repelForce, linkDistance, groupByFolder, groupPull],
+    [groupColors, nodeSize, linkThickness, fontSize, repelForce, linkDistance, groupByFolder, groupPull],
   );
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import {
   DIM_OPACITY, buildAdjacency, buildGraphData, clusterMembers, computeFocus, flyTarget, isLit, linkRotation,
   boundingSphere, diffFocus, fitDistance, linkState, matchNodes, nodeRadius, qualityTier,
 } from "./graphData3d.js";
-import { chargeFor, createGravityForce, gravityFor, linkDistanceFor, linkWidthFor } from "./graphForces.js";
+import { createGravityForce, linkWidthFor } from "./graphForces.js";
 
 const n = (id, extra = {}) => ({ id, title: id.toUpperCase(), type: "note", tags: [], ...extra });
 
@@ -115,13 +115,6 @@ describe("camera, quality and links", () => {
 });
 
 describe("force mapping", () => {
-  it("higher Entanglement pulls links shorter, higher Entropy pushes harder", () => {
-    expect(linkDistanceFor(400)).toBeLessThan(linkDistanceFor(100));
-    expect(chargeFor(400)).toBeLessThan(chargeFor(100));
-    expect(gravityFor(10)).toBeGreaterThan(gravityFor(800));
-    expect(linkWidthFor(2, true)).toBe(0);
-    expect(linkWidthFor(2, false)).toBeGreaterThan(0);
-  });
   it("draws low thickness values as plain lines", () => {
     expect(linkWidthFor(1.5, false)).toBe(0);
     expect(linkWidthFor(0.5, false)).toBe(0);

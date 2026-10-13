@@ -1,19 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  emptyQuestionDraft,
-  questionToDraft,
-  validateQuestionDraft,
-  questionDraftToPatch,
-  validateAnswer,
-  emptyDecisionDraft,
-  decisionToDraft,
-  validateDecisionDraft,
-  decisionDraftToData,
-  dayToFieldValue,
-  fieldValueToDay,
-  QUESTION_ERRORS,
-  DECISION_ERRORS,
-} from "./drafts.js";
+import {emptyQuestionDraft, questionToDraft, validateQuestionDraft, questionDraftToPatch, emptyDecisionDraft, decisionToDraft, validateDecisionDraft, decisionDraftToData, dayToFieldValue, fieldValueToDay, QUESTION_ERRORS, DECISION_ERRORS} from "./drafts.js";
 
 describe("question drafts", () => {
   it("starts empty, open and not blocking", () => {
@@ -51,11 +37,6 @@ describe("question drafts", () => {
     expect(questionDraftToPatch({ ...emptyQuestionDraft(), question: "Q", status: "answered", answer: " Yes " }).answer).toBe("Yes");
   });
 
-  it("validates the inline answer", () => {
-    expect(validateAnswer("")).toBe(QUESTION_ERRORS.answer);
-    expect(validateAnswer("   ")).toBe(QUESTION_ERRORS.answer);
-    expect(validateAnswer("Yes")).toBeNull();
-  });
 });
 
 describe("decision drafts", () => {

@@ -109,12 +109,6 @@ export const groupByMonth = (scheduled) => {
   return groups;
 };
 
-export const summaryText = ({ milestoneCount, workstreamCount, targetDay, referenceYear }) => {
-  const parts = [pluralize(milestoneCount, "milestone"), pluralize(workstreamCount, "workstream")];
-  const base = parts.join(", ");
-  return targetDay === null ? base : `${base}. Target ${formatDay(targetDay, referenceYear)}.`;
-};
-
 /** What deleting a workstream unassigns, for the confirmation copy. */
 export const unassignText = ({ milestones, tasks, decisions, questions }) => {
   const parts = [

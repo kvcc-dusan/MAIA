@@ -81,49 +81,6 @@ export function calculateVelocity(notes, windowDays = 7) {
 /*                                 Staleness                                  */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Identifies projects that haven't been touched in `thresholdDays`.
- * A project is "touched" if a note linked to it was created/updated recently.
- * 
- * @param {Array} projects 
- * @param {Array} notes 
- * @param {number} thresholdDays - Default 14
- * @returns {Array} List of { project, lastActivityDays, status: 'stale'|'active' }
- */
-export function detectStaleness(projects, notes, thresholdDays = 14) {
-    return projects
-        .filter(p => p.status === 'Active') // Only analytics for active projects
-        .map(project => {
-            // Find all notes linked to this project
-            const linkedNotes = notes.filter(n => {
-                const ids = n.projectIds || [];
-                // Check ID match
-                if (ids.includes(project.id)) return true;
-                // Check Legacy String match
-                if (n.project && project.name && n.project.toLowerCase() === project.name.toLowerCase()) return true;
-                return false;
-            });
-
-            // Find most recent note date OR use project creation date
-            let lastDate = new Date(project.createdAt).getTime();
-
-            linkedNotes.forEach(n => {
-                const t = new Date(n.createdAt).getTime();
-                if (t > lastDate) lastDate = t;
-            });
-
-            const daysAgo = (Date.now() - lastDate) / ONE_DAY_MS;
-
-            return {
-                project,
-                lastActivityDays: Math.floor(daysAgo),
-                isStale: daysAgo > thresholdDays
-            };
-        })
-        .filter(r => r.isStale) // Only return the stale ones? Or all? Let's return all sorted by staleness.
-        .sort((a, b) => b.lastActivityDays - a.lastActivityDays);
-}
-
 /* -------------------------------------------------------------------------- */
 /*                                Clustering                                  */
 /* -------------------------------------------------------------------------- */

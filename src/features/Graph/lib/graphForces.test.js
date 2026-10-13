@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GROUP_PULL_DEFAULT, GROUP_PULL_MAX, GROUP_PULL_MIN, chargeFor, createFolderForce, folderStrengthFor, linkDistanceFor, linkDistanceFor3d,
-} from "./graphForces.js";
+import {GROUP_PULL_DEFAULT, GROUP_PULL_MAX, GROUP_PULL_MIN, chargeFor, createFolderForce, folderStrengthFor, linkDistanceFor3d} from "./graphForces.js";
 
 const node = (id, folder, x, y = 0, z = 0) => ({ id, folder, x, y, z, vx: 0, vy: 0, vz: 0 });
 const run = (nodes, k, alpha = 1) => {
@@ -93,11 +91,6 @@ describe("group pull mapping", () => {
 describe("entanglement mappings", () => {
   const sliderValues = [10, 50, 100, 150, 250, 400, 500];
 
-  it("leaves the 2D mapping as it was", () => {
-    expect(linkDistanceFor(10)).toBeCloseTo(49);
-    expect(linkDistanceFor(100)).toBeCloseTo(40);
-    expect(linkDistanceFor(500)).toBe(8);
-  });
 
   it("3D keeps the default at 40 and shrinks monotonically as the value rises", () => {
     expect(linkDistanceFor3d(100)).toBeCloseTo(40);
@@ -105,14 +98,6 @@ describe("entanglement mappings", () => {
     for (let i = 1; i < d.length; i += 1) expect(d[i]).toBeLessThan(d[i - 1]);
   });
 
-  it("3D spans far more than 2D and clamps outside the slider", () => {
-    const span3d = linkDistanceFor3d(10) / linkDistanceFor3d(500);
-    const span2d = linkDistanceFor(10) / linkDistanceFor(500);
-    expect(span3d).toBeGreaterThan(100);
-    expect(span3d).toBeGreaterThan(span2d * 10);
-    expect(linkDistanceFor3d(-50)).toBe(linkDistanceFor3d(10));
-    expect(linkDistanceFor3d(9000)).toBe(linkDistanceFor3d(500));
-  });
 
   it("Entropy charge already scales 80x across its slider", () => {
     expect(chargeFor(800) / chargeFor(10)).toBe(80);

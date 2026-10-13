@@ -35,15 +35,6 @@ export function countWords(text) {
   return tokens.filter(t => /[\p{L}\p{N}]/u.test(t)).length;
 }
 
-export const getOrdinalSuffix = (i) => {
-    const j = i % 10,
-        k = i % 100;
-    if (j === 1 && k !== 11) return "st";
-    if (j === 2 && k !== 12) return "nd";
-    if (j === 3 && k !== 13) return "rd";
-    return "th";
-};
-
 export const getPriorityColor = (p) => PRIORITY_TOKENS[p] ?? PRIORITY_TOKENS.p3;
 
 /** Softened variant of the same token, for glows and chip backgrounds. */

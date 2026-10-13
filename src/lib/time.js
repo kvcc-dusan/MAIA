@@ -50,7 +50,6 @@ const TIME_FMT = fmt({ hour: "numeric", minute: "2-digit" });
 const DAY_FMT = fmt({ weekday: "long", month: "short", day: "numeric" });
 const MONTH_YEAR_FMT = fmt({ month: "long", year: "numeric" });
 const MONTH_DAY_FMT = fmt({ month: "short", day: "numeric" });
-const FULL_DATE_FMT = fmt({ weekday: "long", month: "long", day: "numeric" });
 const HOUR_FMT = fmt({ hour: "numeric", minute: "2-digit" });
 
 /** "10:49 PM" */
@@ -61,7 +60,5 @@ export const formatDayLabel = (date) => DAY_FMT.format(new Date(date));
 export const formatMonthYear = (date) => MONTH_YEAR_FMT.format(new Date(date));
 /** "Sep 18" */
 export const formatMonthDay = (date) => MONTH_DAY_FMT.format(new Date(date));
-/** "Friday, September 18" */
-export const formatFullDate = (date) => FULL_DATE_FMT.format(new Date(date));
 /** Hour-of-day number (0–23) → "8:00 AM", for timeline gutters. */
 export const formatHourLabel = (hour) => HOUR_FMT.format(new Date(2000, 0, 1, hour));
