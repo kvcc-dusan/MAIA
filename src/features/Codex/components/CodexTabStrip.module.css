@@ -54,9 +54,9 @@
 }
 /* Black's muted surface (14%) all but vanishes on pure black, so the pill and its hover are lifted there. */
 :global(:root[data-variant="black"]) .tab[data-active],
-:global(:root[data-variant="black"]) .tab[data-dragging] { background: color-mix(in oklab, var(--foreground) 26%, var(--background)); }
+:global(:root[data-variant="black"]) .tab[data-dragging] { background: color-mix(in oklab, var(--foreground) 20%, var(--background)); }
 @media (hover: hover) and (pointer: fine) {
-  :global(:root[data-variant="black"]) .tab:not([data-active]):hover { background: color-mix(in oklab, var(--foreground) 14%, var(--background)); }
+  :global(:root[data-variant="black"]) .tab:not([data-active]):hover { background: color-mix(in oklab, var(--foreground) 11%, var(--background)); }
 }
 
 .label {
