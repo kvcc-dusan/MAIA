@@ -8,7 +8,7 @@ import { Input } from "@/components/arc/input/input";
 import styles from "./CreateProjectModal.module.css";
 
 const FORM_ID = "create-project-form";
-const DEFAULT_ICON = "terminal";
+const DEFAULT_ICON = "code"; // the first picker icon; the old "terminal" id never existed and only drew through the fallback
 const DEFAULT_COLOR = "white";
 
 export default function CreateProjectModal({ isOpen, onClose, onCreate }) {

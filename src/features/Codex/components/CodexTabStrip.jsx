@@ -202,10 +202,13 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
     if (!draggingRef.current) onActivate(id);
   };
 
-  const handleDragStart = ({ activatorEvent }) => {
+  // Grabbing a tab opens it, as in a browser or Obsidian: with the pointer straight away, from the keyboard on the
+  // drop (Space to lift should not swap the page in the middle of a move).
+  const handleDragStart = ({ active, activatorEvent }) => {
     draggingRef.current = true;
     keyboardDragRef.current = activatorEvent?.type === "keydown";
     if (keyboardDragRef.current) swallowSpaceUpRef.current = true;
+    else if (active.id !== activeId) onActivate(active.id);
   };
 
   const releaseDrag = () => {
@@ -221,6 +224,7 @@ export default function CodexTabStrip({ tabs, activeId, notes, onActivate, onClo
     if (moved) {
       if (isKeyboard) pendingFocusRef.current = active.id;
       onMove(active.id, over.id);
+      if (isKeyboard && active.id !== activeId) onActivate(active.id);
     } else if (isKeyboard) {
       // Space to lift and Space to drop with no move is a plain activation.
       onActivate(active.id);

@@ -43,7 +43,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: var(--space-1);
+  /* Scrolls by wheel, trackpad and keyboard; the bar itself stays hidden, as everywhere else in the app's panels. */
+  scrollbar-width: none;
 }
+.pane::-webkit-scrollbar { display: none; }
 
 .heading { margin: 0 0 var(--space-4); font-family: var(--font-body); font-size: var(--text-xl); font-weight: 500; letter-spacing: var(--tracking-body); }
 

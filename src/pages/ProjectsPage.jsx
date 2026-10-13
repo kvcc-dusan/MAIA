@@ -21,7 +21,7 @@ import styles from "./ProjectsPage.module.css";
 const withDefaults = (p) => ({
   id: p.id ?? uid(),
   name: p.name ?? "Untitled",
-  icon: p.icon ?? "terminal",
+  icon: p.icon ?? "code",
   iconColor: p.iconColor ?? "white",
   status: p.status ?? "Active", // Active | Paused | Done
   description: p.description ?? "",

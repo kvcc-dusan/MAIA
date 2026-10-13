@@ -119,9 +119,9 @@ describe("CodexTabStrip keyboard reorder", () => {
     expect(onActivate).not.toHaveBeenCalled();
   });
 
-  it("moves a tab left", async () => {
+  it("moves a tab left, and opens the tab it moved", async () => {
     const user = userEvent.setup();
-    const { onMove } = setupReorder();
+    const { onMove, onActivate } = setupReorder();
     const third = screen.getByRole("tab", { name: "New tab" });
     third.focus();
     await user.keyboard(" ");
@@ -129,6 +129,7 @@ describe("CodexTabStrip keyboard reorder", () => {
     await user.keyboard("{ArrowLeft}");
     await user.keyboard(" ");
     expect(onMove).toHaveBeenCalledWith("t3", "t1");
+    expect(onActivate).toHaveBeenCalledWith("t3");
   });
 
   it("keeps focus on the dragged tab while arrows move it", async () => {
