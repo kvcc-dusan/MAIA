@@ -34,18 +34,18 @@ describe("IconPicker", () => {
     const code = within(group).getByRole("radio", { name: "Code" });
     expect(code).toHaveAttribute("aria-checked", "true");
     expect(within(group).getAllByRole("radio").filter((r) => r.tabIndex === 0)).toHaveLength(1);
-    fireEvent.keyDown(code, { key: "ArrowDown" }); // one row down: Design
+    fireEvent.keyDown(code, { key: "ArrowDown" }); // one row down: Black hole
+    expect(within(group).getByRole("radio", { name: "Black hole" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.keyDown(within(group).getByRole("radio", { name: "Black hole" }), { key: "ArrowRight" });
     expect(within(group).getByRole("radio", { name: "Design" })).toHaveAttribute("aria-checked", "true");
-    fireEvent.keyDown(within(group).getByRole("radio", { name: "Design" }), { key: "ArrowRight" });
-    expect(within(group).getByRole("radio", { name: "Writing" })).toHaveAttribute("aria-checked", "true");
   });
 
   it("applies the chosen icon and colour", () => {
     const { onSelect, onClose } = setup();
-    fireEvent.click(screen.getByRole("radio", { name: "Space" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Earth" }));
     fireEvent.click(screen.getByRole("radio", { name: "Violet" }));
     fireEvent.click(screen.getByRole("button", { name: "Apply icon" }));
-    expect(onSelect).toHaveBeenCalledWith("planet", "violet");
+    expect(onSelect).toHaveBeenCalledWith("earth", "violet");
     expect(onClose).toHaveBeenCalled();
   });
 

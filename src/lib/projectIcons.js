@@ -16,35 +16,35 @@ export const ICON_COLORS = [
 ];
 
 /**
- * The 24 icons the picker offers, Solar (Linear), in four rows of six:
- * building, making and thinking, work, and life. Ids are persisted, labels are the accessible names.
+ * The 24 icons the picker offers, Solar (Linear), in the order Dušan picked them (2026-10-13).
+ * Ids are persisted, labels are the accessible names.
  * Older ids stay renderable through projectIcon/icons.js, so existing projects keep their icon.
  */
 export const PICKER_ICONS = [
     { id: "code", label: "Code" },
     { id: "cpu", label: "Hardware" },
-    { id: "database", label: "Data" },
-    { id: "magic", label: "AI and automation" },
-    { id: "rocket", label: "Launch" },
-    { id: "target", label: "Goal" },
+    { id: "cloud", label: "Cloud" },
+    { id: "command", label: "Command" },
+    { id: "infinity", label: "Infinity" },
+    { id: "bolt", label: "Energy" },
+    { id: "blackhole", label: "Black hole" },
     { id: "palette", label: "Design" },
+    { id: "ruler", label: "Drafting" },
+    { id: "tuning", label: "Color tuning" },
+    { id: "figma", label: "Figma" },
     { id: "pen", label: "Writing" },
+    { id: "growth", label: "Growth" },
+    { id: "telescope", label: "Research" },
     { id: "bulb", label: "Idea" },
-    { id: "chat", label: "Brainstorm" },
-    { id: "search", label: "Research" },
-    { id: "lab", label: "Experiment" },
-    { id: "briefcase", label: "Work" },
-    { id: "chart", label: "Analytics" },
-    { id: "notebook", label: "Notes" },
-    { id: "team", label: "Team" },
     { id: "wallet", label: "Finance" },
-    { id: "shop", label: "Shop" },
-    { id: "home", label: "Home" },
-    { id: "heart", label: "Health" },
-    { id: "leaf", label: "Nature" },
-    { id: "planet", label: "Space" },
-    { id: "world", label: "Travel" },
-    { id: "game", label: "Play" },
+    { id: "team", label: "Team" },
+    { id: "company", label: "Company" },
+    { id: "pulse", label: "Health" },
+    { id: "heart", label: "Heart" },
+    { id: "place", label: "Place" },
+    { id: "tea", label: "Tea" },
+    { id: "earth", label: "Earth" },
+    { id: "satellite", label: "Satellite" },
 ];
 
 /** colorId (persisted) → a CSS color string usable in inline styles. */
