@@ -7,12 +7,13 @@ import styles from "./EmptyState.module.css";
  * Empty state: says why it is empty and offers one next step (`action`).
  *
  * `icon` is a component (a Solar icon from components/icons), not an element. `size="inline"` is a
- * compact variant for in-panel cases; `size="page"` keeps Arc's roomy default.
+ * compact variant for in-panel cases; `size="page"` keeps Arc's roomy default; `size="small"` is for a
+ * section inside a dense panel (Chronos), where the full-size tile and copy outweighed the content.
  * Arc's empty state forwards only className and aria-label, so other DOM props
  * are not passed through.
  */
 function EmptyState({ icon: Icon, title, description, action, size = "inline", className, "aria-label": label }) {
-  const iconSize = size === "page" ? 24 : 20;
+  const iconSize = size === "page" ? 24 : size === "small" ? 16 : 20;
   return (
     <ArcEmptyState
       icon={Icon ? <Icon width={iconSize} height={iconSize} strokeWidth={1.75} /> : undefined}
@@ -20,7 +21,7 @@ function EmptyState({ icon: Icon, title, description, action, size = "inline", c
       description={description}
       action={action}
       label={label}
-      className={cn(size === "inline" && styles.inline, className)}
+      className={cn(size === "inline" && styles.inline, size === "small" && styles.small, className)}
     />
   );
 }

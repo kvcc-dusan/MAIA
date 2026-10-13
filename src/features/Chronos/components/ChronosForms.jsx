@@ -12,8 +12,8 @@ import { SessionColorSwatches } from "./SessionColorSwatches";
 import styles from "../ChronosModal.module.css";
 
 const TIME_MODES = [
-  { value: "in", label: "In" },
-  { value: "at", label: "At" },
+  { value: "in", label: "In a while" },
+  { value: "at", label: "At a time" },
 ];
 
 /**
@@ -38,18 +38,18 @@ export function TaskForm({ draft, setDraft, error, onCancel, onSubmit }) {
         onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
       />
 
-      <Select
-        label="Priority"
-        value={draft.priority}
-        options={TASK_PRIORITIES}
-        onChange={(val) => setDraft((d) => ({ ...d, priority: val }))}
-      />
-
       <DateTimeField
         label="Deadline"
         value={draft.due}
         dateOnly
         onChange={(val) => setDraft((d) => ({ ...d, due: val }))}
+      />
+
+      <Select
+        label="Priority"
+        value={draft.priority}
+        options={TASK_PRIORITIES}
+        onChange={(val) => setDraft((d) => ({ ...d, priority: val }))}
       />
 
       <Textarea
@@ -82,22 +82,35 @@ export function SignalForm({ draft, setDraft, error, onCancel, onSubmit, onPrese
         onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
       />
 
+      {/* The In / At switch gets its own row and the matching field sits under it at full width. Side by side
+          they fought for a narrow column: the switch squeezed the duration, and At stacked date over time. */}
       <div className={styles.fieldGroup} role="group" aria-labelledby={timeLabelId}>
         <span id={timeLabelId} className={styles.fieldLabel}>Time</span>
-        <div className={styles.timeRow}>
-          <SegmentedControl
-            label="Time mode"
-            options={TIME_MODES}
-            value={draft.mode}
-            onValueChange={(mode) => setDraft((d) => ({ ...d, mode }))}
+        <SegmentedControl
+          className={styles.timeMode}
+          label="Time mode"
+          options={TIME_MODES}
+          value={draft.mode}
+          onValueChange={(mode) => setDraft((d) => ({ ...d, mode }))}
+        />
+        {draft.mode === "in" ? (
+          <Select
+            label="Remind in"
+            labelClassName="sr-only"
+            value={draft.minutes}
+            options={IN_PRESETS}
+            onChange={onPresetChange}
+            placeholder="Duration"
           />
-
-          {draft.mode === "in" ? (
-            <Select value={draft.minutes} options={IN_PRESETS} onChange={onPresetChange} placeholder="Duration" />
-          ) : (
-            <DateTimeField value={draft.at} onChange={(val) => setDraft((d) => ({ ...d, at: val }))} />
-          )}
-        </div>
+        ) : (
+          <DateTimeField
+            equal
+            label="Remind at"
+            labelClassName="sr-only"
+            value={draft.at}
+            onChange={(val) => setDraft((d) => ({ ...d, at: val }))}
+          />
+        )}
       </div>
 
       <Select
@@ -118,7 +131,7 @@ export function SignalForm({ draft, setDraft, error, onCancel, onSubmit, onPrese
 }
 
 export function SessionForm({ draft, setDraft, error, projectOptions, onCancel, onSubmit }) {
-  const colourLabelId = useId();
+  const colorLabelId = useId();
 
   return (
     <EntityForm
@@ -137,18 +150,20 @@ export function SessionForm({ draft, setDraft, error, projectOptions, onCancel, 
         onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
       />
 
-      <div className={styles.fieldGroup} role="group" aria-labelledby={colourLabelId}>
-        <span id={colourLabelId} className={styles.fieldLabel}>Colour</span>
+      <div className={styles.fieldGroup} role="group" aria-labelledby={colorLabelId}>
+        <span id={colorLabelId} className={styles.fieldLabel}>Color</span>
         <SessionColorSwatches value={draft.color} onChange={(color) => setDraft((d) => ({ ...d, color }))} />
       </div>
 
       <DateTimeField
+        equal
         label="Start"
         value={draft.start ? toLocalInputValue(draft.start) : ""}
         onChange={(val) => setDraft((d) => ({ ...d, start: new Date(val) }))}
       />
 
       <DateTimeField
+        equal
         label="End"
         value={draft.end ? toLocalInputValue(draft.end) : ""}
         onChange={(val) => setDraft((d) => ({ ...d, end: new Date(val) }))}

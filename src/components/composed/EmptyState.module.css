@@ -1,3 +1,11 @@
 /* Unlayered and doubled: Arc's empty-state root padding is unlayered, so the
    compact variant has to out-rank it. Padding only. */
 .inline.inline { padding: var(--space-4) var(--space-3); }
+
+/* Small: a smaller icon tile and one step down in type, for an empty section inside a dense panel.
+   Arc's empty state exposes no size, so this scales its parts from the outside (doubled to out-rank it). */
+.small.small { padding: var(--space-4) var(--space-3); }
+.small.small > :first-child { width: var(--space-8); height: var(--space-8); border-radius: var(--radius-control); }
+.small.small h3 { margin-top: var(--space-3); font-size: var(--text-sm); }
+.small.small p { margin-top: var(--space-1); font-size: var(--text-xs); }
+.small.small [class*="action"] { margin-top: var(--space-3); }

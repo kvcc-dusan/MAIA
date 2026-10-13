@@ -39,16 +39,8 @@
   .sessions { height: auto; min-height: 0; flex: 1; overflow: hidden; }
 }
 
-/*
- * Forms. EntityForm's scroller clips anything that hangs below the fold, and
- * Arc's date and time pickers open an absolutely positioned panel inside their
- * field. While one is open the form gets a spacer after the actions so the
- * panel (calendar and Clear footer included) sits inside the scrollable area;
- * useRevealPicker scrolls it into view.
- */
-.right:has(button[aria-haspopup="dialog"][aria-expanded="true"], button[aria-haspopup="listbox"][aria-expanded="true"]) form::after { content: ""; display: block; flex: none; height: 24rem; }
-
 /* Form field helpers */
-.fieldGroup { display: flex; min-width: 0; flex-direction: column; gap: var(--space-2); }
+.fieldGroup { display: flex; min-width: 0; flex-direction: column; gap: var(--space-3); }
+/* The In / At switch keeps its natural width instead of stretching across the column. */
+.timeMode { align-self: flex-start; }
 .fieldLabel { color: var(--foreground); font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); }
-.timeRow { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: start; gap: var(--space-3); }

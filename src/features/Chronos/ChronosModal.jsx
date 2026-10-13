@@ -19,7 +19,6 @@ import SignalRow from "./components/SignalRow";
 import DailyTimeline from "./components/DailyTimeline";
 import MonthCalendar from "./components/MonthCalendar";
 import { TaskForm, SignalForm, SessionForm } from "./components/ChronosForms";
-import { useRevealPicker } from "./useRevealPicker";
 import styles from "./ChronosModal.module.css";
 
 export default function ChronosModal({
@@ -41,12 +40,10 @@ export default function ChronosModal({
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [rightView, setRightView] = useState("calendar");
   const [formError, setFormError] = useState(null);
-  const [rightRegion, setRightRegion] = useState(null);
   // One confirm for every task and signal removal in this modal. Rows only
   // request a delete; the removal runs from the dialog's danger button. Closing
   // keeps the content (open: false) so the exit animation doesn't swap the text.
   const [pendingDelete, setPendingDelete] = useState(null);
-  useRevealPicker(rightRegion);
 
   const [signalDraft, setSignalDraft] = useState({
     id: null,
@@ -370,6 +367,12 @@ export default function ChronosModal({
       // visible "Chronos" wordmark is the left column's own, so the divider
       // runs the full height of the modal.
       title="Chronos"
+      // Focus the dialog itself on open. Radix would focus the first control, the Add task button,
+      // and its tooltip then sat on screen like a stray white button.
+      onOpenAutoFocus={(event) => {
+        event.preventDefault();
+        event.currentTarget?.focus?.();
+      }}
     >
       <div className={styles.layout} data-form-open={isFormOpen ? "" : undefined}>
         {/* Left column: wordmark, then Tasks and Signals in one scrolling rail. */}
@@ -390,6 +393,7 @@ export default function ChronosModal({
 
               {visibleTasks.length === 0 ? (
                 <EmptyState
+                  size="small"
                   icon={ListTodo}
                   title={selectedDate ? "No tasks for this day" : "No open tasks"}
                   description={
@@ -427,6 +431,7 @@ export default function ChronosModal({
 
               {upcomingSignals.length === 0 ? (
                 <EmptyState
+                  size="small"
                   icon={BellOff}
                   title="No active signals"
                   description="A signal is a timed nudge. It arrives as a notification at the time you pick."
@@ -451,7 +456,7 @@ export default function ChronosModal({
 
         {/* Right column: calendar on top, sessions beneath; or whichever form
             is open. The divider stays put in every state. */}
-        <div className={styles.right} ref={setRightRegion}>
+        <div className={styles.right}>
           {rightView === "calendar" && (
             <>
               <MonthCalendar

@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { toLocalInputValue } from "@/lib/time";
 import { DatePicker } from "@/components/arc/date-picker/date-picker";
 import { TimePicker } from "@/components/arc/time-picker/time-picker";
+import { useFitPopups } from "./fitPopup";
 import styles from "./DateTimeField.module.css";
 
 const MINUTE_STEP = 5;
@@ -29,6 +30,8 @@ const parseValue = (value) => {
  * form grid's column gap, so they line up with two-column fields above and below.
  */
 function DateTimeField({ label, labelClassName, value, onChange, dateOnly = false, equal = false }) {
+  const rootRef = React.useRef(null);
+  useFitPopups(rootRef);
   const parsed = parseValue(value);
   const base = parsed ?? new Date();
   const hideLabels = !label || /(^|\s)sr-only(\s|$)/.test(labelClassName ?? "");
@@ -57,7 +60,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
   const timeLabel = !label ? "Time" : `${label} time`;
 
   return (
-    <div className={styles.root}>
+    <div ref={rootRef} className={styles.root}>
       <div
         role="group"
         aria-label={label || undefined}
