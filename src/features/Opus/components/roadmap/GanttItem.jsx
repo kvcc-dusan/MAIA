@@ -2,7 +2,7 @@ import React from "react";
 import { ariaLabelFor, rangeText, statsText } from "./roadmapModel";
 import styles from "./RoadmapGantt.module.css";
 
-/** One bar, or a pill for a milestone with only a due date. The status word lives in the legend and the aria-label; the bar keeps only its dot. */
+/** One bar, a pill for a bar too short for its name, or a pill for a milestone with only a due date. The status word lives in the legend and the aria-label; the bar keeps only its dot. */
 export default function GanttItem({ item, isActive, referenceYear, onOpen, onFocusItem, onKeyDown }) {
   const label = ariaLabelFor(item, referenceYear);
   const style = {
@@ -26,7 +26,9 @@ export default function GanttItem({ item, isActive, referenceYear, onOpen, onFoc
       onKeyDown={onKeyDown}
     >
       <span className={styles.shape} aria-hidden="true">
-        {item.kind === "bar" && item.stats.total > 0 && (
+        {/* Too short for its name: the pill fits the name and this tint marks the real start-to-due span. */}
+        {item.placement === "outside" && <span className={styles.span} />}
+        {item.placement === "inside" && item.stats.total > 0 && (
           <span className={styles.progress} style={{ "--p": item.stats.done / item.stats.total }} />
         )}
       </span>

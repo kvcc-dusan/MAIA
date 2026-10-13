@@ -27,7 +27,6 @@ export const ZOOM_OPTIONS = [
 ];
 export const pxPerDayFor = (zoom) => ZOOMS[zoom] ?? ZOOMS[DEFAULT_ZOOM];
 
-const LABEL_GAP_PX = 6;
 const BAR_PAD_PX = 16;
 const ROW_GAP_PX = 8;
 const INSIDE_MIN_PX = 160;
@@ -186,7 +185,7 @@ const estimateLabelPx = (title, statusText) =>
  * `items`: `{ id, title, statusText, startDay, dueDay }`. A milestone with no
  * start (or a start equal to its due day) is a marker: a rounded pill whose
  * left tip sits on its due day, label inside. Otherwise it is a bar from start to due, with the
- * label inside when it fits and beside the bar when it doesn't. Whatever the
+ * label inside when it fits; when it doesn't, a pill sized to the label starting at the start day. Whatever the
  * label takes up beside the shape counts when deciding what overlaps, so text
  * never runs under the next milestone.
  *
@@ -226,7 +225,8 @@ export const layoutLane = (items, range, pxPerDay) => {
       width: span.width,
       mid: span.left + span.width / 2,
       leftPx,
-      endPx: placement === "inside" ? leftPx + barPx : leftPx + barPx + LABEL_GAP_PX + labelPx + BAR_PAD_PX,
+      // Outside: the pill is as wide as the name (padded like a dated marker), and never shorter than the span.
+      endPx: placement === "inside" ? leftPx + barPx : leftPx + Math.max(barPx, labelPx + BAR_PAD_PX * 2),
     };
   });
 

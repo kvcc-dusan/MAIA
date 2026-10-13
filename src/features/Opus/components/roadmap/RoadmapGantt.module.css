@@ -112,8 +112,16 @@
 .item[data-placement="inside"] { width: calc(var(--w) * 1%); }
 .item[data-placement="inside"] .shape { position: absolute; inset: 0; }
 .item[data-placement="inside"] .label { position: relative; flex: 1 1 auto; }
-.item[data-placement="outside"] { width: max-content; }
-.item[data-placement="outside"] .shape { flex: none; align-self: stretch; width: calc(var(--w) * 1cqw); min-width: var(--space-4); }
+/*
+ * Too short for its name: a pill sized to the name, like a dated milestone, whose left tip is the start day.
+ * The real start-to-due span is the stronger tint inside it, so the duration still reads. A sliver of a bar
+ * at full row height turned into a tall capsule with the name floating beside it.
+ */
+.item[data-placement="outside"] { width: max-content; min-width: calc(var(--w) * 1cqw); }
+.item[data-placement="outside"] .shape { position: absolute; inset: 0; overflow: hidden; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--tone) 6%, var(--surface)); }
+.item[data-placement="outside"] .label { position: relative; padding-inline: var(--space-4); }
+.span { position: absolute; inset-block: 0; left: 0; width: calc(var(--w) * 1cqw); background: color-mix(in oklab, var(--tone) 22%, var(--surface)); }
+.item[data-status="planned"] .span { background: color-mix(in oklab, var(--tone) 12%, var(--surface)); }
 
 /* Dated-only milestone: a pill whose left tip is the due day. */
 .item[data-kind="marker"] { left: calc(var(--c) * 1% - var(--marker-anchor)); width: max-content; }
