@@ -3,7 +3,7 @@
 // never recreates the WebGL context. Everything three.js owns is released in
 // destroy().
 import ForceGraph3D from "3d-force-graph";
-import { Spherical, Vector3 } from "three";
+import { Vector3 } from "three";
 import { intToHex, mixInts } from "./colorConvert.js";
 import {
   DIM_OPACITY, boundingSphere, buildAdjacency, computeFocus, diffFocus, fitDistance, flyTarget, isLit, linkRotation, linkState,
@@ -14,6 +14,7 @@ import { labelGroups } from "./folderGroups.js";
 import { chargeFor, createFolderForce, createGravityForce, folderStrengthFor, GROUP_PULL_DEFAULT, gravityFor, linkDistanceFor3d, linkWidthFor } from "./graphForces.js";
 import { LABEL_PRIORITY, changedBeyond, estimateLabelSize, layoutLabels, stepToward } from "./labelLayout.js";
 import { createLinkMaterials } from "./linkMaterials3d.js";
+import { createOrbitMomentum } from "./orbitMomentum.js";
 import {
   LABEL_TEXT_HEIGHT, createNodeParts, createSharedAssets, disposeParts, ensureLabel, labelOffset, pulseRing, releaseLabel, setDetail,
   repositionLabel, resizeLabel, setLabelColor, stylePart,
@@ -43,14 +44,6 @@ const FLY_MS = 900;
 const FIT_MS = 700;
 const FOCUS_DISTANCE = 60;
 const AUTO_ROTATE_SPEED = 0.45;
-const ORBIT_KEY_STEP = 0.08;
-// Momentum after a flick: the speed measured over the last moments of the drag decays exponentially.
-const SPIN_TAU_S = 0.55; // time constant: it has nearly stopped after about three of these
-const SPIN_WINDOW_MS = 90; // how far back the release speed is measured
-const SPIN_MIN_SPEED = 0.35; // rad/s: a slower release is a gentle placement, not a flick
-const SPIN_STOP_SPEED = 0.03; // rad/s: below this the spin ends
-const SPIN_MAX_SPEED = 7; // rad/s: even the hardest flick turns the graph at a readable pace
-const SPIN_MIN_WINDOW_S = 0.016; // never divide by a sliver of time
 const DETAIL_MEDIUM_PX = 7; // on-screen radius where spheres switch to the medium geometry
 const DETAIL_SMOOTH_PX = 22; // and to the smooth one
 // Depth rules for names (distances are in units of the graph's radius, measured from its centre):
@@ -61,7 +54,6 @@ const NEAR_SCORE_WEIGHT = 0.8; // closer nodes win the screen space first
 const DEGREE_SCORE_WEIGHT = 0.015;
 const DEGREE_SCORE_CAP = 10;
 const LABEL_STICKY_BONUS = 0.25; // a label already showing keeps its place unless clearly outranked
-const ORBIT_POLE_MARGIN = 0.05;
 const SETTLE_FIT_DELAY_MS = 350;
 
 const endId = (end) => (end !== null && typeof end === "object" ? end.id : end);
@@ -95,6 +87,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
     dragging: false, // a node is being held
     linkStrength: null, // the library's link strength, kept while links are stiffened for a drag
     pullKey: null,
+    sphere: null, // centre and robust radius, refreshed each label pass (see collectCandidates)
     reheatAt: -Infinity,
     reheatTimer: 0,
     folderLabels: createFolderLabels(graph.scene()),
@@ -286,7 +279,10 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
 
   const collectCandidates = (camera) => {
     const { focus, style } = s;
-    const { center, radius } = boundingSphere(s.nodes);
+    // Sorting every node's distance is the costly part, so the sphere is measured once per label pass and the
+    // folder labels, which run every frame, reuse it. It moves slowly enough that 120 ms of staleness is invisible.
+    s.sphere = boundingSphere(s.nodes);
+    const { center, radius } = s.sphere;
     const target = graph.controls().target ?? center;
     const centerDist = Math.hypot(camera.position.x - target.x, camera.position.y - target.y, camera.position.z - target.z);
     const pxPerUnit = s.height / (2 * Math.tan((camera.fov * Math.PI) / 360));
@@ -368,7 +364,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   function updateFolderLabels(dt) {
     if (!s.style || !s.folderOn || s.width <= 0 || s.height <= 0) return;
     const camera = graph.camera();
-    const { radius, center } = boundingSphere(s.nodes);
+    const { radius, center } = s.sphere ?? boundingSphere(s.nodes);
     const target = graph.controls().target ?? center;
     const centerDist = Math.hypot(camera.position.x - target.x, camera.position.y - target.y, camera.position.z - target.z);
     s.folderLabels.update({
@@ -558,97 +554,9 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
   // The graph stays centred: orbit and zoom only. Panning (right-drag, Ctrl+click on a Mac, two-finger
   // gestures, arrow keys) would slide it out of the viewport, so it is off and the arrow keys orbit instead.
   controls.enablePan = false;
-  const orbitOffset = new Vector3();
-  const orbitSpherical = new Spherical();
-  const orbitBy = (dTheta, dPhi) => {
-    const camera = graph.camera();
-    const target = controls.target ?? new Vector3();
-    orbitOffset.copy(camera.position).sub(target);
-    orbitSpherical.setFromVector3(orbitOffset);
-    orbitSpherical.theta += dTheta;
-    orbitSpherical.phi = Math.min(Math.PI - ORBIT_POLE_MARGIN, Math.max(ORBIT_POLE_MARGIN, orbitSpherical.phi + dPhi));
-    orbitOffset.setFromSpherical(orbitSpherical);
-    camera.position.copy(target).add(orbitOffset);
-    camera.lookAt(target);
-    controls.update?.();
-  };
-  const ARROW_ORBIT = {
-    ArrowLeft: [ORBIT_KEY_STEP, 0], ArrowRight: [-ORBIT_KEY_STEP, 0], ArrowUp: [0, ORBIT_KEY_STEP], ArrowDown: [0, -ORBIT_KEY_STEP],
-  };
-  const handleOrbitKey = (event) => {
-    const step = ARROW_ORBIT[event.key];
-    if (!step) return;
-    event.preventDefault();
-    stopAutoRotate();
-    stopSpin();
-    orbitBy(step[0], step[1]);
-  };
-  container.addEventListener("keydown", handleOrbitKey);
-
-  // --- momentum --------------------------------------------------------------
-  // Let go of a quick drag and the graph keeps turning, easing to a stop. The speed comes from how the camera
-  // moved during the last moments of the drag; any new touch, wheel or key press cancels it. Off with reduced motion.
-  const spin = { dragging: false, samples: [], vTheta: 0, vPhi: 0, raf: 0, last: 0 };
-  const angles = () => {
-    const camera = graph.camera();
-    const target = controls.target ?? new Vector3();
-    orbitOffset.copy(camera.position).sub(target);
-    orbitSpherical.setFromVector3(orbitOffset);
-    return { theta: orbitSpherical.theta, phi: orbitSpherical.phi };
-  };
-  const wrapPi = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-  const stopSpin = () => {
-    cancelAnimationFrame(spin.raf);
-    spin.raf = 0;
-    spin.vTheta = 0;
-    spin.vPhi = 0;
-  };
-  const spinStep = (t) => {
-    spin.raf = 0;
-    if (s.destroyed || s.paused) return;
-    const dt = Math.min(0.05, (t - spin.last) / 1000);
-    spin.last = t;
-    orbitBy(spin.vTheta * dt, spin.vPhi * dt);
-    const decay = Math.exp(-dt / SPIN_TAU_S);
-    spin.vTheta *= decay;
-    spin.vPhi *= decay;
-    if (Math.hypot(spin.vTheta, spin.vPhi) < SPIN_STOP_SPEED) return;
-    spin.raf = requestAnimationFrame(spinStep);
-  };
-  const recordSpinSample = () => {
-    if (!spin.dragging) return; // orbitBy() and the spin itself also fire "change"; only a real drag counts
-    const now = performance.now();
-    spin.samples.push({ t: now, ...angles() });
-    while (spin.samples.length > 2 && now - spin.samples[0].t > SPIN_WINDOW_MS) spin.samples.shift();
-  };
-  const beginSpinTracking = () => {
-    stopSpin();
-    spin.dragging = true;
-    spin.samples = [{ t: performance.now(), ...angles() }];
-  };
-  const releaseSpin = () => {
-    spin.dragging = false;
-    const { samples } = spin;
-    spin.samples = [];
-    if (reducedMotion || samples.length < 2) return;
-    const first = samples[0];
-    const lastSample = samples[samples.length - 1];
-    const seconds = Math.max(SPIN_MIN_WINDOW_S, (lastSample.t - first.t) / 1000);
-    // Still moving when released? A pause before letting go means the user stopped it on purpose.
-    if (performance.now() - lastSample.t > SPIN_WINDOW_MS) return;
-    const vTheta = wrapPi(lastSample.theta - first.theta) / seconds;
-    const vPhi = (lastSample.phi - first.phi) / seconds;
-    const speed = Math.hypot(vTheta, vPhi);
-    if (speed < SPIN_MIN_SPEED) return;
-    const scale = Math.min(1, SPIN_MAX_SPEED / speed);
-    spin.vTheta = vTheta * scale;
-    spin.vPhi = vPhi * scale;
-    spin.last = performance.now();
-    spin.raf = requestAnimationFrame(spinStep);
-  };
-  controls.addEventListener("start", beginSpinTracking);
-  controls.addEventListener("change", recordSpinSample);
-  controls.addEventListener("end", releaseSpin);
+  const orbit = createOrbitMomentum({
+    graph, controls, container, reducedMotion, isLive: () => !s.destroyed && !s.paused, onInteract: stopAutoRotate,
+  });
 
   const canvas = graph.renderer().domElement;
   const handleContextLost = (event) => {
@@ -675,7 +583,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       folderLabels: s.folderLabels.count(),
       nodes: s.nodes.length,
       links: s.links.length,
-      spin: { dragging: spin.dragging, vTheta: +spin.vTheta.toFixed(3), vPhi: +spin.vPhi.toFixed(3), running: spin.raf !== 0 },
+      spin: orbit.stats(),
       camera: (() => { const { x, y, z } = graph.camera().position; return { x, y, z }; })(),
     };
   };
@@ -769,6 +677,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       const tierChanged = tier.heavy !== s.tier.heavy;
       s.tier = tier;
       s.nodes = nodes;
+      s.sphere = null;
       s.nodeById = new Map(nodes.map((n) => [n.id, n]));
       s.adjacency = buildAdjacency(links);
       s.links = links;
@@ -789,8 +698,12 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       graph.renderer().setPixelRatio(tier.pixelRatio);
       if (tierChanged) {
         s.assets.setLevels(tier.sphereLevels);
+        // setLevels freed the old geometries: move every sphere onto the new coarse one now, so nothing draws
+        // with a freed buffer (three would quietly re-upload it and never free it again). The next label pass
+        // refines the spheres that are close to the camera.
         s.parts.forEach((parts) => {
-          parts.detail = -1; // forces setDetail to pick the new geometry on the next pass
+          parts.detail = -1;
+          setDetail(parts, 0, s.assets);
         });
       }
       if (s.style) applyWidth();
@@ -845,11 +758,7 @@ export const createGraphScene = ({ container, reducedMotion, onHover, onNodeClic
       window.clearTimeout(s.reheatTimer);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       controls.removeEventListener("start", stopAutoRotate);
-      container.removeEventListener("keydown", handleOrbitKey);
-      stopSpin();
-      controls.removeEventListener("start", beginSpinTracking);
-      controls.removeEventListener("change", recordSpinSample);
-      controls.removeEventListener("end", releaseSpin);
+      orbit.dispose();
       window.clearTimeout(s.retireTimer);
       s.retired.forEach((m) => m.dispose());
       s.retired = [];

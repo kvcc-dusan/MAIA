@@ -24,6 +24,9 @@ export const writePref = (key, value) => {
   }
 };
 
+/** A saved number, or `fallback` when it is missing, unreadable, 0 or not a number (same rule as `parse(x) || fallback`). */
+export const readNumberPref = (key, fallback, parse = parseFloat) => parse(read(key)) || fallback;
+
 export const hasWebGL = () => {
   try {
     const canvas = document.createElement("canvas");

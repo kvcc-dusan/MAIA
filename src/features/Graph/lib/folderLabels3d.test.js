@@ -86,4 +86,14 @@ describe("folder labels", () => {
     expect(parent.children).toHaveLength(0);
     expect(labels.count()).toBe(0);
   });
+
+  it("applies a new font even when the colour stays, and keeps the label's size", () => {
+    const { parent, labels, ctx } = setup();
+    labels.update(ctx({ worldHeightFor: () => 6.4 })); // twice the base height
+    const sprite = parent.children[0];
+    const before = sprite.scale.y;
+    labels.setLook("white", "serif");
+    expect(sprite.fontFace).toBe("serif");
+    expect(sprite.scale.y).toBeCloseTo(before);
+  });
 });

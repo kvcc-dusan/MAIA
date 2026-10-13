@@ -10,6 +10,7 @@ import GraphHoverCard from "../components/GraphHoverCard.jsx";
 import { assignGroups } from "../lib/graphGroups.js";
 import { intToHex } from "../lib/colorConvert.js";
 import { useGraphView } from "../hooks/useGraphView.js";
+import { readNumberPref, writePref } from "../lib/viewPrefs.js";
 import { useGroupColors } from "../hooks/useGroupColors.js";
 import { isHotNode } from "../lib/hot.js";
 import { useThemeTokens } from "../hooks/useThemeTokens.js";
@@ -46,19 +47,20 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   const [showOrphans, setShowOrphans] = useState(true);
   const [showGhostNodes, setShowGhostNodes] = useState(false);
 
-  // Display & Physics with Persistence
-  const [nodeSize, setNodeSize] = useState(() => parseFloat(localStorage.getItem('maia_graph_nodeSize')) || 1);
-  const [linkThickness, setLinkThickness] = useState(() => parseFloat(localStorage.getItem('maia_graph_linkThickness')) || 1.5);
-  const [fontSize, setFontSize] = useState(() => parseFloat(localStorage.getItem('maia_graph_fontSize')) || 1);
-  const [repelForce, setRepelForce] = useState(() => parseInt(localStorage.getItem('maia_graph_repelForce')) || 150);
-  const [linkDistance, setLinkDistance] = useState(() => parseInt(localStorage.getItem('maia_graph_linkDistance')) || 100);
+  // Display & Physics with Persistence. Storage can be blocked (private mode, quota), so reads and writes are guarded.
+  const toInt = (v) => parseInt(v, 10);
+  const [nodeSize, setNodeSize] = useState(() => readNumberPref('maia_graph_nodeSize', 1));
+  const [linkThickness, setLinkThickness] = useState(() => readNumberPref('maia_graph_linkThickness', 1.5));
+  const [fontSize, setFontSize] = useState(() => readNumberPref('maia_graph_fontSize', 1));
+  const [repelForce, setRepelForce] = useState(() => readNumberPref('maia_graph_repelForce', 150, toInt));
+  const [linkDistance, setLinkDistance] = useState(() => readNumberPref('maia_graph_linkDistance', 100, toInt));
 
   // Persistence Effects
-  useEffect(() => localStorage.setItem('maia_graph_nodeSize', nodeSize), [nodeSize]);
-  useEffect(() => localStorage.setItem('maia_graph_linkThickness', linkThickness), [linkThickness]);
-  useEffect(() => localStorage.setItem('maia_graph_fontSize', fontSize), [fontSize]);
-  useEffect(() => localStorage.setItem('maia_graph_repelForce', repelForce), [repelForce]);
-  useEffect(() => localStorage.setItem('maia_graph_linkDistance', linkDistance), [linkDistance]);
+  useEffect(() => writePref('maia_graph_nodeSize', nodeSize), [nodeSize]);
+  useEffect(() => writePref('maia_graph_linkThickness', linkThickness), [linkThickness]);
+  useEffect(() => writePref('maia_graph_fontSize', fontSize), [fontSize]);
+  useEffect(() => writePref('maia_graph_repelForce', repelForce), [repelForce]);
+  useEffect(() => writePref('maia_graph_linkDistance', linkDistance), [linkDistance]);
 
   // Refs for access inside D3 closures without re-running effects
   const searchRef = useRef("");
@@ -133,7 +135,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       if (showOnlyProjects) return;
 
       const sourceId = n.id;
-      let hasLinks = false;
 
       // Note -> Note (Mentions)
       const matches = (n.content || "").match(/\[\[(.+?)\]\]/g) || [];
@@ -144,7 +145,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
 
         if (targetId && targetId !== sourceId) {
           d3Links.push({ source: sourceId, target: targetId });
-          hasLinks = true;
         } else if (!targetId && showGhostNodes && t) {
           // Ghost Node Concept
           if (!ghostNodesMap.has(normT)) {
@@ -159,7 +159,6 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
             allNodes.push(ghostNode);
           }
           d3Links.push({ source: sourceId, target: ghostNodesMap.get(normT).id });
-          hasLinks = true;
         }
       });
 
@@ -168,14 +167,9 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
         const isLinked = n.projectIds && n.projectIds.includes(p.id);
         if (isLinked) {
           d3Links.push({ source: sourceId, target: `proj-${p.id}` });
-          hasLinks = true;
         }
       });
-
-      // Mark as orphan if needed
-      if (!hasLinks && !showOrphans) {
-        n._orphan = true;
-      }
+      // Orphans are filtered below from the link set; the notes themselves are never written to (they are store data).
     });
 
     // 4. Filter Orphans

@@ -18,6 +18,40 @@ const fillFor = (d, T) => (d.type === "project" ? T.text : T.nodeFill);
 const linkColor = (T) => T.text;
 const labelColor = (T) => T.nodeFill;
 
+// Link ends are ids until the simulation binds them, node objects after.
+const endId = (end) => (end !== null && typeof end === "object" ? end.id : end);
+const linkKey = (l) => `${endId(l.source)}|${endId(l.target)}`;
+
+/**
+ * Join keys for the link paths. Links have no id, and keying them all on `undefined` made d3 drop and rebuild
+ * nearly every path on each update. A note can mention the same target twice, so repeats get an occurrence suffix.
+ */
+const linkKeys = (links) => {
+    const keys = new Map();
+    const seen = new Map();
+    links.forEach((l) => {
+        const key = linkKey(l);
+        const n = seen.get(key) || 0;
+        seen.set(key, n + 1);
+        keys.set(l, n ? `${key}#${n}` : key);
+    });
+    return keys;
+};
+
+/** id -> Set of neighbour ids, so a hover checks a node's neighbours in O(1) instead of scanning every link. */
+const neighbourMap = (links) => {
+    const map = new Map();
+    const add = (a, b) => {
+        if (!map.has(a)) map.set(a, new Set());
+        map.get(a).add(b);
+    };
+    links.forEach((l) => {
+        add(endId(l.source), endId(l.target));
+        add(endId(l.target), endId(l.source));
+    });
+    return map;
+};
+
 function GraphRenderer({
     nodes,
     links,
@@ -92,8 +126,10 @@ function GraphRenderer({
         nodesRef.current = nodes;
 
         // JOIN pattern for efficient updates
+        const keys = linkKeys(links);
+        const neighbours = neighbourMap(links);
         const link = linkLayer.selectAll("path")
-            .data(links, d => d.id) // Use key function for stability
+            .data(links, d => keys.get(d) ?? linkKey(d)) // old elements carry last render's link objects
             .join("path")
             .attr("fill", "none")
             .attr("stroke", linkColor(themeRef.current))
@@ -138,13 +174,8 @@ function GraphRenderer({
             link.attr("stroke", l => (l.source.id === d.id || l.target.id === d.id) ? themeRef.current.nodeActive : linkColor(themeRef.current))
                 .attr("stroke-opacity", l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1);
 
-            node.attr("opacity", n => {
-                const isConnected = links.some(l =>
-                    (l.source.id === d.id && l.target.id === n.id) ||
-                    (l.target.id === d.id && l.source.id === n.id)
-                );
-                return (n.id === d.id || isConnected) ? 1 : 0.1;
-            }).attr("fill", n => {
+            const linked = neighbours.get(d.id);
+            node.attr("opacity", n => (n.id === d.id || linked?.has(n.id)) ? 1 : 0.1).attr("fill", n => {
                 if (n.id === d.id) return themeRef.current.nodeActive;
                 return fillFor(n, themeRef.current);
             });

@@ -95,14 +95,18 @@ export const createFolderLabels = (parent) => {
 
     setLook(nextColor, nextFontFace) {
       const colorChanged = nextColor !== color;
+      const fontChanged = nextFontFace !== fontFace;
       color = nextColor;
       fontFace = nextFontFace;
-      if (!colorChanged) return;
+      if (!colorChanged && !fontChanged) return;
       sprites.forEach((entry) => {
-        const { sprite, base } = entry;
-        const scale = sprite.scale.x / base.x;
-        sprite.color = color; // regenerates the canvas, which resets the scale
-        sprite.scale.set(base.x * scale, base.y * scale, 0);
+        const { sprite } = entry;
+        const scale = sprite.scale.x / entry.base.x;
+        // Each setter regenerates the canvas and resets the scale, so the base size is re-read afterwards.
+        if (colorChanged) sprite.color = color;
+        if (fontChanged) sprite.fontFace = fontFace;
+        entry.base = { x: sprite.scale.x, y: sprite.scale.y };
+        sprite.scale.set(entry.base.x * scale, entry.base.y * scale, 0);
       });
     },
 

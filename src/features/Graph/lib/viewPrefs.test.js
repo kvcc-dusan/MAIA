@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GROUP_PULL_DEFAULT } from "./graphForces.js";
-import { GROUP_BY_FOLDER_KEY, GROUP_PULL_KEY, readGroupByFolder, readGroupPull, writeGroupByFolder, writeGroupPull } from "./viewPrefs.js";
+import { GROUP_BY_FOLDER_KEY, GROUP_PULL_KEY, readGroupByFolder, readGroupPull, readNumberPref, writeGroupByFolder, writeGroupPull, writePref } from "./viewPrefs.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -58,5 +58,24 @@ describe("group pull preference", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
     expect(readGroupPull()).toBe(GROUP_PULL_DEFAULT);
     expect(() => writeGroupPull(50)).not.toThrow();
+  });
+});
+
+describe("numeric slider preferences", () => {
+  it("reads a saved number and falls back when missing, zero or not a number", () => {
+    writePref("k", 2.5);
+    expect(readNumberPref("k", 1)).toBe(2.5);
+    expect(readNumberPref("missing", 1)).toBe(1);
+    writePref("k", 0);
+    expect(readNumberPref("k", 1)).toBe(1);
+    writePref("k", "abc");
+    expect(readNumberPref("k", 150, (v) => parseInt(v, 10))).toBe(150);
+  });
+
+  it("never throws when storage is blocked", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
+    expect(readNumberPref("k", 1)).toBe(1);
+    expect(() => writePref("k", 3)).not.toThrow();
   });
 });
