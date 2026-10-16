@@ -63,16 +63,13 @@ const extractTags = (content) => {
   return Array.from(new Set(names.filter((name) => /\D/.test(name)))); // Obsidian needs one non-numeric char
 };
 
-export function parseContentMeta(content) {
-  const raw = content || "";
-  const src = raw.replace(/%%[\s\S]*?%%/g, ""); // strip Obsidian comments
-
-  // ----- Tags -----
-  const tags = extractTags(raw);
-
-  // ----- Wikilinks -----
-  // Take the content before '|' (ignore aliases), before '#' (ignore headings/blocks), and trim.
-  const links = Array.from(
+/**
+ * Distinct wikilink targets of a note body: alias and heading dropped, trimmed, case kept.
+ * A link to a heading of the same note (`[[#Heading]]`) has no target and is left out.
+ */
+export const extractLinkTargets = (content) => {
+  const src = (content || "").replace(/%%[\s\S]*?%%/g, ""); // strip Obsidian comments
+  return Array.from(
     new Set(
       (src.match(/\[\[(.+?)\]\]/g) || [])
         .map(m => m.slice(2, -2))          // inner of [[...]]
@@ -82,6 +79,8 @@ export function parseContentMeta(content) {
         .filter(Boolean)
     )
   );
+};
 
-  return { tags, links };
+export function parseContentMeta(content) {
+  return { tags: extractTags(content || ""), links: extractLinkTargets(content) };
 }

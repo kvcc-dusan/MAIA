@@ -148,7 +148,8 @@ const timeOr = (ms, fallbackIso) => {
 };
 
 // modifiedAt / birthAt are for sorting only. They are read from the file system on every
-// load and are not frontmatter keys, so noteToMarkdown never writes them.
+// load and are not frontmatter keys, so noteToMarkdown never writes them. Same for `fileName` (no
+// extension): a title can differ from the file name, and [[folder/file-name]] links need the latter.
 const noteFor = (rel, entry, id) => {
   if (entry.final && entry.final.id === id) return entry.final;
   const base = baseNote(rel, entry);
@@ -156,6 +157,7 @@ const noteFor = (rel, entry, id) => {
     ...base,
     id,
     folder: relDir(rel),
+    fileName: relBase(rel).replace(/\.md$/i, ""),
     modifiedAt: timeOr(entry.mtimeMs, base.createdAt),
     birthAt: timeOr(entry.birthMs, base.createdAt),
   };

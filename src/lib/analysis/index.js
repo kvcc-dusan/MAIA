@@ -4,6 +4,8 @@
  */
 
 import { noteTags } from "../noteTags.js";
+import { extractLinkTargets } from "../parseContentMeta.js";
+import { createLinkResolver } from "../linkResolver.js";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Helpers                                   */
@@ -14,12 +16,6 @@ const ONE_DAY_MS = 86400000;
 function getDaysAgo(isoDate) {
     const diff = Date.now() - new Date(isoDate).getTime();
     return diff / ONE_DAY_MS;
-}
-
-// Extract internal links [[Title]] from content
-function extractLinks(content) {
-    const matches = (content || "").match(/\[\[(.*?)\]\]/g) || [];
-    return matches.map(m => m.slice(2, -2).trim().toLowerCase());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -97,21 +93,19 @@ export function findClusters(notes) {
     // ID -> Set of Neighbor IDs
     const graph = new Map();
     const noteMap = new Map();
-    const titleToId = new Map();
+    const resolve = createLinkResolver(notes);
 
     // Initialize
     notes.forEach(n => {
         graph.set(n.id, new Set());
         noteMap.set(n.id, n);
-        if (n.title) titleToId.set(n.title.toLowerCase(), n.id);
     });
 
     // Build Edges
     notes.forEach(source => {
-        const links = extractLinks(source.content);
-        links.forEach(targetTitle => {
-            const targetId = titleToId.get(targetTitle);
-            if (targetId) {
+        extractLinkTargets(source.content).forEach(target => {
+            const targetId = resolve(target, source)?.id;
+            if (targetId && targetId !== source.id) {
                 // Bi-directional for clustering context
                 graph.get(source.id).add(targetId);
                 graph.get(targetId).add(source.id);

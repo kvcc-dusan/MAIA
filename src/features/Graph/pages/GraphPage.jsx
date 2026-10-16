@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { select, zoomIdentity } from "d3";
 import { calculateVelocity, findClusters } from "../../../lib/analysis/index.js";
 import { noteTags } from "../../../lib/noteTags.js";
+import { extractLinkTargets } from "../../../lib/parseContentMeta.js";
+import { createLinkResolver } from "../../../lib/linkResolver.js";
 import { Network } from "@/components/icons";
 import GraphRenderer from "../components/GraphRenderer.jsx";
 import GraphControls from "../components/GraphControls.jsx";
@@ -124,7 +126,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
     }
 
     let allNodes = [...noteNodes, ...projectNodes];
-    const idByTitle = new Map(notes.map((n) => [normalize(n.title), n.id]));
+    const resolveLink = createLinkResolver(notes);
     const d3Links = [];
     const ghostNodesMap = new Map(); // title -> node
 
@@ -134,16 +136,14 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
 
       const sourceId = n.id;
 
-      // Note -> Note (Mentions)
-      const matches = (n.content || "").match(/\[\[(.+?)\]\]/g) || [];
-      matches.forEach((m) => {
-        const t = m.slice(2, -2).trim();
+      // Note -> Note (Mentions). Targets are resolved by title, file name or folder path, like Obsidian.
+      extractLinkTargets(n.content).forEach((t) => {
         const normT = normalize(t);
-        const targetId = idByTitle.get(normT);
+        const targetId = resolveLink(t, n)?.id;
 
         if (targetId && targetId !== sourceId) {
           d3Links.push({ source: sourceId, target: targetId });
-        } else if (!targetId && showGhostNodes && t) {
+        } else if (!targetId && showGhostNodes) {
           // Ghost Node Concept
           if (!ghostNodesMap.has(normT)) {
             const ghostNode = {

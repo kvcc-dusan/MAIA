@@ -229,6 +229,23 @@ describe("vault.js incremental loads", () => {
     expect(stats).toMatchObject({ files: 2, reads: 1, reused: 1 });
   });
 
+  it("notes carry their file name without extension, apart from the title", async () => {
+    const { loadVault } = await setup();
+    setFile("sm/cosmos/00-overview.md", md({ id: "co", title: "COSMOS — Overview" }));
+    const { notes } = await loadVault(VAULT);
+    expect(notes[0]).toMatchObject({ title: "COSMOS — Overview", folder: "sm/cosmos", fileName: "00-overview" });
+  });
+
+  it("saving a note never writes fileName or folder into the file", async () => {
+    const { loadVault, saveNote } = await setup();
+    setFile("sm/cosmos/00-overview.md", md({ id: "co", title: "COSMOS — Overview" }));
+    const { notes } = await loadVault(VAULT);
+    await saveNote(VAULT, { ...notes[0], content: "edited" });
+    const [saved] = Object.values(fsState.files); // the save may rename the file; only its text matters here
+    expect(saved).toContain("edited");
+    expect(saved).not.toMatch(/fileName|folder/);
+  });
+
   it("a deleted-then-recreated path with another id is read again", async () => {
     const { loadVault } = await setup();
     setFile("n.md", md({ id: "old" }), OLD);

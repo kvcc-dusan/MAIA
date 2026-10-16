@@ -9,8 +9,12 @@ vi.mock("3d-force-graph", () => ({
     throw new Error("Error creating WebGL context.");
   },
 }));
+const rendered = vi.hoisted(() => ({ props: null }));
 vi.mock("../components/GraphRenderer.jsx", () => ({
-  default: () => <div data-testid="graph-2d" />,
+  default: (props) => {
+    rendered.props = props;
+    return <div data-testid="graph-2d" />;
+  },
 }));
 
 import GraphPage from "./GraphPage.jsx";
@@ -36,5 +40,39 @@ describe("GraphPage view mode", () => {
     render(<GraphPage notes={notes} projects={[]} onOpenNote={vi.fn()} />);
     expect(await screen.findByTestId("graph-2d")).toBeInTheDocument();
     expect(screen.queryByText("3D view is not available")).toBeNull();
+  });
+});
+
+describe("GraphPage links", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    localStorage.setItem("maia_graph_view", "2d");
+    rendered.props = null;
+  });
+  afterEach(cleanup);
+
+  const pairs = () => rendered.props.links.map((l) => `${l.source}>${l.target}`).sort();
+
+  it("links notes by folder path and heading even when titles differ from file names", async () => {
+    const sm = (id, title, folder, fileName, content = "") => ({ id, title, folder, fileName, content, tags: [] });
+    const vault = [
+      sm("root", "Speculum Mundi", "sm", "speculum-mundi", "[[cosmos/00-overview]] [[mind/00-overview]]"),
+      sm("co", "COSMOS — Overview", "sm/cosmos", "00-overview", "[[cosmos/01-reading-path#COS-F-04]] [[#Local heading]]"),
+      sm("cr", "COSMOS — Reading path", "sm/cosmos", "01-reading-path", "[[00-overview|back]]"),
+      sm("mo", "MIND — Overview", "sm/mind", "00-overview"),
+    ];
+    render(<GraphPage notes={vault} projects={[]} onOpenNote={vi.fn()} />);
+    await screen.findByTestId("graph-2d");
+    expect(pairs()).toEqual(["co>cr", "cr>co", "root>co", "root>mo"]);
+  });
+
+  it("still links by plain title", async () => {
+    const vault = [
+      { id: "a", title: "Alpha", content: "see [[beta]]", tags: [] },
+      { id: "b", title: "Beta", content: "", tags: [] },
+    ];
+    render(<GraphPage notes={vault} projects={[]} onOpenNote={vi.fn()} />);
+    await screen.findByTestId("graph-2d");
+    expect(pairs()).toEqual(["a>b"]);
   });
 });

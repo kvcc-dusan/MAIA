@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseContentMeta } from './parseContentMeta';
+import { parseContentMeta, extractLinkTargets } from './parseContentMeta';
 
 describe('parseContentMeta', () => {
     it('should extract tags', () => {
@@ -122,5 +122,17 @@ describe('parseContentMeta tags', () => {
 
     it('accepts unicode letters in tags', () => {
         expect(tagsOf('#šola #žaba')).toEqual(['šola', 'žaba']);
+    });
+});
+
+describe('extractLinkTargets', () => {
+    it('keeps folder paths, drops headings and aliases, and skips same-note heading links', () => {
+        const content = '[[cosmos/01-reading-path#COS-F-04]] [[cosmos/01-reading-path|path]] [[#F5 Ryle 1949]] [[Note A]]';
+        expect(extractLinkTargets(content)).toEqual(['cosmos/01-reading-path', 'Note A']);
+    });
+
+    it('ignores links inside Obsidian comments and handles empty input', () => {
+        expect(extractLinkTargets('%% [[Hidden]] %% [[Shown]]')).toEqual(['Shown']);
+        expect(extractLinkTargets(undefined)).toEqual([]);
     });
 });

@@ -1,11 +1,14 @@
-const normalize = (value) => String(value ?? "").trim().toLowerCase();
+import { createLinkResolver } from "../../lib/linkResolver.js";
 
-/** Number of other notes whose wikilink targets include this note's title. */
+/** Number of other notes with a wikilink that resolves to this note (by title, file name or folder path). */
 export const countBacklinks = (notes, note) => {
-  const title = normalize(note?.title);
-  if (!title || !Array.isArray(notes)) return 0;
+  if (!note || !Array.isArray(notes)) return 0;
+  // The open note may be an unsaved copy: resolve against it, not the stored one.
+  const stored = notes.find((n) => n.id === note.id);
+  const pool = stored === note ? notes : [...notes.filter((n) => n.id !== note.id), note];
+  const resolve = createLinkResolver(pool);
   return notes.reduce((count, other) => {
     if (other.id === note.id || !Array.isArray(other.links)) return count;
-    return other.links.some((link) => normalize(link) === title) ? count + 1 : count;
+    return other.links.some((link) => resolve(link, other)?.id === note.id) ? count + 1 : count;
   }, 0);
 };
