@@ -4,7 +4,7 @@ import { useEffect } from "react";
 // scrolling panel it then either gets clipped or makes the panel scroll to show it, which jolts the form.
 // These place the popup so it fits the panel instead: open upward when there is more room above,
 // and slide sideways when it is wider than the field and would run past the panel's edge.
-const POPUP_SELECTOR = '[role="dialog"][aria-label$=" calendar"], [role="listbox"][aria-label$=" options"]';
+export const POPUP_SELECTOR ='[role="dialog"][aria-label$=" calendar"], [role="listbox"][aria-label$=" options"]';
 const GAP = 8; // the pickers' own offset from the field
 const EDGE = 8; // breathing room against the panel edge
 

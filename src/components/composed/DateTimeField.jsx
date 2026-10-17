@@ -3,13 +3,20 @@ import { cn } from "@/lib/utils";
 import { toLocalInputValue } from "@/lib/time";
 import { DatePicker } from "@/components/arc/date-picker/date-picker";
 import { TimePicker } from "@/components/arc/time-picker/time-picker";
-import { useFitPopups } from "./fitPopup";
+import { POPUP_SELECTOR, useFitPopups } from "./fitPopup";
 import styles from "./DateTimeField.module.css";
 
 const MINUTE_STEP = 5;
 const DATE_FORMAT = { month: "short", day: "numeric" };
 
 const pad = (n) => String(n).padStart(2, "0");
+
+// WebKit (the Tauri window) does not focus a clicked button: focus jumps to the enclosing dialog,
+// Arc's picker reads that blur as "focus left the field" and closes before the click lands, so the
+// month chevrons and the days did nothing. Keeping focus where it is lets the click through.
+const keepFocusInPopup = (event) => {
+  if (event.target.closest?.(POPUP_SELECTOR) && event.target.closest("button")) event.preventDefault();
+};
 
 const parseValue = (value) => {
   if (!value) return null;
@@ -60,7 +67,7 @@ function DateTimeField({ label, labelClassName, value, onChange, dateOnly = fals
   const timeLabel = !label ? "Time" : `${label} time`;
 
   return (
-    <div ref={rootRef} className={styles.root}>
+    <div ref={rootRef} className={styles.root} onMouseDown={keepFocusInPopup}>
       <div
         role="group"
         aria-label={label || undefined}
