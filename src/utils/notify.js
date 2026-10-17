@@ -40,13 +40,7 @@ async function show(title, options) {
   try {
     playSound(); // Play sound!
 
-    // Check for service worker registration for richer notifications if available
-    const reg = await navigator.serviceWorker?.getRegistration();
-    if (reg && reg.showNotification) {
-      await reg.showNotification(title, options);
-    } else if ("Notification" in window) {
-      new Notification(title, options);
-    }
+    if ("Notification" in window) new Notification(title, options);
   } catch (e) {
     console.error("Notification failed", e);
   }

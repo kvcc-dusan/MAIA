@@ -9,8 +9,6 @@
     "lint": "eslint .",
     "lint:tokens": "node scripts/lint-tokens.mjs",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
     "test": "vitest",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
@@ -88,13 +86,11 @@
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "gh-pages": "^6.3.0",
     "globals": "^16.3.0",
     "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.3.3",
     "vite": "^7.1.0",
-    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.18"
   }
 }

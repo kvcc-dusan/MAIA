@@ -4,12 +4,12 @@ Verified against source 2026-10-10. When this file and the code disagree, the co
 
 ## What MAIA is
 
-Personal operating system and knowledge app for Dušan. Solo project, no team, no backend, offline-first. Two targets:
+Personal operating system and knowledge app for Dušan. Solo project, no team, no backend, offline-first. One target (the web/PWA build was dropped on 2026-10-17):
 
-- **Tauri 2 desktop**: the primary target. Notes are plain Markdown files in a user-picked vault folder. Opus projects and tasks are Markdown files in the same vault.
-- **Web/PWA** (GitHub Pages, base `/MAIA/`): secondary. localStorage only. `vite.config.js` uses base `/` for Tauri builds.
+- **Tauri 2 desktop**: the only target. Notes are plain Markdown files in a user-picked vault folder. Opus projects and tasks are Markdown files in the same vault.
+- The `isTauri()` web fallbacks (localStorage) are still in the code and are removed case by case (task "Remove the web/PWA build"). Chronos data and no-vault mode still use localStorage inside Tauri. There is no service worker and no manifest.
 
-The seam is `isTauri()` in `src/lib/vault.js`. Filesystem-adjacent code follows one pattern: Tauri gets the real implementation, web falls back to localStorage, and Tauri imports are always dynamic (`await import(...)`) so the web bundle never pulls Tauri code in.
+The seam is `isTauri()` in `src/lib/vault.js`. Filesystem-adjacent code follows one pattern: Tauri gets the real implementation, the leftover web branch falls back to localStorage, and Tauri imports are always dynamic (`await import(...)`).
 
 Pages (`PAGES` in `src/App.jsx`): `codex`, `projects` (Opus), `graph` (Conexa). Chronos, Settings, the command palette and vault setup are layers, not pages. The app reopens on the last page (`maia_current_view`, default `projects`). The legacy values `overview` and `editor` map to `codex`.
 
@@ -60,7 +60,7 @@ src/
 ├── hooks/                  useNotesStore, useOpusStore (+ opus/), useLocalStorage, useNavHistory, useDebounced, useLongPress
 ├── context/                DataContext.jsx, useActivityLog.js, useTaskActions.js, useProjectCollections.js
 ├── styles/                 tokens.css (legacy-name bridge), base.css, surfaces.css, components.css
-├── utils/notify.js         notifications, Web Audio, service-worker scheduling
+├── utils/notify.js         notifications (in-page timers, Web Notification API), Web Audio
 └── dev/Gallery.jsx         component gallery at ?ui=gallery (dev only)
 mcp/                        stdio MCP server (see MCP server)
 src-tauri/                  Tauri 2 shell, capabilities, CSP
@@ -220,7 +220,7 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
 - Immutability: always spread, never mutate. `DataContext.toggleTask`'s nested map chain is easy to break.
 - localStorage keys to know: `maia_current_view`, `maia.codex.tabs`, `maia.activity` (+ `maia.activityMigrated`), `maia.assetsMigrated`, `maia.notesMigrated`, `maia.ledger`.
 - `src-tauri/`: explicit CSP in `tauri.conf.json`, runtime-scoped fs. Don't loosen either without a reason.
-- `src/utils/notify.js` (browser notifications, Web Audio, service-worker task scheduling): the SW pattern is subtle. Don't touch it without understanding it.
+- `src/utils/notify.js` (Web Notification API, Web Audio, in-page `setTimeout` scheduling): there is no service worker. No Tauri notification plugin is installed, so whether reminders show in the Tauri window is unverified.
 
 ## Conventions (binding)
 
@@ -237,9 +237,8 @@ One step per pass, then stop for review in `npm run tauri dev`. Plan: `~/.claude
 
 ```bash
 npm run tauri dev                          # desktop app, hot reload, the review surface; starts Vite itself, so never run `npm run dev` alongside it
-npm run dev                                # web at http://localhost:5183/MAIA/ (strictPort, the port is fixed)
-npm run build                              # web build
-npm run deploy                             # build and push to GitHub Pages (gh-pages)
+npm run dev                                # Vite alone at http://localhost:5183/ (strictPort, the port is fixed)
+npm run build                              # frontend build (dist/)
 npx vitest run                             # tests
 npx eslint src/                            # lint (ignores src-tauri/target and src/components/arc)
 npm run lint:tokens                        # token ratchet, the count must go down
