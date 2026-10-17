@@ -277,9 +277,11 @@ function AppContent() {
     // Ensure permissions on first user interaction or load if possible, though browsers block auto-request.
     // Rely on ChronosModal to ask permission, but here we just schedule what we have.
     if (reminders && reminders.length > 0) {
-      rescheduleAll(reminders);
+      rescheduleAll(reminders, (id) =>
+        setReminders((prev) => prev.map((r) => (r.id === id && !r.delivered ? { ...r, delivered: true } : r)))
+      );
     }
-  }, [reminders]);
+  }, [reminders, setReminders]);
 
 
   /* -----------------------------------------

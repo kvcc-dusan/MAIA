@@ -1,3 +1,5 @@
+import { isTauri } from "../lib/vault.js";
+
 let timers = new Map();
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -28,25 +30,50 @@ function playSound() {
   osc.stop(now + duration);
 }
 
+// The desktop webview (WKWebView) has no Notification API: Tauri's plugin talks to macOS instead.
+// Dynamic import, like every Tauri module, so tests and the jsdom path never load it.
+const tauriNotification = () => import("@tauri-apps/plugin-notification");
+
 export async function ensurePermission() {
-  if (!("Notification" in window)) return false;
-  if (Notification.permission === "granted") return true;
-  if (Notification.permission === "denied") return false;
-  const p = await Notification.requestPermission();
-  return p === "granted";
+  try {
+    if (isTauri()) {
+      const { isPermissionGranted, requestPermission } = await tauriNotification();
+      if (await isPermissionGranted()) return true;
+      return (await requestPermission()) === "granted";
+    }
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission === "denied") return false;
+    return (await Notification.requestPermission()) === "granted";
+  } catch (e) {
+    console.error("[MAIA] Notification permission check failed", e);
+    return false;
+  }
 }
 
 async function show(title, options) {
   try {
     playSound(); // Play sound!
 
-    if ("Notification" in window) new Notification(title, options);
+    if (isTauri()) {
+      const { sendNotification } = await tauriNotification();
+      sendNotification({ title });
+    } else if ("Notification" in window) {
+      new Notification(title, options);
+    }
   } catch (e) {
     console.error("Notification failed", e);
   }
 }
 
-export function scheduleLocalNotification(id, title, whenISO) {
+// setTimeout overflows past ~24.8 days, so long waits are split into hops.
+const MAX_TIMER_MS = 7 * 24 * 60 * 60 * 1000;
+// A reminder missed while the app was closed still fires on launch, but only if it is this recent.
+// Older ones are marked delivered quietly, so a backlog never fires all at once.
+export const CATCH_UP_MS = 60 * 60 * 1000;
+
+/** `onFire` runs once the notification has been shown (used to mark the reminder delivered). */
+export function scheduleLocalNotification(id, title, whenISO, onFire) {
   const when = new Date(whenISO).getTime();
   const delay = when - Date.now();
   clearScheduled(id);
@@ -58,15 +85,21 @@ export function scheduleLocalNotification(id, title, whenISO) {
   };
 
   const notificationTitle = `Signal: ${title}`;
+  const fire = () => {
+    timers.delete(id);
+    show(notificationTitle, payload);
+    onFire?.(id);
+  };
 
   if (delay <= 0) {
-    show(notificationTitle, payload);
+    fire();
     return;
   }
 
-  // cap to ~7 days to avoid absurd setTimeouts
-  const capped = Math.min(delay, 7 * 24 * 60 * 60 * 1000);
-  const t = setTimeout(() => show(notificationTitle, payload), capped);
+  // The old code fired at the cap, so a reminder 10 days out went off after 7. Hop instead.
+  const t = delay > MAX_TIMER_MS
+    ? setTimeout(() => scheduleLocalNotification(id, title, whenISO, onFire), MAX_TIMER_MS)
+    : setTimeout(fire, delay);
   timers.set(id, t);
 }
 
@@ -75,12 +108,21 @@ export function clearScheduled(id) {
   if (t) { clearTimeout(t); timers.delete(id); }
 }
 
-export function rescheduleAll(reminders) {
+/**
+ * Schedules every undelivered reminder. `onDelivered(id)` must mark the reminder delivered;
+ * without it a due reminder fired again on every launch and every reminders change.
+ */
+export function rescheduleAll(reminders, onDelivered) {
   if (!reminders) return;
-  reminders.forEach(r => {
-    // Only schedule if not delivered and in the future (or very recent past to catch up)
-    if (!r.delivered) {
-      scheduleLocalNotification(r.id, r.title, r.scheduledAt);
+  const now = Date.now();
+  reminders.forEach((r) => {
+    if (r.delivered) return;
+    const when = new Date(r.scheduledAt).getTime();
+    if (!Number.isFinite(when) || when < now - CATCH_UP_MS) {
+      clearScheduled(r.id);
+      onDelivered?.(r.id);
+      return;
     }
+    scheduleLocalNotification(r.id, r.title, r.scheduledAt, onDelivered);
   });
 }

@@ -130,6 +130,8 @@ pub fn run() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    // WKWebView has no Web Notification API, so Chronos reminders go through the OS here.
+    .plugin(tauri_plugin_notification::init())
     .invoke_handler(tauri::generate_handler![allow_vault_scope, open_in_default_app])
     .setup(|app| {
       if cfg!(debug_assertions) {
