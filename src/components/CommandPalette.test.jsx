@@ -78,6 +78,28 @@ describe('CommandPalette', () => {
     expect(screen.queryByText('Note 50')).not.toBeInTheDocument();
   });
 
+  it('finds an old note outside the 50 most recent (regression: root notes of a large vault)', async () => {
+    const user = userEvent.setup();
+    const notes = [
+      ...Array.from({ length: 60 }, (_, i) => makeNote(i, i)),
+      { ...makeNote(99, 900), title: 'Ordo corpus blueprint', folder: '' },
+    ];
+    render(<CommandPalette open onClose={onClose} notes={notes} onOpenNote={onOpenNote} go={go} />);
+
+    await user.type(screen.getByPlaceholderText('Search commands and notes'), 'ordo');
+    expect(await screen.findByText('Ordo corpus blueprint')).toBeInTheDocument();
+  });
+
+  it('finds a note by its file name and shows its folder', async () => {
+    const user = userEvent.setup();
+    const notes = [{ ...makeNote(1), title: 'Overview', fileName: '00-overview', folder: 'Areas/Speculum Mundi' }];
+    render(<CommandPalette open onClose={onClose} notes={notes} onOpenNote={onOpenNote} go={go} />);
+
+    await user.type(screen.getByPlaceholderText('Search commands and notes'), '00-over');
+    expect(await screen.findByText('Overview')).toBeInTheDocument();
+    expect(screen.getByText('Areas/Speculum Mundi')).toBeInTheDocument();
+  });
+
   it('closes from the Esc button', async () => {
     const user = userEvent.setup();
     render(<CommandPalette open onClose={onClose} notes={[]} onOpenNote={onOpenNote} go={go} />);

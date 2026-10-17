@@ -20,12 +20,20 @@ import styles from "./CommandPalette.module.css";
  *
  * Notes are the first group, not the last: the most likely reason to open it
  * is finding a note. An empty query shows the five most recent notes; typing
- * searches the 50 most recent. Arc owns the query state and exposes no hook,
- * so the query is mirrored from the input via bubbled events.
+ * searches every note (title, file name, folder) and shows the 50 most recent
+ * matches. Arc owns the query state and exposes no hook, so the query is
+ * mirrored from the input via bubbled events.
  */
 
 const MAX_NOTE_ITEMS = 50;
 const RECENT_NOTE_ITEMS = 5;
+
+// modifiedAt is the file time on desktop; web notes only carry createdAt.
+const recency = (n) => n.modifiedAt ?? (new Date(n.updatedAt || n.createdAt).getTime() || 0);
+
+// Same rule as Arc's own filter (lowercase substring), so every note kept here survives it.
+const noteMatches = (n, q) =>
+  [n.title, n.fileName, n.folder].filter(Boolean).join(" ").toLowerCase().includes(q);
 
 const icon = (Icon) => React.createElement(Icon, { size: 16, strokeWidth: 1.75, "aria-hidden": "true" });
 
@@ -57,16 +65,17 @@ function PaletteBody({
     );
 
   const items = useMemo(() => {
-    const sorted = [...notes].sort(
-      (a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
-    );
-    const noteSlice = query.trim()
-      ? sorted.slice(0, MAX_NOTE_ITEMS)
-      : sorted.slice(0, RECENT_NOTE_ITEMS);
+    const q = query.trim().toLowerCase();
+    // Match first, then cap: capping first hid every older note (most of an Obsidian vault).
+    const sorted = (q ? notes.filter((n) => noteMatches(n, q)) : [...notes]).sort((a, b) => recency(b) - recency(a));
+    const noteSlice = sorted.slice(0, q ? MAX_NOTE_ITEMS : RECENT_NOTE_ITEMS);
 
     const noteItems = noteSlice.map((n) => ({
       id: `note-${n.id}`,
       label: n.title || "Untitled",
+      // The folder tells same-named notes apart; file name and folder also make them findable.
+      description: n.folder || undefined,
+      keywords: [n.fileName, n.folder].filter(Boolean),
       group: query.trim() ? "Notes" : "Recent notes",
       icon: icon(StickyNote),
       run: () => onOpenNote?.(n.id),
