@@ -390,6 +390,33 @@ describe("vault.js nested folders", () => {
     expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/new-title.md`]);
   });
 
+  it("keeps the file name of a note whose title differs from it (regression: 00-overview.md renamed on save)", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/00-overview.md`] = md({ id: "n1", title: "Speculum Mundi" });
+    const [note] = await loadNotes(VAULT);
+    await saveNote(VAULT, { ...note, content: "edited" });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/00-overview.md`]);
+    expect(fsState.files[`${VAULT}/a/00-overview.md`]).toContain("edited");
+  });
+
+  it("keeps an Obsidian file name with caps and spaces when its body is edited", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/ORDO CORPUS PPL.md`] = "# Plan\n\nbody\n";
+    const [note] = await loadNotes(VAULT);
+    await saveNote(VAULT, { ...note, content: `${note.content}\nmore` });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/ORDO CORPUS PPL.md`]);
+  });
+
+  it("still renames after the title is changed in MAIA, and only then", async () => {
+    const { loadNotes, saveNote } = await importVault();
+    fsState.files[`${VAULT}/a/00-overview.md`] = md({ id: "n1", title: "Speculum Mundi" });
+    const [note] = await loadNotes(VAULT);
+    await saveNote(VAULT, { ...note, title: "World mirror" });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/world-mirror.md`]);
+    await saveNote(VAULT, { ...note, title: "World mirror", content: "again" });
+    expect(Object.keys(fsState.files)).toEqual([`${VAULT}/a/world-mirror.md`]);
+  });
+
   it("does not overwrite a file that appeared on disk after the last load", async () => {
     const { loadNotes, saveNote } = await importVault();
     await loadNotes(VAULT);

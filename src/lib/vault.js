@@ -97,6 +97,10 @@ let fileMap = new Map();
 // id → markdown text as last read from (or written to) disk — the baseline
 // a save compares against to detect an external change.
 let contentMap = new Map();
+// id → title as last read from (or written to) disk. A file is renamed only when the title
+// changed in MAIA since then: saving a note whose title differs from its file name (an Obsidian
+// note with a frontmatter title) used to rename it to the title's slug and break links to it.
+let titleMap = new Map();
 // Files that exist but could not be read on the last load. They have no id in
 // fileMap, so their names must still count as taken or a save could overwrite them.
 let unreadable = new Set();
@@ -158,6 +162,8 @@ export const loadVault = async (vaultPath, { keepBaselines } = {}) => {
     for (const id of keepBaselines ?? []) {
       if (contentMap.has(id) && snap.nextMap.has(id)) snap.nextContentMap.set(id, contentMap.get(id));
     }
+    const keep = new Set(keepBaselines ?? []);
+    titleMap = new Map(snap.notes.map((n) => [n.id, keep.has(n.id) && titleMap.has(n.id) ? titleMap.get(n.id) : n.title]));
     fileMap = snap.nextMap;
     contentMap = snap.nextContentMap;
     unreadable = snap.nextUnreadable;
@@ -182,12 +188,13 @@ const uniqueMd = (base, taken) => {
   return name;
 };
 
-// A note whose title still matches its file name keeps that name (a foreign
-// "Design System.md" must not become "design-system.md" just because it was
-// edited); a changed title renames the file as before.
+// An existing file keeps its name unless the title was changed in MAIA since the file was read:
+// a foreign "Design System.md" or "00-overview.md" (title "Speculum Mundi") must not become a slug
+// just because it was edited. A title changed in MAIA renames the file as before.
 const pickName = (note, current, taken) => {
   const currentBase = current ? relBase(current).replace(/\.md$/i, "") : null;
   const slug = slugifyTitle(note.title);
+  if (currentBase && titleMap.get(note.id) === note.title) return uniqueMd(currentBase, taken);
   if (currentBase && slug && slugifyTitle(currentBase) === slug) return uniqueMd(currentBase, taken);
   // The loader skips dot files, so a title like ".env notes" must not produce one: the
   // note would be saved and then vanish from the list on the next load.
@@ -257,6 +264,7 @@ const saveNoteNow = async (vaultPath, note) => {
   }
   fileMap.set(note.id, desired);
   contentMap.set(note.id, nextText);
+  titleMap.set(note.id, note.title);
   return true;
 };
 
@@ -275,6 +283,7 @@ const deleteNoteNow = async (vaultPath, id) => {
   } finally {
     fileMap.delete(id);
     contentMap.delete(id);
+    titleMap.delete(id);
   }
 };
 
