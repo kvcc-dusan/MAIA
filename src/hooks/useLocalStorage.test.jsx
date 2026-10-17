@@ -2,6 +2,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, act, cleanup } from "@testing-library/react";
 import { useLocalStorage } from "./useLocalStorage.js";
+import { toast } from "sonner";
+
+vi.mock("sonner", () => ({ toast: { error: vi.fn(), dismiss: vi.fn() } }));
 
 function TestComponent({ storageKey, initial, onApi }) {
   const [state, setState, writeError] = useLocalStorage(storageKey, initial);
@@ -90,8 +93,22 @@ describe("useLocalStorage", () => {
 
     expect(getApi().writeError).toBeInstanceOf(Error);
     expect(getApi().writeError.name).toBe("QuotaExceededError");
+    expect(toast.error).toHaveBeenCalledWith(
+      expect.stringContaining("storage is full"),
+      expect.objectContaining({ id: "storage-write-maia.test.quota" }),
+    );
 
+    // The next write that lands clears the error and its toast.
     setItemSpy.mockRestore();
+    act(() => {
+      getApi().setState({ count: 2 });
+    });
+    act(() => {
+      window.dispatchEvent(new Event("beforeunload"));
+    });
+    expect(getApi().writeError).toBeNull();
+    expect(toast.dismiss).toHaveBeenCalledWith("storage-write-maia.test.quota");
+
     cleanup();
   });
 });

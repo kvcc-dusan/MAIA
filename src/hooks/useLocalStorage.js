@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 
 /**
  * Hook to persist state to localStorage with debounced writes.
@@ -39,16 +40,32 @@ export function useLocalStorage(key, initial) {
   stateRef.current = state;
   const dirtyRef = useRef(false); // true whenever a debounced write hasn't landed yet
 
+  const failedRef = useRef(false);
+
   const writeNow = useCallback(() => {
+    // One toast per key, replaced on every failed write instead of stacking.
+    const toastId = `storage-write-${key}`;
     try {
       localStorage.setItem(key, JSON.stringify(stateRef.current));
       dirtyRef.current = false;
       setWriteError(null);
+      if (failedRef.current) {
+        failedRef.current = false;
+        toast.dismiss(toastId);
+      }
     } catch (e) {
       console.error(`[MAIA] Failed to write localStorage key "${key}"`, e);
       const isQuota = e.name === "QuotaExceededError" || e.code === 22;
-      if (isQuota) console.warn(`[MAIA] Storage quota exceeded writing "${key}"! Data was not saved.`);
+      failedRef.current = true;
       setWriteError(e);
+      // Chronos, reminders and app settings live here even in the desktop app. A failed write
+      // used to reach only the console, so the UI kept showing changes that were never saved.
+      toast.error(
+        isQuota
+          ? "MAIA's local storage is full, so your latest changes weren't saved. Export a backup in Settings > Data."
+          : "Couldn't save your latest changes on this device. They stay until the window closes.",
+        { id: toastId, duration: Infinity },
+      );
     }
   }, [key]);
 

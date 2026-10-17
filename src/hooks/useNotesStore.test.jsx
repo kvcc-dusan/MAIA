@@ -164,6 +164,28 @@ describe("useNotesStore (vault branch)", () => {
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("conflict copy"));
   });
 
+  it("retries a failed write on its own, without waiting for another edit", async () => {
+    vaultMocks.loadNotes.mockResolvedValue([]);
+    vaultMocks.saveNote.mockRejectedValueOnce(new Error("Drive offline")).mockResolvedValue(true);
+    const { useNotesStore } = await importStore();
+    const { result } = renderHook(() => useNotesStore());
+    await waitFor(() => expect(result.current[2].status).toBe("ready"));
+
+    const note = { id: "r1", title: "Retry me", content: "x", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z" };
+    act(() => result.current[1]([note]));
+
+    // 1 s debounce, the failure, then the first 2 s retry, all on real timers.
+    await waitFor(() => expect(vaultMocks.saveNote).toHaveBeenCalledTimes(2), { timeout: 5000 });
+    expect(vaultMocks.saveNote.mock.calls[1][1]).toMatchObject({ id: "r1", content: "x" });
+    expect(toast.error).toHaveBeenCalledWith(
+      expect.stringContaining('"Retry me"'),
+      expect.objectContaining({ id: "vault-write-failed" }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ id: "vault-write-failed" })),
+    );
+  }, 8000);
+
   it("stamps modifiedAt with the save time after a write, without queueing another write", async () => {
     const note = { id: "st1", title: "Stamp", content: "x", folder: "", tags: [], links: [], projectIds: [], createdAt: "2026-01-01T00:00:00.000Z", modifiedAt: 1 };
     vaultMocks.loadNotes.mockResolvedValue([note]);

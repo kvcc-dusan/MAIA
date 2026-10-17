@@ -21,6 +21,11 @@ import {
 } from "../lib/vault.js";
 
 const WRITE_DEBOUNCE_MS = 1000;
+// A failed write (Drive offline, disk full, permissions) retries on its own, backing off.
+// Without this, a note that failed once waited for the next edit, and closing the window lost it.
+const RETRY_DELAYS_MS = [2000, 5000, 15000, 30000, 60000];
+// One toast for all failing notes, replaced on every attempt instead of stacking.
+const WRITE_FAILED_TOAST = "vault-write-failed";
 
 // Same elements in the same order. Unchanged files come back as the same objects, so a
 // focus reload with no outside edits leaves state untouched and re-renders nothing.
@@ -65,6 +70,9 @@ function useVaultNotes() {
   const prevNotesRef = useRef(null);
   const pendingRef = useRef(new Map()); // id → note (debounce buffer)
   const timerRef = useRef(null);
+  const retryCountRef = useRef(0); // failed flushes in a row
+  const flushRef = useRef(null); // flush, for the retry timer that runFlush arms
+  const mountedRef = useRef(true); // a flush still running at unmount must not arm a retry
   const dirtyRef = useRef(new Set()); // ids with unflushed changes
   const inflightRef = useRef(new Set()); // running flushes, so a vault switch can wait for them
   const loadRunRef = useRef(null); // the running load, if any
@@ -191,6 +199,7 @@ function useVaultNotes() {
     if (!vaultPath) return;
     const batch = [...pendingRef.current.values()];
     pendingRef.current = new Map();
+    const failed = [];
     for (const item of batch) {
       try {
         if (item.deleted) {
@@ -237,12 +246,40 @@ function useVaultNotes() {
             `"${item.note.title || "Untitled"}" changed outside MAIA — your edit is kept as "${conflictNote.title}" for you to merge by hand.`
           );
         } else {
-          console.error("[MAIA] Vault write failed — will retry on next change", e);
-          pendingRef.current.set(item.id, item); // keep for retry
-          toast.error(`Couldn't save "${item.note?.title || "a note"}" to the vault — will retry.`);
+          console.error("[MAIA] Vault write failed, retrying", e);
+          // An edit made while this write was running is newer: keep it, not the failed one.
+          if (!pendingRef.current.has(item.id)) pendingRef.current.set(item.id, item);
+          failed.push(item);
         }
       }
     }
+
+    if (failed.length === 0) {
+      if (retryCountRef.current > 0) {
+        retryCountRef.current = 0;
+        toast.success("Notes saved to the vault again.", { id: WRITE_FAILED_TOAST });
+      }
+      return;
+    }
+
+    const delay = RETRY_DELAYS_MS[Math.min(retryCountRef.current, RETRY_DELAYS_MS.length - 1)];
+    retryCountRef.current += 1;
+    const what = failed.length === 1 && !failed[0].deleted
+      ? `"${failed[0].note.title || "Untitled"}"`
+      : `${failed.length} ${failed.length === 1 ? "change" : "changes"}`;
+    toast.error(`Couldn't save ${what} to the vault. Trying again in ${Math.round(delay / 1000)} s.`, {
+      id: WRITE_FAILED_TOAST,
+    });
+    if (!mountedRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => flushRef.current?.(), delay);
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const flush = useCallback(() => {
@@ -252,6 +289,7 @@ function useVaultNotes() {
     run.then(done, done);
     return run;
   }, [runFlush]);
+  flushRef.current = flush;
 
   // Point the app at another vault folder. Order matters: the target is probed
   // first (a bad folder changes nothing), pending edits are written to the OLD
