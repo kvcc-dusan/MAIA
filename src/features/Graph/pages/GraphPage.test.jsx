@@ -30,7 +30,9 @@ describe("GraphPage view mode", () => {
   it("falls back to 2D with a notice when 3D cannot start, keeping the saved choice", async () => {
     localStorage.setItem("maia_graph_view", "3d");
     render(<GraphPage notes={notes} projects={[]} onOpenNote={vi.fn()} />);
-    expect(await screen.findByText("3D view is not available")).toBeInTheDocument();
+    // The notice waits for the lazy 3D chunk (three.js): ~450 ms alone, past findBy's default 1 s
+    // when the full suite loads the machine. That was the flake.
+    expect(await screen.findByText("3D view is not available", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(await screen.findByTestId("graph-2d")).toBeInTheDocument();
     expect(localStorage.getItem("maia_graph_view")).toBe("3d");
   });

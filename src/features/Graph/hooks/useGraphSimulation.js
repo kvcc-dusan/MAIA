@@ -37,7 +37,10 @@ export function useGraphSimulation({
             .force("gravityY", forceY(cy).strength(gravityStrength))
             .force("collide", forceCollide().radius(d => 15 + d.val).strength(0.8));
 
-        simulation.alpha(1).restart();
+        // A graph whose nodes mostly kept their positions (keepGraphIdentity) only needs a nudge
+        // to fit the change in; a full alpha would scatter the layout the user was looking at.
+        const placed = nodes.filter((n) => n.x != null).length;
+        simulation.alpha(nodes.length && placed / nodes.length >= 0.8 ? 0.3 : 1).restart();
 
         return () => simulation.stop();
     }, [simulation, nodes, links, dims]);

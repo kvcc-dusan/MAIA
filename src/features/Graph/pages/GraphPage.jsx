@@ -17,6 +17,7 @@ import { useThemeTokens } from "../hooks/useThemeTokens.js";
 import { EmptyState } from "@/components/composed/EmptyState";
 import { Button } from "@/components/arc/button/button";
 import { Alert } from "@/components/arc/alert/alert";
+import { keepGraphIdentity } from "../lib/stableGraph.js";
 import styles from "./GraphPage.module.css";
 
 // three.js and 3d-force-graph load only when the 3D view is shown.
@@ -65,6 +66,7 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
   // Refs for access inside D3 closures without re-running effects
   const searchRef = useRef("");
   const nodesRef = useRef([]); // Track current nodes for zoom
+  const prevGraphRef = useRef(null); // last { nodes, links }, so an unchanged graph keeps its identity
 
   // Sync refs
   useEffect(() => { searchRef.current = searchQuery; }, [searchQuery]);
@@ -178,7 +180,9 @@ export default function GraphPage({ notes, projects = [], onOpenNote }) {
       allNodes = allNodes.filter(n => n.type === 'project' || n.type === 'ghost' || connected.has(n.id));
     }
 
-    return { nodes: allNodes, links: d3Links };
+    const kept = keepGraphIdentity(prevGraphRef.current, { nodes: allNodes, links: d3Links });
+    prevGraphRef.current = kept;
+    return kept;
   }, [notes, projects, analysis, showOnlyProjects, showGhostNodes, showOrphans]);
 
 
