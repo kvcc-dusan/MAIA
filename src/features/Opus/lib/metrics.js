@@ -1,9 +1,11 @@
 // Pure date and progress math for the Opus dashboard. No DOM, no state reads.
 // Port of projecthub/src/metrics.js; `today` is always passed in as "YYYY-MM-DD".
 //
-// Dates are UTC day numbers, so there is no timezone or DST drift. ISO
-// timestamps count by their first 10 characters (their UTC date). Callers pass
-// the user's local date as `today`; toDayString builds it.
+// Day math runs on UTC day numbers, so there is no DST drift. A plain date
+// ("2026-10-17", e.g. a due date) is taken as written; a full timestamp
+// (doneAt, activity `at`) counts on the user's LOCAL date, like `today`, which
+// callers build with toDayString. Taking a timestamp's first 10 characters put
+// work done between 00:00 and 02:00 (CEST) on the previous day.
 //
 // Tasks are expected in normalized form (taskModel.normalizeTask), which the
 // DataContext `tasks` array already is. Two MAIA field names are accepted next
@@ -19,7 +21,14 @@ const STATUS_LABELS = [
 ];
 
 /* dates */
-export const day = (s) => (s ? String(s).slice(0, 10) : "");
+const PLAIN_DATE = /^\d{4}-\d{2}-\d{2}$/;
+export const day = (s) => {
+  if (!s) return "";
+  const text = String(s);
+  if (PLAIN_DATE.test(text)) return text;
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? text.slice(0, 10) : toDayString(parsed);
+};
 const toNum = (s) => {
   const [y, m, d] = day(s).split("-").map(Number);
   return Date.UTC(y, m - 1, d) / DAY_MS;

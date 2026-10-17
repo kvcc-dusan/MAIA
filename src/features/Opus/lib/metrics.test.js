@@ -5,6 +5,8 @@ import * as M from "./metrics.js";
 
 const TODAY = "2026-10-09"; // a Friday
 const ids = (list) => list.map((x) => x.id);
+// ISO timestamp of a LOCAL wall-clock time, so these tests pass in any timezone.
+const local = (...parts) => new Date(...parts).toISOString();
 
 const workstreams = [
   { id: "wb", name: "Build", order: 2, color: "3" },
@@ -25,7 +27,7 @@ const tasks = [
   { id: "t12", workstream: "wb", status: "blocked", createdAt: "2026-09-14T08:00:00Z", due: "2026-10-02" },
 ];
 const activity = [
-  { at: "2026-09-28T09:00:00Z" }, { at: "2026-09-28T17:00:00Z" }, { at: "2026-10-06T12:00:00Z" }, { at: "2026-10-09T07:00:00Z" },
+  { at: local(2026, 8, 28, 9) }, { at: local(2026, 8, 28, 17) }, { at: local(2026, 9, 6, 12) }, { at: local(2026, 9, 9, 7) },
 ];
 const decisions = [{ id: "d1", date: "2026-10-07" }, { id: "d2", date: "2026-09-30" }];
 const questions = [
@@ -70,11 +72,11 @@ describe("overdue, dueWithin, blocked", () => {
     expect(ids(M.blocked(tasks))).toEqual(["t12", "t5"]);
   });
 
-  it("reads ISO timestamp dues by their date part", () => {
+  it("reads ISO timestamp dues by their local date", () => {
     const iso = [
-      { id: "a", status: "todo", due: "2026-10-16T09:30:00.000Z" },
-      { id: "b", status: "todo", due: "2026-10-08T23:00:00.000Z" },
-      { id: "c", status: "todo", due: "2026-10-09T08:00:00.000Z" },
+      { id: "a", status: "todo", due: local(2026, 9, 16, 9, 30) },
+      { id: "b", status: "todo", due: local(2026, 9, 8, 23, 0) },
+      { id: "c", status: "todo", due: local(2026, 9, 9, 8, 0) },
     ];
     expect(ids(M.dueWithin(iso, 7, TODAY))).toEqual(["c", "a"]);
     expect(ids(M.overdue(iso, TODAY))).toEqual(["b"]);
@@ -184,7 +186,10 @@ describe("date helpers", () => {
     expect(M.addDays("2026-03-29", 1)).toBe("2026-03-30"); // DST night in Europe
     expect(M.diffDays("2026-10-09", "2026-10-01")).toBe(8);
     expect(M.weekStart("2026-10-11")).toBe("2026-10-05");
-    expect(M.day("2026-10-09T23:59:00Z")).toBe("2026-10-09");
+    expect(M.day("2026-10-09")).toBe("2026-10-09"); // a plain date is taken as written
+    expect(M.day(local(2026, 9, 9, 23, 59))).toBe("2026-10-09");
+    // Regression: 00:30 local used to count on the previous day (its UTC date) east of UTC.
+    expect(M.day(local(2026, 9, 10, 0, 30))).toBe("2026-10-10");
     expect(M.toDayString(new Date(2026, 9, 9, 23, 59))).toBe("2026-10-09");
   });
 });
@@ -196,8 +201,14 @@ describe("hub overview helpers", () => {
   const done = (doneAt) => ({ status: "done", doneAt });
 
   it("doneThisWeek counts Monday through today", () => {
-    const tasks = [done("2026-10-05T08:00:00Z"), done("2026-10-09T08:00:00Z"), done("2026-10-04T23:00:00Z"), { status: "todo" }];
-    expect(doneThisWeek(tasks, TODAY)).toBe(2);
+    const tasks = [
+      done(local(2026, 9, 5, 8, 0)),
+      done(local(2026, 9, 9, 8, 0)),
+      done(local(2026, 9, 5, 0, 30)), // just after midnight on Monday: this week
+      done(local(2026, 9, 4, 23, 0)), // Sunday night: last week
+      { status: "todo" },
+    ];
+    expect(doneThisWeek(tasks, TODAY)).toBe(3);
   });
 
   it("weeklyDone is oldest first and ends with this week", () => {
