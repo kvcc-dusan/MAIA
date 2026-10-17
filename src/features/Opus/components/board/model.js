@@ -1,12 +1,13 @@
 // Pure board logic: columns, filters, due dates, labels. No React.
 import { sortColumn } from "./order.js";
 import { formatEstimate } from "../../kit/estimates.js";
+import { statusLabel } from "../../kit/format.js";
 
 export { workstreamColor } from "../../kit/format.js";
 export { ESTIMATE_OPTIONS, estimateOptionsFor, formatEstimate } from "../../kit/estimates.js";
 
 export const STATUS_ORDER = ["todo", "doing", "blocked", "done"];
-export const STATUS_LABELS = { todo: "To do", doing: "In progress", blocked: "Blocked", done: "Done" };
+export const STATUS_LABELS = Object.fromEntries(STATUS_ORDER.map((s) => [s, statusLabel(s)]));
 export const DONE_LIMIT = 20;
 export const WIP_LIMIT = 5;
 
